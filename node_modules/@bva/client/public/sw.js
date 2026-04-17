@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v65-header-align'
+const CACHE_NAME = 'bva-v66-build-fix'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
