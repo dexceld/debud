@@ -389,7 +389,11 @@ export default function MobileDashboard() {
                 </button>
                 {expanded && (
                   <div className="m-accordion-body">
-                    {gc.map((cat) => {
+                    {gc.filter((cat) => {
+                      const b = getForecastValue(cat, vm), a = getActualValue(cat.id, vm)
+                      const val = a !== null ? Math.abs(a) : b
+                      return val > 0
+                    }).map((cat) => {
                       const b = getForecastValue(cat, vm), a = getActualValue(cat.id, vm), d = (a ?? b) - b
                       return (
                         <button key={cat.id} className="m-acc-row" onClick={() => openUpdate(cat, vm)}>
@@ -587,7 +591,15 @@ export default function MobileDashboard() {
                     })}
                   </div>
                 </button>
-                {isOpen && gc.map(cat => (
+                {isOpen && gc.filter(cat => {
+                  // Check if category has any non-zero values across displayed months
+                  return monthCols.some(m => {
+                    const a = getActualValue(cat.id, m)
+                    const b = getForecastValue(cat, m)
+                    const val = a !== null ? Math.abs(a) : b
+                    return val > 0
+                  })
+                }).map(cat => (
                   <button key={cat.id} className="m-home-cat-row" onClick={() => openUpdate(cat, vm)}>
                     <span className="m-home-group-arrow-spacer"></span>
                     <span className="m-mm-name">{cat.name}</span>

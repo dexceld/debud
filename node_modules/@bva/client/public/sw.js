@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v104-render-global-vite'
+const CACHE_NAME = 'bva-v105-hide-zero-rows'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
