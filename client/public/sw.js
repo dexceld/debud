@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v81-simple-vite'
+const CACHE_NAME = 'bva-v82-netlify-ready'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
