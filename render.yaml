@@ -2,7 +2,7 @@ services:
   - type: static
     name: bva-dashboard
     runtime: static
-    buildCommand: npm install && npm run build -w client
+    buildCommand: npm install -g vite && npm install && npm install -w client && cd client && vite build
     staticPublishPath: ./client/dist
     envVars:
       - key: NODE_VERSION

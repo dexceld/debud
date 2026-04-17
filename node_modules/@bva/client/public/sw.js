@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v103-modal-title-font'
+const CACHE_NAME = 'bva-v104-render-global-vite'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
