@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v72-swipe-scroll'
+const CACHE_NAME = 'bva-v73-render-fix'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
