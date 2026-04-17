@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v85-uniform-font'
+const CACHE_NAME = 'bva-v86-render-fix'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
