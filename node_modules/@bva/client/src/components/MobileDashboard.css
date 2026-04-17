@@ -189,6 +189,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
+  padding-right: 8px;
 }
 
 .m-mm-col {
@@ -322,6 +323,7 @@
   font-weight: 700;
   color: #1F2937;
   text-align: right;
+  padding-right: 8px;
 }
 
 .m-home-group-actual {
