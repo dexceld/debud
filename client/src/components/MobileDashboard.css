@@ -490,6 +490,28 @@
   transition: all 0.2s ease;
 }
 
+/* Second row of buttons - 2 items */
+.m-home-action-btns.row-2 {
+  margin-top: 6px;
+}
+
+.m-home-action-btns.row-2 .m-hab-btn {
+  flex: 1;
+}
+
+.m-home-action-btns.row-2 .m-hab-btn.wide {
+  flex: 2;
+}
+
+/* Icon colors */
+.m-icon-actual {
+  background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+}
+
+.m-icon-forecast {
+  background: linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%);
+}
+
 .m-hab-btn:hover span:last-child,
 .m-hab-btn:active span:last-child {
   color: #7C3AED;

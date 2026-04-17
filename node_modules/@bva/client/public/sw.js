@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v53-fix-imports'
+const CACHE_NAME = 'bva-v54-button-rows'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
