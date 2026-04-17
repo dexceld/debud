@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v70-original-tabs'
+const CACHE_NAME = 'bva-v71-npx-build'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
