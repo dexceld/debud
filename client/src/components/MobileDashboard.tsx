@@ -390,6 +390,8 @@ export default function MobileDashboard() {
                 {expanded && (
                   <div className="m-accordion-body">
                     {gc.filter((cat) => {
+                      // Always show income categories (g5), hide others only if value is zero
+                      if (g.id === 'g5') return true
                       const b = getForecastValue(cat, vm), a = getActualValue(cat.id, vm)
                       const val = a !== null ? Math.abs(a) : b
                       return val > 0
@@ -592,6 +594,8 @@ export default function MobileDashboard() {
                   </div>
                 </button>
                 {isOpen && gc.filter(cat => {
+                  // Always show income categories (g5), hide others only if all values are zero
+                  if (isIncome) return true
                   // Check if category has any non-zero values across displayed months
                   return monthCols.some(m => {
                     const a = getActualValue(cat.id, m)

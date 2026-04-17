@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v105-hide-zero-rows'
+const CACHE_NAME = 'bva-v106-show-income-categories'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
