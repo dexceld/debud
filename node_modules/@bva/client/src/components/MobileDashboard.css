@@ -205,22 +205,24 @@
 .m-mm-header-months {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 4px;
+  justify-content: center;
+  gap: 8px;
   flex: 1;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
 }
 
 .m-mm-header-months::-webkit-scrollbar {
   display: none;
 }
 
+.m-mm-header-months.scrollable {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+}
+
 .m-mm-header-months.scrollable .m-mm-col {
-  scroll-snap-align: start;
   flex-shrink: 0;
 }
 
@@ -238,9 +240,9 @@
 }
 
 .m-mm-col {
-  width: 85px;
-  min-width: 85px;
-  font-size: 18px;
+  width: 80px;
+  min-width: 80px;
+  font-size: 16px;
   font-weight: 700;
   color: #111827;
   text-align: center;

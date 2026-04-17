@@ -551,19 +551,19 @@ export default function MobileDashboard() {
               onClick={() => goMonth('prev')}
               disabled={viewMonthIdx === 0}
             >
-              ◀
+              ▶
             </button>
             <div className="m-mm-header-months">
               {monthCols.map(m => (
                 <span key={m} className={`m-mm-col ${m === vm ? 'current' : ''}`}>{m}</span>
               ))}
             </div>
-            <button 
-              className="m-mm-nav-btn" 
+            <button
+              className="m-mm-nav-btn"
               onClick={() => goMonth('next')}
               disabled={viewMonthIdx >= months.length - 3}
             >
-              ▶
+              ◀
             </button>
           </div>
           {/* All groups in groupOrder */}
