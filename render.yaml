@@ -2,8 +2,9 @@ services:
   - type: static
     name: bva-dashboard
     runtime: static
-    buildCommand: npm install && npm run build -w client
-    staticPublishPath: ./client/dist
+    rootDir: client
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
     envVars:
       - key: NODE_VERSION
         value: 20
