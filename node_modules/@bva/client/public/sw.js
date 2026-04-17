@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v75-render-npx'
+const CACHE_NAME = 'bva-v76-workspace-build'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
