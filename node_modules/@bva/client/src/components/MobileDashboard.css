@@ -137,7 +137,7 @@
   padding: 8px 10px;
   border-bottom: 1px solid #E5E7EB;
   background: #F9FAFB;
-  gap: 4px;
+  gap: 8px;
 }
 
 .m-mm-header-nav {
@@ -170,6 +170,36 @@
   background: #D1D5DB;
   cursor: not-allowed;
   box-shadow: none;
+}
+
+.m-mm-nav-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+}
+
+.m-mm-nav-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.4);
+}
+
+.m-mm-nav-btn:disabled {
+  background: #D1D5DB;
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.5;
 }
 
 .m-mm-header-months {
@@ -208,8 +238,8 @@
 }
 
 .m-mm-col {
-  width: 72px;
-  min-width: 72px;
+  width: 85px;
+  min-width: 85px;
   font-size: 18px;
   font-weight: 700;
   color: #111827;

@@ -422,8 +422,8 @@ export default function MobileDashboard() {
       const newIdx = dir === 'prev' ? viewMonthIdx - 1 : viewMonthIdx + 1
       if (newIdx >= 0 && newIdx < months.length) setViewMonthIdx(newIdx)
     }
-    // months to show in monthly view — current + next 5 (6 months total, scrollable)
-    const monthCols = [viewMonthIdx, viewMonthIdx + 1, viewMonthIdx + 2, viewMonthIdx + 3, viewMonthIdx + 4, viewMonthIdx + 5]
+    // months to show in monthly view — show 3 months with navigation
+    const monthCols = [viewMonthIdx, viewMonthIdx + 1, viewMonthIdx + 2]
       .filter(i => i >= 0 && i < months.length)
       .map(i => months[i])
 
@@ -544,15 +544,28 @@ export default function MobileDashboard() {
         ) : (
         /* ── VIEW 2: month vs month ── */
         <div className="m-home-summary-block">
-          {/* Header row with navigation arrows - matching row structure */}
+          {/* Header row with navigation arrows */}
           <div className="m-mm-header">
-            <span className="m-home-group-arrow-spacer"></span>
+            <button 
+              className="m-mm-nav-btn" 
+              onClick={() => goMonth('prev')}
+              disabled={viewMonthIdx === 0}
+            >
+              ◀
+            </button>
             <span className="m-mm-name">תצוגה</span>
-            <div className="m-mm-header-months scrollable">
+            <div className="m-mm-header-months">
               {monthCols.map(m => (
                 <span key={m} className={`m-mm-col ${m === vm ? 'current' : ''}`}>{m}</span>
               ))}
             </div>
+            <button 
+              className="m-mm-nav-btn" 
+              onClick={() => goMonth('next')}
+              disabled={viewMonthIdx >= months.length - 3}
+            >
+              ▶
+            </button>
           </div>
           {/* All groups in groupOrder */}
           {groupOrder.map((gid) => {
