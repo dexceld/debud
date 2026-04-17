@@ -551,8 +551,8 @@ export default function MobileDashboard() {
         ) : (
         /* ── VIEW 2: month vs month ── */
         <div className="m-home-summary-block">
-          {/* Header row with navigation arrows */}
-          <div className="m-mm-header">
+          {/* Navigation arrows - separate row above */}
+          <div className="m-mm-nav-row">
             <button
               className="m-mm-nav-btn"
               onClick={() => goMonth('prev')}
@@ -561,11 +561,6 @@ export default function MobileDashboard() {
             >
               ‹
             </button>
-            <div className="m-mm-header-months">
-              {monthCols.map(m => (
-                <span key={m} className={`m-mm-col ${m === vm ? 'current' : ''}`}>{m}</span>
-              ))}
-            </div>
             <button
               className="m-mm-nav-btn"
               onClick={() => goMonth('next')}
@@ -574,6 +569,14 @@ export default function MobileDashboard() {
             >
               ›
             </button>
+          </div>
+          {/* Month header - swipeable */}
+          <div className="m-mm-header">
+            <div className="m-mm-header-months scrollable">
+              {monthCols.map(m => (
+                <span key={m} className={`m-mm-col ${m === vm ? 'current' : ''}`}>{m}</span>
+              ))}
+            </div>
           </div>
           {/* All groups in groupOrder */}
           {groupOrder.map((gid) => {

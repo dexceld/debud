@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v108-catmgmt-font'
+const CACHE_NAME = 'bva-v109-nav-arrows-above'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
