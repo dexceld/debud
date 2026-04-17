@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v83-render-deploy'
+const CACHE_NAME = 'bva-v84-force-rebuild'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
