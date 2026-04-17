@@ -864,6 +864,7 @@
   font-size: 16px;
   font-weight: 800;
   color: white;
+  font-family: inherit;
 }
 
 .m-catmgmt-add-fab {
