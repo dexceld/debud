@@ -447,6 +447,30 @@ export default function MobileDashboard() {
           </div>
         </div>
 
+        {/* View toggle - segmented control style */}
+        <div className="m-home-view-toggle">
+          <div className="m-segmented-bg">
+            <button
+              className={`m-segmented-btn ${homeView === 'actual' ? 'active' : ''}`}
+              onClick={() => {
+                setHomeView('actual')
+                localStorage.setItem('home_view', 'actual')
+              }}
+            >
+              בפועל מול תחזית
+            </button>
+            <button
+              className={`m-segmented-btn ${homeView === 'monthly' ? 'active' : ''}`}
+              onClick={() => {
+                setHomeView('monthly')
+                localStorage.setItem('home_view', 'monthly')
+              }}
+            >
+              חודש מול חודש
+            </button>
+          </div>
+        </div>
+
         <div className="m-home-scroll">
         {/* Month navigator — only in actual vs forecast view */}
         {homeView === 'actual' && (
@@ -610,18 +634,6 @@ export default function MobileDashboard() {
             <span>יתרות סגירה ונטו</span>
           </button>
         </div>
-
-        {/* View toggle button */}
-        <button 
-          className="m-view-toggle-btn" 
-          onClick={() => {
-            const newView = homeView === 'actual' ? 'monthly' : 'actual'
-            setHomeView(newView)
-            localStorage.setItem('home_view', newView)
-          }}
-        >
-          {homeView === 'actual' ? '📅 חודש מול חודש' : '✓ בפועל מול תחזית'}
-        </button>
 
         {/* Floating Action Button for quick add */}
         <button className="m-fab" onClick={() => setQuickAddOpen(true)}>

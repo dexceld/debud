@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v69-view-toggle'
+const CACHE_NAME = 'bva-v70-original-tabs'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
