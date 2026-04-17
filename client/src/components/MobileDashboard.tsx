@@ -119,6 +119,7 @@ export default function MobileDashboard() {
   const [homeView, setHomeView] = useState<'actual' | 'monthly'>(
     () => (localStorage.getItem('home_view') as 'actual' | 'monthly') || 'actual'
   )
+  void setHomeView // Used implicitly by localStorage sync
   const [catMgmtOpen, setCatMgmtOpen] = useState(false)
   const [catUsage, setCatUsage] = useState<Record<string, number>>(
     () => JSON.parse(localStorage.getItem('cat_usage') || '{}')
@@ -427,11 +428,6 @@ export default function MobileDashboard() {
       .filter(i => i >= 0 && i < months.length)
       .map(i => months[i])
 
-    const switchView = (v: 'actual' | 'monthly') => {
-      setHomeView(v)
-      localStorage.setItem('home_view', v)
-    }
-
     return (
       <div className="m-screen">
         <div className="m-header">
@@ -448,24 +444,6 @@ export default function MobileDashboard() {
             <button className="m-hbtn m-hbtn-plus" onClick={openQuickAdd}>
               <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" /></svg>
               <span className="m-hbtn-label">הוצאה</span>
-            </button>
-          </div>
-        </div>
-
-        {/* View toggle - segmented control style */}
-        <div className="m-home-view-toggle">
-          <div className="m-segmented-bg">
-            <button
-              className={`m-segmented-btn ${homeView === 'actual' ? 'active' : ''}`}
-              onClick={() => switchView('actual')}
-            >
-              בפועל מול תחזית
-            </button>
-            <button
-              className={`m-segmented-btn ${homeView === 'monthly' ? 'active' : ''}`}
-              onClick={() => switchView('monthly')}
-            >
-              חודש מול חודש
             </button>
           </div>
         </div>
@@ -618,33 +596,26 @@ export default function MobileDashboard() {
         </div>
         )}
 
-        {/* Action buttons - 2 rows */}
+        {/* Action buttons - single row */}
         <div className="m-home-action-btns">
-          {/* Row 1: Actual vs Forecast toggle, Save */}
-          <button className="m-hab-btn" onClick={() => switchView('actual')}>
-            <span className="m-hab-icon m-icon-actual">✓</span>
-            <span>בפועל מול תחזית</span>
-          </button>
-          <button className="m-hab-btn" onClick={() => switchView('monthly')}>
-            <span className="m-hab-icon m-icon-forecast">📅</span>
-            <span>חודש מול חודש</span>
-          </button>
           <button className="m-hab-btn" onClick={saveSnapshot}>
             <span className="m-hab-icon m-icon-save">⬇️</span>
             <span>שמור</span>
           </button>
-        </div>
-        <div className="m-home-action-btns row-2">
-          {/* Row 2: Graph, Balance */}
           <button className="m-hab-btn" onClick={() => setScreen('forecast-chart')}>
             <span className="m-hab-icon m-icon-chart">�</span>
             <span>גרף</span>
           </button>
-          <button className="m-hab-btn wide" onClick={() => setScreen('forecast')}>
-            <span className="m-hab-icon m-icon-list">�</span>
+          <button className="m-hab-btn" onClick={() => setScreen('forecast')}>
+            <span className="m-hab-icon m-icon-list">📄</span>
             <span>יתרות סגירה ונטו</span>
           </button>
         </div>
+
+        {/* Floating Action Button for quick add */}
+        <button className="m-fab" onClick={() => setQuickAddOpen(true)}>
+          <span className="m-fab-icon">+</span>
+        </button>
         {/* Save feedback toast */}
         {saveFeedback && (
           <div className="m-save-toast">
