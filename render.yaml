@@ -1,9 +1,8 @@
-# Render build configuration - updated Apr 17, 2026
 services:
   - type: static
     name: bva-dashboard
     runtime: static
-    buildCommand: npm install && cd client && npm install --legacy-peer-deps && ../node_modules/.bin/vite build
+    buildCommand: npm install && npm run build -w client
     staticPublishPath: ./client/dist
     envVars:
       - key: NODE_VERSION

@@ -228,7 +228,7 @@
 
 .m-mm-name {
   flex: 1;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: #111827;
   text-align: right;
@@ -1181,11 +1181,15 @@
 
 .m-home-cat-name {
   flex: 1;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
   color: #374151;
   text-align: right;
   padding-right: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 
