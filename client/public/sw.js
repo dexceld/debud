@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v109-nav-arrows-above'
+const CACHE_NAME = 'bva-v110-render-direct-build'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
