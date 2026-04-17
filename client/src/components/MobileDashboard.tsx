@@ -614,14 +614,14 @@ export default function MobileDashboard() {
 
         {/* Action buttons - 2 rows */}
         <div className="m-home-action-btns">
-          {/* Row 1: Actual, Forecast, Save */}
-          <button className="m-hab-btn" onClick={() => setScreen('budget')}>
+          {/* Row 1: Actual vs Forecast toggle, Save */}
+          <button className="m-hab-btn" onClick={() => switchView('actual')}>
             <span className="m-hab-icon m-icon-actual">✓</span>
-            <span>בפועל</span>
+            <span>בפועל מול תחזית</span>
           </button>
-          <button className="m-hab-btn" onClick={() => setScreen('detail')}>
-            <span className="m-hab-icon m-icon-forecast">�</span>
-            <span>תחזית</span>
+          <button className="m-hab-btn" onClick={() => switchView('monthly')}>
+            <span className="m-hab-icon m-icon-forecast">📅</span>
+            <span>חודש מול חודש</span>
           </button>
           <button className="m-hab-btn" onClick={saveSnapshot}>
             <span className="m-hab-icon m-icon-save">⬇️</span>
