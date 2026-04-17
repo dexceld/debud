@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v94-three-months-nav'
+const CACHE_NAME = 'bva-v95-remove-tzuga'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

@@ -546,14 +546,13 @@ export default function MobileDashboard() {
         <div className="m-home-summary-block">
           {/* Header row with navigation arrows */}
           <div className="m-mm-header">
-            <button 
-              className="m-mm-nav-btn" 
+            <button
+              className="m-mm-nav-btn"
               onClick={() => goMonth('prev')}
               disabled={viewMonthIdx === 0}
             >
               ◀
             </button>
-            <span className="m-mm-name">תצוגה</span>
             <div className="m-mm-header-months">
               {monthCols.map(m => (
                 <span key={m} className={`m-mm-col ${m === vm ? 'current' : ''}`}>{m}</span>
