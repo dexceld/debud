@@ -119,7 +119,6 @@ export default function MobileDashboard() {
   const [homeView, setHomeView] = useState<'actual' | 'monthly'>(
     () => (localStorage.getItem('home_view') as 'actual' | 'monthly') || 'actual'
   )
-  void setHomeView // Used implicitly by localStorage sync
   const [catMgmtOpen, setCatMgmtOpen] = useState(false)
   const [catUsage, setCatUsage] = useState<Record<string, number>>(
     () => JSON.parse(localStorage.getItem('cat_usage') || '{}')
@@ -599,18 +598,30 @@ export default function MobileDashboard() {
         {/* Action buttons - single row */}
         <div className="m-home-action-btns">
           <button className="m-hab-btn" onClick={saveSnapshot}>
-            <span className="m-hab-icon m-icon-save">⬇️</span>
+            <span className="m-hab-icon m-icon-save">S</span>
             <span>שמור</span>
           </button>
           <button className="m-hab-btn" onClick={() => setScreen('forecast-chart')}>
-            <span className="m-hab-icon m-icon-chart">�</span>
+            <span className="m-hab-icon m-icon-chart">G</span>
             <span>גרף</span>
           </button>
           <button className="m-hab-btn" onClick={() => setScreen('forecast')}>
-            <span className="m-hab-icon m-icon-list">📄</span>
+            <span className="m-hab-icon m-icon-list">L</span>
             <span>יתרות סגירה ונטו</span>
           </button>
         </div>
+
+        {/* View toggle button */}
+        <button 
+          className="m-view-toggle-btn" 
+          onClick={() => {
+            const newView = homeView === 'actual' ? 'monthly' : 'actual'
+            setHomeView(newView)
+            localStorage.setItem('home_view', newView)
+          }}
+        >
+          {homeView === 'actual' ? '📅 חודש מול חודש' : '✓ בפועל מול תחזית'}
+        </button>
 
         {/* Floating Action Button for quick add */}
         <button className="m-fab" onClick={() => setQuickAddOpen(true)}>

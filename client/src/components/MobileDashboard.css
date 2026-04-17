@@ -556,6 +556,35 @@
   font-size: 26px;
 }
 
+/* ===== VIEW TOGGLE BUTTON ===== */
+.m-view-toggle-btn {
+  width: calc(100% - 32px);
+  margin: 8px 16px 12px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%);
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+  transition: all 0.2s ease;
+}
+
+.m-view-toggle-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+.m-view-toggle-btn:active {
+  transform: translateY(0);
+}
+
 .m-hab-btn:hover span:last-child,
 .m-hab-btn:active span:last-child {
   color: #7C3AED;

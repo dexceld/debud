@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v68-fab-button'
+const CACHE_NAME = 'bva-v69-view-toggle'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
