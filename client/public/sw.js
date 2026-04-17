@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v64-larger-acc-fonts'
+const CACHE_NAME = 'bva-v65-header-align'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

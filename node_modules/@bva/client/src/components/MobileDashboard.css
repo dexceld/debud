@@ -1791,9 +1791,13 @@
 .m-acc-col-header {
   display: flex;
   align-items: center;
-  padding: 5px 12px 4px 12px;
+  padding: 8px 12px;
   border-bottom: 1px solid #e5e7eb;
   background: #f3f4f6;
+  font-size: 13px;
+  font-weight: 700;
+  color: #6B7280;
+  text-transform: uppercase;
 }
 
 .m-acc-col-header-global {
@@ -1809,12 +1813,12 @@
 .m-acc-col-name {
   flex: 1;
   min-width: 0;
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 700;
-  color: #9CA3AF;
+  color: #6B7280;
   text-align: right;
   text-transform: uppercase;
-  padding-right: 20px; /* indent past arrow */
+  padding-right: 20px; /* indent to align with group name (past arrow 14px + gap 6px) */
 }
 
 /* each val col matches the corresponding acc-right cell width */
