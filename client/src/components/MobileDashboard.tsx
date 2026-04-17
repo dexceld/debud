@@ -621,10 +621,19 @@ export default function MobileDashboard() {
           </button>
         </div>
 
-        {/* Floating Action Button for quick add */}
-        <button className="m-fab" onClick={() => setQuickAddOpen(true)}>
-          <span className="m-fab-icon">+</span>
-        </button>
+        {/* Floating Action Buttons */}
+        <div className="m-fab-container">
+          <button className="m-fab" onClick={() => setQuickAddOpen(true)} title="הוסף עסקה">
+            <span className="m-fab-icon">+</span>
+          </button>
+          <button 
+            className="m-fab forecast" 
+            onClick={() => { setQuickSearch(''); setUpdateAmount(''); setQuickForecastOnly(true); setQuickAddOpen(true) }}
+            title="עדכן תחזית"
+          >
+            <span className="m-fab-icon">📅</span>
+          </button>
+        </div>
         {/* Save feedback toast */}
         {saveFeedback && (
           <div className="m-save-toast">
