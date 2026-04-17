@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v66-build-fix'
+const CACHE_NAME = 'bva-v67-npm-exec'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
