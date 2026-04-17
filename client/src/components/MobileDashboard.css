@@ -134,8 +134,48 @@
 .m-mm-header {
   display: flex;
   align-items: center;
-  padding: 6px 10px;
+  justify-content: space-between;
+  padding: 8px 10px;
   border-bottom: 1px solid #E5E7EB;
+  background: #F9FAFB;
+  gap: 8px;
+}
+
+.m-mm-header-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+  color: white;
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.m-mm-header-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+.m-mm-header-btn:disabled {
+  background: #D1D5DB;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.m-mm-header-months {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
 }
 
 .m-mm-name {
@@ -153,9 +193,9 @@
 .m-mm-col {
   width: 72px;
   min-width: 72px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #6B7280;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1F2937;
   text-align: center;
   direction: ltr;
   font-variant-numeric: tabular-nums;
@@ -179,46 +219,6 @@
 
 /* Blue for actual values */
 .m-mm-col.blue { color: #1D4ED8; }
-
-/* ===== MONTH NAVIGATION ===== */
-.m-mm-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 10px;
-  border-bottom: 1px solid #E5E7EB;
-  background: #F9FAFB;
-}
-
-.m-mm-nav-btn {
-  width: 36px;
-  height: 36px;
-  border: none;
-  border-radius: 8px;
-  background: #7C3AED;
-  color: white;
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s;
-}
-
-.m-mm-nav-btn:hover:not(:disabled) {
-  background: #6D28D9;
-}
-
-.m-mm-nav-btn:disabled {
-  background: #D1D5DB;
-  cursor: not-allowed;
-}
-
-.m-mm-nav-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #374151;
-}
 
 /* ===== HOME GROUPED SUMMARY BLOCK ===== */
 .m-home-summary-block {
@@ -375,8 +375,9 @@
 
 /* Negative values in net row */
 .m-home-group-footer .m-mm-col.neg {
-  color: #FCA5A5 !important;
+  color: #FFE4E6 !important;
   font-weight: 800;
+  text-shadow: 0 1px 2px rgba(220, 38, 38, 0.3);
 }
 
 .m-home-group-footer .m-home-group-actual,
@@ -385,16 +386,20 @@
   color: #FFFFFF;
 }
 
+/* Ensure negative values in footer/balance row are clearly visible */
+.m-home-group-footer .m-home-group-actual.neg {
+  color: #FECACA !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
 .net-val.pos { color: #1F2937; }
 .net-val.neg { color: #1F2937; }
 
-.m-home-group-footer .m-home-group-actual,
-.m-home-group-footer .m-home-group-budget,
+/* Footer rows should use same font size as regular rows for consistency */
 .m-home-group-footer .m-home-group-name,
-.m-home-group-footer .m-mm-name,
-.m-home-group-footer .m-mm-col {
-  font-size: 16px;
-  font-weight: 800;
+.m-home-group-footer .m-mm-name {
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .m-home-balance-row {
@@ -403,13 +408,17 @@
   font-weight: 800;
 }
 
-.m-home-balance-row .m-home-group-actual,
 .m-home-balance-row .m-home-group-name,
-.m-home-balance-row .m-mm-name,
-.m-home-balance-row .m-mm-col {
-  font-size: 16px;
-  font-weight: 800;
+.m-home-balance-row .m-mm-name {
+  font-size: 14px;
+  font-weight: 700;
   color: #FFFFFF;
+}
+
+/* Negative values in balance row */
+.m-home-balance-row .m-home-group-actual.neg {
+  color: #FECACA !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .m-home-balance-row .m-home-group-budget {
@@ -445,15 +454,33 @@
   transform: translateY(-2px);
 }
 
-.m-hab-btn span:first-child {
+.m-hab-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
   font-size: 24px;
-  filter: grayscale(0%) opacity(1);
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-.m-hab-btn:hover span:first-child,
-.m-hab-btn:active span:first-child {
-  transform: scale(1.15);
+.m-icon-save {
+  background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+}
+
+.m-icon-chart {
+  background: linear-gradient(135deg, #06B6D4 0%, #22D3EE 100%);
+}
+
+.m-icon-list {
+  background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+}
+
+.m-hab-btn:hover .m-hab-icon {
+  transform: scale(1.1) rotate(-5deg);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
 }
 
 .m-hab-btn span:last-child {
@@ -1017,13 +1044,15 @@
 .m-th-chart-btn:active { opacity: 1; }
 
 .m-th-month {
-  flex: 1.2;
-  font-size: 11px;
-  font-weight: 700;
+  width: 72px;
+  min-width: 72px;
+  font-size: 15px;
+  font-weight: 800;
   color: #5B21B6;
-  text-align: right;
+  text-align: center;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   padding: 4px 0;
 }
@@ -1084,9 +1113,9 @@
 }
 
 .m-row-month-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: #374151;
+  font-size: 17px;
+  font-weight: 800;
+  color: #111827;
 }
 
 .m-row-badge {

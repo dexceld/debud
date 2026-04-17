@@ -543,26 +543,23 @@ export default function MobileDashboard() {
         ) : (
         /* ── VIEW 2: month vs month ── */
         <div className="m-home-summary-block">
-          {/* Navigation for 3-month view */}
-          <div className="m-mm-nav">
+          {/* Header row with navigation arrows */}
+          <div className="m-mm-header">
             <button 
-              className="m-mm-nav-btn" 
+              className="m-mm-header-btn" 
               onClick={() => goMonth('prev')}
               disabled={viewMonthIdx <= 0}
-            >→</button>
-            <span className="m-mm-nav-label">3 חודשים</span>
+            >‹</button>
+            <div className="m-mm-header-months">
+              {monthCols.map(m => (
+                <span key={m} className={`m-mm-col ${m === vm ? 'current' : ''}`}>{m}</span>
+              ))}
+            </div>
             <button 
-              className="m-mm-nav-btn" 
+              className="m-mm-header-btn" 
               onClick={() => goMonth('next')}
               disabled={viewMonthIdx >= months.length - 3}
-            >←</button>
-          </div>
-          {/* Header row */}
-          <div className="m-mm-header">
-            <span className="m-mm-name"></span>
-            {monthCols.map(m => (
-              <span key={m} className={`m-mm-col ${m === vm ? 'current' : ''}`}>{m}</span>
-            ))}
+            >›</button>
           </div>
           {/* All groups in groupOrder */}
           {groupOrder.map((gid) => {
@@ -618,13 +615,16 @@ export default function MobileDashboard() {
         {/* Action buttons replacing the old forecast table */}
         <div className="m-home-action-btns">
           <button className="m-hab-btn" onClick={saveSnapshot}>
-            <span>💾</span><span>שמור תחזית</span>
+            <span className="m-hab-icon m-icon-save">💾</span>
+            <span>שמור תחזית</span>
           </button>
           <button className="m-hab-btn" onClick={() => setScreen('forecast-chart')}>
-            <span>📈</span><span>גרף</span>
+            <span className="m-hab-icon m-icon-chart">📈</span>
+            <span>גרף</span>
           </button>
           <button className="m-hab-btn" onClick={() => setScreen('forecast')}>
-            <span>🗒️</span><span>יתרות סגירה ונטו</span>
+            <span className="m-hab-icon m-icon-list">📋</span>
+            <span>יתרות סגירה ונטו</span>
           </button>
         </div>
         {/* Save feedback toast */}
