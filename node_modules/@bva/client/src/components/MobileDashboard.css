@@ -221,14 +221,19 @@
 .m-mm-header-months {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 12px;
   flex: 1;
   overflow-x: hidden;
+  direction: ltr;
 }
 
 .m-mm-header-months::-webkit-scrollbar {
   display: none;
+}
+
+.m-mm-header-months.scrollable {
+  direction: ltr;
 }
 
 .m-mm-header-months.scrollable .m-mm-col {

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v111-align-3-months'
+const CACHE_NAME = 'bva-v112-rtl-months'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

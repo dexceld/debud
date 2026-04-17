@@ -428,11 +428,10 @@ export default function MobileDashboard() {
       const newIdx = dir === 'prev' ? viewMonthIdx - 1 : viewMonthIdx + 1
       if (newIdx >= 0 && newIdx < months.length) setViewMonthIdx(newIdx)
     }
-    // months to show in monthly view — show 3 months with navigation (oldest first, left to right)
-    const monthCols = [viewMonthIdx + 2, viewMonthIdx + 1, viewMonthIdx]
+    // months to show in monthly view — show 3 months (newest on left for RTL)
+    const monthCols = [viewMonthIdx, viewMonthIdx + 1, viewMonthIdx + 2]
       .filter(i => i >= 0 && i < months.length)
       .map(i => months[i])
-      .reverse()
 
     return (
       <div className="m-screen">
