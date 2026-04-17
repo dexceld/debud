@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v62-padding-right'
+const CACHE_NAME = 'bva-v63-npx-build'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
