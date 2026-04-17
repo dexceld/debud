@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v80-tsx-build'
+const CACHE_NAME = 'bva-v81-simple-vite'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
