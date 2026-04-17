@@ -543,23 +543,29 @@ export default function MobileDashboard() {
         ) : (
         /* ── VIEW 2: month vs month ── */
         <div className="m-home-summary-block">
-          {/* Header row with navigation arrows */}
+          {/* Header row with navigation arrows - matching row structure */}
           <div className="m-mm-header">
-            <button 
-              className="m-mm-header-btn" 
-              onClick={() => goMonth('prev')}
-              disabled={viewMonthIdx <= 0}
-            >‹</button>
+            <span className="m-home-group-arrow-spacer"></span>
+            <span className="m-mm-name">תצוגה</span>
+            <div className="m-mm-header-nav">
+              <button 
+                className="m-mm-header-btn" 
+                onClick={() => goMonth('prev')}
+                disabled={viewMonthIdx <= 0}
+              >‹</button>
+            </div>
             <div className="m-mm-header-months">
               {monthCols.map(m => (
                 <span key={m} className={`m-mm-col ${m === vm ? 'current' : ''}`}>{m}</span>
               ))}
             </div>
-            <button 
-              className="m-mm-header-btn" 
-              onClick={() => goMonth('next')}
-              disabled={viewMonthIdx >= months.length - 3}
-            >›</button>
+            <div className="m-mm-header-nav">
+              <button 
+                className="m-mm-header-btn" 
+                onClick={() => goMonth('next')}
+                disabled={viewMonthIdx >= months.length - 3}
+              >›</button>
+            </div>
           </div>
           {/* All groups in groupOrder */}
           {groupOrder.map((gid) => {
