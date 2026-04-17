@@ -1,8 +1,8 @@
 # Render build configuration - updated Apr 17, 2026
 services:
-  - type: static
+  - type: web
     name: bva-dashboard
-    runtime: static
+    runtime: node
     buildCommand: npm ci && npm install -w client && npm run build -w client
     staticPublishPath: ./client/dist
     envVars:
