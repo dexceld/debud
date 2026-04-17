@@ -2204,9 +2204,11 @@
 }
 
 .m-quick-topbar-title {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 800;
   color: white;
+  font-family: inherit;
+  text-align: center;
 }
 
 .m-quick-close {
