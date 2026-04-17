@@ -1886,12 +1886,12 @@
 .m-acc-col-header {
   display: flex;
   align-items: center;
-  padding: 8px 12px;
+  padding: 10px 12px;
   border-bottom: 1px solid #e5e7eb;
   background: #f3f4f6;
-  font-size: 13px;
-  font-weight: 700;
-  color: #6B7280;
+  font-size: 15px;
+  font-weight: 800;
+  color: #4B5563;
   text-transform: uppercase;
 }
 
@@ -1901,16 +1901,16 @@
   z-index: 9;
   background: #ede9fe;
   border-bottom: 2px solid #DDD6FE;
-  padding: 6px 12px;
+  padding: 8px 12px;
 }
 
 /* name col = arrow(14px) + gap(6px) + rest = matches acc-left */
 .m-acc-col-name {
   flex: 1;
   min-width: 0;
-  font-size: 13px;
-  font-weight: 700;
-  color: #6B7280;
+  font-size: 15px;
+  font-weight: 800;
+  color: #4B5563;
   text-align: right;
   text-transform: uppercase;
   padding-right: 20px; /* indent to align with group name (past arrow 14px + gap 6px) */
@@ -1919,8 +1919,8 @@
 /* each val col matches the corresponding acc-right cell width */
 .m-acc-col-val {
   flex-shrink: 0;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 800;
   color: #374151;
   text-align: center;
   direction: ltr;

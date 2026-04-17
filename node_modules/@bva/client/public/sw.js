@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v91-node-runtime'
+const CACHE_NAME = 'bva-v92-header-fonts'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
