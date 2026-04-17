@@ -175,8 +175,23 @@
 .m-mm-header-months {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 4px;
+  flex: 1;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.m-mm-header-months::-webkit-scrollbar {
+  display: none;
+}
+
+.m-mm-header-months.scrollable .m-mm-col {
+  scroll-snap-align: start;
+  flex-shrink: 0;
 }
 
 .m-mm-name {
