@@ -616,26 +616,26 @@ export default function MobileDashboard() {
         <div className="m-home-action-btns">
           {/* Row 1: Actual, Forecast, Save */}
           <button className="m-hab-btn" onClick={() => setScreen('budget')}>
-            <span className="m-hab-icon m-icon-actual">📋</span>
+            <span className="m-hab-icon m-icon-actual">✓</span>
             <span>בפועל</span>
           </button>
           <button className="m-hab-btn" onClick={() => setScreen('detail')}>
-            <span className="m-hab-icon m-icon-forecast">📊</span>
+            <span className="m-hab-icon m-icon-forecast">�</span>
             <span>תחזית</span>
           </button>
           <button className="m-hab-btn" onClick={saveSnapshot}>
-            <span className="m-hab-icon m-icon-save">💾</span>
+            <span className="m-hab-icon m-icon-save">⬇️</span>
             <span>שמור</span>
           </button>
         </div>
         <div className="m-home-action-btns row-2">
           {/* Row 2: Graph, Balance */}
           <button className="m-hab-btn" onClick={() => setScreen('forecast-chart')}>
-            <span className="m-hab-icon m-icon-chart">📈</span>
+            <span className="m-hab-icon m-icon-chart">�</span>
             <span>גרף</span>
           </button>
           <button className="m-hab-btn wide" onClick={() => setScreen('forecast')}>
-            <span className="m-hab-icon m-icon-list">📋</span>
+            <span className="m-hab-icon m-icon-list">�</span>
             <span>יתרות סגירה ונטו</span>
           </button>
         </div>

@@ -180,9 +180,9 @@
 
 .m-mm-name {
   flex: 1;
-  font-size: 13px;
-  font-weight: 600;
-  color: #374151;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
   text-align: right;
   white-space: nowrap;
   overflow: hidden;
@@ -193,9 +193,9 @@
 .m-mm-col {
   width: 72px;
   min-width: 72px;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
-  color: #1F2937;
+  color: #111827;
   text-align: center;
   direction: ltr;
   font-variant-numeric: tabular-nums;
@@ -317,7 +317,7 @@
 
 .m-home-group-name {
   flex: 1;
-  font-size: 14px;
+  font-size: 17px;
   font-weight: 700;
   color: #1F2937;
   text-align: right;
@@ -506,10 +506,16 @@
 /* Icon colors */
 .m-icon-actual {
   background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+  font-size: 28px;
 }
 
 .m-icon-forecast {
-  background: linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%);
+  background: linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%);
+  font-size: 26px;
+}
+
+.m-icon-save {
+  font-size: 26px;
 }
 
 .m-hab-btn:hover span:last-child,
@@ -1068,7 +1074,7 @@
 .m-th-month {
   width: 72px;
   min-width: 72px;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 800;
   color: #5B21B6;
   text-align: center;
@@ -1135,7 +1141,7 @@
 }
 
 .m-row-month-name {
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 800;
   color: #111827;
 }
