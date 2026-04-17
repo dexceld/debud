@@ -509,20 +509,28 @@
   align-items: center;
   justify-content: center;
   border-radius: 14px;
-  font-size: 24px;
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  color: white;
 }
 
-.m-icon-save {
+.m-hab-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Save icon - purple gradient */
+.m-hab-btn:nth-child(1) .m-hab-icon {
   background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
 }
 
-.m-icon-chart {
+/* Chart icon - cyan gradient */
+.m-hab-btn:nth-child(2) .m-hab-icon {
   background: linear-gradient(135deg, #06B6D4 0%, #22D3EE 100%);
 }
 
-.m-icon-list {
+/* List icon - green gradient */
+.m-hab-btn:nth-child(3) .m-hab-icon {
   background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
 }
 
@@ -602,19 +610,13 @@
   font-size: 20px;
 }
 
-/* Icon colors */
+/* Icon colors for forecast view */
 .m-icon-actual {
   background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
-  font-size: 28px;
 }
 
 .m-icon-forecast {
   background: linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%);
-  font-size: 24px;
-}
-
-.m-icon-save {
-  font-size: 26px;
 }
 
 /* ===== VIEW TOGGLE BUTTON ===== */

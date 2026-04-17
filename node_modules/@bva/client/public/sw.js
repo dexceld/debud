@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v96-render-fix'
+const CACHE_NAME = 'bva-v97-modern-icons'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
