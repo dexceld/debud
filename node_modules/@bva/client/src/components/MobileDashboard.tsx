@@ -551,8 +551,9 @@ export default function MobileDashboard() {
               className="m-mm-nav-btn"
               onClick={() => goMonth('prev')}
               disabled={viewMonthIdx === 0}
+              aria-label="חודש קודם"
             >
-              ▶
+              ‹
             </button>
             <div className="m-mm-header-months">
               {monthCols.map(m => (
@@ -563,8 +564,9 @@ export default function MobileDashboard() {
               className="m-mm-nav-btn"
               onClick={() => goMonth('next')}
               disabled={viewMonthIdx >= months.length - 3}
+              aria-label="חודש הבא"
             >
-              ◀
+              ›
             </button>
           </div>
           {/* All groups in groupOrder */}
