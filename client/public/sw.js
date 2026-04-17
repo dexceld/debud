@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v63-npx-build'
+const CACHE_NAME = 'bva-v64-larger-acc-fonts'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

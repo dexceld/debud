@@ -1745,7 +1745,7 @@
 .m-acc-budget {
   width: 70px;
   flex-shrink: 0;
-  font-size: 12px;
+  font-size: 16px;
   color: #9CA3AF;
   font-weight: 500;
   direction: ltr;
@@ -1756,7 +1756,7 @@
 .m-acc-actual {
   width: 74px;
   flex-shrink: 0;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
   color: #1F2937;
   direction: ltr;
@@ -1770,7 +1770,7 @@
 .m-acc-diff {
   width: 58px;
   flex-shrink: 0;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 700;
   text-align: center;
   padding: 2px 4px;
@@ -1820,7 +1820,7 @@
 /* each val col matches the corresponding acc-right cell width */
 .m-acc-col-val {
   flex-shrink: 0;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   color: #374151;
   text-align: center;
@@ -1869,7 +1869,7 @@
 /* row value cells — widths match header cols exactly */
 .m-acc-col-val.muted {
   width: 70px; flex-shrink: 0;
-  font-size: 12px; font-weight: 500;
+  font-size: 16px; font-weight: 500;
   color: #9CA3AF;
   text-align: right; direction: ltr;
   font-variant-numeric: tabular-nums;
@@ -1877,7 +1877,7 @@
 
 .m-acc-col-val.blue {
   width: 74px; flex-shrink: 0;
-  font-size: 13px; font-weight: 800;
+  font-size: 16px; font-weight: 800;
   color: #1D4ED8;
   text-align: right; direction: ltr;
   font-variant-numeric: tabular-nums;
@@ -1885,7 +1885,7 @@
 
 .m-acc-col-val.over {
   width: 58px; flex-shrink: 0;
-  font-size: 12px; font-weight: 700;
+  font-size: 16px; font-weight: 700;
   color: #1F2937;
   text-align: center; direction: ltr;
   font-variant-numeric: tabular-nums;
@@ -1893,7 +1893,7 @@
 
 .m-acc-col-val.under {
   width: 58px; flex-shrink: 0;
-  font-size: 12px; font-weight: 700;
+  font-size: 16px; font-weight: 700;
   color: #1F2937;
   text-align: center; direction: ltr;
   font-variant-numeric: tabular-nums;
@@ -1901,7 +1901,7 @@
 
 .m-acc-col-val.even {
   width: 58px; flex-shrink: 0;
-  font-size: 12px; font-weight: 500;
+  font-size: 16px; font-weight: 500;
   color: #9CA3AF;
   text-align: center; direction: ltr;
   font-variant-numeric: tabular-nums;
