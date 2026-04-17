@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v95-remove-tzuga'
+const CACHE_NAME = 'bva-v96-render-fix'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
