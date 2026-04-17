@@ -565,20 +565,24 @@ export default function MobileDashboard() {
                 <button className={`m-home-group-row ${isIncome ? 'income-row' : ''}`} onClick={() => toggleGroup(g.id)}>
                   <span className="m-home-group-arrow">{isOpen ? '▾' : '▸'}</span>
                   <span className="m-mm-name">{g.name}</span>
-                  {monthCols.map(m => {
-                    const tot = gc.reduce((s,c) => { const a=getActualValue(c.id,m); return s+(a!==null?a:getForecastValue(c,m)) }, 0)
-                    return <span key={m} className={`m-mm-col ${m === vm ? 'current' : ''}`}>{Math.abs(tot).toLocaleString()}</span>
-                  })}
+                  <div className="m-mm-header-months scrollable">
+                    {monthCols.map(m => {
+                      const tot = gc.reduce((s,c) => { const a=getActualValue(c.id,m); return s+(a!==null?a:getForecastValue(c,m)) }, 0)
+                      return <span key={m} className={`m-mm-col ${m === vm ? 'current' : ''}`}>{Math.abs(tot).toLocaleString()}</span>
+                    })}
+                  </div>
                 </button>
                 {isOpen && gc.map(cat => (
                   <button key={cat.id} className="m-home-cat-row" onClick={() => openUpdate(cat, vm)}>
                     <span className="m-home-group-arrow-spacer"></span>
                     <span className="m-mm-name">{cat.name}</span>
-                    {monthCols.map(m => {
-                      const a = getActualValue(cat.id, m), b = getForecastValue(cat, m)
-                      const displayVal = a !== null ? Math.abs(a) : b
-                      return <span key={m} className={`m-mm-col ${m === vm ? 'current' : ''} ${a !== null ? 'blue' : ''}`}>{displayVal.toLocaleString()}</span>
-                    })}
+                    <div className="m-mm-header-months scrollable">
+                      {monthCols.map(m => {
+                        const a = getActualValue(cat.id, m), b = getForecastValue(cat, m)
+                        const displayVal = a !== null ? Math.abs(a) : b
+                        return <span key={m} className={`m-mm-col ${m === vm ? 'current' : ''} ${a !== null ? 'blue' : ''}`}>{displayVal.toLocaleString()}</span>
+                      })}
+                    </div>
                   </button>
                 ))}
               </React.Fragment>
@@ -588,19 +592,23 @@ export default function MobileDashboard() {
           <div className="m-home-group-footer">
             <span className="m-home-group-arrow"></span>
             <span className="m-mm-name">נטו</span>
-            {monthCols.map(m => {
-              const { net: n } = getMonthTotals(m)
-              return <span key={m} className={`m-mm-col ${m === vm ? 'current' : ''} ${n >= 0 ? '' : 'neg'}`}>{n>=0?'+':'−'}{Math.abs(n).toLocaleString()}</span>
-            })}
+            <div className="m-mm-header-months scrollable">
+              {monthCols.map(m => {
+                const { net: n } = getMonthTotals(m)
+                return <span key={m} className={`m-mm-col ${m === vm ? 'current' : ''} ${n >= 0 ? '' : 'neg'}`}>{n>=0?'+':'−'}{Math.abs(n).toLocaleString()}</span>
+              })}
+            </div>
           </div>
           {/* Closing balance */}
           <div className="m-home-group-footer m-home-balance-row">
             <span className="m-home-group-arrow"></span>
             <span className="m-mm-name">יתרת סגירה</span>
-            {monthCols.map(m => {
-              const b = getRunningBalance(m)
-              return <span key={m} className={`m-mm-col ${m === vm ? 'current' : ''} ${b >= 0 ? '' : 'neg'}`}>{b < 0 ? '−' : ''}{Math.abs(b).toLocaleString()}</span>
-            })}
+            <div className="m-mm-header-months scrollable">
+              {monthCols.map(m => {
+                const b = getRunningBalance(m)
+                return <span key={m} className={`m-mm-col ${m === vm ? 'current' : ''} ${b >= 0 ? '' : 'neg'}`}>{b < 0 ? '−' : ''}{Math.abs(b).toLocaleString()}</span>
+              })}
+            </div>
           </div>
         </div>
         )}
