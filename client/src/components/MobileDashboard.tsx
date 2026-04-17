@@ -1203,7 +1203,7 @@ export default function MobileDashboard() {
         {/* Add new button */}
         <button className="m-catmgmt-add-row" onClick={() => { setAddingItem(true); setRenamingCatId(null) }}>
           <span className="m-catmgmt-add-plus">＋</span>
-          <span className="m-catmgmt-add-label">הוצאה חדשה ב{group.name}</span>
+          <span className="m-catmgmt-add-label">סעיף חדש ב{group.name}</span>
         </button>
 
         {/* Add new form */}
@@ -1212,7 +1212,7 @@ export default function MobileDashboard() {
             <input
               ref={addRef}
               className="m-catmgmt-edit-input"
-              placeholder="שם הוצאה חדשה..."
+              placeholder="שם סעיף חדש..."
               value={newItemName}
               onChange={e => setNewItemName(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') saveNewItem(); if (e.key === 'Escape') setAddingItem(false) }}

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v106-show-income-categories'
+const CACHE_NAME = 'bva-v107-text-fix'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
