@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm exec -- tsc --noEmit && npm exec -- vite build",
+    "build": "npx tsx --noEmit && npx vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"
   },
