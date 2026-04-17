@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v84-force-rebuild'
+const CACHE_NAME = 'bva-v85-uniform-font'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
