@@ -2,7 +2,7 @@ services:
   - type: static
     name: debud
     runtime: static
-    buildCommand: cd client && npm install --include=dev && npm run build
+    buildCommand: npm install --include=dev && npm run build -w client
     staticPublishPath: ./client/dist
     envVars:
       - key: NODE_VERSION
