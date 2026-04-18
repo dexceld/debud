@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v113-fixed-3-cols'
+const CACHE_NAME = 'bva-v114-compact-rows'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
