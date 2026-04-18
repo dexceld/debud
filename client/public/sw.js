@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v118-col-header-fix'
+const CACHE_NAME = 'bva-v119-modal-font'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
