@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v128-fab-forecast-fix'
+const CACHE_NAME = 'bva-v129-search-focus-fix'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

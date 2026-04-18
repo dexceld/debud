@@ -1428,16 +1428,14 @@ export default function MobileDashboard() {
     // Global month + amount at top
     const [globalMonth, setGlobalMonth] = useState(currentMonth)
     const [globalAmount, setGlobalAmount] = useState('')
-    const [localSearch, setLocalSearch] = useState(quickSearch)
     const globalAmountRef = useRef<HTMLInputElement>(null)
     const searchRef = useRef<HTMLInputElement>(null)
-    useEffect(() => { setTimeout(() => globalAmountRef.current?.focus(), 80) }, [])
 
     const tabCats = activeTab === 'expense' ? expenseCatsList : incomeCatsList
-    const baseFiltered = localSearch.trim()
+    const baseFiltered = quickSearch.trim()
       ? tabCats.filter((c) =>
-          c.name.includes(localSearch) ||
-          (groups.find((g) => g.id === c.groupId)?.name || '').includes(localSearch)
+          c.name.includes(quickSearch) ||
+          (groups.find((g) => g.id === c.groupId)?.name || '').includes(quickSearch)
         )
       : tabCats
     const filtered = [...baseFiltered].sort((a, b) => (catUsage[b.id] || 0) - (catUsage[a.id] || 0))
@@ -1616,9 +1614,11 @@ export default function MobileDashboard() {
             ref={searchRef}
             className="m-search-input"
             type="text"
+            inputMode="search"
             placeholder="🔍  חפש..."
-            value={localSearch}
-            onChange={e => { setLocalSearch(e.target.value); setQuickNewName(e.target.value); setPanelCatId(null) }}
+            value={quickSearch}
+            onChange={e => { setQuickSearch(e.target.value); setQuickNewName(e.target.value); setPanelCatId(null) }}
+            onFocus={() => { globalAmountRef.current?.blur() }}
           />
 
           {/* Category list */}
@@ -1776,10 +1776,10 @@ export default function MobileDashboard() {
 
             {/* Create new category */}
             {activeTab === 'expense' && (
-              localSearch.trim() && filtered.length === 0 ? (
+              quickSearch.trim() && filtered.length === 0 ? (
                 <div className="m-new-cat-box">
                   <div className="m-new-cat-title">לא נמצא — צור הוצאה חדשה?</div>
-                  <div className="m-new-cat-name-preview">{localSearch.trim()}</div>
+                  <div className="m-new-cat-name-preview">{quickSearch.trim()}</div>
                   <select className="m-sheet-select" value={quickNewGroupId} onChange={e => setQuickNewGroupId(e.target.value)}>
                     {allExpenseGroups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
                   </select>
