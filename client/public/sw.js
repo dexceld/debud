@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v134-focus-once-only'
+const CACHE_NAME = 'bva-v135-header-settings-only'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
