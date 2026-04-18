@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v138-settings-sections'
+const CACHE_NAME = 'bva-v139-fix-drillgid-remount'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

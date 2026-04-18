@@ -126,6 +126,7 @@ export default function MobileDashboard() {
     () => (localStorage.getItem('home_view') as 'actual' | 'monthly') || 'monthly'
   )
   const [catMgmtOpen, setCatMgmtOpen] = useState(false)
+  const [catMgmtDrillGid, setCatMgmtDrillGid] = useState<string | null>(null)
   const [catUsage, setCatUsage] = useState<Record<string, number>>(
     () => JSON.parse(localStorage.getItem('cat_usage') || '{}')
   )
@@ -1181,7 +1182,8 @@ export default function MobileDashboard() {
     if (!catMgmtOpen) return null
 
     // nav: null = groups list, string = group id drill-down
-    const [drillGid, setDrillGid]         = useState<string | null>(null)
+    const drillGid = catMgmtDrillGid
+    const setDrillGid = setCatMgmtDrillGid
     const [renamingCatId, setRenamingCatId] = useState<string | null>(null)
     const [renameVal, setRenameVal]         = useState('')
     const [addingItem, setAddingItem]       = useState(false)
@@ -1199,7 +1201,7 @@ export default function MobileDashboard() {
     useEffect(() => { if (renamingCatId) setTimeout(() => renameRef.current?.focus(), 50) }, [renamingCatId])
     useEffect(() => { if (addingItem)    setTimeout(() => addRef.current?.focus(),    50) }, [addingItem])
 
-    const closeAll = () => { setCatMgmtOpen(false) }
+    const closeAll = () => { setCatMgmtOpen(false); setCatMgmtDrillGid(null) }
     const goBack   = () => { setDrillGid(null); setRenamingCatId(null); setAddingItem(false) }
 
     const groupAccent = (gid: string) => {
