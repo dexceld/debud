@@ -748,7 +748,7 @@ export default function MobileDashboard() {
           </button>
           <button 
             className="m-fab forecast" 
-            onClick={() => { setQuickSearch(''); setUpdateAmount(''); setQuickForecastOnly(true); setQuickAddOpen(true) }}
+            onClick={() => { setQuickSearch(''); setUpdateAmount(''); setGlobalAmount(''); setQuickForecastOnly(true); setQuickAddOpen(true) }}
             title="עדכן תחזית"
           >
             <span className="m-fab-icon">📅</span>
