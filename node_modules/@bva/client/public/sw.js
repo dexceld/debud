@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v129-search-focus-fix'
+const CACHE_NAME = 'bva-v130-remove-amount-hero'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

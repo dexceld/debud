@@ -1572,20 +1572,7 @@ export default function MobileDashboard() {
             >הכנסות</button>
           </div>
 
-          {/* Amount — big + centered (actuals only) */}
-          <div className="m-qi-amount-hero" style={{ display: quickForecastOnly ? 'none' : undefined }}>
-            <input
-              ref={globalAmountRef}
-              type="number" inputMode="numeric"
-              placeholder="0"
-              value={globalAmount}
-              onChange={e => setGlobalAmount(e.target.value)}
-              className="m-qi-amount-hero-input"
-            />
-            <span className="m-qi-amount-hero-symbol">₪</span>
-          </div>
-
-          {/* Month strip below amount (actuals only) */}
+          {/* Month strip (actuals only) */}
           {!quickForecastOnly && (() => {
             const mIdx = months.indexOf(globalMonth)
             const prev = months[mIdx - 1]
@@ -1617,8 +1604,8 @@ export default function MobileDashboard() {
             inputMode="search"
             placeholder="🔍  חפש..."
             value={quickSearch}
+            autoFocus
             onChange={e => { setQuickSearch(e.target.value); setQuickNewName(e.target.value); setPanelCatId(null) }}
-            onFocus={() => { globalAmountRef.current?.blur() }}
           />
 
           {/* Category list */}
