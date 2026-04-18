@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v147-ob-always-open'
+const CACHE_NAME = 'bva-v148-uncontrolled-amount'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

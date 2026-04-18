@@ -120,7 +120,6 @@ export default function MobileDashboard() {
   const [quickNewName, setQuickNewName] = useState('')
   const [quickNewGroupId, setQuickNewGroupId] = useState('g4')
   const [quickForecastOnly, setQuickForecastOnly] = useState(false)
-  const [globalAmount, setGlobalAmount] = useState('')
   const [globalMonth, setGlobalMonth] = useState(getCurrentMonth)
   const [homeView, setHomeView] = useState<'actual' | 'monthly'>(
     () => (localStorage.getItem('home_view') as 'actual' | 'monthly') || 'monthly'
@@ -270,10 +269,14 @@ export default function MobileDashboard() {
     setQuickNewGroupId('g4')
     setUpdateAmount('')
     setQuickForecastOnly(false)
-    setGlobalAmount('')
     setGlobalMonth(getCurrentMonth())
     setQuickAddOpen(true)
-    setTimeout(() => globalAmountInputRef.current?.focus(), 50)
+    setTimeout(() => {
+      if (globalAmountInputRef.current) {
+        globalAmountInputRef.current.value = ''
+        globalAmountInputRef.current.focus()
+      }
+    }, 50)
   }
 
   const addNewCategoryAndUpdate = () => {
@@ -749,7 +752,7 @@ export default function MobileDashboard() {
           </button>
           <button 
             className="m-fab forecast" 
-            onClick={() => { setQuickSearch(''); setUpdateAmount(''); setGlobalAmount(''); setQuickForecastOnly(true); setQuickAddOpen(true) }}
+            onClick={() => { setQuickSearch(''); setUpdateAmount(''); setQuickForecastOnly(true); setQuickAddOpen(true) }}
             title="עדכן תחזית"
           >
             <span className="m-fab-icon">📅</span>
@@ -1745,8 +1748,7 @@ export default function MobileDashboard() {
                 ref={globalAmountRef}
                 type="number" inputMode="numeric"
                 placeholder="0"
-                value={globalAmount}
-                onChange={e => setGlobalAmount(e.target.value)}
+                defaultValue=""
                 className="m-qi-amount-hero-input"
               />
               <span className="m-qi-amount-hero-symbol">₪</span>
@@ -1803,10 +1805,11 @@ export default function MobileDashboard() {
                     const dx = e.changedTouches[0].clientX - swipeCatRef.current.startX
                     swipeCatRef.current = null
                     setSwipeDx(null)
-                    if (!globalAmount || Math.abs(dx) < THRESHOLD) return
+                    const _amt = globalAmountInputRef.current?.value || ''
+                    if (!_amt || Math.abs(dx) < THRESHOLD) return
                     const isAdd = dx > 0
                     const isIncome = cat.groupId === 'g5'
-                    const signedAmount = isIncome ? -Math.abs(Number(globalAmount)) : Math.abs(Number(globalAmount))
+                    const signedAmount = isIncome ? -Math.abs(Number(_amt)) : Math.abs(Number(_amt))
                     setActuals(p => {
                       const existing = p[cat.id]?.[globalMonth] ?? 0
                       const signedExisting = isIncome ? -Math.abs(existing) : Math.abs(existing)
@@ -1816,7 +1819,7 @@ export default function MobileDashboard() {
                     doClose()
                   }}>
                   {/* Reveal layer — always full width, behind the sliding card */}
-                  {cardDx !== 0 && globalAmount && (
+                  {cardDx !== 0 && (globalAmountInputRef.current?.value || '') && (
                     <div className="m-qi-reveal-layer" style={{
                       background: cardDx > 0 ? '#16A34A' : '#2563EB',
                       justifyContent: cardDx > 0 ? 'flex-start' : 'flex-end',
@@ -1845,9 +1848,10 @@ export default function MobileDashboard() {
                       zIndex: 1,
                     }}>
                   <button className="m-qi-card-header" style={{ background: 'transparent' }} onClick={() => {
-                    if (globalAmount) {
+                    const _amt = globalAmountInputRef.current?.value || ''
+                    if (_amt) {
                       const isIncome = cat.groupId === 'g5'
-                      const signedAmount = isIncome ? -Math.abs(Number(globalAmount)) : Math.abs(Number(globalAmount))
+                      const signedAmount = isIncome ? -Math.abs(Number(_amt)) : Math.abs(Number(_amt))
                       setActuals(p => ({...p,[cat.id]:{...(p[cat.id]||{}),[globalMonth]: signedAmount}}))
                       trackCatUsage(cat.id)
                       doClose()
@@ -1857,13 +1861,10 @@ export default function MobileDashboard() {
                   }}>
                     <span className="m-quick-item-name">{cat.name}</span>
                     <span className="m-qi-group-label-sm">{group?.icon} {group?.name}</span>
-                    {globalAmount
-                      ? <span className="m-qi-swipe-tip">← הוסף &nbsp;&nbsp; עדכן →</span>
-                      : <span className="m-qi-chevron">{isOpen ? '▲' : '▼'}</span>
-                    }
+                    <span className="m-qi-chevron">{isOpen ? '▲' : '▼'}</span>
                   </button>
 
-                  {isOpen && !globalAmount && (
+                  {isOpen && !(globalAmountInputRef.current?.value || '') && (
                     <div className="m-qi-panel" ref={panelRef}>
                       <div className="m-qi-panel-row">
                         <input
