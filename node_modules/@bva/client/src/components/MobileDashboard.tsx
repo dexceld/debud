@@ -1244,29 +1244,35 @@ export default function MobileDashboard() {
           <span style={{width:36}} />
         </div>
         <div className="m-settings-menu">
+          <button className="m-settings-row" onClick={() => setSettingsPage('categories')}>
+            <span className="m-settings-icon-wrap" style={{background:'#EEF2FF'}}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            </span>
+            <div className="m-settings-info">
+              <span className="m-settings-title">ניהול קטגוריות</span>
+              <span className="m-settings-sub">{categories.length} סעיפים ב-{groups.length} קבוצות</span>
+            </div>
+            <svg className="m-settings-chevron-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C4C9D4" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
           <button className="m-settings-row" onClick={() => setSettingsPage('balance')}>
-            <span className="m-settings-icon">📍</span>
+            <span className="m-settings-icon-wrap" style={{background:'#F0FDF4'}}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+            </span>
             <div className="m-settings-info">
               <span className="m-settings-title">יתרת פתיחה / סגירה</span>
               <span className="m-settings-sub">{openingBalance ? `${openingBalance.month}: ${openingBalance.amount.toLocaleString()} ₪` : 'לא מוגדר'}</span>
             </div>
-            <span className="m-settings-chevron">›</span>
+            <svg className="m-settings-chevron-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C4C9D4" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
           <button className="m-settings-row" onClick={() => setSettingsPage('backup')}>
-            <span className="m-settings-icon">💾</span>
+            <span className="m-settings-icon-wrap" style={{background:'#FFF7ED'}}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="21 15 21 19 3 19 3 15"/><polyline points="17 9 12 4 7 9"/><line x1="12" y1="4" x2="12" y2="15"/></svg>
+            </span>
             <div className="m-settings-info">
               <span className="m-settings-title">גיבוי ושחזור</span>
               <span className="m-settings-sub">ייצוא וייבוא נתונים</span>
             </div>
-            <span className="m-settings-chevron">›</span>
-          </button>
-          <button className="m-settings-row" onClick={() => setSettingsPage('categories')}>
-            <span className="m-settings-icon">🗂️</span>
-            <div className="m-settings-info">
-              <span className="m-settings-title">ניהול קטגוריות</span>
-              <span className="m-settings-sub">{categories.length} סעיפים ב-{groups.length} קטגוריות</span>
-            </div>
-            <span className="m-settings-chevron">›</span>
+            <svg className="m-settings-chevron-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C4C9D4" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </div>
       </div>

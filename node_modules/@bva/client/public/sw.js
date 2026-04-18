@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v148-uncontrolled-amount'
+const CACHE_NAME = 'bva-v149-settings-reorder-icons'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

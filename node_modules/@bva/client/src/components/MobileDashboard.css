@@ -984,7 +984,16 @@
   font-family: inherit;
 }
 .m-settings-row:active { background: #F9FAFB; }
-.m-settings-icon { font-size: 24px; flex-shrink: 0; }
+.m-settings-icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.m-settings-chevron-svg { flex-shrink: 0; }
 .m-settings-info {
   flex: 1;
   display: flex;
