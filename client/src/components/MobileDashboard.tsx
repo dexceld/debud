@@ -687,7 +687,7 @@ export default function MobileDashboard() {
 
         {/* Floating Action Buttons */}
         <div className="m-fab-container">
-          <button className="m-fab" onClick={() => setQuickAddOpen(true)} title="הוסף עסקה">
+          <button className="m-fab" onClick={() => { setQuickForecastOnly(false); setQuickSearch(''); setUpdateAmount(''); setQuickAddOpen(true) }} title="הוסף עסקה">
             <span className="m-fab-icon">+</span>
           </button>
           <button 
