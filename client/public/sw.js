@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v132-delete-category'
+const CACHE_NAME = 'bva-v133-restore-amount-hero'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

@@ -1622,6 +1622,22 @@ export default function MobileDashboard() {
             >הכנסות</button>
           </div>
 
+          {/* Amount — big + centered (actuals only) */}
+          {!quickForecastOnly && (
+            <div className="m-qi-amount-hero">
+              <input
+                ref={globalAmountRef}
+                type="number" inputMode="numeric"
+                placeholder="0"
+                value={globalAmount}
+                onChange={e => setGlobalAmount(e.target.value)}
+                className="m-qi-amount-hero-input"
+                autoFocus={!quickForecastOnly}
+              />
+              <span className="m-qi-amount-hero-symbol">₪</span>
+            </div>
+          )}
+
           {/* Month strip (actuals only) */}
           {!quickForecastOnly && (() => {
             const mIdx = months.indexOf(globalMonth)
@@ -1654,7 +1670,6 @@ export default function MobileDashboard() {
             inputMode="search"
             placeholder="🔍  חפש..."
             value={quickSearch}
-            autoFocus
             onChange={e => { setQuickSearch(e.target.value); setQuickNewName(e.target.value); setPanelCatId(null) }}
           />
 
