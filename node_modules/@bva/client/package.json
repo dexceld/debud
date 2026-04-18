@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npx vite build",
+    "build": "node -e \"import('vite').then(v=>v.build({configFile:'vite.config.ts'}))\"",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"
   },
