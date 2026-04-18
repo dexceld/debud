@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v115-header-spacer'
+const CACHE_NAME = 'bva-v116-white-footer-text'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

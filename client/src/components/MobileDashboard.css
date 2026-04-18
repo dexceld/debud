@@ -455,7 +455,9 @@
 .m-home-group-footer .m-home-group-actual,
 .m-home-group-footer .m-home-group-budget,
 .m-home-group-footer .m-mm-col {
-  color: #FFFFFF;
+  color: #FFFFFF !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
 }
 
 /* Ensure negative values in footer/balance row are clearly visible */
@@ -467,11 +469,12 @@
 .net-val.pos { color: #1F2937; }
 .net-val.neg { color: #1F2937; }
 
-/* Footer rows should use same font size as regular rows for consistency */
+/* Footer rows */
 .m-home-group-footer .m-home-group-name,
 .m-home-group-footer .m-mm-name {
   font-size: 14px;
   font-weight: 700;
+  color: #FFFFFF !important;
 }
 
 .m-home-balance-row {
@@ -480,11 +483,17 @@
   font-weight: 800;
 }
 
+.m-home-balance-row .m-mm-col {
+  color: #FFFFFF !important;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+}
+
 .m-home-balance-row .m-home-group-name,
 .m-home-balance-row .m-mm-name {
   font-size: 14px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #FFFFFF !important;
 }
 
 /* Negative values in balance row */
