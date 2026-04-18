@@ -140,6 +140,8 @@ export default function MobileDashboard() {
   const [slideDir, setSlideDir] = useState<'left' | 'right' | null>(null)
   const touchStartX = { current: 0 }
 
+  const quickAmountFocusedOnce = useRef(false)
+
   // Group ordering state (Income g5 first, then others)
   const [groupOrder, setGroupOrder] = useState<string[]>([
     'g5', 'g1', 'g2', 'g4', 'g6'
@@ -268,6 +270,7 @@ export default function MobileDashboard() {
     setQuickForecastOnly(false)
     setGlobalAmount('')
     setGlobalMonth(getCurrentMonth())
+    quickAmountFocusedOnce.current = false
     setQuickAddOpen(true)
   }
 
@@ -739,7 +742,7 @@ export default function MobileDashboard() {
 
         {/* Floating Action Buttons */}
         <div className="m-fab-container">
-          <button className="m-fab" onClick={() => { setQuickForecastOnly(false); setQuickSearch(''); setUpdateAmount(''); setGlobalAmount(''); setGlobalMonth(getCurrentMonth()); setQuickAddOpen(true) }} title="הוסף עסקה">
+          <button className="m-fab" onClick={() => { setQuickForecastOnly(false); setQuickSearch(''); setUpdateAmount(''); setGlobalAmount(''); setGlobalMonth(getCurrentMonth()); quickAmountFocusedOnce.current = false; setQuickAddOpen(true) }} title="הוסף עסקה">
             <span className="m-fab-icon">+</span>
           </button>
           <button 
@@ -1556,10 +1559,9 @@ export default function MobileDashboard() {
     // Global month + amount at top
     const globalAmountRef = useRef<HTMLInputElement>(null)
     const searchRef = useRef<HTMLInputElement>(null)
-    const focusedOnce = useRef(false)
     useEffect(() => {
-      if (!focusedOnce.current && !quickForecastOnly) {
-        focusedOnce.current = true
+      if (!quickAmountFocusedOnce.current && !quickForecastOnly) {
+        quickAmountFocusedOnce.current = true
         setTimeout(() => globalAmountRef.current?.focus(), 100)
       }
     // eslint-disable-next-line react-hooks/exhaustive-deps

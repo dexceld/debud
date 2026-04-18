@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v139-fix-drillgid-remount'
+const CACHE_NAME = 'bva-v140-fix-focus-outer-ref'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
