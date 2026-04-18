@@ -1480,6 +1480,14 @@ export default function MobileDashboard() {
     const [globalAmount, setGlobalAmount] = useState('')
     const globalAmountRef = useRef<HTMLInputElement>(null)
     const searchRef = useRef<HTMLInputElement>(null)
+    const focusedOnce = useRef(false)
+    useEffect(() => {
+      if (!focusedOnce.current && !quickForecastOnly) {
+        focusedOnce.current = true
+        setTimeout(() => globalAmountRef.current?.focus(), 100)
+      }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     const tabCats = activeTab === 'expense' ? expenseCatsList : incomeCatsList
     const baseFiltered = quickSearch.trim()
@@ -1632,7 +1640,6 @@ export default function MobileDashboard() {
                 value={globalAmount}
                 onChange={e => setGlobalAmount(e.target.value)}
                 className="m-qi-amount-hero-input"
-                autoFocus={!quickForecastOnly}
               />
               <span className="m-qi-amount-hero-symbol">₪</span>
             </div>

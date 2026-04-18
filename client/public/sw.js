@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v133-restore-amount-hero'
+const CACHE_NAME = 'bva-v134-focus-once-only'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
