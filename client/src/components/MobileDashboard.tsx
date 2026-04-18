@@ -571,7 +571,8 @@ export default function MobileDashboard() {
           </div>
           {/* Month header - swipeable */}
           <div className="m-mm-header">
-            <div className="m-mm-header-months scrollable">
+            <span className="m-mm-header-spacer"></span>
+            <div className="m-mm-header-months">
               {monthCols.map(m => (
                 <span key={m} className={`m-mm-col ${m === vm ? 'current' : ''}`}>{m}</span>
               ))}

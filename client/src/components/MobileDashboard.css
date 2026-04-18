@@ -135,10 +135,15 @@
 .m-mm-header {
   display: flex;
   align-items: center;
-  padding: 10px 16px;
-  border-bottom: 1px solid #E5E7EB;
+  padding: 8px 6px 8px 4px;
+  border-bottom: 2px solid #E5E7EB;
   background: #F9FAFB;
-  gap: 0;
+  gap: 4px;
+}
+
+.m-mm-header-spacer {
+  flex: 1;
+  min-width: 0;
 }
 
 .m-mm-header-nav {
