@@ -146,6 +146,13 @@
   min-width: 0;
 }
 
+/* Month label headers - larger than data values */
+.m-mm-header .m-mm-col {
+  font-size: 15px;
+  font-weight: 700;
+  color: #374151;
+}
+
 .m-mm-header-nav {
   flex-shrink: 0;
 }
