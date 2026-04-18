@@ -142,6 +142,7 @@ export default function MobileDashboard() {
   const touchStartX = { current: 0 }
 
   const quickAmountFocusedOnce = useRef(false)
+  const globalAmountInputRef = useRef<HTMLInputElement>(null)
 
   // Group ordering state (Income g5 first, then others)
   const [groupOrder, setGroupOrder] = useState<string[]>([
@@ -271,8 +272,8 @@ export default function MobileDashboard() {
     setQuickForecastOnly(false)
     setGlobalAmount('')
     setGlobalMonth(getCurrentMonth())
-    quickAmountFocusedOnce.current = false
     setQuickAddOpen(true)
+    setTimeout(() => globalAmountInputRef.current?.focus(), 50)
   }
 
   const addNewCategoryAndUpdate = () => {
@@ -743,7 +744,7 @@ export default function MobileDashboard() {
 
         {/* Floating Action Buttons */}
         <div className="m-fab-container">
-          <button className="m-fab" onClick={() => { setQuickForecastOnly(false); setQuickSearch(''); setUpdateAmount(''); setGlobalAmount(''); setGlobalMonth(getCurrentMonth()); quickAmountFocusedOnce.current = false; setQuickAddOpen(true) }} title="הוסף עסקה">
+          <button className="m-fab" onClick={openQuickAdd} title="הוסף עסקה">
             <span className="m-fab-icon">+</span>
           </button>
           <button 
@@ -1610,7 +1611,7 @@ export default function MobileDashboard() {
     )
 
     // Global month + amount at top
-    const globalAmountRef = useRef<HTMLInputElement>(null)
+    const globalAmountRef = globalAmountInputRef
 
     const tabCats = activeTab === 'expense' ? expenseCatsList : incomeCatsList
     const baseFiltered = tabCats
@@ -1758,7 +1759,6 @@ export default function MobileDashboard() {
                 value={globalAmount}
                 onChange={e => setGlobalAmount(e.target.value)}
                 className="m-qi-amount-hero-input"
-                autoFocus
               />
               <span className="m-qi-amount-hero-symbol">₪</span>
             </div>

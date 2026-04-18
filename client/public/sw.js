@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v144-fix-forecast-panel'
+const CACHE_NAME = 'bva-v145-outer-ref-focus'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
