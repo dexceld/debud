@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v130-remove-amount-hero'
+const CACHE_NAME = 'bva-v131-export-import'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

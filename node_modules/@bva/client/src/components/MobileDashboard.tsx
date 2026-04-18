@@ -275,6 +275,43 @@ export default function MobileDashboard() {
     })
   }
 
+  const exportData = () => {
+    const data = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      groups,
+      categories,
+      forecasts,
+      actuals,
+      forecastSnapshots,
+    }
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `bva-backup-${new Date().toISOString().slice(0,10)}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const importData = (file: File) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target?.result as string)
+        if (!data.groups || !data.categories) { alert('קובץ לא תקין'); return }
+        if (!window.confirm('ייבוא יחליף את כל הנתונים הקיימים. להמשיך?')) return
+        setGroups(data.groups)
+        setCategories(data.categories)
+        setForecasts(data.forecasts || {})
+        setActuals(data.actuals || {})
+        setForecastSnapshots(data.forecastSnapshots || [])
+        alert('הנתונים יובאו בהצלחה ✓')
+      } catch { alert('שגיאה בקריאת הקובץ') }
+    }
+    reader.readAsText(file)
+  }
+
   const openUpdate = (cat: Category, month: string, mode: 'add' | 'replace' | 'forecast' = 'replace') => {
     setInlineSheet({ cat, month, forecastOnly: mode === 'forecast' })
   }
@@ -1138,6 +1175,18 @@ export default function MobileDashboard() {
           <button className="m-catmgmt-back" onClick={closeAll}>✕</button>
           <span className="m-catmgmt-topbar-title">קטגוריות</span>
           <span style={{width:36}} />
+        </div>
+        {/* Backup / Restore */}
+        <div className="m-catmgmt-backup-row">
+          <button className="m-catmgmt-backup-btn" onClick={exportData}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            גיבוי (ייצוא)
+          </button>
+          <label className="m-catmgmt-backup-btn m-catmgmt-restore-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 5 17 10"/><line x1="12" y1="5" x2="12" y2="17"/></svg>
+            שחזור (ייבוא)
+            <input type="file" accept=".json" style={{display:'none'}} onChange={e => { if (e.target.files?.[0]) importData(e.target.files[0]) }} />
+          </label>
         </div>
         {/* Add new group button */}
         <button className="m-catmgmt-add-row" onClick={() => setAddingGroup(true)}>
