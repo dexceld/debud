@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v120-col-header-font-align'
+const CACHE_NAME = 'bva-v121-render-node-vite'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
