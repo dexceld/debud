@@ -99,6 +99,10 @@ export default function MobileDashboard() {
     const saved = localStorage.getItem('actuals')
     return saved ? JSON.parse(saved) : {}
   })
+  const [openingBalance, setOpeningBalance] = useState<{ month: string; amount: number } | null>(() => {
+    const saved = localStorage.getItem('opening_balance')
+    return saved ? JSON.parse(saved) : null
+  })
 
   const currentMonth = getCurrentMonth()
   const currentIdx = months.indexOf(currentMonth)
@@ -178,6 +182,11 @@ export default function MobileDashboard() {
     localStorage.setItem('groups', JSON.stringify(groups))
   }, [groups])
 
+  useEffect(() => {
+    if (openingBalance) localStorage.setItem('opening_balance', JSON.stringify(openingBalance))
+    else localStorage.removeItem('opening_balance')
+  }, [openingBalance])
+
   const getForecastValue = (cat: Category, month: string): number => {
     const monthForecast = forecasts[cat.id]?.[month]
     if (monthForecast !== undefined) return Math.abs(monthForecast)
@@ -221,10 +230,19 @@ export default function MobileDashboard() {
   const getRunningBalance = (upToMonth: string): number => {
     const endIdx = months.indexOf(upToMonth)
     if (endIdx < 0) return 0
-    
-    // Calculate cumulative balance from first month (index 0) up to endIdx
+
+    // If openingBalance is set, start from that month with that amount
+    let startIdx = 0
     let balance = 0
-    for (let i = 0; i <= endIdx; i++) {
+    if (openingBalance) {
+      const obIdx = months.indexOf(openingBalance.month)
+      if (obIdx >= 0 && obIdx <= endIdx) {
+        startIdx = obIdx + 1
+        balance = openingBalance.amount
+      }
+    }
+
+    for (let i = startIdx; i <= endIdx; i++) {
       const t = getMonthTotals(months[i])
       balance += t.net
     }
@@ -1100,6 +1118,60 @@ export default function MobileDashboard() {
     )
   }
 
+  // --- OPENING BALANCE SECTION ---
+  const OpeningBalanceSection = () => {
+    const [editing, setEditing] = useState(false)
+    const [selMonth, setSelMonth] = useState(openingBalance?.month ?? currentMonth)
+    const [selAmount, setSelAmount] = useState(openingBalance ? String(openingBalance.amount) : '')
+
+    const save = () => {
+      const amt = parseFloat(selAmount)
+      if (isNaN(amt)) { alert('סכום לא תקין'); return }
+      setOpeningBalance({ month: selMonth, amount: amt })
+      setEditing(false)
+    }
+    const clear = () => { setOpeningBalance(null); setEditing(false) }
+
+    return (
+      <div className="m-ob-section">
+        <div className="m-ob-header" onClick={() => setEditing(e => !e)}>
+          <span className="m-ob-title">📍 יתרת פתיחה / סגירה</span>
+          {openingBalance
+            ? <span className="m-ob-badge">{openingBalance.month}: {openingBalance.amount.toLocaleString()} ₪</span>
+            : <span className="m-ob-badge empty">לא מוגדר</span>
+          }
+          <span className="m-ob-chevron">{editing ? '▲' : '▼'}</span>
+        </div>
+        {editing && (
+          <div className="m-ob-form">
+            <div className="m-ob-row">
+              <label className="m-ob-label">חודש סגירה</label>
+              <select className="m-ob-select" value={selMonth} onChange={e => setSelMonth(e.target.value)}>
+                {months.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </div>
+            <div className="m-ob-row">
+              <label className="m-ob-label">יתרת סגירה (₪)</label>
+              <input
+                className="m-ob-input"
+                type="number" inputMode="numeric"
+                placeholder="לדוגמה: 5000"
+                value={selAmount}
+                onChange={e => setSelAmount(e.target.value)}
+              />
+            </div>
+            <p className="m-ob-hint">היתרה תהיה נקודת ההתחלה לחישוב יתרות הסגירה מהחודש הבא ואילך.</p>
+            <div className="m-ob-actions">
+              <button className="m-catmgmt-save-btn" onClick={save}>✓ שמור</button>
+              {openingBalance && <button className="m-catmgmt-cancel-btn" style={{color:'#DC2626',borderColor:'#FCA5A5'}} onClick={clear}>מחק</button>}
+              <button className="m-catmgmt-cancel-btn" onClick={() => setEditing(false)}>ביטול</button>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   // --- CAT MANAGEMENT SHEET ---
   const CatMgmtSheet = () => {
     if (!catMgmtOpen) return null
@@ -1168,6 +1240,9 @@ export default function MobileDashboard() {
           <span className="m-catmgmt-topbar-title">קטגוריות</span>
           <span style={{width:36}} />
         </div>
+        {/* Opening Balance */}
+        {OpeningBalanceSection()}
+
         {/* Backup / Restore */}
         <div className="m-catmgmt-backup-row">
           <button className="m-catmgmt-backup-btn" onClick={exportData}>
