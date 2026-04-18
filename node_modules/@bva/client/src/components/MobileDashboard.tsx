@@ -1558,7 +1558,6 @@ export default function MobileDashboard() {
 
     // Global month + amount at top
     const globalAmountRef = useRef<HTMLInputElement>(null)
-    const searchRef = useRef<HTMLInputElement>(null)
     useEffect(() => {
       if (!quickAmountFocusedOnce.current && !quickForecastOnly) {
         quickAmountFocusedOnce.current = true
@@ -1568,12 +1567,7 @@ export default function MobileDashboard() {
     }, [])
 
     const tabCats = activeTab === 'expense' ? expenseCatsList : incomeCatsList
-    const baseFiltered = quickSearch.trim()
-      ? tabCats.filter((c) =>
-          c.name.includes(quickSearch) ||
-          (groups.find((g) => g.id === c.groupId)?.name || '').includes(quickSearch)
-        )
-      : tabCats
+    const baseFiltered = tabCats
     const filtered = [...baseFiltered].sort((a, b) => (catUsage[b.id] || 0) - (catUsage[a.id] || 0))
 
     // Per-cat expanded panel state
@@ -1747,16 +1741,6 @@ export default function MobileDashboard() {
             )
           })()}
 
-          {/* Search */}
-          <input
-            ref={searchRef}
-            className="m-search-input"
-            type="text"
-            inputMode="search"
-            placeholder="🔍  חפש..."
-            value={quickSearch}
-            onChange={e => { setQuickSearch(e.target.value); setQuickNewName(e.target.value); setPanelCatId(null) }}
-          />
 
           {/* Category list */}
           <div className="m-quick-list">
@@ -1913,17 +1897,7 @@ export default function MobileDashboard() {
 
             {/* Create new category */}
             {activeTab === 'expense' && (
-              quickSearch.trim() && filtered.length === 0 ? (
-                <div className="m-new-cat-box">
-                  <div className="m-new-cat-title">לא נמצא — צור הוצאה חדשה?</div>
-                  <div className="m-new-cat-name-preview">{quickSearch.trim()}</div>
-                  <select className="m-sheet-select" value={quickNewGroupId} onChange={e => setQuickNewGroupId(e.target.value)}>
-                    {allExpenseGroups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-                  </select>
-                  <button className="m-btn-primary" onClick={addNewCategoryAndUpdate}>צור והוסף ✓</button>
-                </div>
-              ) : (
-                <div className="m-new-cat-inline">
+              <div className="m-new-cat-inline">
                   {panelCatId === '__new__' ? (
                     <div className="m-new-cat-box">
                       <div className="m-new-cat-title">הוצאה חדשה</div>
@@ -1948,7 +1922,6 @@ export default function MobileDashboard() {
                     </button>
                   )}
                 </div>
-              )
             )}
           </div>
         </div>

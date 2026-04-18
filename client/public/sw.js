@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v140-fix-focus-outer-ref'
+const CACHE_NAME = 'bva-v141-remove-search-field'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
