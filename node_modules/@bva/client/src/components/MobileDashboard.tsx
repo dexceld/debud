@@ -346,7 +346,7 @@ export default function MobileDashboard() {
 
 
   const deleteCategory = (catId: string) => {
-    if (confirm('האם למחוק הוצאה זו?')) {
+    {
       setCategories((prev) => prev.filter((c) => c.id !== catId))
       setActuals((prev) => { const n = { ...prev }; delete n[catId]; return n })
       setMenuCatId(null)
@@ -1867,11 +1867,6 @@ export default function MobileDashboard() {
                     }
                   }}>
                     <span className="m-quick-item-name">{cat.name}</span>
-                    <button
-                      className="m-qi-edit-btn"
-                      onClick={e => { e.stopPropagation(); setEditingCatId(cat.id); setEditName(cat.name) }}
-                      title="ערוך שם"
-                    >✎</button>
                     <span className="m-qi-group-label-sm">{group?.icon} {group?.name}</span>
                     {globalAmount
                       ? <span className="m-qi-swipe-tip">← הוסף &nbsp;&nbsp; עדכן →</span>
