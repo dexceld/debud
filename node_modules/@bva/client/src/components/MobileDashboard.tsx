@@ -1611,13 +1611,6 @@ export default function MobileDashboard() {
 
     // Global month + amount at top
     const globalAmountRef = useRef<HTMLInputElement>(null)
-    useEffect(() => {
-      if (!quickAmountFocusedOnce.current && !quickForecastOnly) {
-        quickAmountFocusedOnce.current = true
-        setTimeout(() => globalAmountRef.current?.focus(), 100)
-      }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
 
     const tabCats = activeTab === 'expense' ? expenseCatsList : incomeCatsList
     const baseFiltered = tabCats
@@ -1765,6 +1758,7 @@ export default function MobileDashboard() {
                 value={globalAmount}
                 onChange={e => setGlobalAmount(e.target.value)}
                 className="m-qi-amount-hero-input"
+                autoFocus
               />
               <span className="m-qi-amount-hero-symbol">₪</span>
             </div>

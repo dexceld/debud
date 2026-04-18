@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v142-settings-drilldown'
+const CACHE_NAME = 'bva-v143-clean-autofocus'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
