@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v126-four-fixes'
+const CACHE_NAME = 'bva-v127-search-fix-catmgmt'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

@@ -1428,14 +1428,16 @@ export default function MobileDashboard() {
     // Global month + amount at top
     const [globalMonth, setGlobalMonth] = useState(currentMonth)
     const [globalAmount, setGlobalAmount] = useState('')
+    const [localSearch, setLocalSearch] = useState(quickSearch)
     const globalAmountRef = useRef<HTMLInputElement>(null)
+    const searchRef = useRef<HTMLInputElement>(null)
     useEffect(() => { setTimeout(() => globalAmountRef.current?.focus(), 80) }, [])
 
     const tabCats = activeTab === 'expense' ? expenseCatsList : incomeCatsList
-    const baseFiltered = quickSearch.trim()
+    const baseFiltered = localSearch.trim()
       ? tabCats.filter((c) =>
-          c.name.includes(quickSearch) ||
-          (groups.find((g) => g.id === c.groupId)?.name || '').includes(quickSearch)
+          c.name.includes(localSearch) ||
+          (groups.find((g) => g.id === c.groupId)?.name || '').includes(localSearch)
         )
       : tabCats
     const filtered = [...baseFiltered].sort((a, b) => (catUsage[b.id] || 0) - (catUsage[a.id] || 0))
@@ -1611,11 +1613,12 @@ export default function MobileDashboard() {
 
           {/* Search */}
           <input
+            ref={searchRef}
             className="m-search-input"
             type="text"
             placeholder="🔍  חפש..."
-            value={quickSearch}
-            onChange={e => { setQuickSearch(e.target.value); setQuickNewName(e.target.value); setPanelCatId(null) }}
+            value={localSearch}
+            onChange={e => { setLocalSearch(e.target.value); setQuickNewName(e.target.value); setPanelCatId(null) }}
           />
 
           {/* Category list */}
@@ -1773,10 +1776,10 @@ export default function MobileDashboard() {
 
             {/* Create new category */}
             {activeTab === 'expense' && (
-              quickSearch.trim() && filtered.length === 0 ? (
+              localSearch.trim() && filtered.length === 0 ? (
                 <div className="m-new-cat-box">
                   <div className="m-new-cat-title">לא נמצא — צור הוצאה חדשה?</div>
-                  <div className="m-new-cat-name-preview">{quickSearch.trim()}</div>
+                  <div className="m-new-cat-name-preview">{localSearch.trim()}</div>
                   <select className="m-sheet-select" value={quickNewGroupId} onChange={e => setQuickNewGroupId(e.target.value)}>
                     {allExpenseGroups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
                   </select>
@@ -1798,7 +1801,7 @@ export default function MobileDashboard() {
                         {allExpenseGroups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
                       </select>
                       <div style={{display:'flex',gap:8}}>
-                        <button className="m-btn-primary" style={{flex:1}} onClick={() => { setQuickSearch(quickNewName); addNewCategoryAndUpdate() }} disabled={!quickNewName.trim()}>צור והוסף ✓</button>
+                        <button className="m-btn-primary" style={{flex:1}} onClick={() => { addNewCategoryAndUpdate() }} disabled={!quickNewName.trim()}>צור והוסף ✓</button>
                         <button className="m-catmgmt-cancel-btn" onClick={() => setPanelCatId(null)}>ביטול</button>
                       </div>
                     </div>
