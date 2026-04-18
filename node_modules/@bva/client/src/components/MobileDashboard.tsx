@@ -1302,6 +1302,7 @@ export default function MobileDashboard() {
                     <button className="m-catmgmt-rename-btn" onClick={e => { e.stopPropagation(); setRenamingCatId(cat.id); setRenameVal(cat.name); setAddingItem(false) }}>✎</button>
                     <div className="m-catmgmt-item-dot" style={{ background: accent }} />
                     <span className="m-catmgmt-cat-name">{cat.name}</span>
+                    <button className="m-catmgmt-delete-btn" onClick={e => { e.stopPropagation(); if (confirm(`למחוק את "${cat.name}"?`)) { setCategories(prev => prev.filter(c => c.id !== cat.id)); setActuals(prev => { const n = {...prev}; delete n[cat.id]; return n }) } }}>🗑</button>
                   </>
                 )}
               </div>

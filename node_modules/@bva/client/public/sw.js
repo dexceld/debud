@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v131-export-import'
+const CACHE_NAME = 'bva-v132-delete-category'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

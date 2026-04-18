@@ -1060,6 +1060,25 @@
 
 .m-catmgmt-rename-btn:active { background: #DDD6FE; color: #5B21B6; }
 
+/* delete button */
+.m-catmgmt-delete-btn {
+  background: #FEE2E2;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #DC2626;
+  cursor: pointer;
+  padding: 6px 10px;
+  flex-shrink: 0;
+  min-width: 36px;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: auto;
+}
+.m-catmgmt-delete-btn:active { background: #FECACA; }
+
 /* empty state */
 .m-catmgmt-empty {
   text-align: center;
