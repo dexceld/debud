@@ -963,6 +963,50 @@
   flex-shrink: 0;
 }
 
+/* Settings main menu */
+.m-settings-menu {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 0;
+  gap: 0;
+}
+.m-settings-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  background: white;
+  border: none;
+  border-bottom: 1px solid #F3F4F6;
+  width: 100%;
+  text-align: right;
+  cursor: pointer;
+  font-family: inherit;
+}
+.m-settings-row:active { background: #F9FAFB; }
+.m-settings-icon { font-size: 24px; flex-shrink: 0; }
+.m-settings-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: right;
+}
+.m-settings-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+.m-settings-sub {
+  font-size: 12px;
+  color: #9CA3AF;
+}
+.m-settings-chevron {
+  font-size: 20px;
+  color: #D1D5DB;
+  flex-shrink: 0;
+}
+
 /* Settings section label */
 .m-catmgmt-section-label {
   font-size: 11px;

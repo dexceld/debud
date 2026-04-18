@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v141-remove-search-field'
+const CACHE_NAME = 'bva-v142-settings-drilldown'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

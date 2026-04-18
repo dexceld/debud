@@ -127,6 +127,7 @@ export default function MobileDashboard() {
   )
   const [catMgmtOpen, setCatMgmtOpen] = useState(false)
   const [catMgmtDrillGid, setCatMgmtDrillGid] = useState<string | null>(null)
+  const [settingsPage, setSettingsPage] = useState<'main' | 'balance' | 'backup' | 'categories'>('main')
   const [catUsage, setCatUsage] = useState<Record<string, number>>(
     () => JSON.parse(localStorage.getItem('cat_usage') || '{}')
   )
@@ -1204,7 +1205,7 @@ export default function MobileDashboard() {
     useEffect(() => { if (renamingCatId) setTimeout(() => renameRef.current?.focus(), 50) }, [renamingCatId])
     useEffect(() => { if (addingItem)    setTimeout(() => addRef.current?.focus(),    50) }, [addingItem])
 
-    const closeAll = () => { setCatMgmtOpen(false); setCatMgmtDrillGid(null) }
+    const closeAll = () => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main') }
     const goBack   = () => { setDrillGid(null); setRenamingCatId(null); setAddingItem(false) }
 
     const groupAccent = (gid: string) => {
@@ -1241,39 +1242,90 @@ export default function MobileDashboard() {
       setAddingGroup(false)
     }
 
-    /* ── GROUPS LIST ── */
-    if (!drillGid) return (
+    /* ── MAIN SETTINGS MENU ── */
+    if (!drillGid && settingsPage === 'main') return (
       <div className="m-catmgmt-screen">
         <div className="m-catmgmt-topbar">
           <button className="m-catmgmt-back" onClick={closeAll}>✕</button>
-          <span className="m-catmgmt-topbar-title">קטגוריות</span>
+          <span className="m-catmgmt-topbar-title">הגדרות</span>
           <span style={{width:36}} />
         </div>
-        {/* Section: Opening Balance */}
-        <div className="m-catmgmt-section-label">יתרת פתיחה / סגירה</div>
-        {OpeningBalanceSection()}
-
-        {/* Section: Backup */}
-        <div className="m-catmgmt-section-label">גיבוי ושחזור</div>
-        <div className="m-catmgmt-backup-row">
-          <button className="m-catmgmt-backup-btn" onClick={exportData}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            גיבוי (ייצוא)
+        <div className="m-settings-menu">
+          <button className="m-settings-row" onClick={() => setSettingsPage('balance')}>
+            <span className="m-settings-icon">📍</span>
+            <div className="m-settings-info">
+              <span className="m-settings-title">יתרת פתיחה / סגירה</span>
+              <span className="m-settings-sub">{openingBalance ? `${openingBalance.month}: ${openingBalance.amount.toLocaleString()} ₪` : 'לא מוגדר'}</span>
+            </div>
+            <span className="m-settings-chevron">›</span>
           </button>
-          <label className="m-catmgmt-backup-btn m-catmgmt-restore-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 5 17 10"/><line x1="12" y1="5" x2="12" y2="17"/></svg>
-            שחזור (ייבוא)
+          <button className="m-settings-row" onClick={() => setSettingsPage('backup')}>
+            <span className="m-settings-icon">💾</span>
+            <div className="m-settings-info">
+              <span className="m-settings-title">גיבוי ושחזור</span>
+              <span className="m-settings-sub">ייצוא וייבוא נתונים</span>
+            </div>
+            <span className="m-settings-chevron">›</span>
+          </button>
+          <button className="m-settings-row" onClick={() => setSettingsPage('categories')}>
+            <span className="m-settings-icon">🗂️</span>
+            <div className="m-settings-info">
+              <span className="m-settings-title">ניהול קטגוריות</span>
+              <span className="m-settings-sub">{categories.length} סעיפים ב-{groups.length} קטגוריות</span>
+            </div>
+            <span className="m-settings-chevron">›</span>
+          </button>
+        </div>
+      </div>
+    )
+
+    /* ── BALANCE PAGE ── */
+    if (!drillGid && settingsPage === 'balance') return (
+      <div className="m-catmgmt-screen">
+        <div className="m-catmgmt-topbar">
+          <button className="m-catmgmt-back" onClick={() => setSettingsPage('main')}>‹ חזרה</button>
+          <span className="m-catmgmt-topbar-title">יתרת פתיחה / סגירה</span>
+          <span style={{width:36}} />
+        </div>
+        {OpeningBalanceSection()}
+      </div>
+    )
+
+    /* ── BACKUP PAGE ── */
+    if (!drillGid && settingsPage === 'backup') return (
+      <div className="m-catmgmt-screen">
+        <div className="m-catmgmt-topbar">
+          <button className="m-catmgmt-back" onClick={() => setSettingsPage('main')}>‹ חזרה</button>
+          <span className="m-catmgmt-topbar-title">גיבוי ושחזור</span>
+          <span style={{width:36}} />
+        </div>
+        <div style={{padding:'20px 16px',display:'flex',flexDirection:'column',gap:12}}>
+          <p style={{margin:0,fontSize:13,color:'#6B7280',lineHeight:1.5}}>הנתונים שמורים בדפדפן. מומלץ לגבות לקובץ JSON ולשמור ב-Google Drive / iCloud.</p>
+          <button className="m-catmgmt-backup-btn" style={{width:'100%',padding:'14px'}} onClick={exportData}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            גיבוי — ייצוא לקובץ
+          </button>
+          <label className="m-catmgmt-backup-btn m-catmgmt-restore-btn" style={{width:'100%',padding:'14px',boxSizing:'border-box'}}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 5 17 10"/><line x1="12" y1="5" x2="12" y2="17"/></svg>
+            שחזור — ייבוא מקובץ
             <input type="file" accept=".json" style={{display:'none'}} onChange={e => { if (e.target.files?.[0]) importData(e.target.files[0]) }} />
           </label>
         </div>
-        {/* Section: Categories */}
-        <div className="m-catmgmt-section-label">ניהול קטגוריות</div>
-        {/* Add new group button */}
+      </div>
+    )
+
+    /* ── CATEGORIES PAGE ── */
+    if (!drillGid && settingsPage === 'categories') return (
+      <div className="m-catmgmt-screen">
+        <div className="m-catmgmt-topbar">
+          <button className="m-catmgmt-back" onClick={() => setSettingsPage('main')}>‹ חזרה</button>
+          <span className="m-catmgmt-topbar-title">ניהול קטגוריות</span>
+          <span style={{width:36}} />
+        </div>
         <button className="m-catmgmt-add-row" onClick={() => setAddingGroup(true)}>
           <span className="m-catmgmt-add-plus">＋</span>
           <span className="m-catmgmt-add-label">קטגוריה חדשה</span>
         </button>
-        {/* Add new group form */}
         {addingGroup && (
           <div className="m-catmgmt-add-form">
             <input
@@ -1317,9 +1369,10 @@ export default function MobileDashboard() {
 
     /* ── ITEMS LIST (drill-down) ── */
     const group   = groups.find(g => g.id === drillGid)
-    if (!group) { setDrillGid(null); return null }
-    const accent  = groupAccent(drillGid)
-    const items   = categories.filter(c => c.groupId === drillGid)
+    if (!group || !drillGid) { setDrillGid(null); return null }
+    const gid = drillGid as string
+    const accent  = groupAccent(gid)
+    const items   = categories.filter(c => c.groupId === gid)
 
     return (
       <div className="m-catmgmt-screen">
@@ -1363,7 +1416,7 @@ export default function MobileDashboard() {
             const isRenaming = renamingCatId === cat.id
             return (
               <div key={cat.id} className={`m-catmgmt-item ${isRenaming ? 'editing' : ''}`}
-                style={{ borderRightColor: accent, background: isRenaming ? groupBg(drillGid) : 'white' }}>
+                style={{ borderRightColor: accent, background: isRenaming ? groupBg(gid) : 'white' }}>
                 {isRenaming ? (
                   <>
                     <input
