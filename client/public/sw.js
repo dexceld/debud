@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v125-node-import-vite'
+const CACHE_NAME = 'bva-v126-four-fixes'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

@@ -117,7 +117,7 @@ export default function MobileDashboard() {
   const [quickNewGroupId, setQuickNewGroupId] = useState('g4')
   const [quickForecastOnly, setQuickForecastOnly] = useState(false)
   const [homeView, setHomeView] = useState<'actual' | 'monthly'>(
-    () => (localStorage.getItem('home_view') as 'actual' | 'monthly') || 'actual'
+    () => (localStorage.getItem('home_view') as 'actual' | 'monthly') || 'monthly'
   )
   const [catMgmtOpen, setCatMgmtOpen] = useState(false)
   const [catUsage, setCatUsage] = useState<Record<string, number>>(
@@ -428,8 +428,10 @@ export default function MobileDashboard() {
       const newIdx = dir === 'prev' ? viewMonthIdx - 1 : viewMonthIdx + 1
       if (newIdx >= 0 && newIdx < months.length) setViewMonthIdx(newIdx)
     }
-    // months to show in monthly view — show 3 months (newest on left for RTL)
-    const monthCols = [viewMonthIdx, viewMonthIdx + 1, viewMonthIdx + 2]
+    // months to show in monthly view — RTL: oldest on right, newest on left
+    // months array is oldest-first, so index 0 = oldest
+    // We show [idx+2, idx+1, idx] so oldest is rightmost
+    const monthCols = [viewMonthIdx + 2, viewMonthIdx + 1, viewMonthIdx]
       .filter(i => i >= 0 && i < months.length)
       .map(i => months[i])
 
@@ -1188,11 +1190,6 @@ export default function MobileDashboard() {
     const group   = groups.find(g => g.id === drillGid)!
     const accent  = groupAccent(drillGid)
     const items   = categories.filter(c => c.groupId === drillGid)
-      .filter(c => {
-        const a = getActualValue(c.id, vm)
-        const f = getForecastValue(c, vm)
-        return (a !== null && a > 0) || f > 0
-      })
 
     return (
       <div className="m-catmgmt-screen">
@@ -1230,7 +1227,7 @@ export default function MobileDashboard() {
         {/* Items */}
         <div className="m-catmgmt-list">
           {items.length === 0 && (
-            <div className="m-catmgmt-empty">אין פריטים עם סכום בחודש {vm}</div>
+            <div className="m-catmgmt-empty">אין סעיפים בקטגוריה זו</div>
           )}
           {items.map(cat => {
             const isRenaming = renamingCatId === cat.id
