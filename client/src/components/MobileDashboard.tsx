@@ -120,6 +120,8 @@ export default function MobileDashboard() {
   const [quickNewName, setQuickNewName] = useState('')
   const [quickNewGroupId, setQuickNewGroupId] = useState('g4')
   const [quickForecastOnly, setQuickForecastOnly] = useState(false)
+  const [globalAmount, setGlobalAmount] = useState('')
+  const [globalMonth, setGlobalMonth] = useState(getCurrentMonth)
   const [homeView, setHomeView] = useState<'actual' | 'monthly'>(
     () => (localStorage.getItem('home_view') as 'actual' | 'monthly') || 'monthly'
   )
@@ -263,6 +265,8 @@ export default function MobileDashboard() {
     setQuickNewGroupId('g4')
     setUpdateAmount('')
     setQuickForecastOnly(false)
+    setGlobalAmount('')
+    setGlobalMonth(getCurrentMonth())
     setQuickAddOpen(true)
   }
 
@@ -734,7 +738,7 @@ export default function MobileDashboard() {
 
         {/* Floating Action Buttons */}
         <div className="m-fab-container">
-          <button className="m-fab" onClick={() => { setQuickForecastOnly(false); setQuickSearch(''); setUpdateAmount(''); setQuickAddOpen(true) }} title="הוסף עסקה">
+          <button className="m-fab" onClick={() => { setQuickForecastOnly(false); setQuickSearch(''); setUpdateAmount(''); setGlobalAmount(''); setGlobalMonth(getCurrentMonth()); setQuickAddOpen(true) }} title="הוסף עסקה">
             <span className="m-fab-icon">+</span>
           </button>
           <button 
@@ -1240,10 +1244,12 @@ export default function MobileDashboard() {
           <span className="m-catmgmt-topbar-title">קטגוריות</span>
           <span style={{width:36}} />
         </div>
-        {/* Opening Balance */}
+        {/* Section: Opening Balance */}
+        <div className="m-catmgmt-section-label">יתרת פתיחה / סגירה</div>
         {OpeningBalanceSection()}
 
-        {/* Backup / Restore */}
+        {/* Section: Backup */}
+        <div className="m-catmgmt-section-label">גיבוי ושחזור</div>
         <div className="m-catmgmt-backup-row">
           <button className="m-catmgmt-backup-btn" onClick={exportData}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -1255,6 +1261,8 @@ export default function MobileDashboard() {
             <input type="file" accept=".json" style={{display:'none'}} onChange={e => { if (e.target.files?.[0]) importData(e.target.files[0]) }} />
           </label>
         </div>
+        {/* Section: Categories */}
+        <div className="m-catmgmt-section-label">ניהול קטגוריות</div>
         {/* Add new group button */}
         <button className="m-catmgmt-add-row" onClick={() => setAddingGroup(true)}>
           <span className="m-catmgmt-add-plus">＋</span>
@@ -1303,7 +1311,8 @@ export default function MobileDashboard() {
     )
 
     /* ── ITEMS LIST (drill-down) ── */
-    const group   = groups.find(g => g.id === drillGid)!
+    const group   = groups.find(g => g.id === drillGid)
+    if (!group) { setDrillGid(null); return null }
     const accent  = groupAccent(drillGid)
     const items   = categories.filter(c => c.groupId === drillGid)
 
@@ -1543,8 +1552,6 @@ export default function MobileDashboard() {
     )
 
     // Global month + amount at top
-    const [globalMonth, setGlobalMonth] = useState(currentMonth)
-    const [globalAmount, setGlobalAmount] = useState('')
     const globalAmountRef = useRef<HTMLInputElement>(null)
     const searchRef = useRef<HTMLInputElement>(null)
     const focusedOnce = useRef(false)

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v136-opening-balance'
+const CACHE_NAME = 'bva-v138-settings-sections'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
