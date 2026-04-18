@@ -1130,7 +1130,7 @@ export default function MobileDashboard() {
 
   // --- OPENING BALANCE SECTION ---
   const OpeningBalanceSection = () => {
-    const [editing, setEditing] = useState(false)
+    const [editing, setEditing] = useState(true)
     const [selMonth, setSelMonth] = useState(openingBalance?.month ?? currentMonth)
     const [selAmount, setSelAmount] = useState(openingBalance ? String(openingBalance.amount) : '')
 
@@ -1144,16 +1144,7 @@ export default function MobileDashboard() {
 
     return (
       <div className="m-ob-section">
-        <div className="m-ob-header" onClick={() => setEditing(e => !e)}>
-          <span className="m-ob-title">📍 יתרת פתיחה / סגירה</span>
-          {openingBalance
-            ? <span className="m-ob-badge">{openingBalance.month}: {openingBalance.amount.toLocaleString()} ₪</span>
-            : <span className="m-ob-badge empty">לא מוגדר</span>
-          }
-          <span className="m-ob-chevron">{editing ? '▲' : '▼'}</span>
-        </div>
-        {editing && (
-          <div className="m-ob-form">
+        <div className="m-ob-form">
             <div className="m-ob-row">
               <label className="m-ob-label">חודש סגירה</label>
               <select className="m-ob-select" value={selMonth} onChange={e => setSelMonth(e.target.value)}>
@@ -1173,11 +1164,9 @@ export default function MobileDashboard() {
             <p className="m-ob-hint">היתרה תהיה נקודת ההתחלה לחישוב יתרות הסגירה מהחודש הבא ואילך.</p>
             <div className="m-ob-actions">
               <button className="m-catmgmt-save-btn" onClick={save}>✓ שמור</button>
-              {openingBalance && <button className="m-catmgmt-cancel-btn" style={{color:'#DC2626',borderColor:'#FCA5A5'}} onClick={clear}>מחק</button>}
-              <button className="m-catmgmt-cancel-btn" onClick={() => setEditing(false)}>ביטול</button>
+              {openingBalance && <button className="m-catmgmt-cancel-btn" style={{color:'#DC2626',borderColor:'#FCA5A5'}} onClick={clear}>אפס יתרה</button>}
             </div>
           </div>
-        )}
       </div>
     )
   }

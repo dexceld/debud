@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v146-remove-edit-confirm'
+const CACHE_NAME = 'bva-v147-ob-always-open'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
