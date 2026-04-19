@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v150-four-fixes'
+const CACHE_NAME = 'bva-v151-swipe-direction'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

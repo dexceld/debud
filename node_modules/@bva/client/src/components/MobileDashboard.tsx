@@ -548,8 +548,8 @@ export default function MobileDashboard() {
             const dx = e.changedTouches[0].clientX - swipeStartX.current
             const dy = e.changedTouches[0].clientY - swipeStartY.current
             if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-              if (dx < 0 && viewMonthIdx < months.length - 1) setViewMonthIdx(i => i + 1)
-              else if (dx > 0 && viewMonthIdx > 0) setViewMonthIdx(i => i - 1)
+              if (dx > 0 && viewMonthIdx < months.length - 1) setViewMonthIdx(i => i + 1)
+              else if (dx < 0 && viewMonthIdx > 0) setViewMonthIdx(i => i - 1)
             }
           }}
         >
