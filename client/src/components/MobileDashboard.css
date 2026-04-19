@@ -697,6 +697,23 @@
   z-index: 1000;
 }
 
+.m-delete-toast {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1F2937;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  animation: toastSlideUp 0.3s ease, toastFadeOut 0.3s ease 2.2s;
+  z-index: 2000;
+}
+
 .m-save-toast-icon {
   width: 22px;
   height: 22px;

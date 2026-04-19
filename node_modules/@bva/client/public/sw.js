@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v162-amount-persist-forecast-tabs'
+const CACHE_NAME = 'bva-v163-delete-toast'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

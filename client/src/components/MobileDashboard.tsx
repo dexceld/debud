@@ -122,6 +122,7 @@ export default function MobileDashboard() {
   const [quickForecastOnly, setQuickForecastOnly] = useState(false)
   const [quickPanelCatId, setQuickPanelCatId] = useState<string | null>(null)
   const savedAmountRef = useRef<string>('')
+  const [deleteToast, setDeleteToast] = useState<string | null>(null)
   const [globalMonth, setGlobalMonth] = useState(getCurrentMonth)
   const [homeView, setHomeView] = useState<'actual' | 'monthly'>(
     () => (localStorage.getItem('home_view') as 'actual' | 'monthly') || 'monthly'
@@ -1489,7 +1490,7 @@ export default function MobileDashboard() {
                     <button className="m-catmgmt-rename-btn" onClick={e => { e.stopPropagation(); setRenamingCatId(cat.id); setRenameVal(cat.name); setAddingItem(false) }}>✎</button>
                     <div className="m-catmgmt-item-dot" style={{ background: accent }} />
                     <span className="m-catmgmt-cat-name">{cat.name}</span>
-                    <button className="m-catmgmt-delete-btn" onClick={e => { e.stopPropagation(); if (confirm(`למחוק את "${cat.name}"?`)) { setCategories(prev => prev.filter(c => c.id !== cat.id)); setActuals(prev => { const n = {...prev}; delete n[cat.id]; return n }) } }}>🗑</button>
+                    <button className="m-catmgmt-delete-btn" onClick={e => { e.stopPropagation(); const name = cat.name; setCategories(prev => prev.filter(c => c.id !== cat.id)); setActuals(prev => { const n = {...prev}; delete n[cat.id]; return n }); setDeleteToast(name); setTimeout(() => setDeleteToast(null), 2500) }}>🗑</button>
                   </>
                 )}
               </div>
@@ -2047,6 +2048,11 @@ export default function MobileDashboard() {
       <CatMgmtSheet />
       <InlineSheet />
       <QuickAddSheet />
+      {deleteToast && (
+        <div className="m-delete-toast">
+          🗑 הסעיף "{deleteToast}" נמחק
+        </div>
+      )}
     </div>
   )
 }
