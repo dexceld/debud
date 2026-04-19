@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v184-full-touch-guard'
+const CACHE_NAME = 'bva-v185-fix-popstate-keyboard'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

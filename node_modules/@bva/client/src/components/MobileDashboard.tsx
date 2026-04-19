@@ -153,25 +153,30 @@ export default function MobileDashboard() {
     'g5', 'g1', 'g2', 'g4', 'g6'
   ])
 
-  // Trap Android back button — go to home instead of exiting
+  // Trap Android back button — use refs to avoid re-registering on every state change
+  const quickAddOpenRef = useRef(quickAddOpen)
+  const inlineSheetRef = useRef(inlineSheet)
+  const screenRef = useRef(screen)
+  useEffect(() => { quickAddOpenRef.current = quickAddOpen }, [quickAddOpen])
+  useEffect(() => { inlineSheetRef.current = inlineSheet }, [inlineSheet])
+  useEffect(() => { screenRef.current = screen }, [screen])
   useEffect(() => {
     const pushState = () => window.history.pushState({ page: 'app' }, '')
     pushState()
     const onPopState = () => {
-      if (inlineSheet) {
+      if (inlineSheetRef.current) {
         setInlineSheet(null)
-      } else if (quickAddOpen) {
+      } else if (quickAddOpenRef.current) {
         setQuickAddOpen(false)
         setQuickPreOpenCat(null)
-      } else if (screen !== 'home') {
+      } else if (screenRef.current !== 'home') {
         setScreen('home')
       }
-      // Always push a new state so next back press is also caught
       pushState()
     }
     window.addEventListener('popstate', onPopState)
     return () => window.removeEventListener('popstate', onPopState)
-  }, [screen, quickAddOpen, inlineSheet])
+  }, [])
 
   useEffect(() => {
     localStorage.setItem('forecast_snapshots', JSON.stringify(forecastSnapshots))
