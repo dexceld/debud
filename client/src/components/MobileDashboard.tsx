@@ -122,6 +122,9 @@ export default function MobileDashboard() {
   const [quickNewGroupId, setQuickNewGroupId] = useState('g4')
   const [quickForecastOnly, setQuickForecastOnly] = useState(false)
   const [quickPanelCatId, setQuickPanelCatId] = useState<string | null>(null)
+  const [quickPanelAmount, setQuickPanelAmount] = useState('')
+  const [quickPanelMonth, setQuickPanelMonth] = useState('')
+  const [quickPanelForecastEnd, setQuickPanelForecastEnd] = useState('')
   const [quickOpenKey, setQuickOpenKey] = useState(0)
   const savedAmountRef = useRef<string>('')
   const [deleteToast, setDeleteToast] = useState<string | null>(null)
@@ -556,8 +559,8 @@ export default function MobileDashboard() {
           className="m-fab-glass forecast"
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
-          onTouchEnd={e => onTouchEnd(e, () => { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickPreOpenCat(null); setQuickNewName(''); savedAmountRef.current = ''; setQuickOpenKey(k => k + 1); setQuickAddOpen(true); setTimeout(() => { if (globalAmountInputRef.current) { globalAmountInputRef.current.value = ''; globalAmountInputRef.current.focus() } }, 50) })}
-          onClick={() => { if (!dragRef.current?.moved) { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickPreOpenCat(null); setQuickNewName(''); savedAmountRef.current = ''; setQuickOpenKey(k => k + 1); setQuickAddOpen(true); setTimeout(() => { if (globalAmountInputRef.current) { globalAmountInputRef.current.value = ''; globalAmountInputRef.current.focus() } }, 50) } }}
+          onTouchEnd={e => onTouchEnd(e, () => { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickPanelAmount(''); setQuickPanelMonth(''); setQuickPanelForecastEnd(''); setQuickPreOpenCat(null); setQuickNewName(''); savedAmountRef.current = ''; setQuickOpenKey(k => k + 1); setQuickAddOpen(true); setTimeout(() => { if (globalAmountInputRef.current) { globalAmountInputRef.current.value = ''; globalAmountInputRef.current.focus() } }, 50) })}
+          onClick={() => { if (!dragRef.current?.moved) { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickPanelAmount(''); setQuickPanelMonth(''); setQuickPanelForecastEnd(''); setQuickPreOpenCat(null); setQuickNewName(''); savedAmountRef.current = ''; setQuickOpenKey(k => k + 1); setQuickAddOpen(true); setTimeout(() => { if (globalAmountInputRef.current) { globalAmountInputRef.current.value = ''; globalAmountInputRef.current.focus() } }, 50) } }}
           title="עדכון תחזית"
         >
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1699,13 +1702,16 @@ export default function MobileDashboard() {
       : [...tabCats].sort((a, b) => (catUsage[b.id] || 0) - (catUsage[a.id] || 0))
     const noResults = false
 
-    // Per-cat expanded panel state — uses outer state (always null on open due to reset in FAB handlers)
+    // Per-cat expanded panel state — all use outer state to survive re-renders
     const panelCatId = quickPanelCatId
     const setPanelCatId = setQuickPanelCatId
-    const [panelMonth, setPanelMonth] = useState(currentMonth)
-    const [panelAmount, setPanelAmount] = useState('')
+    const panelAmount = quickPanelAmount
+    const setPanelAmount = setQuickPanelAmount
+    const panelMonth = quickPanelMonth || currentMonth
+    const setPanelMonth = setQuickPanelMonth
+    const panelForecastEnd = quickPanelForecastEnd
+    const setPanelForecastEnd = setQuickPanelForecastEnd
     const [panelForecast, setPanelForecast] = useState(false)
-    const [panelForecastEnd, setPanelForecastEnd] = useState('')
     // "update forward months" for actuals
     const [panelForward, setPanelForward] = useState(false)
     const [panelForwardStart, setPanelForwardStart] = useState(currentMonth)
@@ -1722,7 +1728,7 @@ export default function MobileDashboard() {
       // no scroll - let user stay in place
     }
 
-    const doClose = () => { setQuickAddOpen(false); setQuickPreOpenCat(null); setQuickSearch('') }
+    const doClose = () => { setQuickAddOpen(false); setQuickPreOpenCat(null); setQuickSearch(''); setQuickPanelCatId(null); setQuickPanelAmount(''); setQuickPanelMonth(''); setQuickPanelForecastEnd('') }
     const swipeCatRef = useRef<{ catId: string; startX: number } | null>(null)
     const monthSwipeRef = useRef<number | null>(null)
     const [swipeDx, setSwipeDx] = useState<{ catId: string; dx: number } | null>(null)
@@ -1839,7 +1845,7 @@ export default function MobileDashboard() {
                 setPanelCatId('__new__')
                 setQuickNewName('')
                 quickNewNameRef.current = ''
-                setTimeout(() => newNameRef.current?.focus(), 50)
+                setTimeout(() => newNameRef.current?.focus(), 150)
               }}>סעיף חדש +</button>
             )}
           </div>

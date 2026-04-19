@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v193-newcat-ref-no-rerender'
+const CACHE_NAME = 'bva-v194-outer-panel-state'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
