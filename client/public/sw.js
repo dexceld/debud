@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v197-fix-hooks-before-return'
+const CACHE_NAME = 'bva-v198-firebase-auth-sync'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

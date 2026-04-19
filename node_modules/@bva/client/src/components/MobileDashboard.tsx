@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import './MobileDashboard.css'
+import { useFirebaseSync } from '../hooks/useFirebaseSync'
+import { signOutUser } from '../firebase'
 
 type Category = {
   id: string
@@ -77,7 +79,7 @@ type ForecastSnapshot = {
   data: Record<string, number> // month -> running balance
 }
 
-export default function MobileDashboard() {
+export default function MobileDashboard({ uid, userEmail }: { uid: string; userEmail: string }) {
   const [groups, setGroups] = useState<Group[]>(() => {
     const saved = localStorage.getItem('groups')
     return saved ? JSON.parse(saved) : initialGroups
@@ -182,26 +184,20 @@ export default function MobileDashboard() {
     return () => window.removeEventListener('popstate', onPopState)
   }, [])
 
-  useEffect(() => {
-    localStorage.setItem('forecast_snapshots', JSON.stringify(forecastSnapshots))
-  }, [forecastSnapshots])
+  // Firebase sync — save to cloud + load on login
+  useFirebaseSync(uid, 'actuals', actuals, v => setActuals(v as typeof actuals))
+  useFirebaseSync(uid, 'forecasts', forecasts, v => setForecasts(v as typeof forecasts))
+  useFirebaseSync(uid, 'forecast_snapshots', forecastSnapshots, v => setForecastSnapshots(v as typeof forecastSnapshots))
+  useFirebaseSync(uid, 'categories', categories, v => setCategories(v as typeof categories))
+  useFirebaseSync(uid, 'groups', groups, v => setGroups(v as typeof groups))
+  useFirebaseSync(uid, 'opening_balance', openingBalance, v => setOpeningBalance(v as typeof openingBalance))
 
-  useEffect(() => {
-    localStorage.setItem('actuals', JSON.stringify(actuals))
-  }, [actuals])
-
-  useEffect(() => {
-    localStorage.setItem('categories', JSON.stringify(categories))
-  }, [categories])
-
-  useEffect(() => {
-    localStorage.setItem('forecasts', JSON.stringify(forecasts))
-  }, [forecasts])
-
-  useEffect(() => {
-    localStorage.setItem('groups', JSON.stringify(groups))
-  }, [groups])
-
+  // Keep localStorage as fallback cache
+  useEffect(() => { localStorage.setItem('actuals', JSON.stringify(actuals)) }, [actuals])
+  useEffect(() => { localStorage.setItem('forecasts', JSON.stringify(forecasts)) }, [forecasts])
+  useEffect(() => { localStorage.setItem('forecast_snapshots', JSON.stringify(forecastSnapshots)) }, [forecastSnapshots])
+  useEffect(() => { localStorage.setItem('categories', JSON.stringify(categories)) }, [categories])
+  useEffect(() => { localStorage.setItem('groups', JSON.stringify(groups)) }, [groups])
   useEffect(() => {
     if (openingBalance) localStorage.setItem('opening_balance', JSON.stringify(openingBalance))
     else localStorage.removeItem('opening_balance')
@@ -601,6 +597,10 @@ export default function MobileDashboard() {
             <button className="m-hbtn m-hbtn-gear" onClick={() => setCatMgmtOpen(true)}>
               <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" /></svg>
               <span className="m-hbtn-label">הגדרות</span>
+            </button>
+            <button className="m-hbtn" onClick={() => signOutUser()} title={userEmail} style={{color:'#EF4444'}}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              <span className="m-hbtn-label">יציאה</span>
             </button>
           </div>
         </div>
