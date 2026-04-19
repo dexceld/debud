@@ -1202,9 +1202,9 @@ export default function MobileDashboard() {
       const amt = parseFloat(selAmount)
       if (isNaN(amt)) { alert('סכום לא תקין'); return }
       setOpeningBalance({ month: selMonth, amount: amt })
-      setEditing(false)
+      setSettingsPage('main')
     }
-    const clear = () => { setOpeningBalance(null); setEditing(false) }
+    const clear = () => { setOpeningBalance(null); setSettingsPage('main') }
 
     return (
       <div className="m-ob-section">
