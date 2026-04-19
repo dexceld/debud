@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v177-unified-forecast-ux'
+const CACHE_NAME = 'bva-v178-forecast-autofocus-clean'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
