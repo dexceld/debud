@@ -273,6 +273,7 @@ export default function MobileDashboard() {
     setUpdateAmount('')
     setQuickForecastOnly(false)
     setQuickPanelCatId(null)
+    savedAmountRef.current = ''
     setGlobalMonth(getCurrentMonth())
     setQuickAddOpen(true)
     setTimeout(() => {
@@ -304,6 +305,7 @@ export default function MobileDashboard() {
         return next
       })
     }
+    savedAmountRef.current = ''
     setSaveFeedback(true)
     setTimeout(() => setSaveFeedback(false), 1500)
     setQuickAddOpen(false)

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v164-manual-balance-highlight'
+const CACHE_NAME = 'bva-v165-fix-amount-leak'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
