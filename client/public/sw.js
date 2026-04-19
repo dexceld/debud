@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v181-no-swipe-in-forecast'
+const CACHE_NAME = 'bva-v182-forecast-alpha-sort'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

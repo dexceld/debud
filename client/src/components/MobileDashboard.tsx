@@ -1684,12 +1684,7 @@ export default function MobileDashboard() {
 
     const tabCats = activeTab === 'expense' ? expenseCatsList : incomeCatsList
     const filtered = quickForecastOnly
-      ? [...tabCats].sort((a, b) => {
-          const gi = (id: string) => groupOrder.indexOf(id)
-          const gDiff = gi(a.groupId) - gi(b.groupId)
-          if (gDiff !== 0) return gDiff
-          return categories.indexOf(a) - categories.indexOf(b)
-        })
+      ? [...tabCats].sort((a, b) => a.name.localeCompare(b.name, 'he'))
       : [...tabCats].sort((a, b) => (catUsage[b.id] || 0) - (catUsage[a.id] || 0))
     const noResults = false
 
