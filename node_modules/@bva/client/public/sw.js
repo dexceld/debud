@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v172-multi-fixes'
+const CACHE_NAME = 'bva-v173-key-state-remount'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

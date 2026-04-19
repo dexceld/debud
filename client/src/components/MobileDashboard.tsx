@@ -121,7 +121,7 @@ export default function MobileDashboard() {
   const [quickNewGroupId, setQuickNewGroupId] = useState('g4')
   const [quickForecastOnly, setQuickForecastOnly] = useState(false)
   const [quickPanelCatId, setQuickPanelCatId] = useState<string | null>(null)
-  const quickOpenKeyRef = useRef(0)
+  const [quickOpenKey, setQuickOpenKey] = useState(0)
   const savedAmountRef = useRef<string>('')
   const [deleteToast, setDeleteToast] = useState<string | null>(null)
   const [globalMonth, setGlobalMonth] = useState(getCurrentMonth)
@@ -275,7 +275,7 @@ export default function MobileDashboard() {
     setQuickForecastOnly(false)
     setQuickPanelCatId(null)
     savedAmountRef.current = ''
-    quickOpenKeyRef.current += 1
+    setQuickOpenKey(k => k + 1)
     setGlobalMonth(getCurrentMonth())
     setQuickAddOpen(true)
     setTimeout(() => {
@@ -548,8 +548,8 @@ export default function MobileDashboard() {
           className="m-fab-glass forecast"
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
-          onTouchEnd={e => onTouchEnd(e, () => { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickNewName(''); savedAmountRef.current = ''; quickOpenKeyRef.current += 1; setQuickAddOpen(true) })}
-          onClick={() => { if (!dragRef.current?.moved) { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickNewName(''); savedAmountRef.current = ''; quickOpenKeyRef.current += 1; setQuickAddOpen(true) } }}
+          onTouchEnd={e => onTouchEnd(e, () => { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickNewName(''); savedAmountRef.current = ''; setQuickOpenKey(k => k + 1); setQuickAddOpen(true) })}
+          onClick={() => { if (!dragRef.current?.moved) { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickNewName(''); savedAmountRef.current = ''; setQuickOpenKey(k => k + 1); setQuickAddOpen(true) } }}
           title="עדכון תחזית"
         >
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -2060,7 +2060,7 @@ export default function MobileDashboard() {
       {screen === 'net-chart' && <NetChartScreen />}
       <CatMgmtSheet />
       <InlineSheet />
-      <QuickAddSheet key={quickOpenKeyRef.current} />
+      <QuickAddSheet key={quickOpenKey} />
       {deleteToast && (
         <div className="m-delete-toast">
           🗑 הסעיף "{deleteToast}" נמחק
