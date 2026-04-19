@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v183-touch-guard-400ms'
+const CACHE_NAME = 'bva-v184-full-touch-guard'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

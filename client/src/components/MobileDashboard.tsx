@@ -1690,8 +1690,9 @@ export default function MobileDashboard() {
       : [...tabCats].sort((a, b) => (catUsage[b.id] || 0) - (catUsage[a.id] || 0))
     const noResults = false
 
-    // Per-cat expanded panel state — fully internal, always starts null
-    const [panelCatId, setPanelCatId] = useState<string | null>(null)
+    // Per-cat expanded panel state — uses outer state (always null on open due to reset in FAB handlers)
+    const panelCatId = quickPanelCatId
+    const setPanelCatId = setQuickPanelCatId
     const [panelMonth, setPanelMonth] = useState(currentMonth)
     const [panelAmount, setPanelAmount] = useState('')
     const [panelForecast, setPanelForecast] = useState(false)
@@ -1907,6 +1908,7 @@ export default function MobileDashboard() {
               return (
                 <div key={cat.id} className="m-qi-swipe-wrapper"
                   onTouchStart={e => {
+                    if (!touchReady) return
                     swipeCatRef.current = { catId: cat.id, startX: e.touches[0].clientX }
                     setSwipeDx(null)
                   }}
@@ -1921,7 +1923,7 @@ export default function MobileDashboard() {
                     const dx = e.changedTouches[0].clientX - swipeCatRef.current.startX
                     swipeCatRef.current = null
                     setSwipeDx(null)
-                    if (quickForecastOnly) return
+                    if (!touchReady || quickForecastOnly) return
                     const _amt = globalAmountInputRef.current?.value || ''
                     if (!_amt || Math.abs(dx) < THRESHOLD) return
                     const isAdd = dx > 0
