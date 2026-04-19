@@ -741,7 +741,7 @@ export default function MobileDashboard() {
                       {monthCols.map(m => {
                         const a = getActualValue(cat.id, m), b = getForecastValue(cat, m)
                         const displayVal = a !== null ? Math.abs(a) : b
-                        return <button key={m} className={`m-mm-col m-mm-col-btn ${m === vm ? 'current' : ''} ${a !== null ? 'blue' : ''}`} onClick={() => openUpdate(cat, m)}>{displayVal.toLocaleString()}</button>
+                        return <span key={m} className={`m-mm-col ${m === vm ? 'current' : ''} ${a !== null ? 'blue' : ''}`} onClick={() => openUpdate(cat, m)} style={{cursor:'pointer'}}>{displayVal.toLocaleString()}</span>
                       })}
                     </div>
                   </div>
@@ -1794,24 +1794,48 @@ export default function MobileDashboard() {
 
           {/* Tabs — Segmented Control with semantic colors */}
           <div className="m-qi-tabs-row">
-            <div className="m-qi-tabs-segmented">
+            <div className="m-qi-tabs-segmented" style={{flex:1}}>
               <button
                 className={`m-qi-tab-pill ${activeTab === 'expense' ? 'active' : ''}`}
                 onClick={() => { setActiveTab('expense'); setPanelCatId(null) }}
-              >הוצאות</button>
+                style={{flex:1}}>הוצאות</button>
               <button
                 className={`m-qi-tab-pill ${activeTab === 'income' ? 'active' : ''}`}
                 onClick={() => { setActiveTab('income'); setPanelCatId(null) }}
-              >הכנסות</button>
+                style={{flex:1}}>הכנסות</button>
             </div>
-            {!quickForecastOnly && activeTab === 'expense' && panelCatId !== '__new__' && (
+            {!quickForecastOnly && panelCatId !== '__new__' && (
               <button className="m-qi-new-cat-inline-btn" onClick={() => {
                 savedAmountRef.current = globalAmountInputRef.current?.value || ''
+                setQuickNewGroupId(activeTab === 'income' ? 'g5' : 'g4')
                 setPanelCatId('__new__')
                 setQuickNewName('')
-              }}>+ חדש</button>
+              }}>{activeTab === 'expense' ? 'הוצאה חדשה +' : 'הכנסה חדשה +'}</button>
             )}
           </div>
+
+          {/* New category form — shown at top so keyboard doesn't hide it */}
+          {panelCatId === '__new__' && (
+            <div className="m-new-cat-box m-new-cat-box-top">
+              <div className="m-new-cat-title">{activeTab === 'expense' ? 'הוצאה חדשה' : 'הכנסה חדשה'}</div>
+              <input
+                className="m-qi-amount-input"
+                placeholder={activeTab === 'expense' ? 'שם ההוצאה...' : 'שם ההכנסה...'}
+                value={quickNewName}
+                onChange={e => setQuickNewName(e.target.value)}
+                autoFocus
+              />
+              {activeTab === 'expense' && (
+                <select className="m-sheet-select" value={quickNewGroupId} onChange={e => setQuickNewGroupId(e.target.value)}>
+                  {allExpenseGroups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+                </select>
+              )}
+              <div style={{display:'flex',gap:8}}>
+                <button className="m-btn-primary" style={{flex:1}} onClick={() => { addNewCategoryAndUpdate() }} disabled={!quickNewName.trim()}>צור והוסף ✓</button>
+                <button className="m-catmgmt-cancel-btn" onClick={() => { setPanelCatId(null); savedAmountRef.current = '' }}>ביטול</button>
+              </div>
+            </div>
+          )}
 
           {/* Amount — big + centered (actuals only) */}
           {!quickForecastOnly && (
@@ -1999,34 +2023,6 @@ export default function MobileDashboard() {
               )
             })}
 
-            {/* Create new category */}
-            {activeTab === 'expense' && (
-              <div className="m-new-cat-inline">
-                  {panelCatId === '__new__' ? (
-                    <div className="m-new-cat-box" ref={el => { if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50) }}>
-                      <div className="m-new-cat-title">הוצאה חדשה</div>
-                      <input
-                        className="m-qi-amount-input"
-                        placeholder="שם ההוצאה..."
-                        value={quickNewName}
-                        onChange={e => setQuickNewName(e.target.value)}
-                        autoFocus
-                      />
-                      <select className="m-sheet-select" value={quickNewGroupId} onChange={e => setQuickNewGroupId(e.target.value)}>
-                        {allExpenseGroups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-                      </select>
-                      <div style={{display:'flex',gap:8}}>
-                        <button className="m-btn-primary" style={{flex:1}} onClick={() => { addNewCategoryAndUpdate() }} disabled={!quickNewName.trim()}>צור והוסף ✓</button>
-                        <button className="m-catmgmt-cancel-btn" onClick={() => { setPanelCatId(null); savedAmountRef.current = '' }}>ביטול</button>
-                      </div>
-                    </div>
-                  ) : (
-                    !noResults && <button className="m-new-cat-trigger" onClick={() => { setPanelCatId('__new__'); setQuickNewName('') }}>
-                      ＋ הוצאה חדשה
-                    </button>
-                  )}
-                </div>
-            )}
           </div>
         </div>
     )

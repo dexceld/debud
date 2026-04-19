@@ -2329,6 +2329,14 @@
   padding: 8px 0 16px;
 }
 
+.m-new-cat-box-top {
+  margin: 0 12px 8px;
+  border: 1.5px solid #DDD6FE;
+  border-radius: 12px;
+  padding: 12px;
+  background: #FAFAFF;
+}
+
 .m-qi-tabs-row {
   display: flex;
   align-items: center;

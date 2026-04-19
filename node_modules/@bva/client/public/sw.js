@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v159-new-cat-btn-top'
+const CACHE_NAME = 'bva-v161-new-cat-top-form'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
