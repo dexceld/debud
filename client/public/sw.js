@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v191-newcat-name-focus-fix'
+const CACHE_NAME = 'bva-v192-hide-amount-when-new-cat'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

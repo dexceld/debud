@@ -1864,8 +1864,8 @@ export default function MobileDashboard() {
             </div>
           )}
 
-          {/* Amount — big + centered (actuals + forecast) */}
-          {(true) && (
+          {/* Amount — big + centered (actuals + forecast); hidden when new-cat form open */}
+          {panelCatId !== '__new__' && (
             <div className="m-qi-amount-hero">
               <input
                 ref={globalAmountRef}
@@ -1873,7 +1873,6 @@ export default function MobileDashboard() {
                 placeholder="0"
                 defaultValue=""
                 className={`m-qi-amount-hero-input${amountShake ? ' shake' : ''}`}
-                autoFocus
               />
               <span className="m-qi-amount-hero-symbol">₪</span>
             </div>
