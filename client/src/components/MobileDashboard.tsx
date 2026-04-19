@@ -1760,8 +1760,9 @@ export default function MobileDashboard() {
     }
 
     const doSaveForecast = (cat: Category) => {
-      if (!panelAmount) return
-      const newVal = Number(panelAmount)
+      const amt = globalAmountRef.current?.value || panelAmount
+      if (!amt) return
+      const newVal = Number(amt)
       const pStartIdx = months.indexOf(panelMonth)
       const endIdx = panelForecastEnd ? months.indexOf(panelForecastEnd) : months.length - 1
       setForecasts(prev => {
@@ -1858,8 +1859,8 @@ export default function MobileDashboard() {
             </div>
           )}
 
-          {/* Amount — big + centered (actuals only) */}
-          {!quickForecastOnly && (
+          {/* Amount — big + centered (actuals + forecast) */}
+          {(true) && (
             <div className="m-qi-amount-hero">
               <input
                 ref={globalAmountRef}
@@ -1984,60 +1985,24 @@ export default function MobileDashboard() {
 
                   {isOpen && quickForecastOnly && (
                     <div className="m-qi-panel" ref={panelRef}>
-                      <div className="m-qi-panel-row">
-                        <input
-                          type="number" inputMode="numeric"
-                          placeholder="סכום..."
-                          value={panelAmount}
-                          onChange={e => setPanelAmount(e.target.value)}
-                          className="m-qi-amount-input"
-                          autoFocus
-                        />
+                      <div className="m-qi-range-row">
+                        <span className="m-qi-range-label">מחודש</span>
+                        <select value={panelMonth} onChange={e => setPanelMonth(e.target.value)} className="m-sheet-select-sm">
+                          {months.map(m => <option key={m} value={m}>{m}</option>)}
+                        </select>
+                        <span className="m-qi-range-label">עד</span>
+                        <select
+                          value={panelForecastEnd}
+                          onChange={e => setPanelForecastEnd(e.target.value)}
+                          className="m-sheet-select-sm"
+                        >
+                          <option value="">לנצח</option>
+                          {months.filter((_, i) => i >= pStartIdx).map(m => <option key={m} value={m}>{m}</option>)}
+                        </select>
                       </div>
-
-                      {quickForecastOnly ? (
-                        <>
-                          <div className="m-qi-range-row">
-                            <span className="m-qi-range-label">מחודש</span>
-                            <select value={panelMonth} onChange={e => setPanelMonth(e.target.value)} className="m-sheet-select-sm">
-                              {months.map(m => <option key={m} value={m}>{m}</option>)}
-                            </select>
-                            <span className="m-qi-range-label">עד</span>
-                            <select
-                              value={panelForecastEnd}
-                              onChange={e => setPanelForecastEnd(e.target.value)}
-                              className="m-sheet-select-sm"
-                            >
-                              <option value="">לנצח</option>
-                              {months.filter((_, i) => i >= pStartIdx).map(m => <option key={m} value={m}>{m}</option>)}
-                            </select>
-                          </div>
-                          <button className="m-qi-forecast-save-btn" disabled={!panelAmount} onClick={() => doSaveForecast(cat)}>
-                            📅 עדכן תחזית
-                          </button>
-                        </>
-                      ) : (
-                        <div className="m-qi-action-row">
-                          <button
-                            className="m-qi-big-btn m-qi-big-replace"
-                            disabled={!panelAmount}
-                            onClick={() => doSaveActual(cat, false)}
-                          >
-                            <span className="m-qi-big-icon">✏️</span>
-                            <span className="m-qi-big-label">עדכון</span>
-                            <span className="m-qi-big-hint">מחליף סכום</span>
-                          </button>
-                          <button
-                            className="m-qi-big-btn m-qi-big-add"
-                            disabled={!panelAmount}
-                            onClick={() => doSaveActual(cat, true)}
-                          >
-                            <span className="m-qi-big-icon">➕</span>
-                            <span className="m-qi-big-label">הוספה</span>
-                            <span className="m-qi-big-hint">מוסיף לקיים</span>
-                          </button>
-                        </div>
-                      )}
+                      <button className="m-qi-forecast-save-btn" disabled={!(globalAmountRef.current?.value || panelAmount)} onClick={() => doSaveForecast(cat)}>
+                        📅 עדכן תחזית
+                      </button>
                     </div>
                   )}
                   </div>

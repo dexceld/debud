@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v176-internal-panelcatid'
+const CACHE_NAME = 'bva-v177-unified-forecast-ux'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
