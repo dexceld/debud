@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v168-dynamic-default-group'
+const CACHE_NAME = 'bva-v169-fix-income-sign-noscroll'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

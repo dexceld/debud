@@ -657,7 +657,7 @@ export default function MobileDashboard() {
             const isIncome = gid === 'g5'
             const gc = categories.filter(c => c.groupId === g.id)
             const gb = gc.reduce((s, c) => s + getForecastValue(c, vm), 0)
-            const ga = gc.reduce((s, c) => { const a = getActualValue(c.id, vm); return s + (a !== null ? a : getForecastValue(c, vm)) }, 0)
+            const ga = gc.reduce((s, c) => { const a = getActualValue(c.id, vm); return s + Math.abs(a !== null ? a : getForecastValue(c, vm)) }, 0)
             const isOpen = expandedGroups.has(g.id)
             return (
               <React.Fragment key={g.id}>
@@ -672,7 +672,7 @@ export default function MobileDashboard() {
                   return (
                     <button key={cat.id} className="m-home-cat-row" onClick={() => openUpdate(cat, vm)}>
                       <span className="m-home-cat-name">{cat.name}</span>
-                      <span className={`m-home-group-actual ${a !== null ? 'blue' : ''}`}>&#x202A;{(a ?? b).toLocaleString()}&#x202C;</span>
+                      <span className={`m-home-group-actual ${a !== null ? 'blue' : ''}`}>&#x202A;{Math.abs(a ?? b).toLocaleString()}&#x202C;</span>
                       <span className="m-home-group-budget">&#x202A;{b.toLocaleString()}&#x202C;</span>
                     </button>
                   )
@@ -1704,10 +1704,7 @@ export default function MobileDashboard() {
       setPanelForecastEnd('')   // '' = לנצח (forever checked by default)
       setPanelForward(false)
       setPanelForwardStart(currentMonth)
-      // scroll into view after render
-      setTimeout(() => {
-        panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }, 80)
+      // no scroll - let user stay in place
     }
 
     const doClose = () => { setQuickAddOpen(false); setQuickPreOpenCat(null); setQuickSearch('') }
@@ -1842,7 +1839,7 @@ export default function MobileDashboard() {
               />
               {activeTab === 'expense' && (
                 <select className="m-sheet-select" value={quickNewGroupId} onChange={e => setQuickNewGroupId(e.target.value)}>
-                  {allExpenseGroups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+                  {allExpenseGroups.filter((g,i,arr) => arr.findIndex(x=>x.id===g.id)===i).map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
                 </select>
               )}
               <div style={{display:'flex',gap:8}}>
