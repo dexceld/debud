@@ -1661,6 +1661,8 @@ export default function MobileDashboard() {
     const panelRef = useRef<HTMLDivElement>(null)
     const [editingCatId, setEditingCatId] = useState<string | null>(null)
     const [editName, setEditName] = useState('')
+    const [touchReady, setTouchReady] = useState(false)
+    useEffect(() => { const t = setTimeout(() => setTouchReady(true), 400); return () => clearTimeout(t) }, [])
 
     const incomeCatsList = categories.filter((c) => c.groupId === 'g5')
     const expenseCatsList = categories.filter((c) => c.groupId !== 'g5')
@@ -1963,6 +1965,7 @@ export default function MobileDashboard() {
                       zIndex: 1,
                     }}>
                   <button className="m-qi-card-header" style={{ background: 'transparent' }} onClick={() => {
+                    if (!touchReady) return
                     const _amt = globalAmountInputRef.current?.value || ''
                     if (!quickForecastOnly && _amt) {
                       const isIncome = cat.groupId === 'g5'

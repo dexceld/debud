@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v182-forecast-alpha-sort'
+const CACHE_NAME = 'bva-v183-touch-guard-400ms'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
