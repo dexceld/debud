@@ -695,26 +695,7 @@ export default function MobileDashboard() {
         ) : (
         /* ── VIEW 2: month vs month ── */
         <div className="m-home-summary-block">
-          {/* Navigation arrows - separate row above */}
-          <div className="m-mm-nav-row">
-            <button
-              className="m-mm-nav-btn"
-              onClick={() => goMonth('prev')}
-              disabled={viewMonthIdx === 0}
-              aria-label="חודש קודם"
-            >
-              ‹
-            </button>
-            <button
-              className="m-mm-nav-btn"
-              onClick={() => goMonth('next')}
-              disabled={viewMonthIdx >= months.length - 3}
-              aria-label="חודש הבא"
-            >
-              ›
-            </button>
-          </div>
-          {/* Month header - swipeable */}
+          {/* Month header */}
           <div className="m-mm-header">
             <span className="m-mm-header-spacer"></span>
             <div className="m-mm-header-months">

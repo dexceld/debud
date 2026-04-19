@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v157-fix-month-col-click'
+const CACHE_NAME = 'bva-v158-remove-mm-arrows'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
