@@ -1821,7 +1821,8 @@ export default function MobileDashboard() {
             {panelCatId !== '__new__' && (
               <button className="m-qi-new-cat-inline-btn" onClick={() => {
                 savedAmountRef.current = globalAmountInputRef.current?.value || ''
-                setQuickNewGroupId(activeTab === 'income' ? 'g5' : 'g4')
+                const defaultGid = activeTab === 'income' ? 'g5' : (allExpenseGroups[0]?.id ?? 'g4')
+                setQuickNewGroupId(defaultGid)
                 setPanelCatId('__new__')
                 setQuickNewName('')
               }}>סעיף חדש +</button>

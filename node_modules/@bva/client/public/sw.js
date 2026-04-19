@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v167-saif-hadash'
+const CACHE_NAME = 'bva-v168-dynamic-default-group'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
