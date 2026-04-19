@@ -1915,6 +1915,7 @@ export default function MobileDashboard() {
                   }}
                   onTouchMove={e => {
                     if (!swipeCatRef.current || swipeCatRef.current.catId !== cat.id) return
+                    if (quickForecastOnly) return
                     e.preventDefault()
                     setSwipeDx({ catId: cat.id, dx: e.touches[0].clientX - swipeCatRef.current.startX })
                   }}
@@ -1923,6 +1924,7 @@ export default function MobileDashboard() {
                     const dx = e.changedTouches[0].clientX - swipeCatRef.current.startX
                     swipeCatRef.current = null
                     setSwipeDx(null)
+                    if (quickForecastOnly) return
                     const _amt = globalAmountInputRef.current?.value || ''
                     if (!_amt || Math.abs(dx) < THRESHOLD) return
                     const isAdd = dx > 0
@@ -1974,12 +1976,12 @@ export default function MobileDashboard() {
                       trackCatUsage(cat.id)
                       doClose()
                     } else if (quickForecastOnly) {
-                      isOpen ? setPanelCatId(null) : openPanel(cat.id)
+                      openPanel(cat.id)
                     }
                   }}>
                     <span className="m-quick-item-name">{cat.name}</span>
                     <span className="m-qi-group-label-sm">{group?.icon} {group?.name}</span>
-                    <span className="m-qi-chevron">{isOpen ? '▲' : '▼'}</span>
+                    {!quickForecastOnly && <span className="m-qi-chevron">›</span>}
                   </button>
 
                   </div>
