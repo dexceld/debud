@@ -128,6 +128,7 @@ export default function MobileDashboard() {
   const [homeView, setHomeView] = useState<'actual' | 'monthly'>(
     () => (localStorage.getItem('home_view') as 'actual' | 'monthly') || 'monthly'
   )
+  // default is already 'monthly'
   const [catMgmtOpen, setCatMgmtOpen] = useState(false)
   const [catMgmtDrillGid, setCatMgmtDrillGid] = useState<string | null>(null)
   const [settingsPage, setSettingsPage] = useState<'main' | 'balance' | 'backup' | 'categories'>('main')
@@ -672,11 +673,11 @@ export default function MobileDashboard() {
                 {isOpen && gc.map(cat => {
                   const b = getForecastValue(cat, vm), a = getActualValue(cat.id, vm)
                   return (
-                    <button key={cat.id} className="m-home-cat-row" onClick={() => openUpdate(cat, vm)}>
-                      <span className="m-home-cat-name">{cat.name}</span>
-                      <span className={`m-home-group-actual ${a !== null ? 'blue' : ''}`}>&#x202A;{Math.abs(a ?? b).toLocaleString()}&#x202C;</span>
+                    <div key={cat.id} className="m-home-cat-row" style={{display:'flex',alignItems:'center'}}>
+                      <span className="m-home-cat-name" style={{cursor:'pointer',flex:1}} onClick={() => openUpdate(cat, currentMonth)}>{cat.name}</span>
+                      <span className={`m-home-group-actual ${a !== null ? 'blue' : ''}`} style={{cursor:'pointer'}} onClick={() => openUpdate(cat, vm)}>&#x202A;{Math.abs(a ?? b).toLocaleString()}&#x202C;</span>
                       <span className="m-home-group-budget">&#x202A;{b.toLocaleString()}&#x202C;</span>
-                    </button>
+                    </div>
                   )
                 })}
               </React.Fragment>
@@ -691,7 +692,7 @@ export default function MobileDashboard() {
           <div className="m-home-group-footer m-home-balance-row">
             <span className="m-home-group-arrow"></span>
             <span className="m-home-group-name">יתרת סגירה</span>
-            {(() => { const b = getRunningBalance(vm); return <span className={`m-home-group-actual ${b >= 0 ? '' : 'neg'}`}>&#x202A;{b < 0 ? '−' : ''}{Math.abs(b).toLocaleString()}&#x202C;</span> })()}
+            {(() => { const b = getRunningBalance(vm); const isManual = openingBalance?.month === vm; return <span className={`m-home-group-actual ${b >= 0 ? '' : 'neg'} ${isManual ? 'manual-balance' : ''}`}>{isManual && <span className="m-manual-pin">📌</span>}&#x202A;{b < 0 ? '−' : ''}{Math.abs(b).toLocaleString()}&#x202C;</span> })()}
             <span className="m-home-group-budget"></span>
           </div>
           <div className="m-forecast-expand-hint" onClick={() => {
@@ -741,7 +742,7 @@ export default function MobileDashboard() {
                 }).map(cat => (
                   <div key={cat.id} className="m-home-cat-row" style={{display:'flex',alignItems:'center',padding:'6px 6px 6px 4px',borderBottom:'1px solid #F3F4F6'}}>
                     <span className="m-home-group-arrow-spacer"></span>
-                    <span className="m-mm-name" style={{cursor:'pointer'}} onClick={() => openUpdate(cat, monthCols[0])}>{cat.name}</span>
+                    <span className="m-mm-name" style={{cursor:'pointer'}} onClick={() => openUpdate(cat, currentMonth)}>{cat.name}</span>
                     <div className="m-mm-header-months scrollable">
                       {monthCols.map(m => {
                         const a = getActualValue(cat.id, m), b = getForecastValue(cat, m)

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v173-key-state-remount'
+const CACHE_NAME = 'bva-v174-catname-clickable-currentmonth'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
