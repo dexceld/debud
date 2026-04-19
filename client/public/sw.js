@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v171-force-remount-quickadd'
+const CACHE_NAME = 'bva-v172-multi-fixes'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

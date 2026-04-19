@@ -741,7 +741,7 @@ export default function MobileDashboard() {
                 }).map(cat => (
                   <div key={cat.id} className="m-home-cat-row" style={{display:'flex',alignItems:'center',padding:'6px 6px 6px 4px',borderBottom:'1px solid #F3F4F6'}}>
                     <span className="m-home-group-arrow-spacer"></span>
-                    <span className="m-mm-name">{cat.name}</span>
+                    <span className="m-mm-name" style={{cursor:'pointer'}} onClick={() => openUpdate(cat, monthCols[0])}>{cat.name}</span>
                     <div className="m-mm-header-months scrollable">
                       {monthCols.map(m => {
                         const a = getActualValue(cat.id, m), b = getForecastValue(cat, m)
@@ -1682,7 +1682,14 @@ export default function MobileDashboard() {
     })
 
     const tabCats = activeTab === 'expense' ? expenseCatsList : incomeCatsList
-    const filtered = [...tabCats].sort((a, b) => (catUsage[b.id] || 0) - (catUsage[a.id] || 0))
+    const filtered = quickForecastOnly
+      ? [...tabCats].sort((a, b) => {
+          const gi = (id: string) => groupOrder.indexOf(id)
+          const gDiff = gi(a.groupId) - gi(b.groupId)
+          if (gDiff !== 0) return gDiff
+          return categories.indexOf(a) - categories.indexOf(b)
+        })
+      : [...tabCats].sort((a, b) => (catUsage[b.id] || 0) - (catUsage[a.id] || 0))
     const noResults = false
 
     // Per-cat expanded panel state
@@ -1960,13 +1967,13 @@ export default function MobileDashboard() {
                     }}>
                   <button className="m-qi-card-header" style={{ background: 'transparent' }} onClick={() => {
                     const _amt = globalAmountInputRef.current?.value || ''
-                    if (_amt) {
+                    if (!quickForecastOnly && _amt) {
                       const isIncome = cat.groupId === 'g5'
                       const signedAmount = isIncome ? -Math.abs(Number(_amt)) : Math.abs(Number(_amt))
                       setActuals(p => ({...p,[cat.id]:{...(p[cat.id]||{}),[globalMonth]: signedAmount}}))
                       trackCatUsage(cat.id)
                       doClose()
-                    } else {
+                    } else if (quickForecastOnly) {
                       isOpen ? setPanelCatId(null) : openPanel(cat.id)
                     }
                   }}>
@@ -1975,7 +1982,7 @@ export default function MobileDashboard() {
                     <span className="m-qi-chevron">{isOpen ? '▲' : '▼'}</span>
                   </button>
 
-                  {isOpen && !(globalAmountInputRef.current?.value || '') && (
+                  {isOpen && quickForecastOnly && (
                     <div className="m-qi-panel" ref={panelRef}>
                       <div className="m-qi-panel-row">
                         <input
