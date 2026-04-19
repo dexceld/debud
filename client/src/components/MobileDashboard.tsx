@@ -1693,9 +1693,8 @@ export default function MobileDashboard() {
       : [...tabCats].sort((a, b) => (catUsage[b.id] || 0) - (catUsage[a.id] || 0))
     const noResults = false
 
-    // Per-cat expanded panel state
-    const panelCatId = quickPanelCatId
-    const setPanelCatId = setQuickPanelCatId
+    // Per-cat expanded panel state — fully internal, always starts null
+    const [panelCatId, setPanelCatId] = useState<string | null>(null)
     const _initPanel = quickPreOpenCat?.catId ?? null
     void _initPanel
     const [panelMonth, setPanelMonth] = useState(quickPreOpenCat?.month ?? currentMonth)
