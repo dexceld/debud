@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v161-new-cat-top-form'
+const CACHE_NAME = 'bva-v162-amount-persist-forecast-tabs'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

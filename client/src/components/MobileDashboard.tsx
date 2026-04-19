@@ -1665,6 +1665,13 @@ export default function MobileDashboard() {
     // Global month + amount at top
     const globalAmountRef = globalAmountInputRef
 
+    // Restore amount after re-render caused by month change
+    useEffect(() => {
+      if (savedAmountRef.current && globalAmountRef.current && !globalAmountRef.current.value) {
+        globalAmountRef.current.value = savedAmountRef.current
+      }
+    })
+
     const tabCats = activeTab === 'expense' ? expenseCatsList : incomeCatsList
     const filtered = [...tabCats].sort((a, b) => (catUsage[b.id] || 0) - (catUsage[a.id] || 0))
     const noResults = false
@@ -1804,7 +1811,7 @@ export default function MobileDashboard() {
                 onClick={() => { setActiveTab('income'); setPanelCatId(null) }}
                 style={{flex:1}}>הכנסות</button>
             </div>
-            {!quickForecastOnly && panelCatId !== '__new__' && (
+            {panelCatId !== '__new__' && (
               <button className="m-qi-new-cat-inline-btn" onClick={() => {
                 savedAmountRef.current = globalAmountInputRef.current?.value || ''
                 setQuickNewGroupId(activeTab === 'income' ? 'g5' : 'g4')
@@ -1863,14 +1870,15 @@ export default function MobileDashboard() {
                   if (monthSwipeRef.current === null) return
                   const dx = e.changedTouches[0].clientX - monthSwipeRef.current
                   monthSwipeRef.current = null
-                  if (dx > 40 && mIdx > 0) setGlobalMonth(months[mIdx - 1])
-                  else if (dx < -40 && mIdx < months.length - 1) setGlobalMonth(months[mIdx + 1])
+                  const curVal = globalAmountRef.current?.value || ''
+                  if (dx > 40 && mIdx > 0) { if (curVal) savedAmountRef.current = curVal; setGlobalMonth(months[mIdx - 1]) }
+                  else if (dx < -40 && mIdx < months.length - 1) { if (curVal) savedAmountRef.current = curVal; setGlobalMonth(months[mIdx + 1]) }
                 }}>
-                <button className="m-month-nav-btn" onClick={() => mIdx > 0 && setGlobalMonth(months[mIdx-1])}>‹</button>
+                <button className="m-month-nav-btn" onClick={() => { if (mIdx > 0) { const v = globalAmountRef.current?.value || ''; if (v) savedAmountRef.current = v; setGlobalMonth(months[mIdx-1]) }}}>‹</button>
                 <span className="m-month-neighbor">{prev ?? ''}</span>
                 <span className="m-month-current">{globalMonth}</span>
                 <span className="m-month-neighbor">{next ?? ''}</span>
-                <button className="m-month-nav-btn" onClick={() => mIdx < months.length-1 && setGlobalMonth(months[mIdx+1])}>›</button>
+                <button className="m-month-nav-btn" onClick={() => { if (mIdx < months.length-1) { const v = globalAmountRef.current?.value || ''; if (v) savedAmountRef.current = v; setGlobalMonth(months[mIdx+1]) }}}>›</button>
               </div>
             )
           })()}
