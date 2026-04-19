@@ -1675,6 +1675,7 @@ export default function MobileDashboard() {
     const [amountShake, setAmountShake] = useState(false)
     const newNameRef = useRef<HTMLInputElement>(null)
     useEffect(() => { const t = setTimeout(() => setTouchReady(true), 400); return () => clearTimeout(t) }, [])
+    useEffect(() => { if (panelCatId === '__new__') { setTimeout(() => newNameRef.current?.focus(), 50) } }, [panelCatId])
 
     const incomeCatsList = categories.filter((c) => c.groupId === 'g5')
     const expenseCatsList = categories.filter((c) => c.groupId !== 'g5')
@@ -1845,7 +1846,6 @@ export default function MobileDashboard() {
                 setPanelCatId('__new__')
                 setQuickNewName('')
                 quickNewNameRef.current = ''
-                setTimeout(() => newNameRef.current?.focus(), 150)
               }}>סעיף חדש +</button>
             )}
           </div>

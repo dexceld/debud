@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v194-outer-panel-state'
+const CACHE_NAME = 'bva-v195-newcat-focus-useeffect'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
