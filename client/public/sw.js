@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v155-outer-panel-state'
+const CACHE_NAME = 'bva-v157-fix-month-col-click'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

@@ -121,7 +121,6 @@ export default function MobileDashboard() {
   const [quickNewGroupId, setQuickNewGroupId] = useState('g4')
   const [quickForecastOnly, setQuickForecastOnly] = useState(false)
   const [quickPanelCatId, setQuickPanelCatId] = useState<string | null>(null)
-  const [quickLocalSearch, setQuickLocalSearch] = useState('')
   const [globalMonth, setGlobalMonth] = useState(getCurrentMonth)
   const [homeView, setHomeView] = useState<'actual' | 'monthly'>(
     () => (localStorage.getItem('home_view') as 'actual' | 'monthly') || 'monthly'
@@ -272,7 +271,6 @@ export default function MobileDashboard() {
     setUpdateAmount('')
     setQuickForecastOnly(false)
     setQuickPanelCatId(null)
-    setQuickLocalSearch('')
     setGlobalMonth(getCurrentMonth())
     setQuickAddOpen(true)
     setTimeout(() => {
@@ -754,17 +752,17 @@ export default function MobileDashboard() {
                     return val > 0
                   })
                 }).map(cat => (
-                  <button key={cat.id} className="m-home-cat-row" onClick={() => openUpdate(cat, vm)}>
+                  <div key={cat.id} className="m-home-cat-row" style={{display:'flex',alignItems:'center',padding:'6px 6px 6px 4px',borderBottom:'1px solid #F3F4F6'}}>
                     <span className="m-home-group-arrow-spacer"></span>
                     <span className="m-mm-name">{cat.name}</span>
                     <div className="m-mm-header-months scrollable">
                       {monthCols.map(m => {
                         const a = getActualValue(cat.id, m), b = getForecastValue(cat, m)
                         const displayVal = a !== null ? Math.abs(a) : b
-                        return <span key={m} className={`m-mm-col ${m === vm ? 'current' : ''} ${a !== null ? 'blue' : ''}`}>{displayVal.toLocaleString()}</span>
+                        return <button key={m} className={`m-mm-col m-mm-col-btn ${m === vm ? 'current' : ''} ${a !== null ? 'blue' : ''}`} onClick={() => openUpdate(cat, m)}>{displayVal.toLocaleString()}</button>
                       })}
                     </div>
-                  </button>
+                  </div>
                 ))}
               </React.Fragment>
             )
@@ -1685,13 +1683,9 @@ export default function MobileDashboard() {
     // Global month + amount at top
     const globalAmountRef = globalAmountInputRef
 
-    const localSearch = quickLocalSearch
-    const setLocalSearch = setQuickLocalSearch
     const tabCats = activeTab === 'expense' ? expenseCatsList : incomeCatsList
-    const searchTrimmed = localSearch.trim().toLowerCase()
-    const baseFiltered = searchTrimmed ? tabCats.filter(c => c.name.toLowerCase().includes(searchTrimmed)) : tabCats
-    const filtered = [...baseFiltered].sort((a, b) => (catUsage[b.id] || 0) - (catUsage[a.id] || 0))
-    const noResults = searchTrimmed && filtered.length === 0
+    const filtered = [...tabCats].sort((a, b) => (catUsage[b.id] || 0) - (catUsage[a.id] || 0))
+    const noResults = false
 
     // Per-cat expanded panel state
     const panelCatId = quickPanelCatId
@@ -1820,24 +1814,12 @@ export default function MobileDashboard() {
           <div className="m-qi-tabs-segmented">
             <button
               className={`m-qi-tab-pill ${activeTab === 'expense' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('expense'); setPanelCatId(null); setLocalSearch('') }}
+              onClick={() => { setActiveTab('expense'); setPanelCatId(null) }}
             >הוצאות</button>
             <button
               className={`m-qi-tab-pill ${activeTab === 'income' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('income'); setPanelCatId(null); setLocalSearch('') }}
+              onClick={() => { setActiveTab('income'); setPanelCatId(null) }}
             >הכנסות</button>
-          </div>
-
-          {/* Search bar */}
-          <div className="m-qi-search-row">
-            <input
-              className="m-qi-search-input"
-              type="text"
-              placeholder="חפש סעיף..."
-              value={localSearch}
-              onChange={e => { setLocalSearch(e.target.value); setPanelCatId(null) }}
-            />
-            {localSearch && <button className="m-qi-search-clear" onClick={() => setLocalSearch('')}>×</button>}
           </div>
 
           {/* Amount — big + centered (actuals only) */}
@@ -2025,16 +2007,6 @@ export default function MobileDashboard() {
                 </div>
               )
             })}
-
-            {/* No results - suggest adding */}
-            {noResults && activeTab === 'expense' && panelCatId !== '__new__' && (
-              <div className="m-qi-no-results">
-                <span>"{localSearch}" לא נמצא</span>
-                <button className="m-new-cat-trigger" onClick={() => { setPanelCatId('__new__'); setQuickNewName(localSearch) }}>
-                  ＋ הוסף כהוצאה חדשה
-                </button>
-              </div>
-            )}
 
             {/* Create new category */}
             {activeTab === 'expense' && (
