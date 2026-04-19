@@ -866,6 +866,7 @@ export default function MobileDashboard() {
                 const { net } = getMonthTotals(month)
                 const balance = getRunningBalance(month)
                 const isCurrent = month === currentMonth
+                const isManual = openingBalance?.month === month
                 return (
                   <div key={month} className={`m-table-row ${isCurrent ? 'current' : ''}`}>
                     <div className="m-row-month">
@@ -873,7 +874,10 @@ export default function MobileDashboard() {
                         {month}{isCurrent ? ' (נוכחי)' : i === 1 ? ' (הבא)' : ''}
                       </span>
                     </div>
-                    <span className={`m-row-val col-forecast ${balance < 0 ? 'neg' : ''}`}>&#x202A;{balance < 0 ? '−' : ''}{Math.abs(balance).toLocaleString()}&#x202C;</span>
+                    <span className={`m-row-val col-forecast ${balance < 0 ? 'neg' : ''} ${isManual ? 'manual-balance' : ''}`}>
+                      {isManual && <span className="m-manual-pin" title="יתרה שהוזנה ידנית">📌</span>}
+                      &#x202A;{balance < 0 ? '−' : ''}{Math.abs(balance).toLocaleString()}&#x202C;
+                    </span>
                     <span className={`m-row-val col-net m-net-highlight ${net >= 0 ? 'pos' : 'neg'}`}>&#x202A;{net >= 0 ? '+' : '−'}{Math.abs(net).toLocaleString()}&#x202C;</span>
                   </div>
                 )

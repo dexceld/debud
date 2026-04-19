@@ -1532,6 +1532,21 @@
 .m-row-val.neg { color: #DC2626; }
 .m-row-val.pos { color: #059669; }
 
+.m-row-val.manual-balance {
+  border: 1.5px solid #F59E0B;
+  border-radius: 8px;
+  background: #FFFBEB;
+  color: #92400E;
+  gap: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.m-manual-pin {
+  font-size: 11px;
+  line-height: 1;
+}
+
 /* pastel column backgrounds — full column tint */
 .col-forecast {
   background: #EEF2FF;

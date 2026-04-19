@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v163-delete-toast'
+const CACHE_NAME = 'bva-v164-manual-balance-highlight'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
