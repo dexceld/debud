@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v169-fix-income-sign-noscroll'
+const CACHE_NAME = 'bva-v170-fix-forecast-open-reset'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

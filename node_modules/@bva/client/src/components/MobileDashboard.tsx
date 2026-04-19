@@ -546,8 +546,8 @@ export default function MobileDashboard() {
           className="m-fab-glass forecast"
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
-          onTouchEnd={e => onTouchEnd(e, () => { setQuickForecastOnly(true); setQuickAddOpen(true) })}
-          onClick={() => { if (!dragRef.current?.moved) { setQuickForecastOnly(true); setQuickAddOpen(true) } }}
+          onTouchEnd={e => onTouchEnd(e, () => { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickNewName(''); savedAmountRef.current = ''; setQuickAddOpen(true) })}
+          onClick={() => { if (!dragRef.current?.moved) { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickNewName(''); savedAmountRef.current = ''; setQuickAddOpen(true) } }}
           title="עדכון תחזית"
         >
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
