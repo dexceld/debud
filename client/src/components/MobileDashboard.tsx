@@ -1668,8 +1668,8 @@ export default function MobileDashboard() {
     const [editName, setEditName] = useState('')
     const [touchReady, setTouchReady] = useState(false)
     const [amountShake, setAmountShake] = useState(false)
+    const newNameRef = useRef<HTMLInputElement>(null)
     useEffect(() => { const t = setTimeout(() => setTouchReady(true), 400); return () => clearTimeout(t) }, [])
-    useEffect(() => { setTimeout(() => globalAmountInputRef.current?.focus(), 100) }, [])
 
     const incomeCatsList = categories.filter((c) => c.groupId === 'g5')
     const expenseCatsList = categories.filter((c) => c.groupId !== 'g5')
@@ -1836,6 +1836,7 @@ export default function MobileDashboard() {
                 setQuickNewGroupId(defaultGid)
                 setPanelCatId('__new__')
                 setQuickNewName('')
+                setTimeout(() => newNameRef.current?.focus(), 50)
               }}>סעיף חדש +</button>
             )}
           </div>
@@ -1845,11 +1846,11 @@ export default function MobileDashboard() {
             <div className="m-new-cat-box m-new-cat-box-top">
               <div className="m-new-cat-title">סעיף חדש</div>
               <input
+                ref={newNameRef}
                 className="m-qi-amount-input"
                 placeholder="שם הסעיף..."
                 defaultValue={quickNewName}
                 onChange={e => setQuickNewName(e.target.value)}
-                autoFocus
               />
               {activeTab === 'expense' && (
                 <select className="m-sheet-select" value={quickNewGroupId} onChange={e => setQuickNewGroupId(e.target.value)}>

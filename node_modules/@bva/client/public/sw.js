@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v190-capture-amt-on-panel-open'
+const CACHE_NAME = 'bva-v191-newcat-name-focus-fix'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
