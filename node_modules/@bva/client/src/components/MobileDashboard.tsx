@@ -554,8 +554,8 @@ export default function MobileDashboard() {
           className="m-fab-glass forecast"
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
-          onTouchEnd={e => onTouchEnd(e, () => { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickPreOpenCat(null); setQuickNewName(''); savedAmountRef.current = ''; setQuickOpenKey(k => k + 1); setQuickAddOpen(true) })}
-          onClick={() => { if (!dragRef.current?.moved) { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickPreOpenCat(null); setQuickNewName(''); savedAmountRef.current = ''; setQuickOpenKey(k => k + 1); setQuickAddOpen(true) } }}
+          onTouchEnd={e => onTouchEnd(e, () => { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickPreOpenCat(null); setQuickNewName(''); savedAmountRef.current = ''; setQuickOpenKey(k => k + 1); setQuickAddOpen(true); setTimeout(() => { if (globalAmountInputRef.current) { globalAmountInputRef.current.value = ''; globalAmountInputRef.current.focus() } }, 50) })}
+          onClick={() => { if (!dragRef.current?.moved) { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickPreOpenCat(null); setQuickNewName(''); savedAmountRef.current = ''; setQuickOpenKey(k => k + 1); setQuickAddOpen(true); setTimeout(() => { if (globalAmountInputRef.current) { globalAmountInputRef.current.value = ''; globalAmountInputRef.current.focus() } }, 50) } }}
           title="עדכון תחזית"
         >
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1669,6 +1669,7 @@ export default function MobileDashboard() {
     const [touchReady, setTouchReady] = useState(false)
     const [amountShake, setAmountShake] = useState(false)
     useEffect(() => { const t = setTimeout(() => setTouchReady(true), 400); return () => clearTimeout(t) }, [])
+    useEffect(() => { setTimeout(() => globalAmountInputRef.current?.focus(), 100) }, [])
 
     const incomeCatsList = categories.filter((c) => c.groupId === 'g5')
     const expenseCatsList = categories.filter((c) => c.groupId !== 'g5')
@@ -1708,9 +1709,10 @@ export default function MobileDashboard() {
     const [panelForwardStart, setPanelForwardStart] = useState(currentMonth)
 
     const openPanel = (catId: string) => {
+      const capturedAmt = globalAmountInputRef.current?.value || ''
       setPanelCatId(catId)
       setPanelMonth(currentMonth)
-      setPanelAmount('')
+      setPanelAmount(capturedAmt)
       setPanelForecast(false)
       setPanelForecastEnd('')   // '' = לנצח (forever checked by default)
       setPanelForward(false)
@@ -2007,7 +2009,7 @@ export default function MobileDashboard() {
           {quickForecastOnly && panelCatId && (() => {
             const cat = categories.find(c => c.id === panelCatId)
             if (!cat) return null
-            const amt = globalAmountRef.current?.value || ''
+            const amt = panelAmount
             return (
               <>
                 <div className="m-overlay" onClick={() => setPanelCatId(null)} />

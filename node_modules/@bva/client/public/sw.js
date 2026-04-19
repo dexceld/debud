@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v187-uncontrolled-newcat-input'
+const CACHE_NAME = 'bva-v190-capture-amt-on-panel-open'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
