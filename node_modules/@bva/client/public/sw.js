@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v152-fix-new-cat-save'
+const CACHE_NAME = 'bva-v154-draggable-glass-fabs'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

@@ -282,22 +282,26 @@ export default function MobileDashboard() {
   const addNewCategoryAndUpdate = () => {
     if (!quickNewName.trim()) return
     const amt = globalAmountInputRef.current?.value || ''
+    const newId = `c_${Date.now()}`
     const newCat: Category = {
-      id: `c_${Date.now()}`,
+      id: newId,
       groupId: quickNewGroupId,
       name: quickNewName.trim(),
       budget: 0,
     }
+    const isIncome = newCat.groupId === 'g5'
+    const signedAmount = amt ? (isIncome ? -Math.abs(Number(amt)) : Math.abs(Number(amt))) : 0
     setCategories((prev) => [...prev, newCat])
-    if (amt) {
-      const isIncome = newCat.groupId === 'g5'
-      const signedAmount = isIncome ? -Math.abs(Number(amt)) : Math.abs(Number(amt))
-      setActuals((prev) => ({
-        ...prev,
-        [newCat.id]: { [globalMonth]: signedAmount },
-      }))
-      trackCatUsage(newCat.id)
+    if (signedAmount !== 0) {
+      setActuals((prev) => ({ ...prev, [newId]: { [globalMonth]: signedAmount } }))
+      setCatUsage(prev => {
+        const next = { ...prev, [newId]: 1 }
+        localStorage.setItem('cat_usage', JSON.stringify(next))
+        return next
+      })
     }
+    setSaveFeedback(true)
+    setTimeout(() => setSaveFeedback(false), 1500)
     setQuickAddOpen(false)
     setQuickNewName('')
   }
@@ -485,6 +489,66 @@ export default function MobileDashboard() {
           })}
         </div>
       </>
+    )
+  }
+
+  // --- DRAGGABLE FABs ---
+  const DraggableFABs = () => {
+    const [pos, setPos] = useState(() => {
+      const saved = localStorage.getItem('fab_pos')
+      return saved ? JSON.parse(saved) : { x: window.innerWidth - 76, y: window.innerHeight - 200 }
+    })
+    const dragRef = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number; moved: boolean } | null>(null)
+
+    const onTouchStart = (e: React.TouchEvent) => {
+      const t = e.touches[0]
+      dragRef.current = { startX: t.clientX, startY: t.clientY, startPosX: pos.x, startPosY: pos.y, moved: false }
+    }
+    const onTouchMove = (e: React.TouchEvent) => {
+      if (!dragRef.current) return
+      e.stopPropagation()
+      const dx = e.touches[0].clientX - dragRef.current.startX
+      const dy = e.touches[0].clientY - dragRef.current.startY
+      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) dragRef.current.moved = true
+      const newX = Math.max(0, Math.min(window.innerWidth - 72, dragRef.current.startPosX + dx))
+      const newY = Math.max(0, Math.min(window.innerHeight - 160, dragRef.current.startPosY + dy))
+      setPos({ x: newX, y: newY })
+    }
+    const onTouchEnd = (e: React.TouchEvent, action: () => void) => {
+      if (!dragRef.current) return
+      const wasDrag = dragRef.current.moved
+      dragRef.current = null
+      if (!wasDrag) { action(); return }
+      localStorage.setItem('fab_pos', JSON.stringify(pos))
+    }
+
+    return (
+      <div style={{ position: 'fixed', left: pos.x, top: pos.y, display: 'flex', flexDirection: 'column', gap: 12, zIndex: 100, touchAction: 'none' }}>
+        <button
+          className="m-fab-glass"
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={e => onTouchEnd(e, openQuickAdd)}
+          onClick={() => { if (!dragRef.current?.moved) openQuickAdd() }}
+          title="עדכון בפועל"
+        >
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </button>
+        <button
+          className="m-fab-glass forecast"
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={e => onTouchEnd(e, () => { setQuickForecastOnly(true); setQuickAddOpen(true) })}
+          onClick={() => { if (!dragRef.current?.moved) { setQuickForecastOnly(true); setQuickAddOpen(true) } }}
+          title="עדכון תחזית"
+        >
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+        </button>
+      </div>
     )
   }
 
@@ -762,19 +826,8 @@ export default function MobileDashboard() {
           </button>
         </div>
 
-        {/* Floating Action Buttons */}
-        <div className="m-fab-container">
-          <button className="m-fab" onClick={openQuickAdd} title="הוסף עסקה">
-            <span className="m-fab-icon">+</span>
-          </button>
-          <button 
-            className="m-fab forecast" 
-            onClick={() => { setQuickSearch(''); setUpdateAmount(''); setQuickForecastOnly(true); setQuickAddOpen(true) }}
-            title="עדכן תחזית"
-          >
-            <span className="m-fab-icon">📅</span>
-          </button>
-        </div>
+        {/* Floating Action Buttons — draggable */}
+        <DraggableFABs />
         {/* Save feedback toast */}
         {saveFeedback && (
           <div className="m-save-toast">
@@ -1980,7 +2033,7 @@ export default function MobileDashboard() {
             {activeTab === 'expense' && (
               <div className="m-new-cat-inline">
                   {panelCatId === '__new__' ? (
-                    <div className="m-new-cat-box">
+                    <div className="m-new-cat-box" ref={el => { if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50) }}>
                       <div className="m-new-cat-title">הוצאה חדשה</div>
                       <input
                         className="m-qi-amount-input"

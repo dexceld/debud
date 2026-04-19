@@ -600,54 +600,32 @@
 }
 
 /* ===== FLOATING ACTION BUTTONS (FAB) ===== */
-.m-fab-container {
-  position: fixed;
-  bottom: 100px;
-  right: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  z-index: 100;
-}
-
-.m-fab {
-  width: 56px;
-  height: 56px;
+.m-fab-glass {
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.95);
-  border: 2px solid #6366F1;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25), 0 2px 4px rgba(0,0,0,0.1);
+  background: rgba(255, 255, 255, 0.18);
+  border: 2px solid rgba(99, 102, 241, 0.7);
+  color: #6366F1;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 2px 10px rgba(99,102,241,0.18);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  touch-action: none;
 }
 
-.m-fab:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35), 0 3px 6px rgba(0,0,0,0.15);
+.m-fab-glass:active {
+  transform: scale(0.93);
 }
 
-.m-fab:active {
-  transform: scale(0.95);
-}
-
-.m-fab-icon {
-  font-size: 28px;
-  font-weight: 600;
-  color: #6366F1;
-  line-height: 1;
-}
-
-.m-fab.forecast {
-  border-color: #10B981;
-}
-
-.m-fab.forecast .m-fab-icon {
+.m-fab-glass.forecast {
+  border-color: rgba(16, 185, 129, 0.7);
   color: #10B981;
-  font-size: 20px;
+  background: rgba(255, 255, 255, 0.18);
 }
 
 /* Icon colors for forecast view */
