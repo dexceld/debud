@@ -1667,6 +1667,7 @@ export default function MobileDashboard() {
     const [editingCatId, setEditingCatId] = useState<string | null>(null)
     const [editName, setEditName] = useState('')
     const [touchReady, setTouchReady] = useState(false)
+    const [amountShake, setAmountShake] = useState(false)
     useEffect(() => { const t = setTimeout(() => setTouchReady(true), 400); return () => clearTimeout(t) }, [])
 
     const incomeCatsList = categories.filter((c) => c.groupId === 'g5')
@@ -1868,7 +1869,7 @@ export default function MobileDashboard() {
                 type="number" inputMode="numeric"
                 placeholder="0"
                 defaultValue=""
-                className="m-qi-amount-hero-input"
+                className={`m-qi-amount-hero-input${amountShake ? ' shake' : ''}`}
                 autoFocus
               />
               <span className="m-qi-amount-hero-symbol">₪</span>
@@ -1974,6 +1975,12 @@ export default function MobileDashboard() {
                   <button className="m-qi-card-header" style={{ background: 'transparent' }} onClick={() => {
                     if (!touchReady) return
                     const _amt = globalAmountInputRef.current?.value || ''
+                    if (quickForecastOnly && !_amt) {
+                      globalAmountInputRef.current?.focus()
+                      setAmountShake(true)
+                      setTimeout(() => setAmountShake(false), 600)
+                      return
+                    }
                     if (!quickForecastOnly && _amt) {
                       const isIncome = cat.groupId === 'g5'
                       const signedAmount = isIncome ? -Math.abs(Number(_amt)) : Math.abs(Number(_amt))

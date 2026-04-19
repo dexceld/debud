@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v185-fix-popstate-keyboard'
+const CACHE_NAME = 'bva-v186-require-amount-in-forecast'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
