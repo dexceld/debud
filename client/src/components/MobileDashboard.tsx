@@ -120,6 +120,8 @@ export default function MobileDashboard() {
   const [quickNewName, setQuickNewName] = useState('')
   const [quickNewGroupId, setQuickNewGroupId] = useState('g4')
   const [quickForecastOnly, setQuickForecastOnly] = useState(false)
+  const [quickPanelCatId, setQuickPanelCatId] = useState<string | null>(null)
+  const [quickLocalSearch, setQuickLocalSearch] = useState('')
   const [globalMonth, setGlobalMonth] = useState(getCurrentMonth)
   const [homeView, setHomeView] = useState<'actual' | 'monthly'>(
     () => (localStorage.getItem('home_view') as 'actual' | 'monthly') || 'monthly'
@@ -269,6 +271,8 @@ export default function MobileDashboard() {
     setQuickNewGroupId('g4')
     setUpdateAmount('')
     setQuickForecastOnly(false)
+    setQuickPanelCatId(null)
+    setQuickLocalSearch('')
     setGlobalMonth(getCurrentMonth())
     setQuickAddOpen(true)
     setTimeout(() => {
@@ -1681,8 +1685,8 @@ export default function MobileDashboard() {
     // Global month + amount at top
     const globalAmountRef = globalAmountInputRef
 
-    const [localSearch, setLocalSearch] = useState('')
-
+    const localSearch = quickLocalSearch
+    const setLocalSearch = setQuickLocalSearch
     const tabCats = activeTab === 'expense' ? expenseCatsList : incomeCatsList
     const searchTrimmed = localSearch.trim().toLowerCase()
     const baseFiltered = searchTrimmed ? tabCats.filter(c => c.name.toLowerCase().includes(searchTrimmed)) : tabCats
@@ -1690,7 +1694,10 @@ export default function MobileDashboard() {
     const noResults = searchTrimmed && filtered.length === 0
 
     // Per-cat expanded panel state
-    const [panelCatId, setPanelCatId] = useState<string | null>(quickPreOpenCat?.catId ?? null)
+    const panelCatId = quickPanelCatId
+    const setPanelCatId = setQuickPanelCatId
+    const _initPanel = quickPreOpenCat?.catId ?? null
+    void _initPanel
     const [panelMonth, setPanelMonth] = useState(quickPreOpenCat?.month ?? currentMonth)
     const [panelAmount, setPanelAmount] = useState('')
     const [panelForecast, setPanelForecast] = useState(false)
