@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v170-fix-forecast-open-reset'
+const CACHE_NAME = 'bva-v171-force-remount-quickadd'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
