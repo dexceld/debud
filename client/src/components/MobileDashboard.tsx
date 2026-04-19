@@ -1824,17 +1824,17 @@ export default function MobileDashboard() {
                 setQuickNewGroupId(activeTab === 'income' ? 'g5' : 'g4')
                 setPanelCatId('__new__')
                 setQuickNewName('')
-              }}>{activeTab === 'expense' ? 'הוצאה חדשה +' : 'הכנסה חדשה +'}</button>
+              }}>סעיף חדש +</button>
             )}
           </div>
 
           {/* New category form — shown at top so keyboard doesn't hide it */}
           {panelCatId === '__new__' && (
             <div className="m-new-cat-box m-new-cat-box-top">
-              <div className="m-new-cat-title">{activeTab === 'expense' ? 'הוצאה חדשה' : 'הכנסה חדשה'}</div>
+              <div className="m-new-cat-title">סעיף חדש</div>
               <input
                 className="m-qi-amount-input"
-                placeholder={activeTab === 'expense' ? 'שם ההוצאה...' : 'שם ההכנסה...'}
+                placeholder="שם הסעיף..."
                 value={quickNewName}
                 onChange={e => setQuickNewName(e.target.value)}
                 autoFocus

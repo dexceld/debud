@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v166-balance-save-goes-back'
+const CACHE_NAME = 'bva-v167-saif-hadash'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
