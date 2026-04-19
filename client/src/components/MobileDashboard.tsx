@@ -503,6 +503,9 @@ export default function MobileDashboard() {
       .filter(i => i >= 0 && i < months.length)
       .map(i => months[i])
 
+    const swipeStartX = useRef(0)
+    const swipeStartY = useRef(0)
+
     return (
       <div className="m-screen">
         <div className="m-header">
@@ -539,7 +542,17 @@ export default function MobileDashboard() {
           </div>
         </div>
 
-        <div className="m-home-scroll">
+        <div className="m-home-scroll"
+          onTouchStart={e => { swipeStartX.current = e.touches[0].clientX; swipeStartY.current = e.touches[0].clientY }}
+          onTouchEnd={e => {
+            const dx = e.changedTouches[0].clientX - swipeStartX.current
+            const dy = e.changedTouches[0].clientY - swipeStartY.current
+            if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+              if (dx < 0 && viewMonthIdx < months.length - 1) setViewMonthIdx(i => i + 1)
+              else if (dx > 0 && viewMonthIdx > 0) setViewMonthIdx(i => i - 1)
+            }
+          }}
+        >
         {/* Month navigator — only in actual vs forecast view */}
         {homeView === 'actual' && (
         <div className="m-home-nav">
@@ -802,7 +815,7 @@ export default function MobileDashboard() {
         {forecastView === 'current' ? (
           <>
             <div className="m-table-header">
-              <span className="m-th-month">חודש</span>
+              <div className="m-row-month" style={{visibility:'hidden'}}><span className="m-row-month-name">00/00</span></div>
               <span className="m-th-val col-forecast">יתרת סגירה</span>
               <span className="m-th-val col-net">נטו חודשי</span>
             </div>
@@ -818,7 +831,7 @@ export default function MobileDashboard() {
                         {month}{isCurrent ? ' (נוכחי)' : i === 1 ? ' (הבא)' : ''}
                       </span>
                     </div>
-                    <span className="m-row-val col-forecast">&#x202A;{Math.abs(balance).toLocaleString()}&#x202C;</span>
+                    <span className={`m-row-val col-forecast ${balance < 0 ? 'neg' : ''}`}>&#x202A;{balance < 0 ? '−' : ''}{Math.abs(balance).toLocaleString()}&#x202C;</span>
                     <span className={`m-row-val col-net m-net-highlight ${net >= 0 ? 'pos' : 'neg'}`}>&#x202A;{net >= 0 ? '+' : '−'}{Math.abs(net).toLocaleString()}&#x202C;</span>
                   </div>
                 )
@@ -1611,9 +1624,13 @@ export default function MobileDashboard() {
     // Global month + amount at top
     const globalAmountRef = globalAmountInputRef
 
+    const [localSearch, setLocalSearch] = useState('')
+
     const tabCats = activeTab === 'expense' ? expenseCatsList : incomeCatsList
-    const baseFiltered = tabCats
+    const searchTrimmed = localSearch.trim().toLowerCase()
+    const baseFiltered = searchTrimmed ? tabCats.filter(c => c.name.toLowerCase().includes(searchTrimmed)) : tabCats
     const filtered = [...baseFiltered].sort((a, b) => (catUsage[b.id] || 0) - (catUsage[a.id] || 0))
+    const noResults = searchTrimmed && filtered.length === 0
 
     // Per-cat expanded panel state
     const [panelCatId, setPanelCatId] = useState<string | null>(quickPreOpenCat?.catId ?? null)
@@ -1739,12 +1756,24 @@ export default function MobileDashboard() {
           <div className="m-qi-tabs-segmented">
             <button
               className={`m-qi-tab-pill ${activeTab === 'expense' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('expense'); setPanelCatId(null); setQuickSearch('') }}
+              onClick={() => { setActiveTab('expense'); setPanelCatId(null); setLocalSearch('') }}
             >הוצאות</button>
             <button
               className={`m-qi-tab-pill ${activeTab === 'income' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('income'); setPanelCatId(null); setQuickSearch('') }}
+              onClick={() => { setActiveTab('income'); setPanelCatId(null); setLocalSearch('') }}
             >הכנסות</button>
+          </div>
+
+          {/* Search bar */}
+          <div className="m-qi-search-row">
+            <input
+              className="m-qi-search-input"
+              type="text"
+              placeholder="חפש סעיף..."
+              value={localSearch}
+              onChange={e => { setLocalSearch(e.target.value); setPanelCatId(null) }}
+            />
+            {localSearch && <button className="m-qi-search-clear" onClick={() => setLocalSearch('')}>×</button>}
           </div>
 
           {/* Amount — big + centered (actuals only) */}
@@ -1933,6 +1962,16 @@ export default function MobileDashboard() {
               )
             })}
 
+            {/* No results - suggest adding */}
+            {noResults && activeTab === 'expense' && panelCatId !== '__new__' && (
+              <div className="m-qi-no-results">
+                <span>"{localSearch}" לא נמצא</span>
+                <button className="m-new-cat-trigger" onClick={() => { setPanelCatId('__new__'); setQuickNewName(localSearch) }}>
+                  ＋ הוסף כהוצאה חדשה
+                </button>
+              </div>
+            )}
+
             {/* Create new category */}
             {activeTab === 'expense' && (
               <div className="m-new-cat-inline">
@@ -1951,11 +1990,11 @@ export default function MobileDashboard() {
                       </select>
                       <div style={{display:'flex',gap:8}}>
                         <button className="m-btn-primary" style={{flex:1}} onClick={() => { addNewCategoryAndUpdate() }} disabled={!quickNewName.trim()}>צור והוסף ✓</button>
-                        <button className="m-catmgmt-cancel-btn" onClick={() => setPanelCatId(null)}>ביטול</button>
+                        <button className="m-catmgmt-cancel-btn" onClick={() => { setPanelCatId(null); setLocalSearch('') }}>ביטול</button>
                       </div>
                     </div>
                   ) : (
-                    <button className="m-new-cat-trigger" onClick={() => { setPanelCatId('__new__'); setQuickNewName('') }}>
+                    !noResults && <button className="m-new-cat-trigger" onClick={() => { setPanelCatId('__new__'); setQuickNewName('') }}>
                       ＋ הוצאה חדשה
                     </button>
                   )}
