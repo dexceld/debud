@@ -1666,35 +1666,32 @@ export default function MobileDashboard() {
 
   // --- QUICK ADD SHEET (unified with tabs) ---
   const QuickAddSheet = () => {
-    if (!quickAddOpen) return null
-
     const panelRef = useRef<HTMLDivElement>(null)
     const [editingCatId, setEditingCatId] = useState<string | null>(null)
     const [editName, setEditName] = useState('')
     const [touchReady, setTouchReady] = useState(false)
     const [amountShake, setAmountShake] = useState(false)
     const newNameRef = useRef<HTMLInputElement>(null)
+    const [activeTab, setActiveTab] = useState<'expense' | 'income'>('expense')
+    const [panelForecast, setPanelForecast] = useState(false)
+    const [panelForward, setPanelForward] = useState(false)
+    const [panelForwardStart, setPanelForwardStart] = useState(currentMonth)
     useEffect(() => { const t = setTimeout(() => setTouchReady(true), 400); return () => clearTimeout(t) }, [])
+    // Restore amount after re-render caused by month change
+    useEffect(() => {
+      if (savedAmountRef.current && globalAmountInputRef.current && !globalAmountInputRef.current.value) {
+        globalAmountInputRef.current.value = savedAmountRef.current
+      }
+    })
+
+    if (!quickAddOpen) return null
 
     const incomeCatsList = categories.filter((c) => c.groupId === 'g5')
     const expenseCatsList = categories.filter((c) => c.groupId !== 'g5')
     const allExpenseGroups = groups.filter((g) => g.id !== 'g5')
 
-    const [activeTab, setActiveTab] = useState<'expense' | 'income'>(
-      quickPreOpenCat
-        ? (categories.find(c => c.id === quickPreOpenCat.catId)?.groupId === 'g5' ? 'income' : 'expense')
-        : 'expense'
-    )
-
     // Global month + amount at top
     const globalAmountRef = globalAmountInputRef
-
-    // Restore amount after re-render caused by month change
-    useEffect(() => {
-      if (savedAmountRef.current && globalAmountRef.current && !globalAmountRef.current.value) {
-        globalAmountRef.current.value = savedAmountRef.current
-      }
-    })
 
     const tabCats = activeTab === 'expense' ? expenseCatsList : incomeCatsList
     const filtered = quickForecastOnly
@@ -1711,10 +1708,6 @@ export default function MobileDashboard() {
     const setPanelMonth = setQuickPanelMonth
     const panelForecastEnd = quickPanelForecastEnd
     const setPanelForecastEnd = setQuickPanelForecastEnd
-    const [panelForecast, setPanelForecast] = useState(false)
-    // "update forward months" for actuals
-    const [panelForward, setPanelForward] = useState(false)
-    const [panelForwardStart, setPanelForwardStart] = useState(currentMonth)
 
     const openPanel = (catId: string) => {
       const capturedAmt = globalAmountInputRef.current?.value || ''

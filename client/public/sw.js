@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v196-newcat-focus-timeout200'
+const CACHE_NAME = 'bva-v197-fix-hooks-before-return'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
