@@ -1695,15 +1695,13 @@ export default function MobileDashboard() {
 
     // Per-cat expanded panel state — fully internal, always starts null
     const [panelCatId, setPanelCatId] = useState<string | null>(null)
-    const _initPanel = quickPreOpenCat?.catId ?? null
-    void _initPanel
-    const [panelMonth, setPanelMonth] = useState(quickPreOpenCat?.month ?? currentMonth)
+    const [panelMonth, setPanelMonth] = useState(currentMonth)
     const [panelAmount, setPanelAmount] = useState('')
     const [panelForecast, setPanelForecast] = useState(false)
     const [panelForecastEnd, setPanelForecastEnd] = useState('')
     // "update forward months" for actuals
     const [panelForward, setPanelForward] = useState(false)
-    const [panelForwardStart, setPanelForwardStart] = useState(quickPreOpenCat?.month ?? currentMonth)
+    const [panelForwardStart, setPanelForwardStart] = useState(currentMonth)
 
     const openPanel = (catId: string) => {
       setPanelCatId(catId)

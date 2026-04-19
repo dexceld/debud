@@ -3495,12 +3495,12 @@
 
 .m-forecast-confirm-sheet {
   position: fixed;
-  bottom: 0;
+  top: 0;
   left: 0;
   right: 0;
   background: white;
-  border-radius: 20px 20px 0 0;
-  padding: 24px 20px 32px;
+  border-radius: 0 0 20px 20px;
+  padding: 48px 20px 28px;
   z-index: 301;
   box-shadow: 0 -4px 32px rgba(0,0,0,0.18);
   display: flex;

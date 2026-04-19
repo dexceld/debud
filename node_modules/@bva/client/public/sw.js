@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v179-forecast-confirm-sheet'
+const CACHE_NAME = 'bva-v180-forecast-top-sheet-clean'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
