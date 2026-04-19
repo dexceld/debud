@@ -1984,34 +1984,51 @@ export default function MobileDashboard() {
                     <span className="m-qi-chevron">{isOpen ? '▲' : '▼'}</span>
                   </button>
 
-                  {isOpen && quickForecastOnly && (
-                    <div className="m-qi-panel" ref={panelRef}>
-                      <div className="m-qi-range-row">
-                        <span className="m-qi-range-label">מחודש</span>
-                        <select value={panelMonth} onChange={e => setPanelMonth(e.target.value)} className="m-sheet-select-sm">
-                          {months.map(m => <option key={m} value={m}>{m}</option>)}
-                        </select>
-                        <span className="m-qi-range-label">עד</span>
-                        <select
-                          value={panelForecastEnd}
-                          onChange={e => setPanelForecastEnd(e.target.value)}
-                          className="m-sheet-select-sm"
-                        >
-                          <option value="">לנצח</option>
-                          {months.filter((_, i) => i >= pStartIdx).map(m => <option key={m} value={m}>{m}</option>)}
-                        </select>
-                      </div>
-                      <button className="m-qi-forecast-save-btn" disabled={!(globalAmountRef.current?.value || panelAmount)} onClick={() => doSaveForecast(cat)}>
-                        📅 עדכן תחזית
-                      </button>
-                    </div>
-                  )}
                   </div>
                 </div>
               )
             })}
 
           </div>
+
+          {/* Forecast confirm overlay — shown when a cat is selected in forecast mode */}
+          {quickForecastOnly && panelCatId && (() => {
+            const cat = categories.find(c => c.id === panelCatId)
+            if (!cat) return null
+            const amt = globalAmountRef.current?.value || ''
+            return (
+              <>
+                <div className="m-overlay" onClick={() => setPanelCatId(null)} />
+                <div className="m-forecast-confirm-sheet">
+                  <div className="m-fc-header">
+                    <span className="m-fc-cat-name">{cat.name}</span>
+                    <span className="m-fc-amount">{amt ? `₪${Number(amt).toLocaleString()}` : '—'}</span>
+                  </div>
+                  <div className="m-fc-range-row">
+                    <div className="m-fc-range-item">
+                      <label className="m-fc-label">מחודש</label>
+                      <select value={panelMonth} onChange={e => setPanelMonth(e.target.value)} className="m-fc-select">
+                        {months.map(m => <option key={m} value={m}>{m}</option>)}
+                      </select>
+                    </div>
+                    <div className="m-fc-range-item">
+                      <label className="m-fc-label">עד חודש</label>
+                      <select value={panelForecastEnd} onChange={e => setPanelForecastEnd(e.target.value)} className="m-fc-select">
+                        <option value="">לנצח ♾</option>
+                        {months.filter((_, i) => i >= months.indexOf(panelMonth)).map(m => <option key={m} value={m}>{m}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <button
+                    className="m-fc-confirm-btn"
+                    disabled={!amt}
+                    onClick={() => doSaveForecast(cat)}
+                  >✓ אשר עדכון תחזית</button>
+                  <button className="m-fc-cancel-btn" onClick={() => setPanelCatId(null)}>ביטול</button>
+                </div>
+              </>
+            )
+          })()}
         </div>
     )
   }

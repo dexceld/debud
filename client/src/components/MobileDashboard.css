@@ -3493,6 +3493,93 @@
   backdrop-filter: blur(2px);
 }
 
+.m-forecast-confirm-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 20px 20px 0 0;
+  padding: 24px 20px 32px;
+  z-index: 301;
+  box-shadow: 0 -4px 32px rgba(0,0,0,0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.m-fc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #F3F4F6;
+}
+.m-fc-cat-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1F2937;
+}
+.m-fc-amount {
+  font-size: 22px;
+  font-weight: 800;
+  color: #6366F1;
+  direction: ltr;
+}
+.m-fc-range-row {
+  display: flex;
+  gap: 16px;
+}
+.m-fc-range-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.m-fc-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.m-fc-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1F2937;
+  background: #F9FAFB;
+  appearance: none;
+  text-align: center;
+}
+.m-fc-confirm-btn {
+  width: 100%;
+  padding: 16px;
+  background: #6366F1;
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+}
+.m-fc-confirm-btn:disabled {
+  background: #C7D2FE;
+  cursor: not-allowed;
+}
+.m-fc-cancel-btn {
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  color: #9CA3AF;
+  border: none;
+  font-size: 15px;
+  cursor: pointer;
+}
+
 .m-bottom-sheet {
   position: fixed;
   bottom: 0;

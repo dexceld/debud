@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v178-forecast-autofocus-clean'
+const CACHE_NAME = 'bva-v179-forecast-confirm-sheet'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
