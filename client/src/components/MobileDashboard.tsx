@@ -1845,7 +1845,7 @@ export default function MobileDashboard() {
               <input
                 className="m-qi-amount-input"
                 placeholder="שם הסעיף..."
-                value={quickNewName}
+                defaultValue={quickNewName}
                 onChange={e => setQuickNewName(e.target.value)}
                 autoFocus
               />
@@ -1855,7 +1855,7 @@ export default function MobileDashboard() {
                 </select>
               )}
               <div style={{display:'flex',gap:8}}>
-                <button className="m-btn-primary" style={{flex:1}} onClick={() => { addNewCategoryAndUpdate() }} disabled={!quickNewName.trim()}>צור והוסף ✓</button>
+                <button className="m-btn-primary" style={{flex:1}} onClick={() => { addNewCategoryAndUpdate() }}>צור והוסף ✓</button>
                 <button className="m-catmgmt-cancel-btn" onClick={() => { setPanelCatId(null); savedAmountRef.current = '' }}>ביטול</button>
               </div>
             </div>

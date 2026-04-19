@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v186-require-amount-in-forecast'
+const CACHE_NAME = 'bva-v187-uncontrolled-newcat-input'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
