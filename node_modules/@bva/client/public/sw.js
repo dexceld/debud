@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v174-catname-clickable-currentmonth'
+const CACHE_NAME = 'bva-v175-catname-click-force'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
