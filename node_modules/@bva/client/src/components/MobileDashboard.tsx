@@ -118,6 +118,7 @@ export default function MobileDashboard() {
   const [quickAddOpen, setQuickAddOpen] = useState(false)
   const [quickSearch, setQuickSearch] = useState('')
   const [quickNewName, setQuickNewName] = useState('')
+  const quickNewNameRef = useRef('')
   const [quickNewGroupId, setQuickNewGroupId] = useState('g4')
   const [quickForecastOnly, setQuickForecastOnly] = useState(false)
   const [quickPanelCatId, setQuickPanelCatId] = useState<string | null>(null)
@@ -293,13 +294,14 @@ export default function MobileDashboard() {
   }
 
   const addNewCategoryAndUpdate = () => {
-    if (!quickNewName.trim()) return
+    const nameVal = quickNewNameRef.current || quickNewName
+    if (!nameVal.trim()) return
     const amt = savedAmountRef.current || globalAmountInputRef.current?.value || ''
     const newId = `c_${Date.now()}`
     const newCat: Category = {
       id: newId,
       groupId: quickNewGroupId,
-      name: quickNewName.trim(),
+      name: nameVal.trim(),
       budget: 0,
     }
     const isIncome = newCat.groupId === 'g5'
@@ -1836,6 +1838,7 @@ export default function MobileDashboard() {
                 setQuickNewGroupId(defaultGid)
                 setPanelCatId('__new__')
                 setQuickNewName('')
+                quickNewNameRef.current = ''
                 setTimeout(() => newNameRef.current?.focus(), 50)
               }}>סעיף חדש +</button>
             )}
@@ -1849,8 +1852,8 @@ export default function MobileDashboard() {
                 ref={newNameRef}
                 className="m-qi-amount-input"
                 placeholder="שם הסעיף..."
-                defaultValue={quickNewName}
-                onChange={e => setQuickNewName(e.target.value)}
+                defaultValue=""
+                onChange={e => { quickNewNameRef.current = e.target.value }}
               />
               {activeTab === 'expense' && (
                 <select className="m-sheet-select" value={quickNewGroupId} onChange={e => setQuickNewGroupId(e.target.value)}>

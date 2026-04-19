@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v192-hide-amount-when-new-cat'
+const CACHE_NAME = 'bva-v193-newcat-ref-no-rerender'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
