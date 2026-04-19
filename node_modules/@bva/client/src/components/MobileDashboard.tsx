@@ -281,19 +281,23 @@ export default function MobileDashboard() {
 
   const addNewCategoryAndUpdate = () => {
     if (!quickNewName.trim()) return
+    const amt = globalAmountInputRef.current?.value || ''
     const newCat: Category = {
       id: `c_${Date.now()}`,
       groupId: quickNewGroupId,
       name: quickNewName.trim(),
-      budget: Number(updateAmount) || 0,
+      budget: 0,
     }
-    const isIncome = newCat.groupId === 'g5'
-    const signedAmount = isIncome ? -Math.abs(Number(updateAmount)) : Math.abs(Number(updateAmount))
     setCategories((prev) => [...prev, newCat])
-    setActuals((prev) => ({
-      ...prev,
-      [newCat.id]: { [currentMonth]: signedAmount },
-    }))
+    if (amt) {
+      const isIncome = newCat.groupId === 'g5'
+      const signedAmount = isIncome ? -Math.abs(Number(amt)) : Math.abs(Number(amt))
+      setActuals((prev) => ({
+        ...prev,
+        [newCat.id]: { [globalMonth]: signedAmount },
+      }))
+      trackCatUsage(newCat.id)
+    }
     setQuickAddOpen(false)
     setQuickNewName('')
   }
