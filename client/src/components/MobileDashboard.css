@@ -2329,6 +2329,29 @@
   padding: 8px 0 16px;
 }
 
+.m-qi-tabs-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 12px 0 8px;
+}
+
+.m-qi-new-cat-inline-btn {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  background: #F5F3FF;
+  border: 1.5px solid #DDD6FE;
+  border-radius: 20px;
+  color: #7C3AED;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+}
+.m-qi-new-cat-inline-btn:active { background: #EDE9FE; }
+
 .m-qi-search-row {
   display: flex;
   align-items: center;

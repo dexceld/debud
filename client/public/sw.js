@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v158-remove-mm-arrows'
+const CACHE_NAME = 'bva-v159-new-cat-btn-top'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

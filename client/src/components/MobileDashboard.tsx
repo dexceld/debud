@@ -121,6 +121,7 @@ export default function MobileDashboard() {
   const [quickNewGroupId, setQuickNewGroupId] = useState('g4')
   const [quickForecastOnly, setQuickForecastOnly] = useState(false)
   const [quickPanelCatId, setQuickPanelCatId] = useState<string | null>(null)
+  const savedAmountRef = useRef<string>('')
   const [globalMonth, setGlobalMonth] = useState(getCurrentMonth)
   const [homeView, setHomeView] = useState<'actual' | 'monthly'>(
     () => (localStorage.getItem('home_view') as 'actual' | 'monthly') || 'monthly'
@@ -283,7 +284,7 @@ export default function MobileDashboard() {
 
   const addNewCategoryAndUpdate = () => {
     if (!quickNewName.trim()) return
-    const amt = globalAmountInputRef.current?.value || ''
+    const amt = savedAmountRef.current || globalAmountInputRef.current?.value || ''
     const newId = `c_${Date.now()}`
     const newCat: Category = {
       id: newId,
@@ -1792,15 +1793,24 @@ export default function MobileDashboard() {
           </div>
 
           {/* Tabs — Segmented Control with semantic colors */}
-          <div className="m-qi-tabs-segmented">
-            <button
-              className={`m-qi-tab-pill ${activeTab === 'expense' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('expense'); setPanelCatId(null) }}
-            >הוצאות</button>
-            <button
-              className={`m-qi-tab-pill ${activeTab === 'income' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('income'); setPanelCatId(null) }}
-            >הכנסות</button>
+          <div className="m-qi-tabs-row">
+            <div className="m-qi-tabs-segmented">
+              <button
+                className={`m-qi-tab-pill ${activeTab === 'expense' ? 'active' : ''}`}
+                onClick={() => { setActiveTab('expense'); setPanelCatId(null) }}
+              >הוצאות</button>
+              <button
+                className={`m-qi-tab-pill ${activeTab === 'income' ? 'active' : ''}`}
+                onClick={() => { setActiveTab('income'); setPanelCatId(null) }}
+              >הכנסות</button>
+            </div>
+            {!quickForecastOnly && activeTab === 'expense' && panelCatId !== '__new__' && (
+              <button className="m-qi-new-cat-inline-btn" onClick={() => {
+                savedAmountRef.current = globalAmountInputRef.current?.value || ''
+                setPanelCatId('__new__')
+                setQuickNewName('')
+              }}>+ חדש</button>
+            )}
           </div>
 
           {/* Amount — big + centered (actuals only) */}
@@ -2007,7 +2017,7 @@ export default function MobileDashboard() {
                       </select>
                       <div style={{display:'flex',gap:8}}>
                         <button className="m-btn-primary" style={{flex:1}} onClick={() => { addNewCategoryAndUpdate() }} disabled={!quickNewName.trim()}>צור והוסף ✓</button>
-                        <button className="m-catmgmt-cancel-btn" onClick={() => { setPanelCatId(null); setLocalSearch('') }}>ביטול</button>
+                        <button className="m-catmgmt-cancel-btn" onClick={() => { setPanelCatId(null); savedAmountRef.current = '' }}>ביטול</button>
                       </div>
                     </div>
                   ) : (
