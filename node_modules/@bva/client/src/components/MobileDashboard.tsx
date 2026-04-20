@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import './MobileDashboard.css'
 import { useFirebaseSync } from '../hooks/useFirebaseSync'
 import { signOutUser } from '../firebase'
+import { FeedbackModal } from './FeedbackModal'
 
 type Category = {
   id: string
@@ -113,6 +114,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
     Math.min(months.length, Math.max(0, currentIdx) + 3)
   )
   const [screen, setScreen] = useState<Screen>('home')
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null)
   const [updateAmount, setUpdateAmount] = useState('')
   const [longPressTimer, setLongPressTimer] = useState<ReturnType<typeof setTimeout> | null>(null)
@@ -598,12 +600,18 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
               <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" /></svg>
               <span className="m-hbtn-label">הגדרות</span>
             </button>
+            <button className="m-hbtn" onClick={() => setFeedbackOpen(true)} title="שלח הערה">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              <span className="m-hbtn-label">הערה</span>
+            </button>
             <button className="m-hbtn" onClick={() => signOutUser()} title={userEmail} style={{color:'#EF4444'}}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
               <span className="m-hbtn-label">יציאה</span>
             </button>
           </div>
         </div>
+
+        {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} userEmail={userEmail} />}
 
         {/* View toggle - segmented control style */}
         <div className="m-home-view-toggle">
