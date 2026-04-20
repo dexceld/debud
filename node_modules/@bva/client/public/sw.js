@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v200-feedback-analytics'
+const CACHE_NAME = 'bva-v201-analytics-id'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
