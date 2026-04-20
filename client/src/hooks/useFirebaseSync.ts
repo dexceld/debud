@@ -8,22 +8,22 @@ export function useFirebaseSync(uid: string | null, key: string, value: unknown,
   const loadedRef = useRef(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Load once on mount / uid change
+  // Load once on mount / uid change (skip if local mode)
   useEffect(() => {
-    if (!uid) return
+    if (!uid || uid === 'local') return
     loadedRef.current = false
     getDoc(doc(db, 'users', uid, 'data', key)).then(snap => {
       if (snap.exists()) onLoad(snap.data().value)
       loadedRef.current = true
-    })
+    }).catch(err => console.error('Firebase load error:', err))
   }, [uid, key])
 
-  // Save debounced on value change
+  // Save debounced on value change (skip if local mode)
   useEffect(() => {
-    if (!uid || !loadedRef.current) return
+    if (!uid || uid === 'local' || !loadedRef.current) return
     if (timerRef.current) clearTimeout(timerRef.current)
     timerRef.current = setTimeout(() => {
-      setDoc(doc(db, 'users', uid, 'data', key), { value })
+      setDoc(doc(db, 'users', uid, 'data', key), { value }).catch(err => console.error('Firebase save error:', err))
     }, DEBOUNCE_MS)
     return () => { if (timerRef.current) clearTimeout(timerRef.current) }
   }, [uid, key, value])

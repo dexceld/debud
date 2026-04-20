@@ -79,7 +79,7 @@ type ForecastSnapshot = {
   data: Record<string, number> // month -> running balance
 }
 
-export default function MobileDashboard({ uid, userEmail }: { uid: string; userEmail: string }) {
+export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: string; userEmail: string; isLocalMode?: boolean }) {
   const [groups, setGroups] = useState<Group[]>(() => {
     const saved = localStorage.getItem('groups')
     return saved ? JSON.parse(saved) : initialGroups

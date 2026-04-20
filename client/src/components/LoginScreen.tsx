@@ -1,6 +1,9 @@
+import { useState } from 'react'
 import { signInWithGoogle } from '../firebase'
 
-export function LoginScreen() {
+export function LoginScreen({ onLocalMode }: { onLocalMode: () => void }) {
+  const [showLocal, setShowLocal] = useState(false)
+
   return (
     <div style={{
       minHeight: '100dvh',
@@ -50,6 +53,62 @@ export function LoginScreen() {
       <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, textAlign: 'center' }}>
         הנתונים שלך נשמרים באופן מאובטח בענן
       </div>
+
+      <div style={{ borderTop: '1px solid rgba(255,255,255,0.3)', width: '100%', maxWidth: 320, paddingTop: 16 }} />
+
+      {!showLocal ? (
+        <button
+          onClick={() => setShowLocal(true)}
+          style={{
+            background: 'rgba(255,255,255,0.15)',
+            color: 'white',
+            border: '1px solid rgba(255,255,255,0.3)',
+            borderRadius: 12,
+            padding: '12px 24px',
+            fontSize: 14,
+            fontWeight: 600,
+            cursor: 'pointer',
+            backdropFilter: 'blur(10px)',
+          }}
+        >
+          💻 המשך ללא login
+        </button>
+      ) : (
+        <div style={{ textAlign: 'center', color: 'white', fontSize: 13 }}>
+          <p style={{ marginBottom: 12 }}>הנתונים שלך יישמרו רק במכשיר זה</p>
+          <button
+            onClick={() => { onLocalMode(); setShowLocal(false) }}
+            style={{
+              background: 'rgba(255,255,255,0.25)',
+              color: 'white',
+              border: 'none',
+              borderRadius: 12,
+              padding: '12px 24px',
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: 'pointer',
+              width: '100%',
+              maxWidth: 320,
+            }}
+          >
+            ✓ המשך
+          </button>
+          <button
+            onClick={() => setShowLocal(false)}
+            style={{
+              background: 'transparent',
+              color: 'rgba(255,255,255,0.7)',
+              border: 'none',
+              padding: '8px 0',
+              fontSize: 13,
+              cursor: 'pointer',
+              marginTop: 8,
+            }}
+          >
+            ← חזור
+          </button>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v198-firebase-auth-sync'
+const CACHE_NAME = 'bva-v199-local-mode'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
