@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v201-analytics-id'
+const CACHE_NAME = 'bva-v202-google-play-ready'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
