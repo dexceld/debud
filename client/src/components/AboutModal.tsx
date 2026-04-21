@@ -44,14 +44,17 @@ export function AboutModal({ onClose }: { onClose: () => void }) {
 
         {/* Dexcel */}
         <div style={{ marginBottom: 24 }}>
-          <img src="/dexcel-logo.svg" alt="Dexcel Logo" style={{ height: 60, marginBottom: 12, objectFit: 'contain' }} />
+          <img src="/dexcel-logo.svg" alt="Dexcel Logo" style={{ height: 80, marginBottom: 16, objectFit: 'contain' }} />
           <h3 style={{ margin: '0 0 8px 0', fontSize: 18, fontWeight: 700 }}>Dexcel</h3>
-          <p style={{ margin: '0 0 12px 0', color: '#666', fontSize: 14 }}>
-            טרנספורמציה דיגיטלית למערכות מידע
+          <p style={{ margin: '0 0 12px 0', color: '#666', fontSize: 14, fontWeight: 600 }}>
+            טרנספורמציה דיגיטלית לארגונים
+          </p>
+          <p style={{ margin: '0 0 12px 0', color: '#999', fontSize: 12 }}>
+            בעלי ניסיון של מעל עשרים שנה
           </p>
           <p style={{ margin: '0 0 12px 0', color: '#666', fontSize: 13 }}>
-            ✓ מטמיעה מערכות ERP<br/>
-            ✓ מטמיעה מערכות CRM<br/>
+            ✓ התמעת מערכות ERP<br/>
+            ✓ התמעת מערכות CRM<br/>
             ✓ ייעוץ דיגיטלי<br/>
             ✓ פיתוח מערכות מותאמות
           </p>

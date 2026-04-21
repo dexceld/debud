@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v206-dexcel-footer'
+const CACHE_NAME = 'bva-v207-dexcel-improved'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
