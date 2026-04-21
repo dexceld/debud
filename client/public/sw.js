@@ -1,4 +1,4 @@
-const CACHE_NAME = 'shlita-v1-excel-your-money'
+const CACHE_NAME = 'shlita-v2-fixed-footer'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
