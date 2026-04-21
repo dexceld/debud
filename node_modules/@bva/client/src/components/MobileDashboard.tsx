@@ -393,8 +393,8 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
   }
 
   const DexcelLogo = () => (
-    <div className="m-logo-block" onClick={() => { setScreen('home'); setExpandedGroups(new Set()); setViewMonthIdx(months.indexOf(currentMonth) >= 0 ? months.indexOf(currentMonth) : 0) }} style={{ cursor: 'pointer' }}>
-      <img src="/Trn color.png" alt="Dexcel" style={{ height: 14 }} />
+    <div className="m-logo-block" onClick={() => { setScreen('home'); setExpandedGroups(new Set()); setViewMonthIdx(months.indexOf(currentMonth) >= 0 ? months.indexOf(currentMonth) : 0) }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', height: '100%' }}>
+      <img src="/Trn color.png" alt="Dexcel" style={{ height: 36, maxHeight: '90%' }} />
     </div>
   )
 
@@ -832,12 +832,23 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
 
         {/* Footer */}
         <div style={{
-          padding: '16px 16px 20px 16px',
+          padding: '12px 16px',
           textAlign: 'center',
           color: '#666',
           borderTop: '1px solid #E5E7EB',
-          marginTop: 'auto',
-          background: '#FAFAFA'
+          marginTop: 'auto'
+        }}>
+          <div style={{ fontSize: 11, color: '#999' }}>
+            © 2026 Dexcel
+          </div>
+        </div>
+
+        {/* Dexcel Branding - Below Footer */}
+        <div style={{
+          padding: '12px 16px 16px 16px',
+          textAlign: 'center',
+          background: '#F0F0F0',
+          borderTop: '1px solid #E0E0E0'
         }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: '#333', marginBottom: 4 }}>
             טרנספורמציה דיגיטלית
@@ -845,9 +856,6 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
           <a href="https://www.dexcel.co.il" target="_blank" rel="noopener noreferrer" style={{ color: '#667eea', textDecoration: 'none', fontSize: 11 }}>
             www.dexcel.co.il
           </a>
-          <div style={{ fontSize: 10, color: '#999', marginTop: 8 }}>
-            © 2026 Dexcel
-          </div>
         </div>
         </div>
       </div>
