@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v217-logo-top-footer'
+const CACHE_NAME = 'bva-v218-force-rebuild'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
