@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v211-final-fixes'
+const CACHE_NAME = 'bva-v213-fix-spelling'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

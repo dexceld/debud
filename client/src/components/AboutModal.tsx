@@ -50,8 +50,8 @@ export function AboutModal({ onClose }: { onClose: () => void }) {
             טרנספורמציה דיגיטלית
           </p>
           <p style={{ margin: '0 0 12px 0', color: '#666', fontSize: 13 }}>
-            ✓ התמעת מערכות ERP<br/>
-            ✓ התמעת מערכות CRM<br/>
+            ✓ התמעה מערכות ERP<br/>
+            ✓ התמעה מערכות CRM<br/>
             ✓ ייעוץ דיגיטלי<br/>
             ✓ פיתוח מערכות מותאמות
           </p>

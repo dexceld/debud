@@ -857,6 +857,9 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
           background: '#FAFAFA'
         }}>
           <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 12, color: '#333' }}>
+            <img src="/Trn color.png" alt="Dexcel" style={{ height: 25, marginBottom: 8 }} />
+          </div>
+          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 12, color: '#333' }}>
             טרנספורמציה דיגיטלית
           </div>
           <a href="https://www.dexcel.co.il" target="_blank" rel="noopener noreferrer" style={{ color: '#667eea', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
