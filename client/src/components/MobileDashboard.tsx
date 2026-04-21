@@ -394,24 +394,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
 
   const DexcelLogo = () => (
     <div className="m-logo-block" onClick={() => { setScreen('home'); setExpandedGroups(new Set()); setViewMonthIdx(months.indexOf(currentMonth) >= 0 ? months.indexOf(currentMonth) : 0) }} style={{ cursor: 'pointer' }}>
-      <svg width="36" height="26" viewBox="0 0 200 140" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="dg1" x1="0" y1="0" x2="100" y2="140" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#cc22ff"/><stop offset="100%" stopColor="#3333cc"/>
-          </linearGradient>
-          <linearGradient id="dg2" x1="100" y1="0" x2="200" y2="140" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#aa22ee"/><stop offset="100%" stopColor="#2244bb"/>
-          </linearGradient>
-        </defs>
-        {/* D shape — rounded right side, open left */}
-        <path d="M8 10 L8 130 L14 130 L14 20 L44 20 Q80 20 80 70 Q80 120 44 120 L14 120 L14 130 L46 130 Q96 130 96 70 Q96 10 46 10 Z" fill="url(#dg1)" strokeWidth="0"/>
-        {/* X shape — two crossing strokes */}
-        <path d="M108 10 L128 10 L164 58 L200 10 L200 22 L170 62 L200 112 L200 130 L164 130 L140 92 L108 130 L108 118 L136 80 L108 28 Z" fill="url(#dg2)"/>
-      </svg>
-      <div className="m-logo-text">
-        <span className="m-logo-name">DEXCEL</span>
-        <span className="m-logo-sub">מבית דקסל</span>
-      </div>
+      <img src="/Trn color.png" alt="Dexcel" style={{ height: 40 }} />
     </div>
   )
 
@@ -849,20 +832,15 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
 
         {/* Footer */}
         <div style={{
-          padding: '16px 16px 20px 16px',
+          padding: '12px 16px 16px 16px',
           textAlign: 'center',
           color: '#666',
           borderTop: '1px solid #E5E7EB',
-          marginTop: 'auto',
-          background: '#FAFAFA'
+          marginTop: 'auto'
         }}>
-          <img src="/Trn color.png" alt="Dexcel" style={{ height: 35, marginBottom: 12 }} />
-          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 12, color: '#333' }}>
-            טרנספורמציה דיגיטלית
+          <div style={{ fontSize: 12, color: '#999' }}>
+            © 2026 Dexcel
           </div>
-          <a href="https://www.dexcel.co.il" target="_blank" rel="noopener noreferrer" style={{ color: '#667eea', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
-            www.dexcel.co.il
-          </a>
         </div>
         </div>
       </div>

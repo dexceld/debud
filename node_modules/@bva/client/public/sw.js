@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v218-force-rebuild'
+const CACHE_NAME = 'bva-v219-logo-header'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
