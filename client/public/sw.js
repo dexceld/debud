@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v208-dexcel-logo-png'
+const CACHE_NAME = 'bva-v209-trn-color-logo'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

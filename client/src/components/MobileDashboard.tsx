@@ -856,11 +856,8 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
           marginTop: 'auto',
           background: '#FAFAFA'
         }}>
-          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: '#333' }}>
-            טרנספורמציה דיגיטלית לארגונים
-          </div>
-          <div style={{ fontSize: 12, marginBottom: 12, color: '#666' }}>
-            בעלי ניסיון של מעל עשרים שנה
+          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 12, color: '#333' }}>
+            טרנספורמציה דיגיטלית
           </div>
           <a href="https://www.dexcel.co.il" target="_blank" rel="noopener noreferrer" style={{ color: '#667eea', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
             www.dexcel.co.il
