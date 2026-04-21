@@ -51,7 +51,7 @@ export function AboutModal({ onClose }: { onClose: () => void }) {
           </p>
           <p style={{ margin: '0 0 12px 0', color: '#666', fontSize: 13 }}>
             ✓ מערכות ERP<br/>
-            ✓ מערכות ERP<br/>
+            ✓ מערכות CRM<br/>
             ✓ ייעוץ דיגיטלי<br/>
             ✓ פיתוח מערכות מותאמות
           </p>

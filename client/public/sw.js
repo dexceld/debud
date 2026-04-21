@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v215-double-erp'
+const CACHE_NAME = 'bva-v216-erp-crm'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
