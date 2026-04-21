@@ -846,6 +846,21 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
             <span>נשמר בהצלחה!</span>
           </div>
         )}
+
+        {/* Footer */}
+        <div style={{
+          padding: '12px 16px',
+          textAlign: 'center',
+          fontSize: 11,
+          color: '#999',
+          borderTop: '1px solid #E5E7EB',
+          marginTop: 'auto'
+        }}>
+          <div style={{ marginBottom: 4 }}>© 2026 Dexcel - טרנספורמציה דיגיטלית</div>
+          <a href="https://www.dexcel.co.il" target="_blank" rel="noopener noreferrer" style={{ color: '#667eea', textDecoration: 'none', fontSize: 10 }}>
+            www.dexcel.co.il
+          </a>
+        </div>
         </div>
       </div>
     )
