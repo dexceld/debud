@@ -1,4 +1,4 @@
-const CACHE_NAME = 'shlita-v2-fixed-footer'
+const CACHE_NAME = 'beshlita-v1-final'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

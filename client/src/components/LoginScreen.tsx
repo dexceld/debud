@@ -17,7 +17,7 @@ export function LoginScreen({ onLocalMode }: { onLocalMode: () => void }) {
     }}>
       <div style={{ textAlign: 'center', color: 'white' }}>
         <div style={{ fontSize: 56, marginBottom: 8 }}>💰</div>
-        <div style={{ fontSize: 42, fontWeight: 800, marginBottom: 8 }}>שליטה</div>
+        <div style={{ fontSize: 42, fontWeight: 800, marginBottom: 8 }}>בשליטה</div>
         <div style={{ fontSize: 18, opacity: 0.9, fontWeight: 600 }}>Excel Your Money</div>
       </div>
 
