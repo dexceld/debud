@@ -55,24 +55,6 @@ export function AboutModal({ onClose }: { onClose: () => void }) {
             ✓ ייעוץ דיגיטלי<br/>
             ✓ פיתוח מערכות מותאמות
           </p>
-          <a
-            href="https://www.dexcel.co.il"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: 'inline-block',
-              padding: '10px 16px',
-              background: '#667eea',
-              color: 'white',
-              textDecoration: 'none',
-              borderRadius: 8,
-              fontSize: 14,
-              fontWeight: 600,
-              marginBottom: 12,
-            }}
-          >
-            בקרו באתר שלנו →
-          </a>
           <p style={{ margin: 0, color: '#999', fontSize: 12 }}>
             www.dexcel.co.il
           </p>

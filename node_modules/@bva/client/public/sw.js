@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v210-force-refresh'
+const CACHE_NAME = 'bva-v211-final-fixes'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
