@@ -394,7 +394,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
 
   const DexcelLogo = () => (
     <div className="m-logo-block" onClick={() => { setScreen('home'); setExpandedGroups(new Set()); setViewMonthIdx(months.indexOf(currentMonth) >= 0 ? months.indexOf(currentMonth) : 0) }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', height: '100%' }}>
-      <img src="/Trn color.png" alt="Dexcel" style={{ height: 36, maxHeight: '90%' }} />
+      <img src="/Trn color.png" alt="Dexcel" style={{ height: 29, maxHeight: '85%' }} />
     </div>
   )
 
@@ -589,9 +589,16 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
               <span className="m-hbtn-label">הערה</span>
             </button>
-            <button className="m-hbtn" onClick={() => signOutUser().catch(err => console.error('Sign out error:', err))} title={userEmail} style={{color:'#EF4444'}}>
+            <button className="m-hbtn" onClick={() => {
+              if (isLocalMode) {
+                localStorage.removeItem('bva_local_mode')
+                window.location.reload()
+              } else {
+                signOutUser().catch(err => console.error('Sign out error:', err))
+              }
+            }} title={isLocalMode ? 'חזור לדף כניסה' : userEmail} style={{color:'#EF4444'}}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-              <span className="m-hbtn-label">יציאה</span>
+              <span className="m-hbtn-label">{isLocalMode ? 'כניסה' : 'יציאה'}</span>
             </button>
           </div>
         </div>
@@ -830,13 +837,15 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
           </div>
         )}
 
+        {/* Spacer before footer */}
+        <div style={{ flex: 1, minHeight: 40 }} />
+
         {/* Footer */}
         <div style={{
           padding: '12px 16px',
           textAlign: 'center',
           color: '#666',
-          borderTop: '1px solid #E5E7EB',
-          marginTop: 'auto'
+          borderTop: '1px solid #E5E7EB'
         }}>
           <div style={{ fontSize: 11, color: '#999' }}>
             © 2026 Dexcel
@@ -845,7 +854,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
 
         {/* Dexcel Branding - Below Footer */}
         <div style={{
-          padding: '12px 16px 16px 16px',
+          padding: '12px 16px 20px 16px',
           textAlign: 'center',
           background: '#F0F0F0',
           borderTop: '1px solid #E0E0E0'
