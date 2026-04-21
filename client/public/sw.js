@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v214-logo-size-services'
+const CACHE_NAME = 'bva-v215-double-erp'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
