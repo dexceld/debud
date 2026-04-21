@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v203-seo-meta-tags'
+const CACHE_NAME = 'bva-v204-dexcel-branding'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

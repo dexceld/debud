@@ -3,6 +3,7 @@ import './MobileDashboard.css'
 import { useFirebaseSync } from '../hooks/useFirebaseSync'
 import { signOutUser } from '../firebase'
 import { FeedbackModal } from './FeedbackModal'
+import { AboutModal } from './AboutModal'
 
 type Category = {
   id: string
@@ -115,6 +116,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
   )
   const [screen, setScreen] = useState<Screen>('home')
   const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const [aboutOpen, setAboutOpen] = useState(false)
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null)
   const [updateAmount, setUpdateAmount] = useState('')
   const [longPressTimer, setLongPressTimer] = useState<ReturnType<typeof setTimeout> | null>(null)
@@ -612,6 +614,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
         </div>
 
         {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} userEmail={userEmail} />}
+        {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}
 
         {/* View toggle - segmented control style */}
         <div className="m-home-view-toggle">
@@ -1353,6 +1356,16 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
             <div className="m-settings-info">
               <span className="m-settings-title">גיבוי ושחזור</span>
               <span className="m-settings-sub">ייצוא וייבוא נתונים</span>
+            </div>
+            <svg className="m-settings-chevron-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C4C9D4" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <button className="m-settings-row" onClick={() => setAboutOpen(true)}>
+            <span className="m-settings-icon-wrap" style={{background:'#F3E8FF'}}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A855F7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            </span>
+            <div className="m-settings-info">
+              <span className="m-settings-title">אודות</span>
+              <span className="m-settings-sub">BVA Budget ו-Dexcel</span>
             </div>
             <svg className="m-settings-chevron-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C4C9D4" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
