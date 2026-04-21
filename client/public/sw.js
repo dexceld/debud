@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v213-fix-spelling'
+const CACHE_NAME = 'bva-v214-logo-size-services'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

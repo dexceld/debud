@@ -44,14 +44,13 @@ export function AboutModal({ onClose }: { onClose: () => void }) {
 
         {/* Dexcel */}
         <div style={{ marginBottom: 24 }}>
-          <img src="/Trn color.png" alt="Dexcel Logo" style={{ height: 80, marginBottom: 16, objectFit: 'contain' }} />
+          <img src="/Trn color.png" alt="Dexcel Logo" style={{ height: 50, marginBottom: 16, objectFit: 'contain' }} />
           <h3 style={{ margin: '0 0 8px 0', fontSize: 18, fontWeight: 700 }}>Dexcel</h3>
           <p style={{ margin: '0 0 12px 0', color: '#666', fontSize: 14, fontWeight: 600 }}>
             טרנספורמציה דיגיטלית
           </p>
           <p style={{ margin: '0 0 12px 0', color: '#666', fontSize: 13 }}>
-            ✓ התמעה מערכות ERP<br/>
-            ✓ התמעה מערכות CRM<br/>
+            ✓ מערכות ERP<br/>
             ✓ ייעוץ דיגיטלי<br/>
             ✓ פיתוח מערכות מותאמות
           </p>
