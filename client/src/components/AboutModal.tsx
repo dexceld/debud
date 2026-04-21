@@ -21,10 +21,13 @@ export function AboutModal({ onClose }: { onClose: () => void }) {
           <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer' }}>×</button>
         </div>
 
-        {/* BVA Budget */}
+        {/* שליטה */}
         <div style={{ marginBottom: 32 }}>
           <div style={{ fontSize: 48, marginBottom: 12 }}>💰</div>
-          <h3 style={{ margin: '0 0 8px 0', fontSize: 18, fontWeight: 700 }}>BVA Budget</h3>
+          <h3 style={{ margin: '0 0 8px 0', fontSize: 20, fontWeight: 700 }}>שליטה</h3>
+          <p style={{ margin: '0 0 8px 0', color: '#667eea', fontSize: 14, fontWeight: 600 }}>
+            Excel Your Money
+          </p>
           <p style={{ margin: '0 0 12px 0', color: '#666', fontSize: 14 }}>
             אפליקציה חכמה לניהול תקציב משפחתי וניהול כסף.
           </p>

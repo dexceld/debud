@@ -393,8 +393,13 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
   }
 
   const DexcelLogo = () => (
-    <div className="m-logo-block" onClick={() => { setScreen('home'); setExpandedGroups(new Set()); setViewMonthIdx(months.indexOf(currentMonth) >= 0 ? months.indexOf(currentMonth) : 0) }} style={{ cursor: 'pointer' }}>
-      <img src="/Trn color.png" alt="Dexcel" style={{ height: 40 }} />
+    <div className="m-logo-block" onClick={() => { setScreen('home'); setExpandedGroups(new Set()); setViewMonthIdx(months.indexOf(currentMonth) >= 0 ? months.indexOf(currentMonth) : 0) }} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <img src="/Trn color.png" alt="Dexcel" style={{ height: 28 }} />
+      <div style={{ fontSize: 9, color: 'white', marginTop: 2, textAlign: 'center', lineHeight: 1.2 }}>
+        <div>Dexcel</div>
+        <a href="https://www.dexcel.co.il" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: 8 }}>www.dexcel.co.il</a>
+        <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.7)' }}>טרנספורמציה דיגיטלית</div>
+      </div>
     </div>
   )
 

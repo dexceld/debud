@@ -1,7 +1,7 @@
 {
-  "name": "BVA - מאזן חכם",
-  "short_name": "BVA",
-  "description": "ניהול תזרים מזומנים חכם",
+  "name": "שליטה - Excel Your Money",
+  "short_name": "שליטה",
+  "description": "ניהול תקציב חכם - Excel Your Money",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#7C3AED",

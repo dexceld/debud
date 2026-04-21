@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v219-logo-header'
+const CACHE_NAME = 'shlita-v1-excel-your-money'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
