@@ -53,8 +53,11 @@ export function LoginScreen({ onLocalMode }: { onLocalMode: () => void }) {
                 הנתונים שלך נשמרים באופן מאובטח בענן
               </div>
 
-              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, textAlign: 'center', marginTop: 8 }}>
-                מפותח על ידי <a href="https://www.dexcel.co.il" target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'underline' }}>Dexcel</a> - טרנספורמציה דיגיטלית
+              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, textAlign: 'center', marginTop: 12 }}>
+                <a href="https://www.dexcel.co.il" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginBottom: 8 }}>
+                  <img src="/dexcel-logo.svg" alt="Dexcel" style={{ height: 30, opacity: 0.9 }} />
+                </a>
+                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)' }}>טרנספורמציה דיגיטלית</div>
               </div>
 
       <div style={{ borderTop: '1px solid rgba(255,255,255,0.3)', width: '100%', maxWidth: 320, paddingTop: 16 }} />

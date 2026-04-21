@@ -44,7 +44,7 @@ export function AboutModal({ onClose }: { onClose: () => void }) {
 
         {/* Dexcel */}
         <div style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 32, marginBottom: 12 }}>🏢</div>
+          <img src="/dexcel-logo.svg" alt="Dexcel Logo" style={{ height: 60, marginBottom: 12, objectFit: 'contain' }} />
           <h3 style={{ margin: '0 0 8px 0', fontSize: 18, fontWeight: 700 }}>Dexcel</h3>
           <p style={{ margin: '0 0 12px 0', color: '#666', fontSize: 14 }}>
             טרנספורמציה דיגיטלית למערכות מידע
