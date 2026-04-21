@@ -36,7 +36,7 @@ export function AboutModal({ onClose }: { onClose: () => void }) {
             ✓ עבודה offline
           </p>
           <p style={{ margin: 0, color: '#999', fontSize: 12 }}>
-            גרסה 1.0 | בחינם לתמיד
+            גרסה 1.0
           </p>
         </div>
 

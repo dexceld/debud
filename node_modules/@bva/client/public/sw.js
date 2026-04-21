@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bva-v209-trn-color-logo'
+const CACHE_NAME = 'bva-v210-force-refresh'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
