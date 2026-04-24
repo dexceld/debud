@@ -1473,6 +1473,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
                   <span className="m-catmgmt-group-name-lg">{g.name}</span>
                   <span className="m-catmgmt-group-count">{items.length} פריטים</span>
                 </div>
+                <button className="m-catmgmt-delete-btn" onClick={e => { e.stopPropagation(); if (items.length > 0) { setDeleteToast('לא ניתן למחוק קטגוריה עם פריטים'); setTimeout(() => setDeleteToast(null), 2500); return; } setGroups(prev => prev.filter(gr => gr.id !== g.id)); setDeleteToast(g.name); setTimeout(() => setDeleteToast(null), 2500) }}>🗑</button>
                 <span className="m-catmgmt-chevron">›</span>
               </div>
             )
