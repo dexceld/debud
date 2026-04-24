@@ -1,4 +1,4 @@
-const CACHE_NAME = 'beshlita-v4-local-mode-fix'
+const CACHE_NAME = 'beshlita-v5-catmgmt-fix'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

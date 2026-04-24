@@ -1,0 +1,25 @@
+{
+  "packageId": "co.il.dexcel.beshlita",
+  "host": "debud.onrender.com",
+  "name": "בשליטה",
+  "launcherName": "בשליטה",
+  "display": "standalone",
+  "themeColor": "#667eea",
+  "navigationColor": "#667eea",
+  "navigationColorDark": "#667eea",
+  "navigationDividerColor": "#667eea",
+  "navigationDividerColorDark": "#667eea",
+  "backgroundColor": "#ffffff",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "https://debud.onrender.com/icon-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "android.keystore",
+    "alias": "beshlita"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap"
+}

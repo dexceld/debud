@@ -163,13 +163,34 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
     'g5', 'g1', 'g2', 'g4', 'g6'
   ])
 
+  // CatMgmt internal state (lifted here to prevent remount on state change)
+  const [catMgmtRenamingId, setCatMgmtRenamingId] = useState<string | null>(null)
+  const [catMgmtRenameVal, setCatMgmtRenameVal] = useState('')
+  const [catMgmtAddingItem, setCatMgmtAddingItem] = useState(false)
+  const [catMgmtNewItemName, setCatMgmtNewItemName] = useState('')
+  const [catMgmtAddingGroup, setCatMgmtAddingGroup] = useState(false)
+  const [catMgmtNewGroupName, setCatMgmtNewGroupName] = useState('')
+  const catMgmtRenameRef = useRef<HTMLInputElement>(null)
+  const catMgmtAddRef = useRef<HTMLInputElement>(null)
+  const catMgmtAddGroupRef = useRef<HTMLInputElement>(null)
+  useEffect(() => { if (catMgmtAddingGroup) setTimeout(() => catMgmtAddGroupRef.current?.focus(), 50) }, [catMgmtAddingGroup])
+  useEffect(() => { if (catMgmtRenamingId) setTimeout(() => catMgmtRenameRef.current?.focus(), 50) }, [catMgmtRenamingId])
+  useEffect(() => { if (catMgmtAddingItem) setTimeout(() => catMgmtAddRef.current?.focus(), 50) }, [catMgmtAddingItem])
+  useEffect(() => { if (catMgmtOpen) { setCatMgmtRenamingId(null); setCatMgmtAddingItem(false); setCatMgmtAddingGroup(false) } }, [catMgmtOpen])
+
   // Trap Android back button — use refs to avoid re-registering on every state change
   const quickAddOpenRef = useRef(quickAddOpen)
   const inlineSheetRef = useRef(inlineSheet)
   const screenRef = useRef(screen)
+  const catMgmtOpenRef = useRef(catMgmtOpen)
+  const catMgmtDrillGidRef = useRef(catMgmtDrillGid)
+  const settingsPageRef = useRef(settingsPage)
   useEffect(() => { quickAddOpenRef.current = quickAddOpen }, [quickAddOpen])
   useEffect(() => { inlineSheetRef.current = inlineSheet }, [inlineSheet])
   useEffect(() => { screenRef.current = screen }, [screen])
+  useEffect(() => { catMgmtOpenRef.current = catMgmtOpen }, [catMgmtOpen])
+  useEffect(() => { catMgmtDrillGidRef.current = catMgmtDrillGid }, [catMgmtDrillGid])
+  useEffect(() => { settingsPageRef.current = settingsPage }, [settingsPage])
   useEffect(() => {
     const pushState = () => window.history.pushState({ page: 'app' }, '')
     pushState()
@@ -179,6 +200,18 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
       } else if (quickAddOpenRef.current) {
         setQuickAddOpen(false)
         setQuickPreOpenCat(null)
+      } else if (catMgmtOpenRef.current) {
+        if (catMgmtDrillGidRef.current) {
+          setCatMgmtDrillGid(null)
+          setCatMgmtRenamingId(null)
+          setCatMgmtAddingItem(false)
+        } else if (settingsPageRef.current !== 'main') {
+          setSettingsPage('main')
+        } else {
+          setCatMgmtOpen(false)
+          setCatMgmtDrillGid(null)
+          setSettingsPage('main')
+        }
       } else if (screenRef.current !== 'home') {
         setScreen('home')
       }
@@ -1279,29 +1312,29 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
     )
   }
 
-  // --- CAT MANAGEMENT SHEET ---
-  const CatMgmtSheet = () => {
+  // --- CAT MANAGEMENT (render function, not a component — avoids remount on state change) ---
+  const renderCatMgmt = () => {
     if (!catMgmtOpen) return null
 
-    // nav: null = groups list, string = group id drill-down
     const drillGid = catMgmtDrillGid
     const setDrillGid = setCatMgmtDrillGid
-    const [renamingCatId, setRenamingCatId] = useState<string | null>(null)
-    const [renameVal, setRenameVal]         = useState('')
-    const [addingItem, setAddingItem]       = useState(false)
-    const [newItemName, setNewItemName]     = useState('')
-    const renameRef = useRef<HTMLInputElement>(null)
-    const addRef    = useRef<HTMLInputElement>(null)
+    const renamingCatId = catMgmtRenamingId
+    const setRenamingCatId = setCatMgmtRenamingId
+    const renameVal = catMgmtRenameVal
+    const setRenameVal = setCatMgmtRenameVal
+    const addingItem = catMgmtAddingItem
+    const setAddingItem = setCatMgmtAddingItem
+    const newItemName = catMgmtNewItemName
+    const setNewItemName = setCatMgmtNewItemName
+    const renameRef = catMgmtRenameRef
+    const addRef = catMgmtAddRef
 
-    // Add new group state
-    const [addingGroup, setAddingGroup]     = useState(false)
-    const [newGroupName, setNewGroupName]   = useState('')
+    const addingGroup = catMgmtAddingGroup
+    const setAddingGroup = setCatMgmtAddingGroup
+    const newGroupName = catMgmtNewGroupName
+    const setNewGroupName = setCatMgmtNewGroupName
     const newGroupColor = '#E8F4F8'
-    const addGroupRef = useRef<HTMLInputElement>(null)
-    useEffect(() => { if (addingGroup) setTimeout(() => addGroupRef.current?.focus(), 50) }, [addingGroup])
-
-    useEffect(() => { if (renamingCatId) setTimeout(() => renameRef.current?.focus(), 50) }, [renamingCatId])
-    useEffect(() => { if (addingItem)    setTimeout(() => addRef.current?.focus(),    50) }, [addingItem])
+    const addGroupRef = catMgmtAddGroupRef
 
     const closeAll = () => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main') }
     const goBack   = () => { setDrillGid(null); setRenamingCatId(null); setAddingItem(false) }
@@ -1346,7 +1379,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
         <div className="m-catmgmt-topbar">
           <button className="m-catmgmt-back" onClick={closeAll}>✕</button>
           <span className="m-catmgmt-topbar-title">הגדרות</span>
-          <button className="m-dexcel-logo" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); setScreen('home') }} title="דף הבית"><span className="m-dexcel-logo-text">Dexcel</span></button>
+          <button className="m-dexcel-logo" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); setScreen('home') }} title="דף הבית"><img src="/Trn color.png" alt="Dexcel" style={{ height: 24, maxHeight: '80%' }} /></button>
         </div>
         <div className="m-settings-menu">
           <button className="m-settings-row" onClick={() => setSettingsPage('categories')}>
@@ -1399,7 +1432,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
         <div className="m-catmgmt-topbar">
           <button className="m-catmgmt-back" onClick={() => setSettingsPage('main')}>‹ חזרה</button>
           <span className="m-catmgmt-topbar-title">יתרת פתיחה / סגירה</span>
-          <button className="m-dexcel-logo" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); setScreen('home') }} title="דף הבית"><span className="m-dexcel-logo-text">Dexcel</span></button>
+          <button className="m-dexcel-logo" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); setScreen('home') }} title="דף הבית"><img src="/Trn color.png" alt="Dexcel" style={{ height: 24, maxHeight: '80%' }} /></button>
         </div>
         {OpeningBalanceSection()}
       </div>
@@ -1411,7 +1444,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
         <div className="m-catmgmt-topbar">
           <button className="m-catmgmt-back" onClick={() => setSettingsPage('main')}>‹ חזרה</button>
           <span className="m-catmgmt-topbar-title">גיבוי ושחזור</span>
-          <button className="m-dexcel-logo" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); setScreen('home') }} title="דף הבית"><span className="m-dexcel-logo-text">Dexcel</span></button>
+          <button className="m-dexcel-logo" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); setScreen('home') }} title="דף הבית"><img src="/Trn color.png" alt="Dexcel" style={{ height: 24, maxHeight: '80%' }} /></button>
         </div>
         <div style={{padding:'20px 16px',display:'flex',flexDirection:'column',gap:12}}>
           <p style={{margin:0,fontSize:13,color:'#6B7280',lineHeight:1.5}}>הנתונים שמורים בדפדפן. מומלץ לגבות לקובץ JSON ולשמור ב-Google Drive / iCloud.</p>
@@ -1434,7 +1467,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
         <div className="m-catmgmt-topbar">
           <button className="m-catmgmt-back" onClick={() => setSettingsPage('main')}>‹ חזרה</button>
           <span className="m-catmgmt-topbar-title">ניהול קטגוריות</span>
-          <button className="m-dexcel-logo" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); setScreen('home') }} title="דף הבית"><span className="m-dexcel-logo-text">Dexcel</span></button>
+          <button className="m-dexcel-logo" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); setScreen('home') }} title="דף הבית"><img src="/Trn color.png" alt="Dexcel" style={{ height: 24, maxHeight: '80%' }} /></button>
         </div>
         <button className="m-catmgmt-add-row" onClick={() => setAddingGroup(true)}>
           <span className="m-catmgmt-add-plus">＋</span>
@@ -1495,7 +1528,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
         <div className="m-catmgmt-topbar" style={{ background: accent }}>
           <button className="m-catmgmt-back" onClick={goBack}>‹ חזרה</button>
           <span className="m-catmgmt-topbar-title">{group.icon} {group.name}</span>
-          <button className="m-dexcel-logo" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); setScreen('home') }} title="דף הבית"><span className="m-dexcel-logo-text">Dexcel</span></button>
+          <button className="m-dexcel-logo" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); setScreen('home') }} title="דף הבית"><img src="/Trn color.png" alt="Dexcel" style={{ height: 24, maxHeight: '80%' }} /></button>
         </div>
 
         {/* Add new button */}
@@ -1718,6 +1751,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
     const [panelForecast, setPanelForecast] = useState(false)
     const [panelForward, setPanelForward] = useState(false)
     const [panelForwardStart, setPanelForwardStart] = useState(currentMonth)
+    const [newItemName, setNewItemName] = useState('')
     useEffect(() => { const t = setTimeout(() => setTouchReady(true), 400); return () => clearTimeout(t) }, [])
     // Restore amount after re-render caused by month change
     useEffect(() => {
@@ -1891,6 +1925,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
                 const defaultGid = activeTab === 'income' ? 'g5' : (allExpenseGroups[0]?.id ?? 'g4')
                 setQuickNewGroupId(defaultGid)
                 setPanelCatId('__new__')
+                setNewItemName(quickNewNameRef.current || '')
                 setQuickNewName('')
                 quickNewNameRef.current = ''
                 setTimeout(() => newNameRef.current?.focus(), 200)
@@ -2112,7 +2147,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
       {screen === 'detail' && <DetailScreen />}
       {screen === 'forecast-chart' && <ForecastChartScreen />}
       {screen === 'net-chart' && <NetChartScreen />}
-      <CatMgmtSheet />
+      {renderCatMgmt()}
       <InlineSheet />
       <QuickAddSheet key={quickOpenKey} />
       {deleteToast && (
