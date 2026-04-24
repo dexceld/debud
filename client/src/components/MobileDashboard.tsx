@@ -159,9 +159,11 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
   const globalAmountInputRef = useRef<HTMLInputElement>(null)
 
   // Group ordering state (Income g5 first, then others)
-  const [groupOrder, setGroupOrder] = useState<string[]>([
-    'g5', 'g1', 'g2', 'g4', 'g6'
-  ])
+  const [groupOrder, setGroupOrder] = useState<string[]>(() => {
+    const saved = localStorage.getItem('groupOrder')
+    return saved ? JSON.parse(saved) : ['g5', 'g1', 'g2', 'g4', 'g6']
+  })
+  const [errorToast, setErrorToast] = useState<string | null>(null)
 
   // CatMgmt internal state (lifted here to prevent remount on state change)
   const [catMgmtRenamingId, setCatMgmtRenamingId] = useState<string | null>(null)
@@ -231,7 +233,21 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
   useFirebaseSync(uid, 'forecast_snapshots', forecastSnapshots, v => setForecastSnapshots(v as typeof forecastSnapshots))
   useFirebaseSync(uid, 'categories', categories, v => setCategories(v as typeof categories))
   useFirebaseSync(uid, 'groups', groups, v => setGroups(v as typeof groups))
+  useFirebaseSync(uid, 'groupOrder', groupOrder, v => setGroupOrder(v as string[]))
   useFirebaseSync(uid, 'opening_balance', openingBalance, v => setOpeningBalance(v as typeof openingBalance))
+
+  // Ensure groupOrder always includes all groups (new groups added elsewhere)
+  useEffect(() => {
+    const missing = groups.filter(g => !groupOrder.includes(g.id)).map(g => g.id)
+    if (missing.length > 0) setGroupOrder(prev => [...prev, ...missing])
+  }, [groups])
+
+  // Prevent accidental app exit (Android back or page close)
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = '' }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [])
 
   // Keep localStorage as fallback cache
   useEffect(() => { localStorage.setItem('actuals', JSON.stringify(actuals)) }, [actuals])
@@ -239,6 +255,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
   useEffect(() => { localStorage.setItem('forecast_snapshots', JSON.stringify(forecastSnapshots)) }, [forecastSnapshots])
   useEffect(() => { localStorage.setItem('categories', JSON.stringify(categories)) }, [categories])
   useEffect(() => { localStorage.setItem('groups', JSON.stringify(groups)) }, [groups])
+  useEffect(() => { localStorage.setItem('groupOrder', JSON.stringify(groupOrder)) }, [groupOrder])
   useEffect(() => {
     if (openingBalance) localStorage.setItem('opening_balance', JSON.stringify(openingBalance))
     else localStorage.removeItem('opening_balance')
@@ -704,7 +721,8 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
             <span className="m-home-group-budget">תחזית</span>
           </button>
           {groupOrder.map((gid) => {
-            const g = groups.find(x => x.id === gid)!
+            const g = groups.find(x => x.id === gid)
+            if (!g) return null
             const isIncome = gid === 'g5'
             const gc = categories.filter(c => c.groupId === g.id)
             const gb = gc.reduce((s, c) => s + getForecastValue(c, vm), 0)
@@ -761,7 +779,8 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
           </div>
           {/* All groups in groupOrder */}
           {groupOrder.map((gid) => {
-            const g = groups.find(x => x.id === gid)!
+            const g = groups.find(x => x.id === gid)
+            if (!g) return null
             const isIncome = gid === 'g5'
             const gc = categories.filter(c => c.groupId === g.id)
             const isOpen = expandedGroups.has(g.id)
@@ -1511,7 +1530,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
                   <span className="m-catmgmt-group-name-lg">{g.name}</span>
                   <span className="m-catmgmt-group-count">{items.length} פריטים</span>
                 </div>
-                <button className="m-catmgmt-delete-btn" onClick={e => { e.stopPropagation(); if (items.length > 0) { alert('לא ניתן למחוק קטגוריה שיש בה סעיפים. מחקי קודם את הסעיפים.'); return; } setGroups(prev => prev.filter(gr => gr.id !== g.id)); setGroupOrder(prev => prev.filter(id => id !== g.id)); setDeleteToast(g.name); setTimeout(() => setDeleteToast(null), 2500) }}>🗑</button>
+                <button className="m-catmgmt-delete-btn" onClick={e => { e.stopPropagation(); if (items.length > 0) { setErrorToast('לא ניתן למחוק קטגוריה שיש בה סעיפים'); setTimeout(() => setErrorToast(null), 3000); return; } setGroups(prev => prev.filter(gr => gr.id !== g.id)); setGroupOrder(prev => prev.filter(id => id !== g.id)); setDeleteToast(g.name); setTimeout(() => setDeleteToast(null), 2500) }}>🗑</button>
                 <span className="m-catmgmt-chevron">›</span>
               </div>
             )
@@ -2158,6 +2177,11 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
       {deleteToast && (
         <div className="m-delete-toast">
           🗑 הסעיף "{deleteToast}" נמחק
+        </div>
+      )}
+      {errorToast && (
+        <div className="m-delete-toast" style={{background:'#FEF2F2',color:'#DC2626',border:'1px solid #FECACA'}}>
+          ⚠️ {errorToast}
         </div>
       )}
     </div>

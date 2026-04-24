@@ -1,4 +1,4 @@
-const CACHE_NAME = 'beshlita-v6-delete-back-quickadd'
+const CACHE_NAME = 'beshlita-v7-grouporder-toast-exit'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
