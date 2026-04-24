@@ -195,25 +195,29 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
     const pushState = () => window.history.pushState({ page: 'app' }, '')
     pushState()
     const onPopState = () => {
-      if (inlineSheetRef.current) {
-        setInlineSheet(null)
-      } else if (quickAddOpenRef.current) {
-        setQuickAddOpen(false)
-        setQuickPreOpenCat(null)
-      } else if (catMgmtOpenRef.current) {
-        if (catMgmtDrillGidRef.current) {
-          setCatMgmtDrillGid(null)
-          setCatMgmtRenamingId(null)
-          setCatMgmtAddingItem(false)
-        } else if (settingsPageRef.current !== 'main') {
-          setSettingsPage('main')
-        } else {
-          setCatMgmtOpen(false)
-          setCatMgmtDrillGid(null)
-          setSettingsPage('main')
+      try {
+        if (inlineSheetRef.current) {
+          setInlineSheet(null)
+        } else if (quickAddOpenRef.current) {
+          setQuickAddOpen(false)
+          setQuickPreOpenCat(null)
+        } else if (catMgmtOpenRef.current) {
+          if (catMgmtDrillGidRef.current) {
+            setCatMgmtDrillGid(null)
+            setCatMgmtRenamingId(null)
+            setCatMgmtAddingItem(false)
+          } else if (settingsPageRef.current !== 'main') {
+            setSettingsPage('main')
+          } else {
+            setCatMgmtOpen(false)
+            setCatMgmtDrillGid(null)
+            setSettingsPage('main')
+          }
+        } else if (screenRef.current !== 'home') {
+          setScreen('home')
         }
-      } else if (screenRef.current !== 'home') {
-        setScreen('home')
+      } catch (err) {
+        console.error('Back button error:', err)
       }
       pushState()
     }
@@ -1491,7 +1495,8 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
         )}
         <div className="m-catmgmt-list" style={{paddingTop:12}}>
           {groupOrder.map((gid) => {
-            const g = groups.find(x => x.id === gid)!
+            const g = groups.find(x => x.id === gid)
+            if (!g) return null
             const items = categories.filter(c => c.groupId === g.id)
             const accent = groupAccent(g.id)
             return (
@@ -1506,7 +1511,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
                   <span className="m-catmgmt-group-name-lg">{g.name}</span>
                   <span className="m-catmgmt-group-count">{items.length} פריטים</span>
                 </div>
-                <button className="m-catmgmt-delete-btn" onClick={e => { e.stopPropagation(); if (items.length > 0) { setDeleteToast('לא ניתן למחוק קטגוריה עם פריטים'); setTimeout(() => setDeleteToast(null), 2500); return; } setGroups(prev => prev.filter(gr => gr.id !== g.id)); setDeleteToast(g.name); setTimeout(() => setDeleteToast(null), 2500) }}>🗑</button>
+                <button className="m-catmgmt-delete-btn" onClick={e => { e.stopPropagation(); if (items.length > 0) { alert('לא ניתן למחוק קטגוריה שיש בה סעיפים. מחקי קודם את הסעיפים.'); return; } setGroups(prev => prev.filter(gr => gr.id !== g.id)); setGroupOrder(prev => prev.filter(id => id !== g.id)); setDeleteToast(g.name); setTimeout(() => setDeleteToast(null), 2500) }}>🗑</button>
                 <span className="m-catmgmt-chevron">›</span>
               </div>
             )
@@ -1941,7 +1946,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
                 ref={newNameRef}
                 className="m-qi-amount-input"
                 placeholder="שם הסעיף..."
-                defaultValue=""
+                defaultValue={quickNewNameRef.current}
                 onChange={e => { quickNewNameRef.current = e.target.value }}
               />
               {activeTab === 'expense' && (

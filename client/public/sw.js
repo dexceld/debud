@@ -1,4 +1,4 @@
-const CACHE_NAME = 'beshlita-v5-catmgmt-fix'
+const CACHE_NAME = 'beshlita-v6-delete-back-quickadd'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
