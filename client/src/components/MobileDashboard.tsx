@@ -1346,7 +1346,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
         <div className="m-catmgmt-topbar">
           <button className="m-catmgmt-back" onClick={closeAll}>✕</button>
           <span className="m-catmgmt-topbar-title">הגדרות</span>
-          <button className="m-catmgmt-back" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); setScreen('home') }} title="לדף הבית">🏠</button>
+          <DexcelLogo />
         </div>
         <div className="m-settings-menu">
           <button className="m-settings-row" onClick={() => setSettingsPage('categories')}>
@@ -1399,7 +1399,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
         <div className="m-catmgmt-topbar">
           <button className="m-catmgmt-back" onClick={() => setSettingsPage('main')}>‹ חזרה</button>
           <span className="m-catmgmt-topbar-title">יתרת פתיחה / סגירה</span>
-          <button className="m-catmgmt-back" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); setScreen('home') }} title="לדף הבית">🏠</button>
+          <DexcelLogo />
         </div>
         {OpeningBalanceSection()}
       </div>
@@ -1411,7 +1411,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
         <div className="m-catmgmt-topbar">
           <button className="m-catmgmt-back" onClick={() => setSettingsPage('main')}>‹ חזרה</button>
           <span className="m-catmgmt-topbar-title">גיבוי ושחזור</span>
-          <button className="m-catmgmt-back" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); setScreen('home') }} title="לדף הבית">🏠</button>
+          <DexcelLogo />
         </div>
         <div style={{padding:'20px 16px',display:'flex',flexDirection:'column',gap:12}}>
           <p style={{margin:0,fontSize:13,color:'#6B7280',lineHeight:1.5}}>הנתונים שמורים בדפדפן. מומלץ לגבות לקובץ JSON ולשמור ב-Google Drive / iCloud.</p>
@@ -1434,7 +1434,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
         <div className="m-catmgmt-topbar">
           <button className="m-catmgmt-back" onClick={() => setSettingsPage('main')}>‹ חזרה</button>
           <span className="m-catmgmt-topbar-title">ניהול קטגוריות</span>
-          <button className="m-catmgmt-back" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); setScreen('home') }} title="לדף הבית">🏠</button>
+          <DexcelLogo />
         </div>
         <button className="m-catmgmt-add-row" onClick={() => setAddingGroup(true)}>
           <span className="m-catmgmt-add-plus">＋</span>
@@ -1494,7 +1494,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
         <div className="m-catmgmt-topbar" style={{ background: accent }}>
           <button className="m-catmgmt-back" onClick={goBack}>‹ חזרה</button>
           <span className="m-catmgmt-topbar-title">{group.icon} {group.name}</span>
-          <button className="m-catmgmt-back" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); setScreen('home') }} title="לדף הבית">🏠</button>
+          <DexcelLogo />
         </div>
 
         {/* Add new button */}
@@ -1866,7 +1866,8 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
                 className={`m-qi-tab-pill ${activeTab === 'expense' ? 'active' : ''}`}
                 onClick={() => {
                   setActiveTab('expense')
-                  setPanelCatId(null)
+                  // Keep new-item form open if currently creating one
+                  if (panelCatId !== '__new__') setPanelCatId(null)
                   // Ensure new-item default group matches the selected tab
                   const firstExpense = allExpenseGroups[0]?.id ?? 'g4'
                   setQuickNewGroupId(firstExpense)
@@ -1876,7 +1877,8 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
                 className={`m-qi-tab-pill ${activeTab === 'income' ? 'active' : ''}`}
                 onClick={() => {
                   setActiveTab('income')
-                  setPanelCatId(null)
+                  // Keep new-item form open if currently creating one
+                  if (panelCatId !== '__new__') setPanelCatId(null)
                   // Ensure new-item default group matches the selected tab
                   setQuickNewGroupId('g5')
                 }}
