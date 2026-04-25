@@ -82,29 +82,32 @@ type ForecastSnapshot = {
 }
 
 export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode }: { uid: string; userEmail: string; userPhoto?: string; isLocalMode?: boolean }) {
+  // Prefix localStorage keys with uid so each account has separate data
+  const lsKey = (key: string) => uid ? `${uid}:${key}` : key
+
   const [groups, setGroups] = useState<Group[]>(() => {
-    const saved = localStorage.getItem('groups')
+    const saved = localStorage.getItem(lsKey('groups'))
     return saved ? JSON.parse(saved) : initialGroups
   })
   const [categories, setCategories] = useState<Category[]>(() => {
-    const saved = localStorage.getItem('categories')
+    const saved = localStorage.getItem(lsKey('categories'))
     return saved ? JSON.parse(saved) : initialCategories
   })
   const [forecasts, setForecasts] = useState<Record<string, Record<string, number>>>(() => {
-    const saved = localStorage.getItem('forecasts')
+    const saved = localStorage.getItem(lsKey('forecasts'))
     return saved ? JSON.parse(saved) : {}
   })
   const [forecastSnapshots, setForecastSnapshots] = useState<ForecastSnapshot[]>(() => {
-    const saved = localStorage.getItem('forecast_snapshots')
+    const saved = localStorage.getItem(lsKey('forecast_snapshots'))
     return saved ? JSON.parse(saved) : []
   })
   const [saveFeedback, setSaveFeedback] = useState(false)
   const [actuals, setActuals] = useState<Record<string, Record<string, number>>>(() => {
-    const saved = localStorage.getItem('actuals')
+    const saved = localStorage.getItem(lsKey('actuals'))
     return saved ? JSON.parse(saved) : {}
   })
   const [openingBalance, setOpeningBalance] = useState<{ month: string; amount: number } | null>(() => {
-    const saved = localStorage.getItem('opening_balance')
+    const saved = localStorage.getItem(lsKey('opening_balance'))
     return saved ? JSON.parse(saved) : null
   })
 
@@ -136,14 +139,14 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [deleteToast, setDeleteToast] = useState<string | null>(null)
   const [globalMonth, setGlobalMonth] = useState(getCurrentMonth)
   const [homeView, setHomeView] = useState<'actual' | 'monthly'>(
-    () => (localStorage.getItem('home_view') as 'actual' | 'monthly') || 'monthly'
+    () => (localStorage.getItem(lsKey('home_view')) as 'actual' | 'monthly') || 'monthly'
   )
   // default is already 'monthly'
   const [catMgmtOpen, setCatMgmtOpen] = useState(false)
   const [catMgmtDrillGid, setCatMgmtDrillGid] = useState<string | null>(null)
   const [settingsPage, setSettingsPage] = useState<'main' | 'balance' | 'backup' | 'categories'>('main')
   const [catUsage, setCatUsage] = useState<Record<string, number>>(
-    () => JSON.parse(localStorage.getItem('cat_usage') || '{}')
+    () => JSON.parse(localStorage.getItem(lsKey('cat_usage')) || '{}')
   )
   const [quickPreOpenCat, setQuickPreOpenCat] = useState<{ catId: string; month: string } | null>(null)
   const [inlineSheet, setInlineSheet] = useState<{ cat: Category; month: string; forecastOnly: boolean } | null>(null)
@@ -160,7 +163,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
   // Group ordering state (Income g5 first, then others)
   const [groupOrder, setGroupOrder] = useState<string[]>(() => {
-    const saved = localStorage.getItem('groupOrder')
+    const saved = localStorage.getItem(lsKey('groupOrder'))
     return saved ? JSON.parse(saved) : ['g5', 'g1', 'g2', 'g4', 'g6']
   })
   const [errorToast, setErrorToast] = useState<string | null>(null)
@@ -255,16 +258,16 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     if (missing.length > 0) setGroupOrder(prev => [...prev, ...missing])
   }, [groups])
 
-  // Keep localStorage as fallback cache
-  useEffect(() => { localStorage.setItem('actuals', JSON.stringify(actuals)) }, [actuals])
-  useEffect(() => { localStorage.setItem('forecasts', JSON.stringify(forecasts)) }, [forecasts])
-  useEffect(() => { localStorage.setItem('forecast_snapshots', JSON.stringify(forecastSnapshots)) }, [forecastSnapshots])
-  useEffect(() => { localStorage.setItem('categories', JSON.stringify(categories)) }, [categories])
-  useEffect(() => { localStorage.setItem('groups', JSON.stringify(groups)) }, [groups])
-  useEffect(() => { localStorage.setItem('groupOrder', JSON.stringify(groupOrder)) }, [groupOrder])
+  // Keep localStorage as fallback cache (uid-prefixed)
+  useEffect(() => { localStorage.setItem(lsKey('actuals'), JSON.stringify(actuals)) }, [actuals])
+  useEffect(() => { localStorage.setItem(lsKey('forecasts'), JSON.stringify(forecasts)) }, [forecasts])
+  useEffect(() => { localStorage.setItem(lsKey('forecast_snapshots'), JSON.stringify(forecastSnapshots)) }, [forecastSnapshots])
+  useEffect(() => { localStorage.setItem(lsKey('categories'), JSON.stringify(categories)) }, [categories])
+  useEffect(() => { localStorage.setItem(lsKey('groups'), JSON.stringify(groups)) }, [groups])
+  useEffect(() => { localStorage.setItem(lsKey('groupOrder'), JSON.stringify(groupOrder)) }, [groupOrder])
   useEffect(() => {
-    if (openingBalance) localStorage.setItem('opening_balance', JSON.stringify(openingBalance))
-    else localStorage.removeItem('opening_balance')
+    if (openingBalance) localStorage.setItem(lsKey('opening_balance'), JSON.stringify(openingBalance))
+    else localStorage.removeItem(lsKey('opening_balance'))
   }, [openingBalance])
 
   const getForecastValue = (cat: Category, month: string): number => {
@@ -389,7 +392,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       setActuals((prev) => ({ ...prev, [newId]: { [globalMonth]: signedAmount } }))
       setCatUsage(prev => {
         const next = { ...prev, [newId]: 1 }
-        localStorage.setItem('cat_usage', JSON.stringify(next))
+        localStorage.setItem(lsKey('cat_usage'), JSON.stringify(next))
         return next
       })
     }
@@ -403,7 +406,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const trackCatUsage = (catId: string) => {
     setCatUsage(prev => {
       const next = { ...prev, [catId]: (prev[catId] || 0) + 1 }
-      localStorage.setItem('cat_usage', JSON.stringify(next))
+      localStorage.setItem(lsKey('cat_usage'), JSON.stringify(next))
       return next
     })
   }
@@ -572,7 +575,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   // --- DRAGGABLE FABs ---
   const DraggableFABs = () => {
     const [pos, setPos] = useState(() => {
-      const saved = localStorage.getItem('fab_pos')
+      const saved = localStorage.getItem(lsKey('fab_pos'))
       return saved ? JSON.parse(saved) : { x: window.innerWidth - 76, y: window.innerHeight - 200 }
     })
     const dragRef = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number; moved: boolean } | null>(null)
@@ -596,7 +599,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       const wasDrag = dragRef.current.moved
       dragRef.current = null
       if (!wasDrag) { action(); return }
-      localStorage.setItem('fab_pos', JSON.stringify(pos))
+      localStorage.setItem(lsKey('fab_pos'), JSON.stringify(pos))
     }
 
     return (
@@ -718,7 +721,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               className={`m-segmented-btn ${homeView === 'actual' ? 'active' : ''}`}
               onClick={() => {
                 setHomeView('actual')
-                localStorage.setItem('home_view', 'actual')
+                localStorage.setItem(lsKey('home_view'), 'actual')
               }}
             >
               בפועל מול תחזית
@@ -727,7 +730,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               className={`m-segmented-btn ${homeView === 'monthly' ? 'active' : ''}`}
               onClick={() => {
                 setHomeView('monthly')
-                localStorage.setItem('home_view', 'monthly')
+                localStorage.setItem(lsKey('home_view'), 'monthly')
               }}
             >
               חודש מול חודש
