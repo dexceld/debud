@@ -1,4 +1,4 @@
-const CACHE_NAME = 'beshlita-v10-no-beforeunload'
+const CACHE_NAME = 'beshlita-v11-exit-fix'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

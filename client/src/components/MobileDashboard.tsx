@@ -2192,7 +2192,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
             <div style={{fontSize:13,color:'#6B7280',marginBottom:20}}>בטוח/ה שרוצה לצאת?</div>
             <div style={{display:'flex',gap:10}}>
               <button onClick={() => setShowExitConfirm(false)} style={{flex:1,padding:'12px 0',borderRadius:10,border:'1px solid #E5E7EB',background:'#F9FAFB',color:'#374151',fontSize:15,fontWeight:500,cursor:'pointer'}}>להישאר</button>
-              <button onClick={() => { setShowExitConfirm(false); window.close(); window.location.href = 'about:blank' }} style={{flex:1,padding:'12px 0',borderRadius:10,border:'none',background:'#EF4444',color:'#fff',fontSize:15,fontWeight:500,cursor:'pointer'}}>לצאת</button>
+              <button onClick={() => { setShowExitConfirm(false); window.history.go(-(window.history.length - 1)) }} style={{flex:1,padding:'12px 0',borderRadius:10,border:'none',background:'#EF4444',color:'#fff',fontSize:15,fontWeight:500,cursor:'pointer'}}>לצאת</button>
             </div>
           </div>
         </div>
