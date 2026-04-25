@@ -662,18 +662,15 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <DexcelLogo />
           <div className="m-account-badge">
             {!isLocalMode && userPhoto ? (
-              <img src={userPhoto} alt="" className="m-account-avatar" referrerPolicy="no-referrer" />
+              <img src={userPhoto} alt="" className="m-account-avatar" referrerPolicy="no-referrer" title={userEmail} />
             ) : (
-              <div className="m-account-avatar m-account-avatar-placeholder">{isLocalMode ? '👤' : (userEmail?.[0]?.toUpperCase() || '?')}</div>
+              <div className="m-account-avatar m-account-avatar-placeholder" title={isLocalMode ? 'ללא חשבון' : userEmail}>{isLocalMode ? '👤' : (userEmail?.[0]?.toUpperCase() || '?')}</div>
             )}
-            <div className="m-account-info">
-              <span className="m-account-email">{isLocalMode ? 'ללא חשבון' : userEmail}</span>
-              {!isLocalMode && (
-                <span className={`m-sync-label ${syncStatus.includes('error') ? 'error' : ''}`}>
-                  {syncStatus === 'loading' ? '⏳ טוען...' : syncStatus === 'saving' ? '🔄 שומר...' : syncStatus === 'saved' ? '✓ נשמר' : syncStatus.includes('error') ? '⚠️ שגיאה' : syncStatus === 'ok' ? '☁️ מסונכרן' : ''}
-                </span>
-              )}
-            </div>
+            {!isLocalMode && (
+              <span className={`m-sync-label ${syncStatus.includes('error') ? 'error' : ''}`}>
+                {syncStatus === 'loading' ? '⏳' : syncStatus === 'saving' ? '🔄' : syncStatus === 'saved' ? '✓' : syncStatus.includes('error') ? '⚠️' : ''}
+              </span>
+            )}
           </div>
           <div className="m-header-actions">
             <button className="m-hbtn m-hbtn-gear" onClick={() => setCatMgmtOpen(true)}>
