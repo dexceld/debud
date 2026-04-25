@@ -47,7 +47,7 @@ export function AboutModal({ onClose }: { onClose: () => void }) {
 
         {/* Dexcel */}
         <div style={{ marginBottom: 24 }}>
-          <img src="/Trn color.png" alt="Dexcel Logo" style={{ height: 50, marginBottom: 16, objectFit: 'contain' }} />
+          <img src="/Trn color.png" alt="Dexcel Logo" style={{ height: 36, marginBottom: 16, objectFit: 'contain' }} />
           <h3 style={{ margin: '0 0 8px 0', fontSize: 18, fontWeight: 700 }}>Dexcel</h3>
           <p style={{ margin: '0 0 12px 0', color: '#666', fontSize: 14, fontWeight: 600 }}>
             טרנספורמציה דיגיטלית
@@ -58,8 +58,8 @@ export function AboutModal({ onClose }: { onClose: () => void }) {
             ✓ ייעוץ דיגיטלי<br/>
             ✓ פיתוח מערכות מותאמות
           </p>
-          <p style={{ margin: 0, color: '#999', fontSize: 12 }}>
-            www.dexcel.co.il
+          <p style={{ margin: 0, fontSize: 15 }}>
+            <a href="https://www.dexcel.co.il" target="_blank" rel="noopener noreferrer" style={{ color: '#667eea', fontWeight: 600, textDecoration: 'none' }}>www.dexcel.co.il</a>
           </p>
         </div>
 
