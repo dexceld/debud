@@ -2216,10 +2216,17 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
                 exitingRef.current = true
                 if (popStateHandlerRef.current) window.removeEventListener('popstate', popStateHandlerRef.current)
                 window.close()
-                setTimeout(() => window.history.go(-(window.history.length)), 200)
+                // Drain all history entries rapidly to exit TWA
+                let tries = 0
+                const drainer = setInterval(() => {
+                  tries++
+                  if (tries > 50) { clearInterval(drainer); return }
+                  window.history.back()
+                }, 30)
                 setTimeout(() => {
+                  clearInterval(drainer)
                   document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100dvh;font-family:sans-serif;direction:rtl;text-align:center;padding:20px;background:#F9FAFB"><div><div style="font-size:48px;margin-bottom:16px">👋</div><p style="font-size:18px;font-weight:600;margin:0 0 8px">להתראות!</p><p style="color:#6B7280;font-size:14px;margin:0">ניתן לסגור: החליקי למעלה מלמטה ← גררי את האפליקציה למעלה</p></div></div>'
-                }, 600)
+                }, 2000)
               }} style={{flex:1,padding:'12px 0',borderRadius:10,border:'none',background:'#EF4444',color:'#fff',fontSize:15,fontWeight:500,cursor:'pointer'}}>לצאת</button>
             </div>
           </div>

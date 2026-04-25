@@ -1,4 +1,4 @@
-const CACHE_NAME = 'beshlita-v19-fab-inner-labels'
+const CACHE_NAME = 'beshlita-v20-exit-drain'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
