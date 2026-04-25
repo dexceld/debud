@@ -167,6 +167,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
   const [showExitConfirm, setShowExitConfirm] = useState(false)
   const showExitConfirmRef = useRef(false)
   const exitingRef = useRef(false)
+  const popStateHandlerRef = useRef<(() => void) | null>(null)
   useEffect(() => { showExitConfirmRef.current = showExitConfirm }, [showExitConfirm])
 
   // CatMgmt internal state (lifted here to prevent remount on state change)
@@ -232,6 +233,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
       }
       pushState()
     }
+    popStateHandlerRef.current = onPopState
     window.addEventListener('popstate', onPopState)
     return () => window.removeEventListener('popstate', onPopState)
   }, [])
@@ -2198,7 +2200,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
             <div style={{fontSize:13,color:'#6B7280',marginBottom:20}}>בטוח/ה שרוצה לצאת?</div>
             <div style={{display:'flex',gap:10}}>
               <button onClick={() => setShowExitConfirm(false)} style={{flex:1,padding:'12px 0',borderRadius:10,border:'1px solid #E5E7EB',background:'#F9FAFB',color:'#374151',fontSize:15,fontWeight:500,cursor:'pointer'}}>להישאר</button>
-              <button onClick={() => { setShowExitConfirm(false); exitingRef.current = true; setTimeout(() => { window.history.go(-(window.history.length)) }, 50) }} style={{flex:1,padding:'12px 0',borderRadius:10,border:'none',background:'#EF4444',color:'#fff',fontSize:15,fontWeight:500,cursor:'pointer'}}>לצאת</button>
+              <button onClick={() => { setShowExitConfirm(false); exitingRef.current = true; if (popStateHandlerRef.current) window.removeEventListener('popstate', popStateHandlerRef.current); setTimeout(() => window.history.go(-(window.history.length)), 100) }} style={{flex:1,padding:'12px 0',borderRadius:10,border:'none',background:'#EF4444',color:'#fff',fontSize:15,fontWeight:500,cursor:'pointer'}}>לצאת</button>
             </div>
           </div>
         </div>
