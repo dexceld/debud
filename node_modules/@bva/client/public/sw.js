@@ -1,4 +1,4 @@
-const CACHE_NAME = 'beshlita-v23-sticky-header'
+const CACHE_NAME = 'beshlita-v24-exit-simple'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

@@ -2213,21 +2213,10 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
             <div style={{display:'flex',gap:10}}>
               <button onClick={() => setShowExitConfirm(false)} style={{flex:1,padding:'12px 0',borderRadius:10,border:'1px solid #E5E7EB',background:'#F9FAFB',color:'#374151',fontSize:15,fontWeight:500,cursor:'pointer'}}>להישאר</button>
               <button onClick={() => {
-                setShowExitConfirm(false)
                 exitingRef.current = true
                 if (popStateHandlerRef.current) window.removeEventListener('popstate', popStateHandlerRef.current)
-                window.close()
-                // Drain all history entries rapidly to exit TWA
-                let tries = 0
-                const drainer = setInterval(() => {
-                  tries++
-                  if (tries > 50) { clearInterval(drainer); return }
-                  window.history.back()
-                }, 30)
-                setTimeout(() => {
-                  clearInterval(drainer)
-                  document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100dvh;font-family:sans-serif;direction:rtl;text-align:center;padding:20px;background:#F9FAFB"><div><div style="font-size:48px;margin-bottom:16px">👋</div><p style="font-size:18px;font-weight:600;margin:0 0 8px">להתראות!</p><p style="color:#6B7280;font-size:14px;margin:0">ניתן לסגור: החליקי למעלה מלמטה ← גררי את האפליקציה למעלה</p></div></div>'
-                }, 2000)
+                // Replace current page — navigating outside TWA scope closes it
+                window.location.replace('about:blank')
               }} style={{flex:1,padding:'12px 0',borderRadius:10,border:'none',background:'#EF4444',color:'#fff',fontSize:15,fontWeight:500,cursor:'pointer'}}>לצאת</button>
             </div>
           </div>
