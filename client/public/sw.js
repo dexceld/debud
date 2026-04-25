@@ -1,4 +1,4 @@
-const CACHE_NAME = 'beshlita-v7-grouporder-toast-exit'
+const CACHE_NAME = 'beshlita-v9-exit-dialog'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
