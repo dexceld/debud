@@ -2238,10 +2238,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <button onClick={() => {
                 exitingRef.current = true
                 if (popStateHandlerRef.current) window.removeEventListener('popstate', popStateHandlerRef.current)
-                // Try multiple exit strategies in sequence
-                window.close()
-                // Navigate to a page that doesn't exist in the TWA scope to force close
-                setTimeout(() => { window.location.href = 'https://www.google.com' }, 100)
+                // Replace the entire page with a goodbye screen
+                document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100dvh;font-family:sans-serif;direction:rtl;text-align:center;padding:20px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)"><div><div style="font-size:56px;margin-bottom:16px">👋</div><p style="font-size:22px;font-weight:700;margin:0 0 12px;color:#fff">להתראות!</p><p style="color:rgba(255,255,255,0.85);font-size:14px;margin:0;line-height:1.6">החליקי את האפליקציה<br/>מלמטה למעלה לסגירה</p></div></div>'
+                // Drain history rapidly so pressing back exits completely
+                const drain = setInterval(() => window.history.back(), 50)
+                setTimeout(() => clearInterval(drain), 3000)
               }} style={{flex:1,padding:'12px 0',borderRadius:10,border:'none',background:'#EF4444',color:'#fff',fontSize:15,fontWeight:500,cursor:'pointer'}}>לצאת</button>
             </div>
           </div>

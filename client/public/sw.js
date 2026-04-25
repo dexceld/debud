@@ -1,4 +1,4 @@
-const CACHE_NAME = 'beshlita-v29-account-badge'
+const CACHE_NAME = 'beshlita-v30-exit-drain'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
