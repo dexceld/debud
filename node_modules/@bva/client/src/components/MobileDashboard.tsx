@@ -664,10 +664,15 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
               <span className="m-hbtn-label">הערה</span>
             </button>
-            <button className="m-hbtn" onClick={() => {
-              // Clear all cached app data so local mode doesn't show private data
-              ;['actuals','forecasts','forecast_snapshots','categories','groups','groupOrder','opening_balance','cat_usage','bva_local_mode','home_view','fab_pos'].forEach(k => localStorage.removeItem(k))
-              signOutUser().catch(() => {})
+            <button className="m-hbtn" onClick={async () => {
+              if (isLocalMode) {
+                // Local mode: just go to login screen, keep data
+                localStorage.removeItem('bva_local_mode')
+              } else {
+                // Authenticated: data is in Firestore, safe to clear localStorage cache
+                ;['actuals','forecasts','forecast_snapshots','categories','groups','groupOrder','opening_balance','cat_usage','home_view'].forEach(k => localStorage.removeItem(k))
+                await signOutUser().catch(() => {})
+              }
               window.location.reload()
             }} title={userEmail || 'יציאה מחשבון'} style={{color:'#EF4444'}}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
