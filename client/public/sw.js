@@ -1,4 +1,4 @@
-const CACHE_NAME = 'beshlita-v31-sync-diag'
+const CACHE_NAME = 'beshlita-v32-header-layout'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

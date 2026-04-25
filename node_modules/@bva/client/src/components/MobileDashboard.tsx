@@ -469,7 +469,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
   const DexcelLogo = () => (
     <div className="m-logo-block" onClick={() => { setScreen('home'); setExpandedGroups(new Set()); setViewMonthIdx(months.indexOf(currentMonth) >= 0 ? months.indexOf(currentMonth) : 0) }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', height: '100%' }}>
-      <img src="/Trn color.png" alt="Dexcel" style={{ height: 29, maxHeight: '85%' }} />
+      <img src="/Trn color.png" alt="Dexcel" style={{ height: 22, maxHeight: '85%' }} />
     </div>
   )
 
@@ -663,12 +663,14 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             ) : (
               <div className="m-account-avatar m-account-avatar-placeholder">{isLocalMode ? '👤' : (userEmail?.[0]?.toUpperCase() || '?')}</div>
             )}
-            <span className="m-account-email">{isLocalMode ? 'ללא חשבון' : userEmail}</span>
-            {!isLocalMode && (
-              <span className={`m-sync-dot ${syncStatus.includes('error') ? 'error' : ''}`} title={syncError || syncStatus}>
-                {syncStatus === 'loading' ? '⏳' : syncStatus === 'saving' ? '🔄' : syncStatus === 'saved' ? '✓' : syncStatus.includes('error') ? '⚠️' : syncStatus === 'ok' ? '☁️' : '☁️'}
-              </span>
-            )}
+            <div className="m-account-info">
+              <span className="m-account-email">{isLocalMode ? 'ללא חשבון' : userEmail}</span>
+              {!isLocalMode && (
+                <span className={`m-sync-label ${syncStatus.includes('error') ? 'error' : ''}`}>
+                  {syncStatus === 'loading' ? '⏳ טוען...' : syncStatus === 'saving' ? '🔄 שומר...' : syncStatus === 'saved' ? '✓ נשמר' : syncStatus.includes('error') ? '⚠️ שגיאה' : syncStatus === 'ok' ? '☁️ מסונכרן' : ''}
+                </span>
+              )}
+            </div>
           </div>
           <div className="m-header-actions">
             <button className="m-hbtn m-hbtn-gear" onClick={() => setCatMgmtOpen(true)}>
