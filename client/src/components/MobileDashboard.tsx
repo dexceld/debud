@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import './MobileDashboard.css'
-import { useFirebaseSync } from '../hooks/useFirebaseSync'
+import { useFirebaseSync, flushAllSaves } from '../hooks/useFirebaseSync'
 import { signOutUser } from '../firebase'
 import { FeedbackModal } from './FeedbackModal'
 import { AboutModal } from './AboutModal'
@@ -666,10 +666,12 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
             </button>
             <button className="m-hbtn" onClick={async () => {
               if (isLocalMode) {
-                // Local mode: just go to login screen, keep data
                 localStorage.removeItem('bva_local_mode')
               } else {
-                // Authenticated: data is in Firestore, safe to clear localStorage cache
+                // Flush all pending saves to Firestore before signing out
+                flushAllSaves()
+                // Small delay to let writes reach Firestore
+                await new Promise(r => setTimeout(r, 500))
                 ;['actuals','forecasts','forecast_snapshots','categories','groups','groupOrder','opening_balance','cat_usage','home_view'].forEach(k => localStorage.removeItem(k))
                 await signOutUser().catch(() => {})
               }
@@ -2220,8 +2222,11 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
               <button onClick={() => {
                 exitingRef.current = true
                 if (popStateHandlerRef.current) window.removeEventListener('popstate', popStateHandlerRef.current)
-                // Replace current page — navigating outside TWA scope closes it
-                window.location.replace('about:blank')
+                // Show goodbye screen, clear history, back button will close TWA
+                document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100dvh;font-family:sans-serif;direction:rtl;text-align:center;padding:20px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)"><div><div style="font-size:56px;margin-bottom:16px">👋</div><p style="font-size:22px;font-weight:700;margin:0 0 8px;color:#fff">להתראות!</p><p style="color:rgba(255,255,255,0.8);font-size:14px;margin:0">לחצי חזרה לסגירה</p></div></div>'
+                // Clear all history so next back press exits
+                window.history.pushState(null, '', window.location.href)
+                window.addEventListener('popstate', () => window.close())
               }} style={{flex:1,padding:'12px 0',borderRadius:10,border:'none',background:'#EF4444',color:'#fff',fontSize:15,fontWeight:500,cursor:'pointer'}}>לצאת</button>
             </div>
           </div>
