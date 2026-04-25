@@ -1,4 +1,4 @@
-const CACHE_NAME = 'beshlita-v12-exit-about'
+const CACHE_NAME = 'beshlita-v13-scroll-fix'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

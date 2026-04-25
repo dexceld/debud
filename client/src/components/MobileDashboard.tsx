@@ -325,7 +325,10 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
     return balance
   }
 
+  const homeScrollRef = useRef<HTMLDivElement | null>(null)
+  const homeScrollPosRef = useRef(0)
   const toggleGroup = (gId: string) => {
+    if (homeScrollRef.current) homeScrollPosRef.current = homeScrollRef.current.scrollTop
     setExpandedGroups((prev) => {
       const n = new Set(prev)
       n.has(gId) ? n.delete(gId) : n.add(gId)
@@ -687,6 +690,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
         </div>
 
         <div className="m-home-scroll"
+          ref={el => { if (el && homeScrollPosRef.current) { el.scrollTop = homeScrollPosRef.current }; homeScrollRef.current = el }}
           onTouchStart={e => { swipeStartX.current = e.touches[0].clientX; swipeStartY.current = e.touches[0].clientY }}
           onTouchEnd={e => {
             const dx = e.changedTouches[0].clientX - swipeStartX.current
