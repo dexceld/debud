@@ -56,23 +56,28 @@ export function useFirebaseSync(uid: string | null, key: string, value: unknown,
   useEffect(() => {
     if (!uid || uid === 'local') return
     loadedRef.current = false
-    firstSaveBlockedRef.current = true
+    firstSaveBlockedRef.current = false
     _loadCount++
     setSyncStatus('loading')
+    console.log('[sync] loading', key, 'for uid', uid?.slice(0,8))
 
     getDoc(doc(db, 'users', uid, 'data', key))
       .then(snap => {
         if (snap.exists()) {
+          console.log('[sync] loaded', key, '- doc exists')
           onLoad(snap.data().value)
+          firstSaveBlockedRef.current = true // only block echo if we actually loaded data
+        } else {
+          console.log('[sync] loaded', key, '- doc does NOT exist, no echo to block')
+          firstSaveBlockedRef.current = false
         }
         loadedRef.current = true
-        firstSaveBlockedRef.current = true // block the first save triggered by onLoad
         _loadDone++
         if (_loadDone >= _loadCount) setSyncStatus('ok')
       })
       .catch(err => {
         const msg = err?.code || err?.message || String(err)
-        console.error('Firebase LOAD error:', key, msg)
+        console.error('[sync] LOAD error:', key, msg)
         loadedRef.current = true
         firstSaveBlockedRef.current = false
         _loadDone++
@@ -87,9 +92,11 @@ export function useFirebaseSync(uid: string | null, key: string, value: unknown,
     // Skip the first save after load (it's just the loaded data echoing back)
     if (firstSaveBlockedRef.current) {
       firstSaveBlockedRef.current = false
+      console.log('[sync] skip echo-back save for', key)
       return
     }
 
+    console.log('[sync] scheduling save for', key)
     if (timerRef.current) clearTimeout(timerRef.current)
     pendingWrites.set(key, { uid, key, value })
 
@@ -97,15 +104,17 @@ export function useFirebaseSync(uid: string | null, key: string, value: unknown,
       const u = latestUidRef.current
       const v = latestValueRef.current
       if (!u || u === 'local') return
+      console.log('[sync] SAVING', key, 'to Firestore')
       setSyncStatus('saving')
       setDoc(doc(db, 'users', u, 'data', key), { value: v })
         .then(() => {
+          console.log('[sync] SAVED', key, 'OK')
           setSyncStatus('saved')
           setTimeout(() => { if (_syncStatus === 'saved') setSyncStatus('ok') }, 2000)
         })
         .catch(err => {
           const msg = err?.code || err?.message || String(err)
-          console.error('Firebase SAVE error:', key, msg)
+          console.error('[sync] SAVE ERROR:', key, msg)
           setSyncStatus('save_error', `שמירה נכשלה (${key}): ${msg}`)
         })
       pendingSaves.delete(key)
