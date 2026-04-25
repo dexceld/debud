@@ -794,16 +794,16 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
         </div>
         ) : (
         /* ── VIEW 2: month vs month ── */
-        <div className="m-home-summary-block">
-          {/* Month header */}
-          <div className="m-mm-header">
-            <span className="m-mm-header-spacer"></span>
-            <div className="m-mm-header-months">
-              {monthCols.map(m => (
-                <span key={m} className={`m-mm-col ${m === vm ? 'current' : ''}`}>{m}</span>
-              ))}
-            </div>
+        <>
+        <div className="m-mm-header">
+          <span className="m-mm-header-spacer"></span>
+          <div className="m-mm-header-months">
+            {monthCols.map(m => (
+              <span key={m} className={`m-mm-col ${m === vm ? 'current' : ''}`}>{m}</span>
+            ))}
           </div>
+        </div>
+        <div className="m-home-summary-block" style={{marginTop:0,borderTopLeftRadius:0,borderTopRightRadius:0}}>
           {/* All groups in groupOrder */}
           {groupOrder.map((gid) => {
             const g = groups.find(x => x.id === gid)
@@ -872,6 +872,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
             </div>
           </div>
         </div>
+        </>
         )}
 
         {/* Action buttons - single row */}
