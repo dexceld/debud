@@ -368,9 +368,21 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
       name: nameVal.trim(),
       budget: 0,
     }
+    setCategories((prev) => [...prev, newCat])
+
+    if (quickForecastOnly) {
+      // Forecast mode: create the category, then open the forecast period panel
+      setQuickPanelCatId(newId)
+      setQuickPanelMonth(currentMonth)
+      setQuickPanelAmount(amt)
+      setQuickPanelForecastEnd('')
+      setQuickNewName('')
+      quickNewNameRef.current = ''
+      return
+    }
+
     const isIncome = newCat.groupId === 'g5'
     const signedAmount = amt ? (isIncome ? -Math.abs(Number(amt)) : Math.abs(Number(amt))) : 0
-    setCategories((prev) => [...prev, newCat])
     if (signedAmount !== 0) {
       setActuals((prev) => ({ ...prev, [newId]: { [globalMonth]: signedAmount } }))
       setCatUsage(prev => {
