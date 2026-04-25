@@ -598,37 +598,33 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
     }
 
     return (
-      <div style={{ position: 'fixed', left: pos.x, top: pos.y, display: 'flex', flexDirection: 'column', gap: 12, zIndex: 100, touchAction: 'none' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button
-            className="m-fab-glass"
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={e => onTouchEnd(e, openQuickAdd)}
-            onClick={() => { if (!dragRef.current?.moved) openQuickAdd() }}
-            title="עדכון בפועל"
-          >
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-          </button>
-          <span className="m-fab-label" style={{background:'rgba(99,102,241,0.85)'}}>בפועל</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button
-            className="m-fab-glass forecast"
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={e => onTouchEnd(e, () => { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickPanelAmount(''); setQuickPanelMonth(''); setQuickPanelForecastEnd(''); setQuickPreOpenCat(null); setQuickNewName(''); savedAmountRef.current = ''; setQuickOpenKey(k => k + 1); setQuickAddOpen(true); setTimeout(() => { if (globalAmountInputRef.current) { globalAmountInputRef.current.value = ''; globalAmountInputRef.current.focus() } }, 50) })}
-            onClick={() => { if (!dragRef.current?.moved) { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickPanelAmount(''); setQuickPanelMonth(''); setQuickPanelForecastEnd(''); setQuickPreOpenCat(null); setQuickNewName(''); savedAmountRef.current = ''; setQuickOpenKey(k => k + 1); setQuickAddOpen(true); setTimeout(() => { if (globalAmountInputRef.current) { globalAmountInputRef.current.value = ''; globalAmountInputRef.current.focus() } }, 50) } }}
-            title="עדכון תחזית"
-          >
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-            </svg>
-          </button>
-          <span className="m-fab-label" style={{background:'rgba(16,185,129,0.85)'}}>תחזית</span>
-        </div>
+      <div style={{ position: 'fixed', left: pos.x, top: pos.y, display: 'flex', flexDirection: 'column', gap: 10, zIndex: 100, touchAction: 'none' }}>
+        <button
+          className="m-fab-glass m-fab-with-label"
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={e => onTouchEnd(e, openQuickAdd)}
+          onClick={() => { if (!dragRef.current?.moved) openQuickAdd() }}
+          title="עדכון בפועל"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          <span className="m-fab-inner-label">בפועל</span>
+        </button>
+        <button
+          className="m-fab-glass forecast m-fab-with-label"
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={e => onTouchEnd(e, () => { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickPanelAmount(''); setQuickPanelMonth(''); setQuickPanelForecastEnd(''); setQuickPreOpenCat(null); setQuickNewName(''); savedAmountRef.current = ''; setQuickOpenKey(k => k + 1); setQuickAddOpen(true); setTimeout(() => { if (globalAmountInputRef.current) { globalAmountInputRef.current.value = ''; globalAmountInputRef.current.focus() } }, 50) })}
+          onClick={() => { if (!dragRef.current?.moved) { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickPanelAmount(''); setQuickPanelMonth(''); setQuickPanelForecastEnd(''); setQuickPreOpenCat(null); setQuickNewName(''); savedAmountRef.current = ''; setQuickOpenKey(k => k + 1); setQuickAddOpen(true); setTimeout(() => { if (globalAmountInputRef.current) { globalAmountInputRef.current.value = ''; globalAmountInputRef.current.focus() } }, 50) } }}
+          title="עדכון תחזית"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          <span className="m-fab-inner-label">תחזית</span>
+        </button>
       </div>
     )
   }

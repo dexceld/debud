@@ -1,4 +1,4 @@
-const CACHE_NAME = 'beshlita-v18-exit-fallback'
+const CACHE_NAME = 'beshlita-v19-fab-inner-labels'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
