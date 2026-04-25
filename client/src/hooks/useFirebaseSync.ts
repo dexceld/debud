@@ -1,8 +1,24 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { doc, setDoc, getDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 
 const DEBOUNCE_MS = 1500
+
+// Sync status: 'idle' | 'saving' | 'saved' | 'error'
+let _syncStatus: string = 'idle'
+let _syncListeners: Set<(s: string) => void> = new Set()
+function setSyncStatus(s: string) {
+  _syncStatus = s
+  _syncListeners.forEach(fn => fn(s))
+}
+export function useSyncStatus() {
+  const [status, setStatus] = useState(_syncStatus)
+  useEffect(() => {
+    _syncListeners.add(setStatus)
+    return () => { _syncListeners.delete(setStatus) }
+  }, [])
+  return status
+}
 
 // Registry of pending saves so we can flush them before logout
 const pendingSaves: Map<string, () => void> = new Map()
@@ -58,7 +74,10 @@ export function useFirebaseSync(uid: string | null, key: string, value: unknown,
       const u = latestUidRef.current
       const v = latestValueRef.current
       if (!u || u === 'local') return
-      setDoc(doc(db, 'users', u, 'data', key), { value: v }).catch(err => console.error('Firebase save error:', key, err))
+      setSyncStatus('saving')
+      setDoc(doc(db, 'users', u, 'data', key), { value: v })
+        .then(() => { setSyncStatus('saved'); setTimeout(() => { if (_syncStatus === 'saved') setSyncStatus('idle') }, 2000) })
+        .catch(err => { console.error('Firebase save error:', key, err); setSyncStatus('error') })
       pendingSaves.delete(key)
       pendingWrites.delete(key)
     }

@@ -30,6 +30,7 @@ function App() {
       <MobileDashboard 
         uid={localMode ? 'local' : (user && user !== 'loading' ? user.uid : '')} 
         userEmail={localMode ? 'local' : (user && user !== 'loading' ? user.email ?? '' : '')} 
+        userPhoto={localMode ? '' : (user && user !== 'loading' ? user.photoURL ?? '' : '')}
         isLocalMode={localMode}
       />
     </div>

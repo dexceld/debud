@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import './MobileDashboard.css'
-import { useFirebaseSync, flushAllSaves } from '../hooks/useFirebaseSync'
+import { useFirebaseSync, flushAllSaves, useSyncStatus } from '../hooks/useFirebaseSync'
 import { signOutUser } from '../firebase'
 import { FeedbackModal } from './FeedbackModal'
 import { AboutModal } from './AboutModal'
@@ -81,7 +81,7 @@ type ForecastSnapshot = {
   data: Record<string, number> // month -> running balance
 }
 
-export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: string; userEmail: string; isLocalMode?: boolean }) {
+export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode }: { uid: string; userEmail: string; userPhoto?: string; isLocalMode?: boolean }) {
   const [groups, setGroups] = useState<Group[]>(() => {
     const saved = localStorage.getItem('groups')
     return saved ? JSON.parse(saved) : initialGroups
@@ -246,6 +246,8 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
   useFirebaseSync(uid, 'groups', groups, v => setGroups(v as typeof groups))
   useFirebaseSync(uid, 'groupOrder', groupOrder, v => setGroupOrder(v as string[]))
   useFirebaseSync(uid, 'opening_balance', openingBalance, v => setOpeningBalance(v as typeof openingBalance))
+
+  const syncStatus = useSyncStatus()
 
   // Ensure groupOrder always includes all groups (new groups added elsewhere)
   useEffect(() => {
@@ -655,6 +657,19 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
       <div className="m-screen">
         <div className="m-header">
           <DexcelLogo />
+          <div className="m-account-badge">
+            {!isLocalMode && userPhoto ? (
+              <img src={userPhoto} alt="" className="m-account-avatar" referrerPolicy="no-referrer" />
+            ) : (
+              <div className="m-account-avatar m-account-avatar-placeholder">{isLocalMode ? '👤' : (userEmail?.[0]?.toUpperCase() || '?')}</div>
+            )}
+            <span className="m-account-email">{isLocalMode ? 'ללא חשבון' : userEmail}</span>
+            {!isLocalMode && (
+              <span className="m-sync-dot" title={syncStatus}>
+                {syncStatus === 'saving' ? '🔄' : syncStatus === 'saved' ? '✓' : syncStatus === 'error' ? '✗' : '☁️'}
+              </span>
+            )}
+          </div>
           <div className="m-header-actions">
             <button className="m-hbtn m-hbtn-gear" onClick={() => setCatMgmtOpen(true)}>
               <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" /></svg>

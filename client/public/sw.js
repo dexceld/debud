@@ -1,4 +1,4 @@
-const CACHE_NAME = 'beshlita-v28-sticky-header-fix'
+const CACHE_NAME = 'beshlita-v29-account-badge'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
