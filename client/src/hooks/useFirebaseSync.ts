@@ -4,33 +4,37 @@ import { db } from '../firebase'
 
 const DEBOUNCE_MS = 1500
 
-// Sync status: 'idle' | 'saving' | 'saved' | 'error'
-let _syncStatus: string = 'idle'
-let _syncListeners: Set<(s: string) => void> = new Set()
-function setSyncStatus(s: string) {
+// ── Sync status tracking ──
+// Possible: 'idle' | 'loading' | 'saving' | 'saved' | 'load_error' | 'save_error' | 'ok'
+let _syncStatus = 'idle'
+let _syncError = ''
+let _syncListeners = new Set<(s: string) => void>()
+let _loadCount = 0
+let _loadDone = 0
+
+function setSyncStatus(s: string, err = '') {
   _syncStatus = s
+  _syncError = err
   _syncListeners.forEach(fn => fn(s))
 }
-export function useSyncStatus() {
+
+export function useSyncStatus(): { status: string; error: string } {
   const [status, setStatus] = useState(_syncStatus)
   useEffect(() => {
-    _syncListeners.add(setStatus)
-    return () => { _syncListeners.delete(setStatus) }
+    const handler = (s: string) => setStatus(s)
+    _syncListeners.add(handler)
+    return () => { _syncListeners.delete(handler) }
   }, [])
-  return status
+  return { status, error: _syncError }
 }
 
-// Registry of pending saves so we can flush them before logout
+// ── Flush pending saves ──
 const pendingSaves: Map<string, () => void> = new Map()
-
-// Pending writes keyed by data key → { uid, key, value }
 const pendingWrites: Map<string, { uid: string; key: string; value: unknown }> = new Map()
 
 export async function flushAllSaves(): Promise<void> {
-  // Execute all registered save functions
   pendingSaves.forEach(fn => fn())
   pendingSaves.clear()
-  // Also force-write any pending data
   const writes = Array.from(pendingWrites.values()).map(({ uid, key, value }) =>
     setDoc(doc(db, 'users', uid, 'data', key), { value }).catch(err => console.error('Flush save error:', key, err))
   )
@@ -38,6 +42,7 @@ export async function flushAllSaves(): Promise<void> {
   await Promise.all(writes)
 }
 
+// ── Main sync hook ──
 export function useFirebaseSync(uid: string | null, key: string, value: unknown, onLoad: (v: unknown) => void) {
   const loadedRef = useRef(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -45,30 +50,48 @@ export function useFirebaseSync(uid: string | null, key: string, value: unknown,
   latestValueRef.current = value
   const latestUidRef = useRef(uid)
   latestUidRef.current = uid
+  const firstSaveBlockedRef = useRef(true)
 
-  // Load once on mount / uid change (skip if local mode)
+  // Load once on mount / uid change
   useEffect(() => {
     if (!uid || uid === 'local') return
     loadedRef.current = false
-    getDoc(doc(db, 'users', uid, 'data', key)).then(snap => {
-      if (snap.exists()) onLoad(snap.data().value)
-      loadedRef.current = true
-    }).catch(err => {
-      console.error('Firebase load error:', key, err)
-      // Still allow saves even if initial load failed
-      loadedRef.current = true
-    })
+    firstSaveBlockedRef.current = true
+    _loadCount++
+    setSyncStatus('loading')
+
+    getDoc(doc(db, 'users', uid, 'data', key))
+      .then(snap => {
+        if (snap.exists()) {
+          onLoad(snap.data().value)
+        }
+        loadedRef.current = true
+        firstSaveBlockedRef.current = true // block the first save triggered by onLoad
+        _loadDone++
+        if (_loadDone >= _loadCount) setSyncStatus('ok')
+      })
+      .catch(err => {
+        const msg = err?.code || err?.message || String(err)
+        console.error('Firebase LOAD error:', key, msg)
+        loadedRef.current = true
+        firstSaveBlockedRef.current = false
+        _loadDone++
+        setSyncStatus('load_error', `טעינה נכשלה (${key}): ${msg}`)
+      })
   }, [uid, key])
 
-  // Save debounced on value change (skip if local mode)
+  // Save debounced on value change
   useEffect(() => {
     if (!uid || uid === 'local' || !loadedRef.current) return
-    if (timerRef.current) clearTimeout(timerRef.current)
 
-    // Track latest value for flush
-    if (uid && uid !== 'local') {
-      pendingWrites.set(key, { uid, key, value })
+    // Skip the first save after load (it's just the loaded data echoing back)
+    if (firstSaveBlockedRef.current) {
+      firstSaveBlockedRef.current = false
+      return
     }
+
+    if (timerRef.current) clearTimeout(timerRef.current)
+    pendingWrites.set(key, { uid, key, value })
 
     const doSave = () => {
       const u = latestUidRef.current
@@ -76,8 +99,15 @@ export function useFirebaseSync(uid: string | null, key: string, value: unknown,
       if (!u || u === 'local') return
       setSyncStatus('saving')
       setDoc(doc(db, 'users', u, 'data', key), { value: v })
-        .then(() => { setSyncStatus('saved'); setTimeout(() => { if (_syncStatus === 'saved') setSyncStatus('idle') }, 2000) })
-        .catch(err => { console.error('Firebase save error:', key, err); setSyncStatus('error') })
+        .then(() => {
+          setSyncStatus('saved')
+          setTimeout(() => { if (_syncStatus === 'saved') setSyncStatus('ok') }, 2000)
+        })
+        .catch(err => {
+          const msg = err?.code || err?.message || String(err)
+          console.error('Firebase SAVE error:', key, msg)
+          setSyncStatus('save_error', `שמירה נכשלה (${key}): ${msg}`)
+        })
       pendingSaves.delete(key)
       pendingWrites.delete(key)
     }

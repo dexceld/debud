@@ -247,7 +247,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   useFirebaseSync(uid, 'groupOrder', groupOrder, v => setGroupOrder(v as string[]))
   useFirebaseSync(uid, 'opening_balance', openingBalance, v => setOpeningBalance(v as typeof openingBalance))
 
-  const syncStatus = useSyncStatus()
+  const { status: syncStatus, error: syncError } = useSyncStatus()
 
   // Ensure groupOrder always includes all groups (new groups added elsewhere)
   useEffect(() => {
@@ -665,8 +665,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             )}
             <span className="m-account-email">{isLocalMode ? 'ללא חשבון' : userEmail}</span>
             {!isLocalMode && (
-              <span className="m-sync-dot" title={syncStatus}>
-                {syncStatus === 'saving' ? '🔄' : syncStatus === 'saved' ? '✓' : syncStatus === 'error' ? '✗' : '☁️'}
+              <span className={`m-sync-dot ${syncStatus.includes('error') ? 'error' : ''}`} title={syncError || syncStatus}>
+                {syncStatus === 'loading' ? '⏳' : syncStatus === 'saving' ? '🔄' : syncStatus === 'saved' ? '✓' : syncStatus.includes('error') ? '⚠️' : syncStatus === 'ok' ? '☁️' : '☁️'}
               </span>
             )}
           </div>
@@ -685,9 +685,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               } else {
                 // Flush all pending saves to Firestore before signing out
                 await flushAllSaves()
-                // Extra delay to let writes reach Firestore
                 await new Promise(r => setTimeout(r, 800))
-                ;['actuals','forecasts','forecast_snapshots','categories','groups','groupOrder','opening_balance','cat_usage','home_view'].forEach(k => localStorage.removeItem(k))
+                // Keep localStorage data as backup — don't clear it
                 await signOutUser().catch(() => {})
               }
               window.location.reload()
@@ -700,6 +699,15 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
         {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} userEmail={userEmail} />}
         {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}
+
+        {/* Sync error banner */}
+        {!isLocalMode && syncStatus.includes('error') && (
+          <div style={{margin:'8px 12px 0',padding:'10px 14px',background:'#FEF2F2',border:'1px solid #FECACA',borderRadius:10,direction:'rtl'}}>
+            <div style={{fontSize:13,fontWeight:600,color:'#DC2626',marginBottom:4}}>⚠️ בעיית סנכרון עם הענן</div>
+            <div style={{fontSize:11,color:'#7F1D1D',lineHeight:1.5}}>{syncError || 'הנתונים נשמרים מקומית בלבד'}</div>
+            <div style={{fontSize:10,color:'#9CA3AF',marginTop:4}}>הנתונים שלך שמורים במכשיר. הסנכרון יתחדש כשהבעיה תיפתר.</div>
+          </div>
+        )}
 
         {/* View toggle - segmented control style */}
         <div className="m-home-view-toggle">
