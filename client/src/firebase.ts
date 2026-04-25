@@ -13,7 +13,8 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig)
 export const auth = getAuth(app)
-export const db = getFirestore(app)
+// Explicitly connect to the default database
+export const db = getFirestore(app, '(default)')
 export const googleProvider = new GoogleAuthProvider()
 
 export const signInWithGoogle = () => signInWithPopup(auth, googleProvider)
