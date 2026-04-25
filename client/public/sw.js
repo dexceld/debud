@@ -1,4 +1,4 @@
-const CACHE_NAME = 'beshlita-v20-exit-drain'
+const CACHE_NAME = 'beshlita-v21-logout-clear'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

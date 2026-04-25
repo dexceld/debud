@@ -665,7 +665,8 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
               <span className="m-hbtn-label">הערה</span>
             </button>
             <button className="m-hbtn" onClick={() => {
-              localStorage.removeItem('bva_local_mode')
+              // Clear all cached app data so local mode doesn't show private data
+              ;['actuals','forecasts','forecast_snapshots','categories','groups','groupOrder','opening_balance','cat_usage','bva_local_mode','home_view','fab_pos'].forEach(k => localStorage.removeItem(k))
               signOutUser().catch(() => {})
               window.location.reload()
             }} title={userEmail || 'יציאה מחשבון'} style={{color:'#EF4444'}}>
