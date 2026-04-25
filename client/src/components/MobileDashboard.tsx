@@ -669,15 +669,12 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
               <span className="m-hbtn-label">הערה</span>
             </button>
             <button className="m-hbtn" onClick={() => {
-              if (isLocalMode) {
-                localStorage.removeItem('bva_local_mode')
-                window.location.reload()
-              } else {
-                signOutUser().catch(err => console.error('Sign out error:', err))
-              }
-            }} title={isLocalMode ? 'חזור לדף כניסה' : userEmail} style={{color:'#EF4444'}}>
+              localStorage.removeItem('bva_local_mode')
+              signOutUser().catch(() => {})
+              window.location.reload()
+            }} title={userEmail || 'יציאה מחשבון'} style={{color:'#EF4444'}}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-              <span className="m-hbtn-label">{isLocalMode ? 'כניסה' : 'יציאה'}</span>
+              <span className="m-hbtn-label">יציאה</span>
             </button>
           </div>
         </div>
@@ -2218,7 +2215,16 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
             <div style={{fontSize:13,color:'#6B7280',marginBottom:20}}>בטוח/ה שרוצה לצאת?</div>
             <div style={{display:'flex',gap:10}}>
               <button onClick={() => setShowExitConfirm(false)} style={{flex:1,padding:'12px 0',borderRadius:10,border:'1px solid #E5E7EB',background:'#F9FAFB',color:'#374151',fontSize:15,fontWeight:500,cursor:'pointer'}}>להישאר</button>
-              <button onClick={() => { setShowExitConfirm(false); exitingRef.current = true; if (popStateHandlerRef.current) window.removeEventListener('popstate', popStateHandlerRef.current); setTimeout(() => window.history.go(-(window.history.length)), 100) }} style={{flex:1,padding:'12px 0',borderRadius:10,border:'none',background:'#EF4444',color:'#fff',fontSize:15,fontWeight:500,cursor:'pointer'}}>לצאת</button>
+              <button onClick={() => {
+                setShowExitConfirm(false)
+                exitingRef.current = true
+                if (popStateHandlerRef.current) window.removeEventListener('popstate', popStateHandlerRef.current)
+                window.close()
+                setTimeout(() => window.history.go(-(window.history.length)), 200)
+                setTimeout(() => {
+                  document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100dvh;font-family:sans-serif;direction:rtl;text-align:center;padding:20px;background:#F9FAFB"><div><div style="font-size:48px;margin-bottom:16px">👋</div><p style="font-size:18px;font-weight:600;margin:0 0 8px">להתראות!</p><p style="color:#6B7280;font-size:14px;margin:0">ניתן לסגור: החליקי למעלה מלמטה ← גררי את האפליקציה למעלה</p></div></div>'
+                }, 600)
+              }} style={{flex:1,padding:'12px 0',borderRadius:10,border:'none',background:'#EF4444',color:'#fff',fontSize:15,fontWeight:500,cursor:'pointer'}}>לצאת</button>
             </div>
           </div>
         </div>
