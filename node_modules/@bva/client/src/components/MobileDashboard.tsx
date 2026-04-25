@@ -249,13 +249,6 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
     if (missing.length > 0) setGroupOrder(prev => [...prev, ...missing])
   }, [groups])
 
-  // Prevent accidental app exit (Android back or page close)
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = '' }
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [])
-
   // Keep localStorage as fallback cache
   useEffect(() => { localStorage.setItem('actuals', JSON.stringify(actuals)) }, [actuals])
   useEffect(() => { localStorage.setItem('forecasts', JSON.stringify(forecasts)) }, [forecasts])

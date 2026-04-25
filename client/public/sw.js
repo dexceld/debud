@@ -1,4 +1,4 @@
-const CACHE_NAME = 'beshlita-v9-exit-dialog'
+const CACHE_NAME = 'beshlita-v10-no-beforeunload'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
