@@ -1463,7 +1463,7 @@ export default function MobileDashboard({ uid, userEmail, isLocalMode }: { uid: 
           <span className="m-catmgmt-topbar-title">יתרת פתיחה / סגירה</span>
           <div className="m-logo-block" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); setScreen('home') }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', height: '100%' }} title="דף הבית"><img src="/Trn color.png" alt="Dexcel" style={{ height: 29, maxHeight: '85%' }} /></div>
         </div>
-        {OpeningBalanceSection()}
+        <OpeningBalanceSection />
       </div>
     )
 
