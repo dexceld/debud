@@ -1,4 +1,4 @@
-const CACHE_NAME = 'beshlita-v34-uid-storage'
+const CACHE_NAME = 'beshlita-v35-exit-back'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

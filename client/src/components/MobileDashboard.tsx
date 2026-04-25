@@ -2253,8 +2253,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 if (popStateHandlerRef.current) window.removeEventListener('popstate', popStateHandlerRef.current)
                 // Try window.close first (works if opened by script)
                 window.close()
-                // Fallback: blank out the tab completely after a brief moment
-                setTimeout(() => { window.location.replace('about:blank') }, 200)
+                // Fallback: go all the way back in history to exit Chrome tab
+                setTimeout(() => { window.history.go(-(window.history.length)) }, 100)
               }} style={{flex:1,padding:'12px 0',borderRadius:10,border:'none',background:'#EF4444',color:'#fff',fontSize:15,fontWeight:500,cursor:'pointer'}}>לצאת</button>
             </div>
           </div>

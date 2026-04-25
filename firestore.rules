@@ -1,0 +1,14 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Each user can only read/write their own data
+    match /users/{userId}/data/{docId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    // Feedback collection - any authenticated user can write
+    match /feedback/{docId} {
+      allow create: if request.auth != null;
+      allow read: if false;
+    }
+  }
+}
