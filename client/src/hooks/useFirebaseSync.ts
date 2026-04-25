@@ -28,6 +28,30 @@ export function useSyncStatus(): { status: string; error: string } {
   return { status, error: _syncError }
 }
 
+// ── Firestore health check ──
+export async function firestoreHealthCheck(uid: string): Promise<string> {
+  if (!uid || uid === 'local') return 'skip (local mode)'
+  try {
+    const testRef = doc(db, 'users', uid, 'data', '_health_check')
+    const ts = Date.now()
+    console.log('[sync] Health check: writing test doc...')
+    await setDoc(testRef, { value: ts, ts: new Date().toISOString() })
+    console.log('[sync] Health check: write OK, reading back...')
+    const snap = await getDoc(testRef)
+    if (snap.exists() && snap.data().value === ts) {
+      console.log('[sync] Health check: PASS ✓')
+      return 'pass'
+    } else {
+      console.error('[sync] Health check: read mismatch', snap.data())
+      return 'fail: read mismatch'
+    }
+  } catch (err: any) {
+    const msg = err?.code || err?.message || String(err)
+    console.error('[sync] Health check FAILED:', msg)
+    return `fail: ${msg}`
+  }
+}
+
 // ── Flush pending saves ──
 const pendingSaves: Map<string, () => void> = new Map()
 const pendingWrites: Map<string, { uid: string; key: string; value: unknown }> = new Map()

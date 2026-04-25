@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import './MobileDashboard.css'
-import { useFirebaseSync, flushAllSaves, useSyncStatus } from '../hooks/useFirebaseSync'
+import { useFirebaseSync, flushAllSaves, useSyncStatus, firestoreHealthCheck } from '../hooks/useFirebaseSync'
 import { signOutUser } from '../firebase'
 import { FeedbackModal } from './FeedbackModal'
 import { AboutModal } from './AboutModal'
@@ -251,6 +251,19 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   useFirebaseSync(uid, 'opening_balance', openingBalance, v => setOpeningBalance(v as typeof openingBalance))
 
   const { status: syncStatus, error: syncError } = useSyncStatus()
+
+  // Run Firestore health check on login
+  const [healthResult, setHealthResult] = useState<string | null>(null)
+  useEffect(() => {
+    if (!uid || uid === 'local' || isLocalMode) return
+    firestoreHealthCheck(uid).then(result => {
+      setHealthResult(result)
+      if (result === 'pass') {
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => setHealthResult(null), 5000)
+      }
+    })
+  }, [uid])
 
   // Ensure groupOrder always includes all groups (new groups added elsewhere)
   useEffect(() => {
@@ -708,6 +721,18 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <div style={{fontSize:13,fontWeight:600,color:'#DC2626',marginBottom:4}}>⚠️ בעיית סנכרון עם הענן</div>
             <div style={{fontSize:11,color:'#7F1D1D',lineHeight:1.5}}>{syncError || 'הנתונים נשמרים מקומית בלבד'}</div>
             <div style={{fontSize:10,color:'#9CA3AF',marginTop:4}}>הנתונים שלך שמורים במכשיר. הסנכרון יתחדש כשהבעיה תיפתר.</div>
+          </div>
+        )}
+
+        {/* Health check banner */}
+        {!isLocalMode && healthResult && (
+          <div style={{margin:'8px 12px 0',padding:'10px 14px',background:healthResult === 'pass' ? '#ECFDF5' : '#FEF2F2',border:healthResult === 'pass' ? '1px solid #6EE7B7' : '1px solid #FECACA',borderRadius:10,direction:'rtl'}}>
+            <div style={{fontSize:13,fontWeight:600,color:healthResult === 'pass' ? '#059669' : '#DC2626',marginBottom:4}}>
+              {healthResult === 'pass' ? '✅ סנכרון עובד' : '❌ בעיית סנכרון'}
+            </div>
+            <div style={{fontSize:11,color:healthResult === 'pass' ? '#065F46' : '#7F1D1D',lineHeight:1.5}}>
+              {healthResult === 'pass' ? 'הנתונים יישמרו בענן' : `שגיאה: ${healthResult}`}
+            </div>
           </div>
         )}
 
