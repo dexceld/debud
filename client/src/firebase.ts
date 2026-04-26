@@ -13,10 +13,10 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig)
 export const auth = getAuth(app)
-// Force long polling to bypass WebChannel streaming issues
+// Database is named 'default' (not '(default)') so we must specify it explicitly
 export const db = initializeFirestore(app, {
-  experimentalForceLongPolling: true,
-})
+  experimentalAutoDetectLongPolling: true,
+}, 'default')
 export const googleProvider = new GoogleAuthProvider()
 
 export const signInWithGoogle = () => signInWithPopup(auth, googleProvider)
