@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth'
-import { getFirestore } from 'firebase/firestore'
+import { initializeFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
   apiKey: "AIzaSyC2uCaTkEiMkp0Je65uIufuwPjFq_eW1fo",
@@ -13,7 +13,10 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig)
 export const auth = getAuth(app)
-export const db = getFirestore(app)
+// Use initializeFirestore with explicit settings to avoid auto-detection issues
+export const db = initializeFirestore(app, {
+  experimentalAutoDetectLongPolling: true,
+})
 export const googleProvider = new GoogleAuthProvider()
 
 export const signInWithGoogle = () => signInWithPopup(auth, googleProvider)
