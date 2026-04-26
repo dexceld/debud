@@ -271,6 +271,19 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     if (missing.length > 0) setGroupOrder(prev => [...prev, ...missing])
   }, [groups])
 
+  // Auto-restore income group (g5) if missing — it is required and cannot be recreated via the UI
+  useEffect(() => {
+    if (!groups.some(g => g.id === 'g5')) {
+      const incomeGroup: Group = { id: 'g5', name: 'הכנסות', color: '#D1FAE5', icon: '💰' }
+      setGroups(prev => [...prev, incomeGroup])
+      setGroupOrder(prev => prev.includes('g5') ? prev : ['g5', ...prev])
+      // Restore default salary category if no income categories exist
+      if (!categories.some(c => c.groupId === 'g5')) {
+        setCategories(prev => [...prev, { id: 'c23', groupId: 'g5', name: 'משכורת', budget: -15000 }])
+      }
+    }
+  }, [groups])
+
   // Keep localStorage as fallback cache (uid-prefixed)
   useEffect(() => { localStorage.setItem(lsKey('actuals'), JSON.stringify(actuals)) }, [actuals])
   useEffect(() => { localStorage.setItem(lsKey('forecasts'), JSON.stringify(forecasts)) }, [forecasts])
@@ -1608,7 +1621,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   <span className="m-catmgmt-group-name-lg">{g.name}</span>
                   <span className="m-catmgmt-group-count">{items.length} פריטים</span>
                 </div>
-                <button className="m-catmgmt-delete-btn" onClick={e => { e.stopPropagation(); if (items.length > 0) { setErrorToast('לא ניתן למחוק קטגוריה שיש בה סעיפים'); setTimeout(() => setErrorToast(null), 3000); return; } setGroups(prev => prev.filter(gr => gr.id !== g.id)); setGroupOrder(prev => prev.filter(id => id !== g.id)); setDeleteToast(g.name); setTimeout(() => setDeleteToast(null), 2500) }}>🗑</button>
+                <button className="m-catmgmt-delete-btn" onClick={e => { e.stopPropagation(); if (g.id === 'g5') { setErrorToast('לא ניתן למחוק את קטגוריית ההכנסות'); setTimeout(() => setErrorToast(null), 3000); return; } if (items.length > 0) { setErrorToast('לא ניתן למחוק קטגוריה שיש בה סעיפים'); setTimeout(() => setErrorToast(null), 3000); return; } setGroups(prev => prev.filter(gr => gr.id !== g.id)); setGroupOrder(prev => prev.filter(id => id !== g.id)); setDeleteToast(g.name); setTimeout(() => setDeleteToast(null), 2500) }}>🗑</button>
                 <span className="m-catmgmt-chevron">›</span>
               </div>
             )
