@@ -1,4 +1,4 @@
-const CACHE_NAME = 'beshlita-v41-init-firestore'
+const CACHE_NAME = 'beshlita-v42-long-polling'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {

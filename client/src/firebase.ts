@@ -13,9 +13,9 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig)
 export const auth = getAuth(app)
-// Use initializeFirestore with explicit settings to avoid auto-detection issues
+// Force long polling to bypass WebChannel streaming issues
 export const db = initializeFirestore(app, {
-  experimentalAutoDetectLongPolling: true,
+  experimentalForceLongPolling: true,
 })
 export const googleProvider = new GoogleAuthProvider()
 
