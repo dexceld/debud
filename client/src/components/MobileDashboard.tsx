@@ -229,7 +229,28 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         } else if (!showExitConfirmRef.current) {
           setShowExitConfirm(true)
         } else {
+          // User confirmed exit - actually exit the app
+          exitingRef.current = true
+          if (popStateHandlerRef.current) window.removeEventListener('popstate', popStateHandlerRef.current)
           setShowExitConfirm(false)
+          // Try to close the app/tab
+          if ((navigator as any).app && (navigator as any).app.exitApp) {
+            // Cordova/Capacitor
+            (navigator as any).app.exitApp()
+          } else if ((window as any).Android && (window as any).Android.exitApp) {
+            // Android WebView with exitApp method
+            (window as any).Android.exitApp()
+          } else {
+            // Standard web - try to close
+            window.close()
+            // If window.close() didn't work (most browsers block it), minimize by going back
+            setTimeout(() => {
+              if (!document.hidden) {
+                // Still visible - try to go back in history to previous page
+                window.history.back()
+              }
+            }, 100)
+          }
         }
       } catch (err) {
         console.error('Back button error:', err)
