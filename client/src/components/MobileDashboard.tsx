@@ -2184,19 +2184,18 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   <button className="m-qi-card-header" style={{ background: 'transparent' }} onClick={() => {
                     if (!touchReady) return
                     const _amt = globalAmountInputRef.current?.value || ''
-                    if (quickForecastOnly && !_amt) {
-                      globalAmountInputRef.current?.focus()
-                      setAmountShake(true)
-                      setTimeout(() => setAmountShake(false), 600)
-                      return
-                    }
-                    if (!quickForecastOnly && _amt) {
-                      const isIncome = cat.groupId === 'g5'
-                      const signedAmount = isIncome ? -Math.abs(Number(_amt)) : Math.abs(Number(_amt))
-                      setActuals(p => ({...p,[cat.id]:{...(p[cat.id]||{}),[globalMonth]: signedAmount}}))
-                      trackCatUsage(cat.id)
-                      doClose()
-                    } else if (quickForecastOnly) {
+                    
+                    if (quickForecastOnly) {
+                      // Forecast mode: always open panel
+                      if (!_amt) {
+                        globalAmountInputRef.current?.focus()
+                        setAmountShake(true)
+                        setTimeout(() => setAmountShake(false), 600)
+                        return
+                      }
+                      openPanel(cat.id)
+                    } else {
+                      // Actual mode: ALWAYS open panel so user can choose add/replace
                       openPanel(cat.id)
                     }
                   }}>
@@ -2285,11 +2284,26 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <button onClick={() => setShowExitConfirm(false)} style={{flex:1,padding:'12px 0',borderRadius:10,border:'1px solid #E5E7EB',background:'#F9FAFB',color:'#374151',fontSize:15,fontWeight:500,cursor:'pointer'}}>להישאר</button>
               <button onClick={() => {
                 exitingRef.current = true
+                setShowExitConfirm(false)
                 if (popStateHandlerRef.current) window.removeEventListener('popstate', popStateHandlerRef.current)
-                // Try window.close first (works if opened by script)
-                window.close()
-                // Fallback: go all the way back in history to exit Chrome tab
-                setTimeout(() => { window.history.go(-(window.history.length)) }, 100)
+                // For PWA: try to close or navigate away
+                if (window.matchMedia('(display-mode: standalone)').matches) {
+                  // In standalone mode - try to close
+                  window.close()
+                  // If still here after 100ms, navigate to about:blank
+                  setTimeout(() => { window.location.href = 'about:blank' }, 100)
+                } else {
+                  // In browser - close tab or go back
+                  window.close()
+                  setTimeout(() => { 
+                    // If close didn't work, try going back in history
+                    if (window.history.length > 1) {
+                      window.history.go(-window.history.length + 1)
+                    } else {
+                      window.location.href = 'about:blank'
+                    }
+                  }, 100)
+                }
               }} style={{flex:1,padding:'12px 0',borderRadius:10,border:'none',background:'#EF4444',color:'#fff',fontSize:15,fontWeight:500,cursor:'pointer'}}>לצאת</button>
             </div>
           </div>
