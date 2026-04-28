@@ -383,7 +383,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     setQuickAddOpen(true)
     setTimeout(() => {
       if (globalAmountInputRef.current) {
-        globalAmountInputRef.current.value = ''
         globalAmountInputRef.current.focus()
       }
     }, 50)
@@ -392,7 +391,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const addNewCategoryAndUpdate = () => {
     const nameVal = quickNewNameRef.current || quickNewName
     if (!nameVal.trim()) return
-    const amt = savedAmountRef.current || globalAmountInputRef.current?.value || ''
+    const amt = savedAmountRef.current || ''
     const newId = `c_${Date.now()}`
     const newCat: Category = {
       id: newId,
@@ -648,8 +647,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           className="m-fab-glass forecast m-fab-with-label"
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
-          onTouchEnd={e => onTouchEnd(e, () => { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickPanelAmount(''); setQuickPanelMonth(''); setQuickPanelForecastEnd(''); setQuickPreOpenCat(null); setQuickNewName(''); savedAmountRef.current = ''; setQuickOpenKey(k => k + 1); setQuickAddOpen(true); setTimeout(() => { if (globalAmountInputRef.current) { globalAmountInputRef.current.value = ''; globalAmountInputRef.current.focus() } }, 50) })}
-          onClick={() => { if (!dragRef.current?.moved) { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickPanelAmount(''); setQuickPanelMonth(''); setQuickPanelForecastEnd(''); setQuickPreOpenCat(null); setQuickNewName(''); savedAmountRef.current = ''; setQuickOpenKey(k => k + 1); setQuickAddOpen(true); setTimeout(() => { if (globalAmountInputRef.current) { globalAmountInputRef.current.value = ''; globalAmountInputRef.current.focus() } }, 50) } }}
+          onTouchEnd={e => onTouchEnd(e, () => { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickPanelAmount(''); setQuickPanelMonth(''); setQuickPanelForecastEnd(''); setQuickPreOpenCat(null); setQuickNewName(''); savedAmountRef.current = ''; setQuickOpenKey(k => k + 1); setQuickAddOpen(true); setTimeout(() => { if (globalAmountInputRef.current) { globalAmountInputRef.current.focus() } }, 50) })}
+          onClick={() => { if (!dragRef.current?.moved) { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickPanelAmount(''); setQuickPanelMonth(''); setQuickPanelForecastEnd(''); setQuickPreOpenCat(null); setQuickNewName(''); savedAmountRef.current = ''; setQuickOpenKey(k => k + 1); setQuickAddOpen(true); setTimeout(() => { if (globalAmountInputRef.current) { globalAmountInputRef.current.focus() } }, 50) } }}
           title="עדכון תחזית"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1868,13 +1867,15 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const [panelForward, setPanelForward] = useState(false)
     const [panelForwardStart, setPanelForwardStart] = useState(currentMonth)
     const [newItemName, setNewItemName] = useState('')
+    const [globalAmountValue, setGlobalAmountValue] = useState('')
     useEffect(() => { const t = setTimeout(() => setTouchReady(true), 400); return () => clearTimeout(t) }, [])
-    // Restore amount after re-render caused by month change
+    // Restore amount after month change
     useEffect(() => {
-      if (savedAmountRef.current && globalAmountInputRef.current && !globalAmountInputRef.current.value) {
-        globalAmountInputRef.current.value = savedAmountRef.current
+      if (savedAmountRef.current) {
+        setGlobalAmountValue(savedAmountRef.current)
+        savedAmountRef.current = ''
       }
-    })
+    }, [globalMonth])
 
     if (!quickAddOpen) return null
 
@@ -1902,7 +1903,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const setPanelForecastEnd = setQuickPanelForecastEnd
 
     const openPanel = (catId: string) => {
-      const capturedAmt = globalAmountInputRef.current?.value || ''
+      const capturedAmt = globalAmountValue
       setPanelCatId(catId)
       setPanelMonth(currentMonth)
       setPanelAmount(capturedAmt)
@@ -2037,7 +2038,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </div>
             {panelCatId !== '__new__' && (
               <button className="m-qi-new-cat-inline-btn" onClick={() => {
-                savedAmountRef.current = globalAmountInputRef.current?.value || ''
+                savedAmountRef.current = globalAmountValue
                 const defaultGid = activeTab === 'income' ? 'g5' : (allExpenseGroups[0]?.id ?? 'g4')
                 setQuickNewGroupId(defaultGid)
                 setPanelCatId('__new__')
@@ -2079,7 +2080,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 ref={globalAmountRef}
                 type="number" inputMode="numeric"
                 placeholder="0"
-                defaultValue=""
+                value={globalAmountValue}
+                onChange={(e) => setGlobalAmountValue(e.target.value)}
                 className={`m-qi-amount-hero-input${amountShake ? ' shake' : ''}`}
               />
               <span className="m-qi-amount-hero-symbol">₪</span>
@@ -2140,7 +2142,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     swipeCatRef.current = null
                     setSwipeDx(null)
                     if (!touchReady || quickForecastOnly) return
-                    const _amt = globalAmountInputRef.current?.value || ''
+                    const _amt = globalAmountValue
                     if (!_amt || Math.abs(dx) < THRESHOLD) return
                     const isAdd = dx > 0
                     const isIncome = cat.groupId === 'g5'
@@ -2154,7 +2156,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     doClose()
                   }}>
                   {/* Reveal layer — always full width, behind the sliding card */}
-                  {cardDx !== 0 && (globalAmountInputRef.current?.value || '') && (
+                  {cardDx !== 0 && globalAmountValue && (
                     <div className="m-qi-reveal-layer" style={{
                       background: cardDx > 0 ? '#16A34A' : '#2563EB',
                       justifyContent: cardDx > 0 ? 'flex-start' : 'flex-end',
@@ -2184,7 +2186,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     }}>
                   <button className="m-qi-card-header" style={{ background: 'transparent' }} onClick={() => {
                     if (!touchReady) return
-                    const _amt = globalAmountInputRef.current?.value || ''
+                    const _amt = globalAmountValue
                     
                     if (quickForecastOnly) {
                       // Forecast mode: always open panel
