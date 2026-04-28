@@ -1859,7 +1859,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const panelRef = useRef<HTMLDivElement>(null)
     const [editingCatId, setEditingCatId] = useState<string | null>(null)
     const [editName, setEditName] = useState('')
-    const [touchReady, setTouchReady] = useState(false)
+    const touchReadyRef = useRef(false)
     const [amountShake, setAmountShake] = useState(false)
     const newNameRef = useRef<HTMLInputElement>(null)
     const [activeTab, setActiveTab] = useState<'expense' | 'income'>('expense')
@@ -1868,7 +1868,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const [panelForwardStart, setPanelForwardStart] = useState(currentMonth)
     const [newItemName, setNewItemName] = useState('')
     const [globalAmountValue, setGlobalAmountValue] = useState('')
-    useEffect(() => { const t = setTimeout(() => setTouchReady(true), 400); return () => clearTimeout(t) }, [])
+    useEffect(() => { const t = setTimeout(() => { touchReadyRef.current = true }, 400); return () => clearTimeout(t) }, [])
     // Restore amount after month change
     useEffect(() => {
       if (savedAmountRef.current) {
@@ -2126,7 +2126,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               return (
                 <div key={cat.id} className="m-qi-swipe-wrapper"
                   onTouchStart={e => {
-                    if (!touchReady) return
+                    if (!touchReadyRef.current) return
                     swipeCatRef.current = { catId: cat.id, startX: e.touches[0].clientX }
                     setSwipeDx(null)
                   }}
@@ -2141,7 +2141,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     const dx = e.changedTouches[0].clientX - swipeCatRef.current.startX
                     swipeCatRef.current = null
                     setSwipeDx(null)
-                    if (!touchReady || quickForecastOnly) return
+                    if (!touchReadyRef.current || quickForecastOnly) return
                     const _amt = globalAmountValue
                     if (!_amt || Math.abs(dx) < THRESHOLD) return
                     const isAdd = dx > 0
@@ -2185,7 +2185,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                       zIndex: 1,
                     }}>
                   <button className="m-qi-card-header" style={{ background: 'transparent' }} onClick={() => {
-                    if (!touchReady) return
+                    if (!touchReadyRef.current) return
                     const _amt = globalAmountValue
                     
                     if (quickForecastOnly) {
