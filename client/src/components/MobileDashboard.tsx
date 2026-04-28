@@ -226,11 +226,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           }
         } else if (screenRef.current !== 'home') {
           setScreen('home')
-        } else if (!showExitConfirmRef.current) {
-          setShowExitConfirm(true)
         } else {
-          // User pressed back again while exit dialog is showing - close the dialog
-          setShowExitConfirm(false)
+          // User is on home screen - just let the app minimize (don't show exit dialog)
+          // The browser/PWA will handle the back button naturally
         }
       } catch (err) {
         console.error('Back button error:', err)
@@ -381,11 +379,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     setQuickOpenKey(k => k + 1)
     setGlobalMonth(getCurrentMonth())
     setQuickAddOpen(true)
-    setTimeout(() => {
-      if (globalAmountInputRef.current) {
-        globalAmountInputRef.current.focus()
-      }
-    }, 50)
+    // Focus is now handled in QuickAddSheet useEffect
   }
 
   const addNewCategoryAndUpdate = () => {
@@ -1868,7 +1862,21 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const [panelForwardStart, setPanelForwardStart] = useState(currentMonth)
     const [newItemName, setNewItemName] = useState('')
     const [globalAmountValue, setGlobalAmountValue] = useState('')
-    useEffect(() => { const t = setTimeout(() => { touchReadyRef.current = true }, 400); return () => clearTimeout(t) }, [])
+    
+    // Initialize touchReady and reset amount on open
+    useEffect(() => {
+      touchReadyRef.current = false
+      setGlobalAmountValue('')
+      const t = setTimeout(() => { 
+        touchReadyRef.current = true
+        // Focus after touchReady is set
+        if (globalAmountInputRef.current) {
+          globalAmountInputRef.current.focus()
+        }
+      }, 400)
+      return () => clearTimeout(t)
+    }, [quickOpenKey])
+    
     // Restore amount after month change
     useEffect(() => {
       if (savedAmountRef.current) {
