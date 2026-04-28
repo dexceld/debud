@@ -229,28 +229,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         } else if (!showExitConfirmRef.current) {
           setShowExitConfirm(true)
         } else {
-          // User confirmed exit - actually exit the app
-          exitingRef.current = true
-          if (popStateHandlerRef.current) window.removeEventListener('popstate', popStateHandlerRef.current)
+          // User pressed back again while exit dialog is showing - close the dialog
           setShowExitConfirm(false)
-          // Try to close the app/tab
-          if ((navigator as any).app && (navigator as any).app.exitApp) {
-            // Cordova/Capacitor
-            (navigator as any).app.exitApp()
-          } else if ((window as any).Android && (window as any).Android.exitApp) {
-            // Android WebView with exitApp method
-            (window as any).Android.exitApp()
-          } else {
-            // Standard web - try to close
-            window.close()
-            // If window.close() didn't work (most browsers block it), minimize by going back
-            setTimeout(() => {
-              if (!document.hidden) {
-                // Still visible - try to go back in history to previous page
-                window.history.back()
-              }
-            }, 100)
-          }
         }
       } catch (err) {
         console.error('Back button error:', err)
@@ -2307,23 +2287,20 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 exitingRef.current = true
                 setShowExitConfirm(false)
                 if (popStateHandlerRef.current) window.removeEventListener('popstate', popStateHandlerRef.current)
-                // For PWA: try to close or navigate away
-                if (window.matchMedia('(display-mode: standalone)').matches) {
-                  // In standalone mode - try to close
-                  window.close()
-                  // If still here after 100ms, navigate to about:blank
-                  setTimeout(() => { window.location.href = 'about:blank' }, 100)
+                // Try to minimize/close the app
+                if ((navigator as any).app && (navigator as any).app.exitApp) {
+                  // Cordova/Capacitor - actually exit
+                  (navigator as any).app.exitApp()
                 } else {
-                  // In browser - close tab or go back
-                  window.close()
-                  setTimeout(() => { 
-                    // If close didn't work, try going back in history
-                    if (window.history.length > 1) {
-                      window.history.go(-window.history.length + 1)
-                    } else {
-                      window.location.href = 'about:blank'
-                    }
-                  }, 100)
+                  // PWA/Web - just minimize by moving to background
+                  // Use the Android minimize trick if available
+                  if ((window as any).Android && (window as any).Android.minimizeApp) {
+                    (window as any).Android.minimizeApp()
+                  } else {
+                    // Standard web - just close the dialog and stay in app
+                    // (Can't actually exit a PWA from JavaScript)
+                    // User can manually minimize using Android home button
+                  }
                 }
               }} style={{flex:1,padding:'12px 0',borderRadius:10,border:'none',background:'#EF4444',color:'#fff',fontSize:15,fontWeight:500,cursor:'pointer'}}>לצאת</button>
             </div>
