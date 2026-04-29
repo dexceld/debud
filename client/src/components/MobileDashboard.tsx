@@ -1981,6 +1981,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         }
         return next
       })
+      // Show success feedback
+      const monthsCount = endIdx - pStartIdx + 1
+      const period = monthsCount === 1 ? panelMonth : `${panelMonth} - ${months[endIdx]}`
+      setSuccessToast(`תחזית ${cat.name}: ${amt} ₪ (${period})`)
+      setTimeout(() => setSuccessToast(null), 2000)
       doClose()
     }
 
@@ -2165,6 +2170,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                       return {...p,[cat.id]:{...(p[cat.id]||{}),[globalMonth]: isAdd ? signedExisting + signedAmount : signedAmount}}
                     })
                     trackCatUsage(cat.id)
+                    // Show success feedback
+                    const action = isAdd ? 'הוסף' : 'עודכן'
+                    setSuccessToast(`${cat.name}: ${_amt} ₪ ${action}`)
+                    setTimeout(() => setSuccessToast(null), 2000)
                     doClose()
                   }}>
                   {/* Reveal layer — always full width, behind the sliding card */}
