@@ -1869,10 +1869,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       setGlobalAmountValue('')
       const t = setTimeout(() => { 
         touchReadyRef.current = true
-        // Focus after touchReady is set
-        if (globalAmountInputRef.current) {
-          globalAmountInputRef.current.focus()
-        }
       }, 400)
       return () => clearTimeout(t)
     }, [quickOpenKey])
@@ -2090,6 +2086,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 placeholder="0"
                 value={globalAmountValue}
                 onChange={(e) => setGlobalAmountValue(e.target.value)}
+                autoFocus
                 className={`m-qi-amount-hero-input${amountShake ? ' shake' : ''}`}
               />
               <span className="m-qi-amount-hero-symbol">₪</span>
