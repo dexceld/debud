@@ -137,6 +137,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [quickOpenKey, setQuickOpenKey] = useState(0)
   const savedAmountRef = useRef<string>('')
   const [deleteToast, setDeleteToast] = useState<string | null>(null)
+  const [successToast, setSuccessToast] = useState<string | null>(null)
   const [globalMonth, setGlobalMonth] = useState(getCurrentMonth)
   const [homeView, setHomeView] = useState<'actual' | 'monthly'>(
     () => (localStorage.getItem(lsKey('home_view')) as 'actual' | 'monthly') || 'monthly'
@@ -2216,8 +2217,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                         setActuals(p => ({...p,[cat.id]:{...(p[cat.id]||{}),[globalMonth]: signedAmount}}))
                         trackCatUsage(cat.id)
                         // Show success feedback
-                        setDeleteToast(`${cat.name}: ${_amt} ₪ עודכן ✓`)
-                        setTimeout(() => setDeleteToast(''), 2000)
+                        setSuccessToast(`${cat.name}: ${_amt} ₪`)
+                        setTimeout(() => setSuccessToast(null), 2000)
                         // Close the QuickAdd sheet
                         setQuickAddOpen(false)
                       } else {
@@ -2294,6 +2295,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       {deleteToast && (
         <div className="m-delete-toast">
           🗑 הסעיף "{deleteToast}" נמחק
+        </div>
+      )}
+      {successToast && (
+        <div className="m-delete-toast" style={{background:'#F0FDF4',color:'#16A34A',border:'1px solid #BBF7D0'}}>
+          ✓ {successToast}
         </div>
       )}
       {errorToast && (
