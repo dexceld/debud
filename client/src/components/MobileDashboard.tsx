@@ -2203,8 +2203,18 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                       }
                       openPanel(cat.id)
                     } else {
-                      // Actual mode: ALWAYS open panel so user can choose add/replace
-                      openPanel(cat.id)
+                      // Actual mode: if amount exists, update (replace); otherwise open panel
+                      if (_amt) {
+                        const isIncome = cat.groupId === 'g5'
+                        const signedAmount = isIncome ? -Math.abs(Number(_amt)) : Math.abs(Number(_amt))
+                        setActuals(p => ({...p,[cat.id]:{...(p[cat.id]||{}),[globalMonth]: signedAmount}}))
+                        trackCatUsage(cat.id)
+                        setGlobalAmountValue('')
+                        globalAmountInputRef.current?.focus()
+                      } else {
+                        // No amount - open panel to let user input details
+                        openPanel(cat.id)
+                      }
                     }
                   }}>
                     <span className="m-quick-item-name">{cat.name}</span>
