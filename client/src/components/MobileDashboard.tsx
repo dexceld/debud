@@ -2180,9 +2180,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     const action = isAdd ? 'הוסף' : 'עודכן'
                     setSuccessToast(`${cat.name}: ${_amt} ₪ ${action}`)
                     setTimeout(() => setSuccessToast(null), 2000)
-                    // Reset amount and keep sheet open for next entry
-                    setGlobalAmountValue('')
-                    globalAmountInputRef.current?.focus()
+                    // Close the QuickAdd sheet
+                    setQuickAddOpen(false)
                   }}>
                   {/* Reveal layer — always full width, behind the sliding card */}
                   {cardDx !== 0 && globalAmountValue && (
@@ -2236,9 +2235,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                         // Show success feedback
                         setSuccessToast(`${cat.name}: ${_amt} ₪`)
                         setTimeout(() => setSuccessToast(null), 2000)
-                        // Reset amount and keep sheet open for next entry
-                        setGlobalAmountValue('')
-                        globalAmountInputRef.current?.focus()
+                        // Close the QuickAdd sheet
+                        setQuickAddOpen(false)
                       } else {
                         // No amount - open panel to let user input details
                         openPanel(cat.id)
