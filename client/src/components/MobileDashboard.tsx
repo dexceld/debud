@@ -1870,6 +1870,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       const t = setTimeout(() => { 
         touchReadyRef.current = true
       }, 400)
+      // Focus immediately when opening
+      requestAnimationFrame(() => {
+        if (globalAmountInputRef.current) {
+          globalAmountInputRef.current.focus()
+        }
+      })
       return () => clearTimeout(t)
     }, [quickOpenKey])
     
