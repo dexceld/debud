@@ -2215,8 +2215,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                         const signedAmount = isIncome ? -Math.abs(Number(_amt)) : Math.abs(Number(_amt))
                         setActuals(p => ({...p,[cat.id]:{...(p[cat.id]||{}),[globalMonth]: signedAmount}}))
                         trackCatUsage(cat.id)
-                        setGlobalAmountValue('')
-                        globalAmountInputRef.current?.focus()
+                        // Show success feedback
+                        setDeleteToast(`${cat.name}: ${_amt} ₪ עודכן ✓`)
+                        setTimeout(() => setDeleteToast(''), 2000)
+                        // Close the QuickAdd sheet
+                        setQuickAddOpen(false)
                       } else {
                         // No amount - open panel to let user input details
                         openPanel(cat.id)
