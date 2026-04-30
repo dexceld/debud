@@ -1896,6 +1896,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const [panelForwardStart, setPanelForwardStart] = useState(currentMonth)
     const [newItemName, setNewItemName] = useState('')
     const [globalAmountValue, setGlobalAmountValue] = useState('')
+    const lastQuickOpenKeyRef = useRef(quickOpenKey)
     
     // Initialize touchReady on mount only
     useEffect(() => {
@@ -1906,16 +1907,21 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       return () => clearTimeout(t)
     }, [])
     
-    // Reset amount and focus ONLY when quickOpenKey changes (new open action)
+    // Reset amount and focus ONLY when quickOpenKey actually changes
     useEffect(() => {
       if (!quickAddOpen) return
-      setGlobalAmountValue('')
-      setTimeout(() => {
-        if (globalAmountInputRef.current) {
-          globalAmountInputRef.current.focus()
-        }
-      }, 50)
-    }, [quickOpenKey])
+      
+      // Only reset if quickOpenKey actually changed (not just a re-render)
+      if (quickOpenKey !== lastQuickOpenKeyRef.current) {
+        lastQuickOpenKeyRef.current = quickOpenKey
+        setGlobalAmountValue('')
+        setTimeout(() => {
+          if (globalAmountInputRef.current) {
+            globalAmountInputRef.current.focus()
+          }
+        }, 50)
+      }
+    }, [quickOpenKey, quickAddOpen])
     
     // Restore amount after month change
     useEffect(() => {
@@ -2211,8 +2217,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     const action = isAdd ? 'הוסף' : 'עודכן'
                     setSuccessToast(`${cat.name}: ${_amt} ₪ ${action}`)
                     setTimeout(() => setSuccessToast(null), 2000)
-                    // Close the QuickAdd sheet
-                    setQuickAddOpen(false)
+                    // Reset amount and keep sheet open for next entry
+                    setGlobalAmountValue('')
+                    globalAmountInputRef.current?.focus()
                   }}>
                   {/* Reveal layer — always full width, behind the sliding card */}
                   {cardDx !== 0 && globalAmountValue && (
@@ -2266,8 +2273,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                         // Show success feedback
                         setSuccessToast(`${cat.name}: ${_amt} ₪`)
                         setTimeout(() => setSuccessToast(null), 2000)
-                        // Close the QuickAdd sheet
-                        setQuickAddOpen(false)
+                        // Reset amount and keep sheet open for next entry
+                        setGlobalAmountValue('')
+                        globalAmountInputRef.current?.focus()
                       } else {
                         // No amount - open panel to let user input details
                         openPanel(cat.id)
