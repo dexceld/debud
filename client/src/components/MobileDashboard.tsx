@@ -1909,10 +1909,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     
     // Reset amount and focus ONLY when quickOpenKey actually changes
     useEffect(() => {
-      if (!quickAddOpen) return
-      
       // Only reset if quickOpenKey actually changed (not just a re-render)
-      if (quickOpenKey !== lastQuickOpenKeyRef.current) {
+      if (quickOpenKey !== lastQuickOpenKeyRef.current && quickAddOpen) {
         lastQuickOpenKeyRef.current = quickOpenKey
         setGlobalAmountValue('')
         setTimeout(() => {
@@ -1921,7 +1919,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           }
         }, 50)
       }
-    }, [quickOpenKey, quickAddOpen])
+    }, [quickOpenKey])
     
     // Restore amount after month change
     useEffect(() => {
