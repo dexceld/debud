@@ -1863,7 +1863,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const [panelForwardStart, setPanelForwardStart] = useState(currentMonth)
     const [newItemName, setNewItemName] = useState('')
     const [globalAmountValue, setGlobalAmountValue] = useState('')
-    const prevQuickOpenKeyRef = useRef(quickOpenKey)
+    const wasOpenRef = useRef(false)
     
     // Initialize touchReady on mount
     useEffect(() => {
@@ -1874,19 +1874,22 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       return () => clearTimeout(t)
     }, [])
     
-    // Reset amount and focus ONLY when quickOpenKey changes (new open)
+    // Reset amount and focus when opening from closed state
     useEffect(() => {
-      if (quickOpenKey !== prevQuickOpenKeyRef.current) {
-        prevQuickOpenKeyRef.current = quickOpenKey
+      if (quickAddOpen && !wasOpenRef.current) {
+        // Opening from closed state - reset and focus
+        wasOpenRef.current = true
         setGlobalAmountValue('')
-        // Focus immediately without delay
         setTimeout(() => {
           if (globalAmountInputRef.current) {
             globalAmountInputRef.current.focus()
           }
-        }, 50) // Very short delay just to ensure DOM is ready
+        }, 50)
+      } else if (!quickAddOpen) {
+        // Closing - mark as closed
+        wasOpenRef.current = false
       }
-    }, [quickOpenKey])
+    }, [quickAddOpen])
     
     // Restore amount after month change
     useEffect(() => {
