@@ -181,13 +181,17 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [catMgmtNewItemName, setCatMgmtNewItemName] = useState('')
   const [catMgmtAddingGroup, setCatMgmtAddingGroup] = useState(false)
   const [catMgmtNewGroupName, setCatMgmtNewGroupName] = useState('')
+  const [catMgmtRenamingGroupId, setCatMgmtRenamingGroupId] = useState<string | null>(null)
+  const [catMgmtRenameGroupVal, setCatMgmtRenameGroupVal] = useState('')
   const catMgmtRenameRef = useRef<HTMLInputElement>(null)
   const catMgmtAddRef = useRef<HTMLInputElement>(null)
   const catMgmtAddGroupRef = useRef<HTMLInputElement>(null)
+  const catMgmtRenameGroupRef = useRef<HTMLInputElement>(null)
   useEffect(() => { if (catMgmtAddingGroup) setTimeout(() => catMgmtAddGroupRef.current?.focus(), 50) }, [catMgmtAddingGroup])
   useEffect(() => { if (catMgmtRenamingId) setTimeout(() => catMgmtRenameRef.current?.focus(), 50) }, [catMgmtRenamingId])
   useEffect(() => { if (catMgmtAddingItem) setTimeout(() => catMgmtAddRef.current?.focus(), 50) }, [catMgmtAddingItem])
-  useEffect(() => { if (catMgmtOpen) { setCatMgmtRenamingId(null); setCatMgmtAddingItem(false); setCatMgmtAddingGroup(false) } }, [catMgmtOpen])
+  useEffect(() => { if (catMgmtRenamingGroupId) setTimeout(() => catMgmtRenameGroupRef.current?.focus(), 50) }, [catMgmtRenamingGroupId])
+  useEffect(() => { if (catMgmtOpen) { setCatMgmtRenamingId(null); setCatMgmtAddingItem(false); setCatMgmtAddingGroup(false); setCatMgmtRenamingGroupId(null) } }, [catMgmtOpen])
 
   // Trap Android back button — use refs to avoid re-registering on every state change
   const quickAddOpenRef = useRef(quickAddOpen)
@@ -1482,6 +1486,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       setAddingGroup(false)
     }
 
+    const saveRenameGroup = (groupId: string) => {
+      const trimmed = catMgmtRenameGroupVal.trim()
+      if (!trimmed) { setCatMgmtRenamingGroupId(null); return }
+      setGroups(prev => prev.map(g => g.id === groupId ? { ...g, name: trimmed } : g))
+      setCatMgmtRenamingGroupId(null)
+    }
+
     /* ── MAIN SETTINGS MENU ── */
     if (!drillGid && settingsPage === 'main') return (
       <div className="m-catmgmt-screen">
@@ -1604,6 +1615,27 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             if (!g) return null
             const items = categories.filter(c => c.groupId === g.id)
             const accent = groupAccent(g.id)
+            const isRenaming = catMgmtRenamingGroupId === g.id
+            
+            if (isRenaming) {
+              return (
+                <div key={g.id} className="m-catmgmt-group-card" style={{ borderRightColor: accent, background: groupBg(g.id), flexDirection: 'column', alignItems: 'stretch' }}>
+                  <input
+                    ref={catMgmtRenameGroupRef}
+                    className="m-catmgmt-edit-input"
+                    value={catMgmtRenameGroupVal}
+                    onChange={e => setCatMgmtRenameGroupVal(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') saveRenameGroup(g.id); if (e.key === 'Escape') setCatMgmtRenamingGroupId(null) }}
+                    style={{ marginBottom: 8 }}
+                  />
+                  <div className="m-catmgmt-edit-actions">
+                    <button className="m-catmgmt-save-btn" onClick={() => saveRenameGroup(g.id)} disabled={!catMgmtRenameGroupVal.trim()}>✓ שמור</button>
+                    <button className="m-catmgmt-cancel-btn" onClick={() => setCatMgmtRenamingGroupId(null)}>ביטול</button>
+                  </div>
+                </div>
+              )
+            }
+            
             return (
               <div
                 key={g.id}
@@ -1616,6 +1648,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   <span className="m-catmgmt-group-name-lg">{g.name}</span>
                   <span className="m-catmgmt-group-count">{items.length} פריטים</span>
                 </div>
+                <button className="m-catmgmt-rename-btn" onClick={e => { e.stopPropagation(); setCatMgmtRenameGroupVal(g.name); setCatMgmtRenamingGroupId(g.id) }}>✏️</button>
                 <button className="m-catmgmt-delete-btn" onClick={e => { e.stopPropagation(); if (g.id === 'g5') { setErrorToast('לא ניתן למחוק את קטגוריית ההכנסות'); setTimeout(() => setErrorToast(null), 3000); return; } if (items.length > 0) { setErrorToast('לא ניתן למחוק קטגוריה שיש בה סעיפים'); setTimeout(() => setErrorToast(null), 3000); return; } setGroups(prev => prev.filter(gr => gr.id !== g.id)); setGroupOrder(prev => prev.filter(id => id !== g.id)); setDeleteToast(g.name); setTimeout(() => setDeleteToast(null), 2500) }}>🗑</button>
                 <span className="m-catmgmt-chevron">›</span>
               </div>
