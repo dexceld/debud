@@ -737,13 +737,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         )}
 
         {/* Health check banner */}
-        {!isLocalMode && healthResult && (
-          <div style={{margin:'8px 12px 0',padding:'10px 14px',background:healthResult === 'pass' ? '#ECFDF5' : '#FEF2F2',border:healthResult === 'pass' ? '1px solid #6EE7B7' : '1px solid #FECACA',borderRadius:10,direction:'rtl'}}>
-            <div style={{fontSize:13,fontWeight:600,color:healthResult === 'pass' ? '#059669' : '#DC2626',marginBottom:4}}>
-              {healthResult === 'pass' ? '✅ סנכרון עובד' : '❌ בעיית סנכרון'}
+        {!isLocalMode && healthResult && healthResult !== 'pass' && (
+          <div style={{margin:'8px 12px 0',padding:'10px 14px',background:'#FEF2F2',border:'1px solid #FECACA',borderRadius:10,direction:'rtl'}}>
+            <div style={{fontSize:13,fontWeight:600,color:'#DC2626',marginBottom:4}}>
+              ❌ בעיית סנכרון
             </div>
-            <div style={{fontSize:11,color:healthResult === 'pass' ? '#065F46' : '#7F1D1D',lineHeight:1.5}}>
-              {healthResult === 'pass' ? 'הנתונים יישמרו בענן' : `שגיאה: ${healthResult}`}
+            <div style={{fontSize:11,color:'#7F1D1D',lineHeight:1.5}}>
+              שגיאה: {healthResult}
             </div>
           </div>
         )}
