@@ -1746,7 +1746,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   }
 
   // --- INLINE SHEET — single category, no navigation away ---
-  const InlineSheet = () => {
+  const InlineSheet = React.memo(() => {
     if (!inlineSheet) return null
     console.log('[InlineSheet] Rendering for cat:', inlineSheet.cat.name)
     const { cat, forecastOnly } = inlineSheet
@@ -1892,7 +1892,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         </div>
       </>
     )
-  }
+  })
 
   // --- QUICK ADD SHEET (unified with tabs) ---
   const QuickAddSheet = ({ globalAmountValue, setGlobalAmountValue }: { 
