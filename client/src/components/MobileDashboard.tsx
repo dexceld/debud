@@ -1748,7 +1748,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   }
 
   // --- INLINE SHEET — single category, no navigation away ---
-  const InlineSheet = React.memo(() => {
+  const InlineSheet = () => {
     if (!inlineSheet) return null
     console.log('[InlineSheet] Rendering for cat:', inlineSheet.cat.name)
     const { cat, forecastOnly } = inlineSheet
@@ -1759,14 +1759,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
     useEffect(() => {
       console.log('[InlineSheet] Mounted for cat:', cat.name)
-      // Focus only once on initial mount
-      const timer = setTimeout(() => {
-        if (inputRef.current) {
-          inputRef.current.focus()
-        }
-      }, 50)
-      return () => clearTimeout(timer)
-    }, [cat.id])
+      // Focus only on mount
+      if (inputRef.current) {
+        inputRef.current.focus()
+      }
+    }, [])
 
     const close = () => setInlineSheet(null)
     const startIdx = months.indexOf(month)
@@ -1896,7 +1893,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         </div>
       </>
     )
-  })
+  }
 
   // --- QUICK ADD SHEET (unified with tabs) ---
   const QuickAddSheet = ({ globalAmountValue, setGlobalAmountValue }: { 
