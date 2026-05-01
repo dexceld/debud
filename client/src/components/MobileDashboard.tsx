@@ -2338,7 +2338,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       {screen === 'forecast-chart' && <ForecastChartScreen />}
       {screen === 'net-chart' && <NetChartScreen />}
       {renderCatMgmt()}
-      <InlineSheet key={inlineSheet?.cat.id || 'none'} />
+      <InlineSheet />
       <QuickAddSheet 
         globalAmountValue={quickAddGlobalAmount}
         setGlobalAmountValue={setQuickAddGlobalAmount}
