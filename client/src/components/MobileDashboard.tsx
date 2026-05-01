@@ -1912,6 +1912,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     // Reset amount ONLY when quickOpenKey changes (not on every render)
     useEffect(() => {
       if (quickOpenKey !== prevKeyRef.current) {
+        console.log('[QuickAdd] quickOpenKey changed:', prevKeyRef.current, '->', quickOpenKey)
         prevKeyRef.current = quickOpenKey
         setGlobalAmountValue('')
         if (globalAmountInputRef.current) {
