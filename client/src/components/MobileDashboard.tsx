@@ -1756,9 +1756,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const inputRef = useRef<HTMLInputElement>(null)
 
     useEffect(() => {
-      if (inputRef.current) {
-        inputRef.current.focus()
-      }
+      // Focus only on mount, not on every re-render
+      const timer = setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus()
+        }
+      }, 100)
+      return () => clearTimeout(timer)
     }, [])
 
     const close = () => setInlineSheet(null)
@@ -2335,7 +2339,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       {screen === 'forecast-chart' && <ForecastChartScreen />}
       {screen === 'net-chart' && <NetChartScreen />}
       {renderCatMgmt()}
-      <InlineSheet />
+      <InlineSheet key={inlineSheet?.cat.id || 'none'} />
       <QuickAddSheet 
         globalAmountValue={quickAddGlobalAmount}
         setGlobalAmountValue={setQuickAddGlobalAmount}
