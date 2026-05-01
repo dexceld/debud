@@ -125,6 +125,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [longPressTimer, setLongPressTimer] = useState<ReturnType<typeof setTimeout> | null>(null)
   const [menuCatId, setMenuCatId] = useState<string | null>(null)
   const [quickAddOpen, setQuickAddOpen] = useState(false)
+  const [quickAddGlobalAmount, setQuickAddGlobalAmount] = useState('')
   const [quickSearch, setQuickSearch] = useState('')
   const [quickNewName, setQuickNewName] = useState('')
   const quickNewNameRef = useRef('')
@@ -381,6 +382,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     setQuickForecastOnly(false)
     setQuickPanelCatId(null)
     savedAmountRef.current = ''
+    setQuickAddGlobalAmount('')
     if (!quickAddOpen) {
       console.log('[openQuickAdd] Incrementing quickOpenKey')
       setQuickOpenKey(k => k + 1)
@@ -1890,7 +1892,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   }
 
   // --- QUICK ADD SHEET (unified with tabs) ---
-  const QuickAddSheet = () => {
+  const QuickAddSheet = ({ globalAmountValue, setGlobalAmountValue }: { 
+    globalAmountValue: string
+    setGlobalAmountValue: (val: string) => void 
+  }) => {
     const panelRef = useRef<HTMLDivElement>(null)
     const [editingCatId, setEditingCatId] = useState<string | null>(null)
     const [editName, setEditName] = useState('')
@@ -1902,8 +1907,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const [panelForward, setPanelForward] = useState(false)
     const [panelForwardStart, setPanelForwardStart] = useState(currentMonth)
     const [newItemName, setNewItemName] = useState('')
-    const [globalAmountValue, setGlobalAmountValue] = useState('')
-    const wasClosedRef = useRef(!quickAddOpen)
     
     // Initialize touchReady on mount only
     useEffect(() => {
@@ -1914,22 +1917,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       return () => clearTimeout(t)
     }, [])
     
-    // Reset amount when opening from closed state
+    // Focus on mount
     useEffect(() => {
-      if (quickAddOpen && wasClosedRef.current) {
-        console.log('[QuickAdd] Opening from closed - resetting amount')
-        wasClosedRef.current = false
-        setGlobalAmountValue('')
-        setTimeout(() => {
-          if (globalAmountInputRef.current) {
-            globalAmountInputRef.current.focus()
-          }
-        }, 10)
-      } else if (!quickAddOpen) {
-        console.log('[QuickAdd] Closing')
-        wasClosedRef.current = true
+      if (globalAmountInputRef.current) {
+        globalAmountInputRef.current.focus()
       }
-    }, [quickAddOpen])
+    }, [])
     
     // Restore amount after month change
     useEffect(() => {
@@ -2352,7 +2345,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       {screen === 'net-chart' && <NetChartScreen />}
       {renderCatMgmt()}
       <InlineSheet key={inlineSheet ? `${inlineSheet.cat.id}-${inlineSheet.month}` : 'none'} />
-      <QuickAddSheet />
+      <QuickAddSheet 
+        globalAmountValue={quickAddGlobalAmount}
+        setGlobalAmountValue={setQuickAddGlobalAmount}
+      />
       {deleteToast && (
         <div className="m-delete-toast">
           🗑 הסעיף "{deleteToast}" נמחק
