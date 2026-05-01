@@ -1908,29 +1908,20 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const [panelForwardStart, setPanelForwardStart] = useState(currentMonth)
     const [newItemName, setNewItemName] = useState('')
     
-    // Initialize touchReady on mount only
+    // Initialize touchReady and focus on mount only
     useEffect(() => {
       touchReadyRef.current = false
       const t = setTimeout(() => { 
         touchReadyRef.current = true
       }, 200)
-      return () => clearTimeout(t)
-    }, [])
-    
-    // Focus on mount
-    useEffect(() => {
+      
+      // Focus immediately
       if (globalAmountInputRef.current) {
         globalAmountInputRef.current.focus()
       }
+      
+      return () => clearTimeout(t)
     }, [])
-    
-    // Restore amount after month change
-    useEffect(() => {
-      if (savedAmountRef.current) {
-        setGlobalAmountValue(savedAmountRef.current)
-        savedAmountRef.current = ''
-      }
-    }, [globalMonth])
 
     if (!quickAddOpen) return null
 
