@@ -126,6 +126,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [menuCatId, setMenuCatId] = useState<string | null>(null)
   const [quickAddOpen, setQuickAddOpen] = useState(false)
   const [quickAddGlobalAmount, setQuickAddGlobalAmount] = useState('')
+  const [inlineSheetAmount, setInlineSheetAmount] = useState('')
   const [quickSearch, setQuickSearch] = useState('')
   const [quickNewName, setQuickNewName] = useState('')
   const quickNewNameRef = useRef('')
@@ -481,6 +482,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   }
 
   const openUpdate = (cat: Category, month: string, mode: 'add' | 'replace' | 'forecast' = 'replace') => {
+    setInlineSheetAmount('')
     setInlineSheet({ cat, month, forecastOnly: mode === 'forecast' })
   }
 
@@ -1751,7 +1753,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     console.log('[InlineSheet] Rendering for cat:', inlineSheet.cat.name)
     const { cat, forecastOnly } = inlineSheet
     const [month, setMonth] = useState(inlineSheet.month)
-    const [amount, setAmount] = useState('')
     const [alsoForecast, setAlsoForecast] = useState(false)
     const [forecastEnd, setForecastEnd] = useState('')  // '' = forever
     const inputRef = useRef<HTMLInputElement>(null)
@@ -1771,9 +1772,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const group = groups.find(g => g.id === cat.groupId)
 
     const saveActual = (isAdd: boolean) => {
-      if (!amount) return
+      if (!inlineSheetAmount) return
       const isIncome = cat.groupId === 'g5'
-      const signedVal = isIncome ? -Math.abs(Number(amount)) : Math.abs(Number(amount))
+      const signedVal = isIncome ? -Math.abs(Number(inlineSheetAmount)) : Math.abs(Number(inlineSheetAmount))
       setActuals(prev => {
         const existing = prev[cat.id]?.[month] ?? (actual ?? 0)
         const signedExisting = isIncome ? -Math.abs(existing) : Math.abs(existing)
@@ -1792,8 +1793,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     }
 
     const saveForecast = () => {
-      if (!amount) return
-      const val = Number(amount)
+      if (!inlineSheetAmount) return
+      const val = Number(inlineSheetAmount)
       const endIdx = forecastEnd ? months.indexOf(forecastEnd) : months.length - 1
       setForecasts(prev => {
         const next = { ...prev }
@@ -1823,8 +1824,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               ref={inputRef}
               type="number" inputMode="numeric"
               placeholder="סכום..."
-              value={amount}
-              onChange={e => setAmount(e.target.value)}
+              value={inlineSheetAmount}
+              onChange={e => setInlineSheetAmount(e.target.value)}
               className="m-qi-global-amount"
             />
             <select value={month} onChange={e => setMonth(e.target.value)} className="m-qi-global-month">
@@ -1849,7 +1850,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   </>
                 )}
               </div>
-              <button className="m-qi-forecast-save-btn" disabled={!amount} onClick={saveForecast}>📅 עדכן תחזית</button>
+              <button className="m-qi-forecast-save-btn" disabled={!inlineSheetAmount} onClick={saveForecast}>📅 עדכן תחזית</button>
             </>
           ) : (
             <>
@@ -1876,12 +1877,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 </div>
               )}
               <div className="m-qi-action-row">
-                <button className="m-qi-big-btn m-qi-big-replace" disabled={!amount} onClick={() => saveActual(false)}>
+                <button className="m-qi-big-btn m-qi-big-replace" disabled={!inlineSheetAmount} onClick={() => saveActual(false)}>
                   <span className="m-qi-big-icon">✏️</span>
                   <span className="m-qi-big-label">עדכון</span>
                   <span className="m-qi-big-hint">מחליף סכום</span>
                 </button>
-                <button className="m-qi-big-btn m-qi-big-add" disabled={!amount} onClick={() => saveActual(true)}>
+                <button className="m-qi-big-btn m-qi-big-add" disabled={!inlineSheetAmount} onClick={() => saveActual(true)}>
                   <span className="m-qi-big-icon">➕</span>
                   <span className="m-qi-big-label">הוספה</span>
                   <span className="m-qi-big-hint">מוסיף לקיים</span>
