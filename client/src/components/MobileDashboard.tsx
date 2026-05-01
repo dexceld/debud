@@ -381,7 +381,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     setQuickForecastOnly(false)
     setQuickPanelCatId(null)
     savedAmountRef.current = ''
-    if (!quickAddOpen) setQuickOpenKey(k => k + 1)
+    if (!quickAddOpen) {
+      console.log('[openQuickAdd] Incrementing quickOpenKey')
+      setQuickOpenKey(k => k + 1)
+    } else {
+      console.log('[openQuickAdd] QuickAdd already open, NOT incrementing key')
+    }
     setGlobalMonth(getCurrentMonth())
     setQuickAddOpen(true)
     // Focus is now handled in QuickAddSheet useEffect
@@ -646,8 +651,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           className="m-fab-glass forecast m-fab-with-label"
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
-          onTouchEnd={e => onTouchEnd(e, () => { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickPanelAmount(''); setQuickPanelMonth(''); setQuickPanelForecastEnd(''); setQuickPreOpenCat(null); setQuickNewName(''); savedAmountRef.current = ''; if (!quickAddOpen) setQuickOpenKey(k => k + 1); setQuickAddOpen(true); setTimeout(() => { if (globalAmountInputRef.current) { globalAmountInputRef.current.focus() } }, 50) })}
-          onClick={() => { if (!dragRef.current?.moved) { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickPanelAmount(''); setQuickPanelMonth(''); setQuickPanelForecastEnd(''); setQuickPreOpenCat(null); setQuickNewName(''); savedAmountRef.current = ''; if (!quickAddOpen) setQuickOpenKey(k => k + 1); setQuickAddOpen(true); setTimeout(() => { if (globalAmountInputRef.current) { globalAmountInputRef.current.focus() } }, 50) } }}
+          onTouchEnd={e => onTouchEnd(e, () => { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickPanelAmount(''); setQuickPanelMonth(''); setQuickPanelForecastEnd(''); setQuickPreOpenCat(null); setQuickNewName(''); savedAmountRef.current = ''; if (!quickAddOpen) { console.log('[Forecast button] Incrementing key'); setQuickOpenKey(k => k + 1); } else { console.log('[Forecast button] Already open'); } setQuickAddOpen(true); setTimeout(() => { if (globalAmountInputRef.current) { globalAmountInputRef.current.focus() } }, 50) })}
+          onClick={() => { if (!dragRef.current?.moved) { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickPanelAmount(''); setQuickPanelMonth(''); setQuickPanelForecastEnd(''); setQuickPreOpenCat(null); setQuickNewName(''); savedAmountRef.current = ''; if (!quickAddOpen) { console.log('[Forecast button] Incrementing key'); setQuickOpenKey(k => k + 1); } else { console.log('[Forecast button] Already open'); } setQuickAddOpen(true); setTimeout(() => { if (globalAmountInputRef.current) { globalAmountInputRef.current.focus() } }, 50) } }}
           title="עדכון תחזית"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1898,8 +1903,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const [panelForwardStart, setPanelForwardStart] = useState(currentMonth)
     const [newItemName, setNewItemName] = useState('')
     const [globalAmountValue, setGlobalAmountValue] = useState('')
-    const initKeyRef = useRef(quickOpenKey)
-    const hasInitialized = useRef(false)
     
     // Initialize touchReady on mount only
     useEffect(() => {
@@ -1910,15 +1913,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       return () => clearTimeout(t)
     }, [])
     
-    // Initialize on first mount only
+    // Focus on mount
     useEffect(() => {
-      if (!hasInitialized.current) {
-        hasInitialized.current = true
-        initKeyRef.current = quickOpenKey
-        setGlobalAmountValue('')
-        if (globalAmountInputRef.current) {
-          globalAmountInputRef.current.focus()
-        }
+      if (globalAmountInputRef.current) {
+        globalAmountInputRef.current.focus()
       }
     }, [])
     
