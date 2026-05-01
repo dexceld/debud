@@ -1896,6 +1896,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const [panelForwardStart, setPanelForwardStart] = useState(currentMonth)
     const [newItemName, setNewItemName] = useState('')
     const [globalAmountValue, setGlobalAmountValue] = useState('')
+    const prevKeyRef = useRef(quickOpenKey)
     
     // Initialize touchReady on mount only
     useEffect(() => {
@@ -1906,13 +1907,16 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       return () => clearTimeout(t)
     }, [])
     
-    // Reset amount and focus when component mounts (key changes)
+    // Reset amount ONLY when quickOpenKey changes (not on every render)
     useEffect(() => {
-      setGlobalAmountValue('')
-      if (globalAmountInputRef.current) {
-        globalAmountInputRef.current.focus()
+      if (quickOpenKey !== prevKeyRef.current) {
+        prevKeyRef.current = quickOpenKey
+        setGlobalAmountValue('')
+        if (globalAmountInputRef.current) {
+          globalAmountInputRef.current.focus()
+        }
       }
-    }, [])
+    }, [quickOpenKey])
     
     // Restore amount after month change
     useEffect(() => {
@@ -2335,7 +2339,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       {screen === 'net-chart' && <NetChartScreen />}
       {renderCatMgmt()}
       <InlineSheet />
-      <QuickAddSheet key={quickOpenKey} />
+      <QuickAddSheet />
       {deleteToast && (
         <div className="m-delete-toast">
           🗑 הסעיף "{deleteToast}" נמחק
