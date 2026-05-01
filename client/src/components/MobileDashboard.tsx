@@ -1759,11 +1759,14 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
     useEffect(() => {
       console.log('[InlineSheet] Mounted for cat:', cat.name)
-      // Focus immediately on mount only
-      if (inputRef.current) {
-        inputRef.current.focus()
-      }
-    }, [])
+      // Focus only once on initial mount
+      const timer = setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus()
+        }
+      }, 50)
+      return () => clearTimeout(timer)
+    }, [cat.id])
 
     const close = () => setInlineSheet(null)
     const startIdx = months.indexOf(month)
