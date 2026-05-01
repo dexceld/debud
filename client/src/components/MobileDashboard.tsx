@@ -1896,7 +1896,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const [panelForwardStart, setPanelForwardStart] = useState(currentMonth)
     const [newItemName, setNewItemName] = useState('')
     const [globalAmountValue, setGlobalAmountValue] = useState('')
-    const lastQuickOpenKeyRef = useRef(quickOpenKey)
     
     // Initialize touchReady on mount only
     useEffect(() => {
@@ -1907,19 +1906,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       return () => clearTimeout(t)
     }, [])
     
-    // Reset amount and focus ONLY when quickOpenKey actually changes
+    // Focus on mount (when QuickAdd opens)
     useEffect(() => {
-      // Only reset if quickOpenKey actually changed (not just a re-render)
-      if (quickOpenKey !== lastQuickOpenKeyRef.current && quickAddOpen) {
-        lastQuickOpenKeyRef.current = quickOpenKey
-        setGlobalAmountValue('')
-        setTimeout(() => {
-          if (globalAmountInputRef.current) {
-            globalAmountInputRef.current.focus()
-          }
-        }, 50)
+      if (globalAmountInputRef.current) {
+        globalAmountInputRef.current.focus()
       }
-    }, [quickOpenKey])
+    }, [])
     
     // Restore amount after month change
     useEffect(() => {
