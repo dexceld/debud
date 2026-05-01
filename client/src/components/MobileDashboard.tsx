@@ -1748,6 +1748,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   // --- INLINE SHEET — single category, no navigation away ---
   const InlineSheet = () => {
     if (!inlineSheet) return null
+    console.log('[InlineSheet] Rendering for cat:', inlineSheet.cat.name)
     const { cat, forecastOnly } = inlineSheet
     const [month, setMonth] = useState(inlineSheet.month)
     const [amount, setAmount] = useState('')
@@ -1756,13 +1757,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const inputRef = useRef<HTMLInputElement>(null)
 
     useEffect(() => {
-      // Focus only on mount, not on every re-render
-      const timer = setTimeout(() => {
-        if (inputRef.current) {
-          inputRef.current.focus()
-        }
-      }, 100)
-      return () => clearTimeout(timer)
+      console.log('[InlineSheet] Mounted for cat:', cat.name)
+      // Focus immediately on mount only
+      if (inputRef.current) {
+        inputRef.current.focus()
+      }
     }, [])
 
     const close = () => setInlineSheet(null)
