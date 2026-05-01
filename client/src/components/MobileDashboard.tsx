@@ -1749,7 +1749,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const inputRef = useRef<HTMLInputElement>(null)
 
     useEffect(() => {
-      setTimeout(() => inputRef.current?.focus(), 80)
+      if (inputRef.current) {
+        inputRef.current.focus()
+      }
     }, [])
 
     const close = () => setInlineSheet(null)
@@ -2338,7 +2340,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       {screen === 'forecast-chart' && <ForecastChartScreen />}
       {screen === 'net-chart' && <NetChartScreen />}
       {renderCatMgmt()}
-      <InlineSheet />
+      <InlineSheet key={inlineSheet ? `${inlineSheet.cat.id}-${inlineSheet.month}` : 'none'} />
       <QuickAddSheet />
       {deleteToast && (
         <div className="m-delete-toast">
