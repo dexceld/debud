@@ -381,7 +381,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     setQuickForecastOnly(false)
     setQuickPanelCatId(null)
     savedAmountRef.current = ''
-    setQuickOpenKey(k => k + 1)
+    if (!quickAddOpen) setQuickOpenKey(k => k + 1)
     setGlobalMonth(getCurrentMonth())
     setQuickAddOpen(true)
     // Focus is now handled in QuickAddSheet useEffect
@@ -646,8 +646,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           className="m-fab-glass forecast m-fab-with-label"
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
-          onTouchEnd={e => onTouchEnd(e, () => { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickPanelAmount(''); setQuickPanelMonth(''); setQuickPanelForecastEnd(''); setQuickPreOpenCat(null); setQuickNewName(''); savedAmountRef.current = ''; setQuickOpenKey(k => k + 1); setQuickAddOpen(true); setTimeout(() => { if (globalAmountInputRef.current) { globalAmountInputRef.current.focus() } }, 50) })}
-          onClick={() => { if (!dragRef.current?.moved) { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickPanelAmount(''); setQuickPanelMonth(''); setQuickPanelForecastEnd(''); setQuickPreOpenCat(null); setQuickNewName(''); savedAmountRef.current = ''; setQuickOpenKey(k => k + 1); setQuickAddOpen(true); setTimeout(() => { if (globalAmountInputRef.current) { globalAmountInputRef.current.focus() } }, 50) } }}
+          onTouchEnd={e => onTouchEnd(e, () => { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickPanelAmount(''); setQuickPanelMonth(''); setQuickPanelForecastEnd(''); setQuickPreOpenCat(null); setQuickNewName(''); savedAmountRef.current = ''; if (!quickAddOpen) setQuickOpenKey(k => k + 1); setQuickAddOpen(true); setTimeout(() => { if (globalAmountInputRef.current) { globalAmountInputRef.current.focus() } }, 50) })}
+          onClick={() => { if (!dragRef.current?.moved) { setQuickForecastOnly(true); setQuickPanelCatId(null); setQuickPanelAmount(''); setQuickPanelMonth(''); setQuickPanelForecastEnd(''); setQuickPreOpenCat(null); setQuickNewName(''); savedAmountRef.current = ''; if (!quickAddOpen) setQuickOpenKey(k => k + 1); setQuickAddOpen(true); setTimeout(() => { if (globalAmountInputRef.current) { globalAmountInputRef.current.focus() } }, 50) } }}
           title="עדכון תחזית"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
