@@ -3296,66 +3296,79 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           </div>
         )}
 
-        {/* Floating Action Buttons */}
-        <button 
-          className="m-fab-time-add-client"
-          onClick={() => {
-            setClientFormVat(defaultVat)
-            setClientFormIncomeTax(defaultIncomeTax)
-            setAddClientOpen(true)
-          }}
-          style={{
-            position: 'fixed',
-            bottom: '100px',
-            right: '24px',
-            width: '56px',
-            height: '56px',
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #047857 0%, #065f46 100%)',
-            color: 'white',
-            border: 'none',
-            boxShadow: '0 6px 20px rgba(4, 120, 87, 0.4)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all 0.3s',
-            zIndex: 100
-          }}
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-          </svg>
-        </button>
+        {/* Floating Action Buttons - Draggable */}
+        {(() => {
+          const [pos, setPos] = useState(() => {
+            const saved = localStorage.getItem(lsKey('time_fab_pos'))
+            return saved ? JSON.parse(saved) : { x: window.innerWidth - 76, y: window.innerHeight - 200 }
+          })
+          const dragRef = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number; moved: boolean } | null>(null)
 
-        <button 
-          className="m-fab-time-add-entry"
-          onClick={() => setQuickTimeEntryOpen(true)}
-          style={{
-            position: 'fixed',
-            bottom: '24px',
-            right: '24px',
-            width: '64px',
-            height: '64px',
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-            color: 'white',
-            border: 'none',
-            boxShadow: '0 8px 24px rgba(16, 185, 129, 0.4)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all 0.3s',
-            zIndex: 100
-          }}
-        >
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <circle cx="12" cy="12" r="10"/>
-            <polyline points="12 6 12 12 16 14"/>
-          </svg>
-        </button>
+          const onTouchStart = (e: React.TouchEvent) => {
+            const t = e.touches[0]
+            dragRef.current = { startX: t.clientX, startY: t.clientY, startPosX: pos.x, startPosY: pos.y, moved: false }
+          }
+          const onTouchMove = (e: React.TouchEvent) => {
+            if (!dragRef.current) return
+            e.stopPropagation()
+            const dx = e.touches[0].clientX - dragRef.current.startX
+            const dy = e.touches[0].clientY - dragRef.current.startY
+            if (Math.abs(dx) > 5 || Math.abs(dy) > 5) dragRef.current.moved = true
+            const newX = Math.max(0, Math.min(window.innerWidth - 72, dragRef.current.startPosX + dx))
+            const newY = Math.max(0, Math.min(window.innerHeight - 160, dragRef.current.startPosY + dy))
+            setPos({ x: newX, y: newY })
+          }
+          const onTouchEnd = (e: React.TouchEvent, action: () => void) => {
+            if (!dragRef.current) return
+            const wasDrag = dragRef.current.moved
+            dragRef.current = null
+            if (!wasDrag) { action(); return }
+            localStorage.setItem(lsKey('time_fab_pos'), JSON.stringify(pos))
+          }
+
+          return (
+            <div style={{ position: 'fixed', left: pos.x, top: pos.y, display: 'flex', flexDirection: 'column', gap: 10, zIndex: 100, touchAction: 'none' }}>
+              <button
+                className="m-fab-glass m-fab-with-label"
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={e => onTouchEnd(e, () => {
+                  setClientFormVat(defaultVat)
+                  setClientFormIncomeTax(defaultIncomeTax)
+                  setAddClientOpen(true)
+                })}
+                onClick={() => { 
+                  if (!dragRef.current?.moved) {
+                    setClientFormVat(defaultVat)
+                    setClientFormIncomeTax(defaultIncomeTax)
+                    setAddClientOpen(true)
+                  }
+                }}
+                title="הוספת לקוח"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span className="m-fab-inner-label">לקוח</span>
+              </button>
+              <button
+                className="m-fab-glass forecast m-fab-with-label"
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={e => onTouchEnd(e, () => setQuickTimeEntryOpen(true))}
+                onClick={() => { if (!dragRef.current?.moved) setQuickTimeEntryOpen(true) }}
+                title="דיווח מהיר"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <span className="m-fab-inner-label">דיווח</span>
+              </button>
+            </div>
+          )
+        })()}
       </div>
     )
   }
