@@ -3166,20 +3166,22 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             {/* Filters */}
             <div className="m-summary-filters">
               <div className="m-mortgage-field">
-                <label>מתאריך</label>
-                <input 
-                  type="date"
-                  value={summaryFromDate}
-                  onChange={e => setSummaryFromDate(e.target.value)}
-                />
-              </div>
-              <div className="m-mortgage-field">
-                <label>עד תאריך</label>
-                <input 
-                  type="date"
-                  value={summaryToDate}
-                  onChange={e => setSummaryToDate(e.target.value)}
-                />
+                <label>תקופה</label>
+                <div style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
+                  <input 
+                    type="date"
+                    value={summaryFromDate}
+                    onChange={e => setSummaryFromDate(e.target.value)}
+                    style={{flex: 1}}
+                  />
+                  <span style={{color: '#6B7280', fontSize: '14px'}}>עד</span>
+                  <input 
+                    type="date"
+                    value={summaryToDate}
+                    onChange={e => setSummaryToDate(e.target.value)}
+                    style={{flex: 1}}
+                  />
+                </div>
               </div>
               <div className="m-mortgage-field">
                 <label>לקוח</label>
