@@ -105,6 +105,7 @@ type TimeEntry = {
   startTime: string // HH:MM
   endTime: string // HH:MM
   notes: string
+  billingStatus?: 'pending' | 'invoiced' | 'paid' // סטטוס חיוב
 }
 
 export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode }: { uid: string; userEmail: string; userPhoto?: string; isLocalMode?: boolean }) {
@@ -178,6 +179,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [summaryFromDate, setSummaryFromDate] = useState('')
   const [summaryToDate, setSummaryToDate] = useState('')
   const [summaryClientFilter, setSummaryClientFilter] = useState<string>('all')
+  const [summaryStatusFilter, setSummaryStatusFilter] = useState<string>('all')
   const [clientFormName, setClientFormName] = useState('')
   const [clientFormRate, setClientFormRate] = useState('')
   const [clientFormVat, setClientFormVat] = useState('18')
@@ -3039,6 +3041,25 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   ))}
                 </select>
               </div>
+              <div className="m-mortgage-field">
+                <label>סטטוס חיוב</label>
+                <select 
+                  value={summaryStatusFilter}
+                  onChange={e => setSummaryStatusFilter(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    border: '2px solid #E5E7EB',
+                    borderRadius: '10px',
+                    fontSize: '16px'
+                  }}
+                >
+                  <option value="all">הכל</option>
+                  <option value="pending">ממתין לחיוב</option>
+                  <option value="invoiced">חויב</option>
+                  <option value="paid">שולם</option>
+                </select>
+              </div>
             </div>
 
             {/* Summary Results */}
@@ -3051,6 +3072,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 if (from && entryDate < from) return false
                 if (to && entryDate > to) return false
                 if (summaryClientFilter !== 'all' && e.clientId !== summaryClientFilter) return false
+                if (summaryStatusFilter !== 'all' && (e.billingStatus || 'pending') !== summaryStatusFilter) return false
                 
                 return true
               })
@@ -3065,6 +3087,46 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   totalAmount += hours * client.hourlyRate * (1 + client.vatPercent / 100)
                 }
               })
+
+              const exportToExcel = () => {
+                // יצירת CSV (Excel יכול לפתוח)
+                let csv = 'תאריך,שעת התחלה,שעת סיום,שעות,לקוח,עובד,סכום,סטטוס,הערות\n'
+                
+                filteredEntries.forEach(e => {
+                  const client = clients.find(c => c.id === e.clientId)
+                  const employee = e.employeeId ? employees.find(emp => emp.id === e.employeeId) : null
+                  const hours = calculateHours(e)
+                  const amount = client ? hours * client.hourlyRate * (1 + client.vatPercent / 100) : 0
+                  const status = e.billingStatus === 'invoiced' ? 'חויב' : e.billingStatus === 'paid' ? 'שולם' : 'ממתין'
+                  
+                  csv += `${e.startDate},${e.startTime},${e.endTime},${hours.toFixed(2)},${client?.name || ''},${employee?.name || 'עצמי'},${amount.toFixed(2)},${status},"${e.notes}"\n`
+                })
+                
+                // הורדה
+                const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' })
+                const link = document.createElement('a')
+                link.href = URL.createObjectURL(blob)
+                link.download = `דיווח_שעות_${summaryFromDate}_${summaryToDate}.csv`
+                link.click()
+              }
+
+              const sendByEmail = () => {
+                const subject = `דיווח שעות ${summaryFromDate} - ${summaryToDate}`
+                let body = `דיווח שעות\n\n`
+                body += `תקופה: ${summaryFromDate} עד ${summaryToDate}\n`
+                body += `סה"כ שעות: ${totalHours.toFixed(2)}\n`
+                body += `סה"כ הכנסות: ₪${totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}\n\n`
+                body += `דיווחים:\n`
+                
+                filteredEntries.forEach(e => {
+                  const client = clients.find(c => c.id === e.clientId)
+                  const hours = calculateHours(e)
+                  const amount = client ? hours * client.hourlyRate * (1 + client.vatPercent / 100) : 0
+                  body += `${e.startDate} ${e.startTime}-${e.endTime} | ${client?.name} | ${hours.toFixed(2)} שעות | ₪${amount.toFixed(2)}\n`
+                })
+                
+                window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+              }
 
               return (
                 <>
@@ -3084,6 +3146,125 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                       <span>מספר דיווחים:</span>
                       <span className="m-time-summary-value">{filteredEntries.length}</span>
                     </div>
+                  </div>
+
+                  {/* Export Buttons */}
+                  <div style={{display: 'flex', gap: '12px', marginTop: '16px'}}>
+                    <button 
+                      onClick={exportToExcel}
+                      style={{
+                        flex: 1,
+                        padding: '14px',
+                        background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '12px',
+                        fontSize: '15px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px'
+                      }}
+                    >
+                      📊 ייצא לאקסל
+                    </button>
+                    <button 
+                      onClick={sendByEmail}
+                      style={{
+                        flex: 1,
+                        padding: '14px',
+                        background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '12px',
+                        fontSize: '15px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px'
+                      }}
+                    >
+                      📧 שלח במייל
+                    </button>
+                  </div>
+
+                  {/* Entries List with Status */}
+                  <div className="m-time-entries" style={{marginTop: '20px'}}>
+                    {filteredEntries.map(entry => {
+                      const client = clients.find(c => c.id === entry.clientId)
+                      if (!client) return null
+                      const hours = calculateHours(entry)
+                      const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100)
+                      const status = entry.billingStatus || 'pending'
+                      
+                      const statusColors = {
+                        pending: { bg: '#FEF3C7', border: '#FDE047', text: '#92400E' },
+                        invoiced: { bg: '#DBEAFE', border: '#93C5FD', text: '#1E40AF' },
+                        paid: { bg: '#D1FAE5', border: '#6EE7B7', text: '#065F46' }
+                      }
+                      const statusLabels = {
+                        pending: 'ממתין',
+                        invoiced: 'חויב',
+                        paid: 'שולם'
+                      }
+                      
+                      return (
+                        <div 
+                          key={entry.id} 
+                          className="m-time-entry"
+                          style={{
+                            background: statusColors[status].bg,
+                            borderColor: statusColors[status].border
+                          }}
+                        >
+                          <div className="m-time-entry-header">
+                            <span className="m-time-entry-date">
+                              {new Date(entry.startDate).toLocaleDateString('he-IL')}
+                            </span>
+                            <span className="m-time-entry-hours">{hours.toFixed(2)} שעות</span>
+                          </div>
+                          <div className="m-time-entry-client">{client.name}</div>
+                          <div className="m-time-entry-time">
+                            {entry.startTime} - {entry.endTime}
+                          </div>
+                          {entry.notes && (
+                            <div className="m-time-entry-notes">{entry.notes}</div>
+                          )}
+                          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px'}}>
+                            <div className="m-time-entry-amount">
+                              ₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
+                            </div>
+                            <select
+                              value={status}
+                              onChange={e => {
+                                const newStatus = e.target.value as 'pending' | 'invoiced' | 'paid'
+                                setTimeEntries(prev => prev.map(te => 
+                                  te.id === entry.id ? {...te, billingStatus: newStatus} : te
+                                ))
+                              }}
+                              style={{
+                                padding: '6px 10px',
+                                borderRadius: '8px',
+                                border: `2px solid ${statusColors[status].border}`,
+                                background: 'white',
+                                color: statusColors[status].text,
+                                fontSize: '13px',
+                                fontWeight: '600',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              <option value="pending">{statusLabels.pending}</option>
+                              <option value="invoiced">{statusLabels.invoiced}</option>
+                              <option value="paid">{statusLabels.paid}</option>
+                            </select>
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
                 </>
               )
