@@ -85,12 +85,21 @@ type Client = {
   id: string
   name: string
   hourlyRate: number
-  taxPercent: number
+  vatPercent: number // מע"מ
+  incomeTaxPercent: number // מס הכנסה
+}
+
+type Employee = {
+  id: string
+  name: string
+  email: string
+  clientIds: string[] // לקוחות שהעובד יכול לדווח עליהם
 }
 
 type TimeEntry = {
   id: string
   clientId: string
+  employeeId?: string // אופציונלי - אם דיווח בשם עובד
   startDate: string // YYYY-MM-DD
   endDate: string // YYYY-MM-DD
   startTime: string // HH:MM
@@ -155,8 +164,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const saved = localStorage.getItem(lsKey('time_entries'))
     return saved ? JSON.parse(saved) : []
   })
+  const [employees, setEmployees] = useState<Employee[]>(() => {
+    const saved = localStorage.getItem(lsKey('time_employees'))
+    return saved ? JSON.parse(saved) : []
+  })
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
-  const [timeTrackingTab, setTimeTrackingTab] = useState<'clients' | 'reports' | 'summary'>('clients')
+  const [timeTrackingTab, setTimeTrackingTab] = useState<'clients' | 'reports' | 'summary' | 'employees'>('clients')
   const [timerRunning, setTimerRunning] = useState(false)
   const [timerStart, setTimerStart] = useState<Date | null>(null)
   const [addClientOpen, setAddClientOpen] = useState(false)
@@ -166,12 +179,19 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [summaryClientFilter, setSummaryClientFilter] = useState<string>('all')
   const [clientFormName, setClientFormName] = useState('')
   const [clientFormRate, setClientFormRate] = useState('')
-  const [clientFormTax, setClientFormTax] = useState('18')
+  const [clientFormVat, setClientFormVat] = useState('18')
+  const [clientFormIncomeTax, setClientFormIncomeTax] = useState('30')
   const [entryFormStartDate, setEntryFormStartDate] = useState('')
   const [entryFormEndDate, setEntryFormEndDate] = useState('')
   const [entryFormStartTime, setEntryFormStartTime] = useState('')
   const [entryFormEndTime, setEntryFormEndTime] = useState('')
   const [entryFormNotes, setEntryFormNotes] = useState('')
+  const [entryFormEmployeeId, setEntryFormEmployeeId] = useState<string>('self')
+  const [addEmployeeOpen, setAddEmployeeOpen] = useState(false)
+  const [employeeFormName, setEmployeeFormName] = useState('')
+  const [employeeFormEmail, setEmployeeFormEmail] = useState('')
+  const [employeeFormClients, setEmployeeFormClients] = useState<string[]>([])
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null)
   const [quickNewName, setQuickNewName] = useState('')
   const quickNewNameRef = useRef('')
   const [quickNewGroupId, setQuickNewGroupId] = useState('g4')
@@ -343,6 +363,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   useEffect(() => { localStorage.setItem(lsKey('groupOrder'), JSON.stringify(groupOrder)) }, [groupOrder])
   useEffect(() => { localStorage.setItem(lsKey('time_clients'), JSON.stringify(clients)) }, [clients])
   useEffect(() => { localStorage.setItem(lsKey('time_entries'), JSON.stringify(timeEntries)) }, [timeEntries])
+  useEffect(() => { localStorage.setItem(lsKey('time_employees'), JSON.stringify(employees)) }, [employees])
   useEffect(() => {
     if (openingBalance) localStorage.setItem(lsKey('opening_balance'), JSON.stringify(openingBalance))
     else localStorage.removeItem(lsKey('opening_balance'))
@@ -2667,8 +2688,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       const clientEntries = timeEntries.filter(e => e.clientId === selectedClientId)
 
       const totalHours = clientEntries.reduce((sum, e) => sum + calculateHours(e), 0)
-      const totalBeforeTax = totalHours * client.hourlyRate
-      const totalAfterTax = totalBeforeTax * (1 - client.taxPercent / 100)
+      const grossAmount = totalHours * client.hourlyRate * (1 + client.vatPercent / 100) // ברוטו כולל מע"מ
+      const netAmount = grossAmount * (1 - client.incomeTaxPercent / 100) // נטו אחרי מס הכנסה
 
       const startTimer = () => {
         setTimerStart(new Date())
@@ -2739,16 +2760,20 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <span className="m-time-summary-value">₪{client.hourlyRate.toLocaleString()}</span>
             </div>
             <div className="m-time-summary-row">
-              <span>לפני מס:</span>
-              <span className="m-time-summary-value">₪{totalBeforeTax.toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
+              <span>מע"מ ({client.vatPercent}%):</span>
+              <span className="m-time-summary-value">₪{(totalHours * client.hourlyRate * client.vatPercent / 100).toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
             </div>
             <div className="m-time-summary-row">
-              <span>מס ({client.taxPercent}%):</span>
-              <span className="m-time-summary-value">₪{(totalBeforeTax - totalAfterTax).toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
+              <span>ברוטו:</span>
+              <span className="m-time-summary-value">₪{grossAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
+            </div>
+            <div className="m-time-summary-row">
+              <span>מס הכנסה ({client.incomeTaxPercent}%):</span>
+              <span className="m-time-summary-value">₪{(grossAmount * client.incomeTaxPercent / 100).toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
             </div>
             <div className="m-time-summary-row m-time-summary-total">
               <span>נטו:</span>
-              <span className="m-time-summary-value">₪{totalAfterTax.toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
+              <span className="m-time-summary-value">₪{netAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
             </div>
           </div>
 
@@ -2759,7 +2784,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             ) : (
               clientEntries.map(entry => {
                 const hours = calculateHours(entry)
-                const amount = hours * client.hourlyRate
+                const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100)
                 return (
                   <div key={entry.id} className="m-time-entry">
                     <div className="m-time-entry-header">
@@ -2799,7 +2824,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
           )}
-          {timeTrackingTab !== 'clients' && <div style={{width:40}}></div>}
+          {timeTrackingTab === 'employees' && (
+            <button className="m-add-btn" onClick={() => setAddEmployeeOpen(true)}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+          )}
+          {timeTrackingTab !== 'clients' && timeTrackingTab !== 'employees' && <div style={{width:40}}></div>}
         </div>
 
         {/* Tabs */}
@@ -2809,6 +2839,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             onClick={() => setTimeTrackingTab('clients')}
           >
             לקוחות
+          </button>
+          <button 
+            className={`m-time-tab ${timeTrackingTab === 'employees' ? 'active' : ''}`}
+            onClick={() => setTimeTrackingTab('employees')}
+          >
+            עובדים
           </button>
           <button 
             className={`m-time-tab ${timeTrackingTab === 'reports' ? 'active' : ''}`}
@@ -2860,7 +2896,43 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           </div>
         )}
 
-        {/* Tab 2: Reports */}
+        {/* Tab 2: Employees */}
+        {timeTrackingTab === 'employees' && (
+          <div className="m-clients-list">
+            {employees.length === 0 ? (
+              <div className="m-empty-state">
+                <div style={{fontSize: 48, marginBottom: 16}}>👷</div>
+                <div style={{fontSize: 16, fontWeight: 600, marginBottom: 8}}>אין עובדים עדיין</div>
+                <div style={{fontSize: 14, color: '#999'}}>לחץ על + כדי להוסיף עובד</div>
+              </div>
+            ) : (
+              employees.map(employee => {
+                const employeeEntries = timeEntries.filter(e => e.employeeId === employee.id)
+                const totalHours = employeeEntries.reduce((sum, e) => {
+                  const start = new Date(`${e.startDate}T${e.startTime}`)
+                  const end = new Date(`${e.endDate}T${e.endTime}`)
+                  return sum + (end.getTime() - start.getTime()) / (1000 * 60 * 60)
+                }, 0)
+                
+                return (
+                  <div 
+                    key={employee.id} 
+                    className="m-client-card"
+                    onClick={() => setSelectedEmployeeId(employee.id)}
+                  >
+                    <div className="m-client-name">{employee.name}</div>
+                    <div className="m-client-rate">{employee.email}</div>
+                    <div className="m-client-stats">
+                      {employee.clientIds.length} לקוחות · {totalHours.toFixed(1)} שעות · {employeeEntries.length} דיווחים
+                    </div>
+                  </div>
+                )
+              })
+            )}
+          </div>
+        )}
+
+        {/* Tab 3: Reports */}
         {timeTrackingTab === 'reports' && (
           <div className="m-time-entries">
             {timeEntries.length === 0 ? (
@@ -2876,7 +2948,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   const client = clients.find(c => c.id === entry.clientId)
                   if (!client) return null
                   const hours = calculateHours(entry)
-                  const amount = hours * client.hourlyRate
+                  const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100)
                   return (
                     <div key={entry.id} className="m-time-entry">
                       <div className="m-time-entry-header">
@@ -2965,7 +3037,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 const client = clients.find(c => c.id === e.clientId)
                 if (client) {
                   const hours = calculateHours(e)
-                  totalAmount += hours * client.hourlyRate
+                  totalAmount += hours * client.hourlyRate * (1 + client.vatPercent / 100)
                 }
               })
 
@@ -3010,16 +3082,23 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         id: Date.now().toString(),
         name: clientFormName,
         hourlyRate: parseFloat(clientFormRate),
-        taxPercent: parseFloat(clientFormTax)
+        vatPercent: parseFloat(clientFormVat),
+        incomeTaxPercent: parseFloat(clientFormIncomeTax)
       }
       setClients(prev => [...prev, client])
       setClientFormName('')
       setClientFormRate('')
-      setClientFormTax('18')
+      setClientFormVat('18')
+      setClientFormIncomeTax('30')
       setAddClientOpen(false)
     }
 
-    const netPercent = 100 - parseFloat(clientFormTax || '0')
+    // חישוב נטו: (תעריף + מע"מ) - מס הכנסה
+    const rate = parseFloat(clientFormRate || '0')
+    const vat = parseFloat(clientFormVat || '0')
+    const incomeTax = parseFloat(clientFormIncomeTax || '0')
+    const grossPerHour = rate * (1 + vat / 100)
+    const netPerHour = grossPerHour * (1 - incomeTax / 100)
 
     return (
       <>
@@ -3037,7 +3116,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               value={clientFormName}
               onChange={e => setClientFormName(e.target.value)}
               placeholder="שם הלקוח"
-              autoFocus
             />
           </div>
 
@@ -3048,25 +3126,39 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               inputMode="numeric"
               value={clientFormRate}
               onChange={e => setClientFormRate(e.target.value)}
-              placeholder="250"
+              placeholder="100"
             />
           </div>
 
           <div className="m-mortgage-field">
-            <label>אחוז מס (%)</label>
+            <label>אחוז מע"מ (%)</label>
             <input 
               type="number"
               inputMode="decimal"
-              value={clientFormTax}
-              onChange={e => setClientFormTax(e.target.value)}
+              value={clientFormVat}
+              onChange={e => setClientFormVat(e.target.value)}
               placeholder="18"
             />
           </div>
 
           <div className="m-mortgage-field">
-            <label>אחוז נטו</label>
+            <label>אחוז מס הכנסה (%)</label>
+            <input 
+              type="number"
+              inputMode="decimal"
+              value={clientFormIncomeTax}
+              onChange={e => setClientFormIncomeTax(e.target.value)}
+              placeholder="30"
+            />
+          </div>
+
+          <div className="m-mortgage-field">
+            <label>נטו לשעה</label>
             <div style={{fontSize: 20, fontWeight: 600, color: '#15803D'}}>
-              {netPercent.toFixed(1)}%
+              ₪{netPerHour.toFixed(2)}
+            </div>
+            <div style={{fontSize: 12, color: '#6B7280', marginTop: 4}}>
+              (תעריף {rate.toFixed(0)} + מע"מ {vat}% = ₪{grossPerHour.toFixed(2)} ברוטו, מינוס מס הכנסה {incomeTax}%)
             </div>
           </div>
 
@@ -3100,6 +3192,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       const entry: TimeEntry = {
         id: Date.now().toString(),
         clientId: selectedClientId,
+        employeeId: entryFormEmployeeId === 'self' ? undefined : entryFormEmployeeId,
         startDate: entryFormStartDate,
         endDate: entryFormEndDate,
         startTime: entryFormStartTime,
@@ -3167,6 +3260,26 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           </div>
 
           <div className="m-mortgage-field">
+            <label>דיווח בשם</label>
+            <select 
+              value={entryFormEmployeeId}
+              onChange={e => setEntryFormEmployeeId(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                border: '2px solid #E5E7EB',
+                borderRadius: '10px',
+                fontSize: '16px'
+              }}
+            >
+              <option value="self">עצמי</option>
+              {employees.map(emp => (
+                <option key={emp.id} value={emp.id}>{emp.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="m-mortgage-field">
             <label>הערות</label>
             <textarea 
               value={entryFormNotes}
@@ -3193,6 +3306,120 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     )
   }
 
+  // Add Employee Modal
+  const AddEmployeeModal = () => {
+    if (!addEmployeeOpen) return null
+
+    const save = () => {
+      if (!employeeFormName || !employeeFormEmail) {
+        alert('נא למלא שם ומייל')
+        return
+      }
+      const employee: Employee = {
+        id: Date.now().toString(),
+        name: employeeFormName,
+        email: employeeFormEmail,
+        clientIds: employeeFormClients
+      }
+      setEmployees(prev => [...prev, employee])
+      setEmployeeFormName('')
+      setEmployeeFormEmail('')
+      setEmployeeFormClients([])
+      setAddEmployeeOpen(false)
+    }
+
+    const toggleClient = (clientId: string) => {
+      if (employeeFormClients.includes(clientId)) {
+        setEmployeeFormClients(prev => prev.filter(id => id !== clientId))
+      } else {
+        setEmployeeFormClients(prev => [...prev, clientId])
+      }
+    }
+
+    return (
+      <>
+        <div className="m-overlay" onClick={() => setAddEmployeeOpen(false)} />
+        <div className="m-top-sheet">
+          <div className="m-sheet-header">
+            <h2>עובד חדש</h2>
+            <button className="m-close-btn" onClick={() => setAddEmployeeOpen(false)}>✕</button>
+          </div>
+
+          <div className="m-mortgage-field">
+            <label>שם העובד</label>
+            <input 
+              type="text"
+              value={employeeFormName}
+              onChange={e => setEmployeeFormName(e.target.value)}
+              placeholder="שם העובד"
+            />
+          </div>
+
+          <div className="m-mortgage-field">
+            <label>מייל</label>
+            <input 
+              type="email"
+              inputMode="email"
+              value={employeeFormEmail}
+              onChange={e => setEmployeeFormEmail(e.target.value)}
+              placeholder="email@example.com"
+            />
+          </div>
+
+          <div className="m-mortgage-field">
+            <label>לקוחות מקושרים</label>
+            <div style={{marginTop: 8}}>
+              {clients.length === 0 ? (
+                <div style={{fontSize: 14, color: '#999'}}>אין לקוחות עדיין</div>
+              ) : (
+                clients.map(client => (
+                  <div 
+                    key={client.id}
+                    onClick={() => toggleClient(client.id)}
+                    style={{
+                      padding: '10px 12px',
+                      background: employeeFormClients.includes(client.id) ? '#DCFCE7' : 'white',
+                      border: `2px solid ${employeeFormClients.includes(client.id) ? '#10b981' : '#E5E7EB'}`,
+                      borderRadius: '8px',
+                      marginBottom: '8px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    <div style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: '4px',
+                      border: '2px solid #10b981',
+                      background: employeeFormClients.includes(client.id) ? '#10b981' : 'white',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'white',
+                      fontSize: 14
+                    }}>
+                      {employeeFormClients.includes(client.id) && '✓'}
+                    </div>
+                    <div style={{flex: 1}}>
+                      <div style={{fontWeight: 600}}>{client.name}</div>
+                      <div style={{fontSize: 13, color: '#6B7280'}}>₪{client.hourlyRate}/שעה</div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <button className="m-mortgage-calc-btn" onClick={save}>
+            שמור עובד
+          </button>
+        </div>
+      </>
+    )
+  }
+
   return (
     <div className="m-app" onClick={() => { if (menuCatId) setMenuCatId(null) }}>
       {screen === 'home' && <HomeScreen />}
@@ -3207,6 +3434,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       <InlineSheet />
       <AddClientModal />
       <AddTimeEntryModal />
+      <AddEmployeeModal />
       <QuickAddSheet 
         globalAmountValue={quickAddGlobalAmount}
         setGlobalAmountValue={setQuickAddGlobalAmount}
