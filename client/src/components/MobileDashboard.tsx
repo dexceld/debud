@@ -73,12 +73,29 @@ const getCurrentMonth = (): string => {
   return `${month}/${year}`
 }
 
-type Screen = 'home' | 'detail' | 'update' | 'chart' | 'forecast' | 'budget' | 'forecast-chart' | 'net-chart' | 'mortgage-calc'
+type Screen = 'home' | 'detail' | 'update' | 'chart' | 'forecast' | 'budget' | 'forecast-chart' | 'net-chart' | 'mortgage-calc' | 'time-tracking'
 
 type ForecastSnapshot = {
   label: string
   date: string
   data: Record<string, number> // month -> running balance
+}
+
+type Client = {
+  id: string
+  name: string
+  hourlyRate: number
+  taxPercent: number
+}
+
+type TimeEntry = {
+  id: string
+  clientId: string
+  startDate: string // YYYY-MM-DD
+  endDate: string // YYYY-MM-DD
+  startTime: string // HH:MM
+  endTime: string // HH:MM
+  notes: string
 }
 
 export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode }: { uid: string; userEmail: string; userPhoto?: string; isLocalMode?: boolean }) {
@@ -128,6 +145,33 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [quickAddGlobalAmount, setQuickAddGlobalAmount] = useState('')
   const [inlineSheetAmount, setInlineSheetAmount] = useState('')
   const [quickSearch, setQuickSearch] = useState('')
+  
+  // Time Tracking State
+  const [clients, setClients] = useState<Client[]>(() => {
+    const saved = localStorage.getItem(lsKey('time_clients'))
+    return saved ? JSON.parse(saved) : []
+  })
+  const [timeEntries, setTimeEntries] = useState<TimeEntry[]>(() => {
+    const saved = localStorage.getItem(lsKey('time_entries'))
+    return saved ? JSON.parse(saved) : []
+  })
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
+  const [timeTrackingTab, setTimeTrackingTab] = useState<'clients' | 'reports' | 'summary'>('clients')
+  const [timerRunning, setTimerRunning] = useState(false)
+  const [timerStart, setTimerStart] = useState<Date | null>(null)
+  const [addClientOpen, setAddClientOpen] = useState(false)
+  const [addTimeEntryOpen, setAddTimeEntryOpen] = useState(false)
+  const [summaryFromDate, setSummaryFromDate] = useState('')
+  const [summaryToDate, setSummaryToDate] = useState('')
+  const [summaryClientFilter, setSummaryClientFilter] = useState<string>('all')
+  const [clientFormName, setClientFormName] = useState('')
+  const [clientFormRate, setClientFormRate] = useState('')
+  const [clientFormTax, setClientFormTax] = useState('18')
+  const [entryFormStartDate, setEntryFormStartDate] = useState('')
+  const [entryFormEndDate, setEntryFormEndDate] = useState('')
+  const [entryFormStartTime, setEntryFormStartTime] = useState('')
+  const [entryFormEndTime, setEntryFormEndTime] = useState('')
+  const [entryFormNotes, setEntryFormNotes] = useState('')
   const [quickNewName, setQuickNewName] = useState('')
   const quickNewNameRef = useRef('')
   const [quickNewGroupId, setQuickNewGroupId] = useState('g4')
@@ -297,6 +341,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   useEffect(() => { localStorage.setItem(lsKey('categories'), JSON.stringify(categories)) }, [categories])
   useEffect(() => { localStorage.setItem(lsKey('groups'), JSON.stringify(groups)) }, [groups])
   useEffect(() => { localStorage.setItem(lsKey('groupOrder'), JSON.stringify(groupOrder)) }, [groupOrder])
+  useEffect(() => { localStorage.setItem(lsKey('time_clients'), JSON.stringify(clients)) }, [clients])
+  useEffect(() => { localStorage.setItem(lsKey('time_entries'), JSON.stringify(timeEntries)) }, [timeEntries])
   useEffect(() => {
     if (openingBalance) localStorage.setItem(lsKey('opening_balance'), JSON.stringify(openingBalance))
     else localStorage.removeItem(lsKey('opening_balance'))
@@ -1017,6 +1063,30 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <div style={{ fontSize: 11, fontWeight: 600, color: '#999', marginBottom: 12, textAlign: 'center' }}>
             כלים נוספים
           </div>
+          <button 
+            className="m-tool-btn"
+            onClick={() => setScreen('time-tracking')}
+            style={{
+              width: '100%',
+              padding: '14px',
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '12px',
+              fontSize: '15px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              marginBottom: '12px'
+            }}
+          >
+            <span style={{ fontSize: '18px' }}>⏱</span>
+            דיווחי שעות
+          </button>
           <button 
             className="m-tool-btn"
             onClick={() => setScreen('mortgage-calc')}
@@ -2571,6 +2641,558 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     )
   }
 
+  // --- TIME TRACKING ---
+  const TimeTrackingScreen = () => {
+    // Helper function
+    const calculateHours = (entry: TimeEntry): number => {
+      const start = new Date(`${entry.startDate}T${entry.startTime}`)
+      const end = new Date(`${entry.endDate}T${entry.endTime}`)
+      return (end.getTime() - start.getTime()) / (1000 * 60 * 60)
+    }
+
+    // Initialize summary dates to current month
+    if (!summaryFromDate) {
+      const now = new Date()
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
+      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+      setSummaryFromDate(firstDay.toISOString().split('T')[0])
+      setSummaryToDate(lastDay.toISOString().split('T')[0])
+    }
+
+    if (selectedClientId) {
+      // Show time entries for selected client
+      const client = clients.find(c => c.id === selectedClientId)
+      if (!client) return null
+
+      const clientEntries = timeEntries.filter(e => e.clientId === selectedClientId)
+
+      const totalHours = clientEntries.reduce((sum, e) => sum + calculateHours(e), 0)
+      const totalBeforeTax = totalHours * client.hourlyRate
+      const totalAfterTax = totalBeforeTax * (1 - client.taxPercent / 100)
+
+      const startTimer = () => {
+        setTimerStart(new Date())
+        setTimerRunning(true)
+      }
+
+      const stopTimer = () => {
+        if (!timerStart) return
+        const now = new Date()
+        const entry: TimeEntry = {
+          id: Date.now().toString(),
+          clientId: selectedClientId,
+          startDate: timerStart.toISOString().split('T')[0],
+          endDate: now.toISOString().split('T')[0],
+          startTime: timerStart.toTimeString().slice(0, 5),
+          endTime: now.toTimeString().slice(0, 5),
+          notes: ''
+        }
+        setTimeEntries(prev => [...prev, entry])
+        setTimerStart(null)
+        setTimerRunning(false)
+      }
+
+      return (
+        <div className="m-screen">
+          <div className="m-header">
+            <button className="m-back-btn" onClick={() => setSelectedClientId(null)}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <h1 className="m-title">{client.name}</h1>
+            <button className="m-add-btn" onClick={() => setAddTimeEntryOpen(true)}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+          </div>
+
+          {/* Timer Buttons */}
+          <div className="m-timer-row">
+            <button 
+              className="m-timer-btn m-timer-start"
+              onClick={startTimer}
+              disabled={timerRunning}
+            >
+              ▶ התחלה
+            </button>
+            <button 
+              className="m-timer-btn m-timer-stop"
+              onClick={stopTimer}
+              disabled={!timerRunning}
+            >
+              ⏹ סיום
+            </button>
+          </div>
+
+          {timerRunning && timerStart && (
+            <div className="m-timer-display">
+              ⏱ טיימר פועל מאז {timerStart.toLocaleTimeString('he-IL', {hour: '2-digit', minute: '2-digit'})}
+            </div>
+          )}
+
+          {/* Summary */}
+          <div className="m-time-summary">
+            <div className="m-time-summary-row">
+              <span>סה"כ שעות:</span>
+              <span className="m-time-summary-value">{totalHours.toFixed(2)}</span>
+            </div>
+            <div className="m-time-summary-row">
+              <span>תעריף לשעה:</span>
+              <span className="m-time-summary-value">₪{client.hourlyRate.toLocaleString()}</span>
+            </div>
+            <div className="m-time-summary-row">
+              <span>לפני מס:</span>
+              <span className="m-time-summary-value">₪{totalBeforeTax.toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
+            </div>
+            <div className="m-time-summary-row">
+              <span>מס ({client.taxPercent}%):</span>
+              <span className="m-time-summary-value">₪{(totalBeforeTax - totalAfterTax).toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
+            </div>
+            <div className="m-time-summary-row m-time-summary-total">
+              <span>נטו:</span>
+              <span className="m-time-summary-value">₪{totalAfterTax.toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
+            </div>
+          </div>
+
+          {/* Time Entries List */}
+          <div className="m-time-entries">
+            {clientEntries.length === 0 ? (
+              <div className="m-empty-state">אין דיווחי שעות עדיין</div>
+            ) : (
+              clientEntries.map(entry => {
+                const hours = calculateHours(entry)
+                const amount = hours * client.hourlyRate
+                return (
+                  <div key={entry.id} className="m-time-entry">
+                    <div className="m-time-entry-header">
+                      <span className="m-time-entry-date">
+                        {new Date(entry.startDate).toLocaleDateString('he-IL')}
+                      </span>
+                      <span className="m-time-entry-hours">{hours.toFixed(2)} שעות</span>
+                    </div>
+                    <div className="m-time-entry-time">
+                      {entry.startTime} - {entry.endTime}
+                    </div>
+                    {entry.notes && (
+                      <div className="m-time-entry-notes">{entry.notes}</div>
+                    )}
+                    <div className="m-time-entry-amount">
+                      ₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
+                    </div>
+                  </div>
+                )
+              })
+            )}
+          </div>
+        </div>
+      )
+    }
+
+    // Main screen with tabs
+    return (
+      <div className="m-screen">
+        <div className="m-header">
+          <button className="m-back-btn" onClick={() => setScreen('home')}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <h1 className="m-title">דיווחי שעות</h1>
+          {timeTrackingTab === 'clients' && (
+            <button className="m-add-btn" onClick={() => setAddClientOpen(true)}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+          )}
+          {timeTrackingTab !== 'clients' && <div style={{width:40}}></div>}
+        </div>
+
+        {/* Tabs */}
+        <div className="m-time-tabs">
+          <button 
+            className={`m-time-tab ${timeTrackingTab === 'clients' ? 'active' : ''}`}
+            onClick={() => setTimeTrackingTab('clients')}
+          >
+            לקוחות
+          </button>
+          <button 
+            className={`m-time-tab ${timeTrackingTab === 'reports' ? 'active' : ''}`}
+            onClick={() => setTimeTrackingTab('reports')}
+          >
+            דיווחים
+          </button>
+          <button 
+            className={`m-time-tab ${timeTrackingTab === 'summary' ? 'active' : ''}`}
+            onClick={() => setTimeTrackingTab('summary')}
+          >
+            סיכום
+          </button>
+        </div>
+
+        {/* Tab 1: Clients */}
+        {timeTrackingTab === 'clients' && (
+          <div className="m-clients-list">
+          {clients.length === 0 ? (
+            <div className="m-empty-state">
+              <div style={{fontSize: 48, marginBottom: 16}}>👥</div>
+              <div style={{fontSize: 16, fontWeight: 600, marginBottom: 8}}>אין לקוחות עדיין</div>
+              <div style={{fontSize: 14, color: '#999'}}>לחץ על + כדי להוסיף לקוח ראשון</div>
+            </div>
+          ) : (
+            clients.map(client => {
+              const clientEntries = timeEntries.filter(e => e.clientId === client.id)
+              const totalHours = clientEntries.reduce((sum, e) => {
+                const start = new Date(`${e.startDate}T${e.startTime}`)
+                const end = new Date(`${e.endDate}T${e.endTime}`)
+                return sum + (end.getTime() - start.getTime()) / (1000 * 60 * 60)
+              }, 0)
+              
+              return (
+                <div 
+                  key={client.id} 
+                  className="m-client-card"
+                  onClick={() => setSelectedClientId(client.id)}
+                >
+                  <div className="m-client-name">{client.name}</div>
+                  <div className="m-client-rate">₪{client.hourlyRate}/שעה</div>
+                  <div className="m-client-stats">
+                    {totalHours.toFixed(1)} שעות · {clientEntries.length} דיווחים
+                  </div>
+                </div>
+              )
+            })
+          )}
+          </div>
+        )}
+
+        {/* Tab 2: Reports */}
+        {timeTrackingTab === 'reports' && (
+          <div className="m-time-entries">
+            {timeEntries.length === 0 ? (
+              <div className="m-empty-state">אין דיווחים עדיין</div>
+            ) : (
+              [...timeEntries]
+                .sort((a, b) => {
+                  const dateA = new Date(`${a.startDate}T${a.startTime}`)
+                  const dateB = new Date(`${b.startDate}T${b.startTime}`)
+                  return dateB.getTime() - dateA.getTime()
+                })
+                .map(entry => {
+                  const client = clients.find(c => c.id === entry.clientId)
+                  if (!client) return null
+                  const hours = calculateHours(entry)
+                  const amount = hours * client.hourlyRate
+                  return (
+                    <div key={entry.id} className="m-time-entry">
+                      <div className="m-time-entry-header">
+                        <span className="m-time-entry-date">
+                          {new Date(entry.startDate).toLocaleDateString('he-IL')}
+                        </span>
+                        <span className="m-time-entry-hours">{hours.toFixed(2)} שעות</span>
+                      </div>
+                      <div className="m-time-entry-client">{client.name}</div>
+                      <div className="m-time-entry-time">
+                        {entry.startTime} - {entry.endTime}
+                      </div>
+                      {entry.notes && (
+                        <div className="m-time-entry-notes">{entry.notes}</div>
+                      )}
+                      <div className="m-time-entry-amount">
+                        ₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
+                      </div>
+                    </div>
+                  )
+                })
+            )}
+          </div>
+        )}
+
+        {/* Tab 3: Summary */}
+        {timeTrackingTab === 'summary' && (
+          <div className="m-time-summary-tab">
+            {/* Filters */}
+            <div className="m-summary-filters">
+              <div className="m-mortgage-field">
+                <label>מתאריך</label>
+                <input 
+                  type="date"
+                  value={summaryFromDate}
+                  onChange={e => setSummaryFromDate(e.target.value)}
+                />
+              </div>
+              <div className="m-mortgage-field">
+                <label>עד תאריך</label>
+                <input 
+                  type="date"
+                  value={summaryToDate}
+                  onChange={e => setSummaryToDate(e.target.value)}
+                />
+              </div>
+              <div className="m-mortgage-field">
+                <label>לקוח</label>
+                <select 
+                  value={summaryClientFilter}
+                  onChange={e => setSummaryClientFilter(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    border: '2px solid #E5E7EB',
+                    borderRadius: '10px',
+                    fontSize: '16px'
+                  }}
+                >
+                  <option value="all">כל הלקוחות</option>
+                  {clients.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Summary Results */}
+            {(() => {
+              const filteredEntries = timeEntries.filter(e => {
+                const entryDate = new Date(e.startDate)
+                const from = summaryFromDate ? new Date(summaryFromDate) : null
+                const to = summaryToDate ? new Date(summaryToDate) : null
+                
+                if (from && entryDate < from) return false
+                if (to && entryDate > to) return false
+                if (summaryClientFilter !== 'all' && e.clientId !== summaryClientFilter) return false
+                
+                return true
+              })
+
+              const totalHours = filteredEntries.reduce((sum, e) => sum + calculateHours(e), 0)
+              
+              let totalAmount = 0
+              filteredEntries.forEach(e => {
+                const client = clients.find(c => c.id === e.clientId)
+                if (client) {
+                  const hours = calculateHours(e)
+                  totalAmount += hours * client.hourlyRate
+                }
+              })
+
+              return (
+                <>
+                  <div className="m-summary-total">
+                    <div className="m-summary-total-label">סה"כ הכנסות</div>
+                    <div className="m-summary-total-value">
+                      ₪{totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
+                    </div>
+                  </div>
+
+                  <div className="m-time-summary">
+                    <div className="m-time-summary-row">
+                      <span>סה"כ שעות:</span>
+                      <span className="m-time-summary-value">{totalHours.toFixed(2)}</span>
+                    </div>
+                    <div className="m-time-summary-row">
+                      <span>מספר דיווחים:</span>
+                      <span className="m-time-summary-value">{filteredEntries.length}</span>
+                    </div>
+                  </div>
+                </>
+              )
+            })()}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // Add Client Modal
+  const AddClientModal = () => {
+    if (!addClientOpen) return null
+
+    const save = () => {
+      if (!clientFormName || !clientFormRate) {
+        alert('נא למלא שם ותעריף')
+        return
+      }
+      const client: Client = {
+        id: Date.now().toString(),
+        name: clientFormName,
+        hourlyRate: parseFloat(clientFormRate),
+        taxPercent: parseFloat(clientFormTax)
+      }
+      setClients(prev => [...prev, client])
+      setClientFormName('')
+      setClientFormRate('')
+      setClientFormTax('18')
+      setAddClientOpen(false)
+    }
+
+    const netPercent = 100 - parseFloat(clientFormTax || '0')
+
+    return (
+      <>
+        <div className="m-overlay" onClick={() => setAddClientOpen(false)} />
+        <div className="m-top-sheet">
+          <div className="m-sheet-header">
+            <h2>לקוח חדש</h2>
+            <button className="m-close-btn" onClick={() => setAddClientOpen(false)}>✕</button>
+          </div>
+
+          <div className="m-mortgage-field">
+            <label>שם הלקוח</label>
+            <input 
+              type="text"
+              value={clientFormName}
+              onChange={e => setClientFormName(e.target.value)}
+              placeholder="שם הלקוח"
+              autoFocus
+            />
+          </div>
+
+          <div className="m-mortgage-field">
+            <label>תעריף לשעה (₪)</label>
+            <input 
+              type="number"
+              inputMode="numeric"
+              value={clientFormRate}
+              onChange={e => setClientFormRate(e.target.value)}
+              placeholder="250"
+            />
+          </div>
+
+          <div className="m-mortgage-field">
+            <label>אחוז מס (%)</label>
+            <input 
+              type="number"
+              inputMode="decimal"
+              value={clientFormTax}
+              onChange={e => setClientFormTax(e.target.value)}
+              placeholder="18"
+            />
+          </div>
+
+          <div className="m-mortgage-field">
+            <label>אחוז נטו</label>
+            <div style={{fontSize: 20, fontWeight: 600, color: '#15803D'}}>
+              {netPercent.toFixed(1)}%
+            </div>
+          </div>
+
+          <button className="m-mortgage-calc-btn" onClick={save}>
+            שמור לקוח
+          </button>
+        </div>
+      </>
+    )
+  }
+
+  // Add Time Entry Modal
+  const AddTimeEntryModal = () => {
+    if (!addTimeEntryOpen || !selectedClientId) return null
+
+    // Initialize form on open
+    if (!entryFormStartDate) {
+      const today = new Date().toISOString().split('T')[0]
+      const now = new Date().toTimeString().slice(0, 5)
+      setEntryFormStartDate(today)
+      setEntryFormEndDate(today)
+      setEntryFormStartTime(now)
+      setEntryFormEndTime(now)
+    }
+
+    const save = () => {
+      if (!entryFormStartDate || !entryFormEndDate || !entryFormStartTime || !entryFormEndTime) {
+        alert('נא למלא את כל השדות')
+        return
+      }
+      const entry: TimeEntry = {
+        id: Date.now().toString(),
+        clientId: selectedClientId,
+        startDate: entryFormStartDate,
+        endDate: entryFormEndDate,
+        startTime: entryFormStartTime,
+        endTime: entryFormEndTime,
+        notes: entryFormNotes
+      }
+      setTimeEntries(prev => [...prev, entry])
+      setEntryFormStartDate('')
+      setEntryFormEndDate('')
+      setEntryFormStartTime('')
+      setEntryFormEndTime('')
+      setEntryFormNotes('')
+      setAddTimeEntryOpen(false)
+    }
+
+    return (
+      <>
+        <div className="m-overlay" onClick={() => setAddTimeEntryOpen(false)} />
+        <div className="m-top-sheet">
+          <div className="m-sheet-header">
+            <h2>דיווח שעות ידני</h2>
+            <button className="m-close-btn" onClick={() => setAddTimeEntryOpen(false)}>✕</button>
+          </div>
+
+          <div className="m-mortgage-field">
+            <label>תאריך התחלה</label>
+            <input 
+              type="date"
+              value={entryFormStartDate}
+              onChange={e => {
+                setEntryFormStartDate(e.target.value)
+                if (!entryFormEndDate || entryFormEndDate < e.target.value) {
+                  setEntryFormEndDate(e.target.value)
+                }
+              }}
+            />
+          </div>
+
+          <div className="m-mortgage-field">
+            <label>תאריך סיום</label>
+            <input 
+              type="date"
+              value={entryFormEndDate}
+              onChange={e => setEntryFormEndDate(e.target.value)}
+              min={entryFormStartDate}
+            />
+          </div>
+
+          <div className="m-mortgage-field">
+            <label>שעת התחלה</label>
+            <input 
+              type="time"
+              value={entryFormStartTime}
+              onChange={e => setEntryFormStartTime(e.target.value)}
+            />
+          </div>
+
+          <div className="m-mortgage-field">
+            <label>שעת סיום</label>
+            <input 
+              type="time"
+              value={entryFormEndTime}
+              onChange={e => setEntryFormEndTime(e.target.value)}
+            />
+          </div>
+
+          <div className="m-mortgage-field">
+            <label>הערות</label>
+            <textarea 
+              value={entryFormNotes}
+              onChange={e => setEntryFormNotes(e.target.value)}
+              placeholder="הערות..."
+              rows={3}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                border: '2px solid #E5E7EB',
+                borderRadius: '10px',
+                fontSize: '16px',
+                fontFamily: 'inherit',
+                resize: 'vertical'
+              }}
+            />
+          </div>
+
+          <button className="m-mortgage-calc-btn" onClick={save}>
+            שמור דיווח
+          </button>
+        </div>
+      </>
+    )
+  }
+
   return (
     <div className="m-app" onClick={() => { if (menuCatId) setMenuCatId(null) }}>
       {screen === 'home' && <HomeScreen />}
@@ -2580,8 +3202,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       {screen === 'forecast-chart' && <ForecastChartScreen />}
       {screen === 'net-chart' && <NetChartScreen />}
       {screen === 'mortgage-calc' && <MortgageCalculator />}
+      {screen === 'time-tracking' && <TimeTrackingScreen />}
       {renderCatMgmt()}
       <InlineSheet />
+      <AddClientModal />
+      <AddTimeEntryModal />
       <QuickAddSheet 
         globalAmountValue={quickAddGlobalAmount}
         setGlobalAmountValue={setQuickAddGlobalAmount}

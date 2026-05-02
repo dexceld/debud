@@ -4157,3 +4157,284 @@
   font-weight: 700;
   color: #15803D;
 }
+
+/* Time Tracking */
+.m-clients-list {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.m-client-card {
+  padding: 16px;
+  background: white;
+  border: 2px solid #E5E7EB;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.m-client-card:active {
+  transform: scale(0.98);
+  border-color: #10b981;
+}
+
+.m-client-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1F2937;
+  margin-bottom: 4px;
+}
+
+.m-client-rate {
+  font-size: 16px;
+  font-weight: 600;
+  color: #10b981;
+  margin-bottom: 8px;
+}
+
+.m-client-stats {
+  font-size: 13px;
+  color: #6B7280;
+}
+
+.m-timer-row {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+}
+
+.m-timer-btn {
+  flex: 1;
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.m-timer-start {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.m-timer-start:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.m-timer-stop {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.m-timer-stop:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.m-timer-display {
+  padding: 12px 16px;
+  background: #FEF3C7;
+  border: 2px solid #FDE047;
+  border-radius: 10px;
+  margin: 0 16px 16px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #92400E;
+}
+
+.m-time-summary {
+  margin: 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%);
+  border: 2px solid #BBF7D0;
+  border-radius: 12px;
+}
+
+.m-time-summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 14px;
+  color: #166534;
+}
+
+.m-time-summary-row.m-time-summary-total {
+  border-top: 2px solid #BBF7D0;
+  margin-top: 8px;
+  padding-top: 12px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.m-time-summary-value {
+  font-weight: 600;
+}
+
+.m-time-entries {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.m-time-entry {
+  padding: 14px;
+  background: white;
+  border: 2px solid #E5E7EB;
+  border-radius: 10px;
+}
+
+.m-time-entry-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.m-time-entry-date {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1F2937;
+}
+
+.m-time-entry-hours {
+  font-size: 14px;
+  font-weight: 600;
+  color: #10b981;
+}
+
+.m-time-entry-time {
+  font-size: 13px;
+  color: #6B7280;
+  margin-bottom: 6px;
+}
+
+.m-time-entry-notes {
+  font-size: 13px;
+  color: #4B5563;
+  font-style: italic;
+  margin-bottom: 8px;
+}
+
+.m-time-entry-amount {
+  font-size: 16px;
+  font-weight: 700;
+  color: #15803D;
+  text-align: right;
+}
+
+.m-add-btn {
+  background: transparent;
+  border: none;
+  color: #10b981;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.m-sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.m-sheet-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1F2937;
+  margin: 0;
+}
+
+.m-close-btn {
+  background: #F3F4F6;
+  border: none;
+  color: #6B7280;
+  font-size: 20px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.m-empty-state {
+  padding: 60px 20px;
+  text-align: center;
+  color: #9CA3AF;
+}
+
+.m-time-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #F9FAFB;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.m-time-tab {
+  flex: 1;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6B7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.m-time-tab.active {
+  background: white;
+  color: #10b981;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.m-time-entry-client {
+  font-size: 14px;
+  font-weight: 600;
+  color: #10b981;
+  margin-bottom: 4px;
+}
+
+.m-time-summary-tab {
+  padding: 16px;
+}
+
+.m-summary-filters {
+  margin-bottom: 24px;
+}
+
+.m-summary-total {
+  padding: 24px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 16px;
+  text-align: center;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+}
+
+.m-summary-total-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  margin-bottom: 8px;
+}
+
+.m-summary-total-value {
+  font-size: 36px;
+  font-weight: 700;
+  color: white;
+}
