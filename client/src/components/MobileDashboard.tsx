@@ -73,7 +73,7 @@ const getCurrentMonth = (): string => {
   return `${month}/${year}`
 }
 
-type Screen = 'home' | 'detail' | 'update' | 'chart' | 'forecast' | 'budget' | 'forecast-chart' | 'net-chart'
+type Screen = 'home' | 'detail' | 'update' | 'chart' | 'forecast' | 'budget' | 'forecast-chart' | 'net-chart' | 'mortgage-calc'
 
 type ForecastSnapshot = {
   label: string
@@ -1005,6 +1005,41 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <div style={{ fontSize: 11, color: '#999' }}>
             © 2026 Dexcel
           </div>
+        </div>
+
+        {/* Tools Section - Separate from Budget Tools */}
+        <div style={{
+          padding: '16px',
+          background: '#FAFAFA',
+          borderTop: '2px solid #E0E0E0',
+          marginTop: '8px'
+        }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#999', marginBottom: 12, textAlign: 'center' }}>
+            כלים נוספים
+          </div>
+          <button 
+            className="m-tool-btn"
+            onClick={() => setScreen('mortgage-calc')}
+            style={{
+              width: '100%',
+              padding: '14px',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '12px',
+              fontSize: '15px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px'
+            }}
+          >
+            <span style={{ fontSize: '18px' }}>🏠</span>
+            מחשבון משכנתא
+          </button>
         </div>
 
         {/* Dexcel Branding - Below Footer */}
@@ -2322,6 +2357,220 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     )
   }
 
+  // --- MORTGAGE CALCULATOR ---
+  const MortgageCalculator = () => {
+    const [mode, setMode] = useState<'calc-payment' | 'calc-loan' | 'calc-years'>('calc-payment')
+    const [loanAmount, setLoanAmount] = useState('')
+    const [monthlyPayment, setMonthlyPayment] = useState('')
+    const [years, setYears] = useState('')
+    const [interestRate, setInterestRate] = useState('4')
+    const [result, setResult] = useState<number | null>(null)
+
+    // PMT formula: Monthly Payment = P * (r * (1 + r)^n) / ((1 + r)^n - 1)
+    const calculateMonthlyPayment = (principal: number, annualRate: number, years: number): number => {
+      const monthlyRate = annualRate / 100 / 12
+      const numPayments = years * 12
+      if (monthlyRate === 0) return principal / numPayments
+      return principal * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1)
+    }
+
+    // PV formula: Loan Amount = PMT * ((1 - (1 + r)^-n) / r)
+    const calculateLoanAmount = (payment: number, annualRate: number, years: number): number => {
+      const monthlyRate = annualRate / 100 / 12
+      const numPayments = years * 12
+      if (monthlyRate === 0) return payment * numPayments
+      return payment * ((1 - Math.pow(1 + monthlyRate, -numPayments)) / monthlyRate)
+    }
+
+    // NPER formula: Years = log(PMT / (PMT - P*r)) / (12 * log(1 + r))
+    const calculateYears = (principal: number, payment: number, annualRate: number): number => {
+      const monthlyRate = annualRate / 100 / 12
+      if (monthlyRate === 0) return principal / payment / 12
+      const numPayments = Math.log(payment / (payment - principal * monthlyRate)) / Math.log(1 + monthlyRate)
+      return numPayments / 12
+    }
+
+    const calculate = () => {
+      const rate = parseFloat(interestRate)
+      if (isNaN(rate) || rate < 0) {
+        alert('ריבית לא תקינה')
+        return
+      }
+
+      if (mode === 'calc-payment') {
+        const loan = parseFloat(loanAmount)
+        const yrs = parseFloat(years)
+        if (isNaN(loan) || isNaN(yrs) || loan <= 0 || yrs <= 0) {
+          alert('נא למלא סכום משכנתא ומספר שנים')
+          return
+        }
+        setResult(calculateMonthlyPayment(loan, rate, yrs))
+      } else if (mode === 'calc-loan') {
+        const payment = parseFloat(monthlyPayment)
+        const yrs = parseFloat(years)
+        if (isNaN(payment) || isNaN(yrs) || payment <= 0 || yrs <= 0) {
+          alert('נא למלא החזר חודשי ומספר שנים')
+          return
+        }
+        setResult(calculateLoanAmount(payment, rate, yrs))
+      } else {
+        const loan = parseFloat(loanAmount)
+        const payment = parseFloat(monthlyPayment)
+        if (isNaN(loan) || isNaN(payment) || loan <= 0 || payment <= 0) {
+          alert('נא למלא סכום משכנתא והחזר חודשי')
+          return
+        }
+        setResult(calculateYears(loan, payment, rate))
+      }
+    }
+
+    return (
+      <div className="m-screen">
+        <div className="m-header">
+          <button className="m-back-btn" onClick={() => setScreen('home')}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <h1 className="m-title">מחשבון משכנתא</h1>
+          <div style={{width:40}}></div>
+        </div>
+
+        <div className="m-mortgage-content">
+          {/* Mode Tabs */}
+          <div className="m-mortgage-tabs">
+            <button 
+              className={`m-mortgage-tab ${mode === 'calc-payment' ? 'active' : ''}`}
+              onClick={() => { setMode('calc-payment'); setResult(null) }}
+            >
+              חישוב החזר חודשי
+            </button>
+            <button 
+              className={`m-mortgage-tab ${mode === 'calc-loan' ? 'active' : ''}`}
+              onClick={() => { setMode('calc-loan'); setResult(null) }}
+            >
+              חישוב סכום משכנתא
+            </button>
+            <button 
+              className={`m-mortgage-tab ${mode === 'calc-years' ? 'active' : ''}`}
+              onClick={() => { setMode('calc-years'); setResult(null) }}
+            >
+              חישוב מספר שנים
+            </button>
+          </div>
+
+          {/* Interest Rate */}
+          <div className="m-mortgage-field">
+            <label>ריבית שנתית (%)</label>
+            <input 
+              type="number" 
+              inputMode="decimal"
+              value={interestRate}
+              onChange={e => setInterestRate(e.target.value)}
+              placeholder="4"
+            />
+          </div>
+
+          {/* Input Fields based on mode */}
+          {mode === 'calc-payment' && (
+            <>
+              <div className="m-mortgage-field">
+                <label>סכום משכנתא (₪)</label>
+                <input 
+                  type="number" 
+                  inputMode="numeric"
+                  value={loanAmount}
+                  onChange={e => setLoanAmount(e.target.value)}
+                  placeholder="1000000"
+                />
+              </div>
+              <div className="m-mortgage-field">
+                <label>מספר שנים</label>
+                <input 
+                  type="number" 
+                  inputMode="numeric"
+                  value={years}
+                  onChange={e => setYears(e.target.value)}
+                  placeholder="20"
+                />
+              </div>
+            </>
+          )}
+
+          {mode === 'calc-loan' && (
+            <>
+              <div className="m-mortgage-field">
+                <label>החזר חודשי (₪)</label>
+                <input 
+                  type="number" 
+                  inputMode="numeric"
+                  value={monthlyPayment}
+                  onChange={e => setMonthlyPayment(e.target.value)}
+                  placeholder="5000"
+                />
+              </div>
+              <div className="m-mortgage-field">
+                <label>מספר שנים</label>
+                <input 
+                  type="number" 
+                  inputMode="numeric"
+                  value={years}
+                  onChange={e => setYears(e.target.value)}
+                  placeholder="20"
+                />
+              </div>
+            </>
+          )}
+
+          {mode === 'calc-years' && (
+            <>
+              <div className="m-mortgage-field">
+                <label>סכום משכנתא (₪)</label>
+                <input 
+                  type="number" 
+                  inputMode="numeric"
+                  value={loanAmount}
+                  onChange={e => setLoanAmount(e.target.value)}
+                  placeholder="1000000"
+                />
+              </div>
+              <div className="m-mortgage-field">
+                <label>החזר חודשי (₪)</label>
+                <input 
+                  type="number" 
+                  inputMode="numeric"
+                  value={monthlyPayment}
+                  onChange={e => setMonthlyPayment(e.target.value)}
+                  placeholder="5000"
+                />
+              </div>
+            </>
+          )}
+
+          {/* Calculate Button */}
+          <button className="m-mortgage-calc-btn" onClick={calculate}>
+            חשב
+          </button>
+
+          {/* Result */}
+          {result !== null && (
+            <div className="m-mortgage-result">
+              <div className="m-mortgage-result-label">
+                {mode === 'calc-payment' && 'החזר חודשי:'}
+                {mode === 'calc-loan' && 'סכום משכנתא:'}
+                {mode === 'calc-years' && 'מספר שנים:'}
+              </div>
+              <div className="m-mortgage-result-value">
+                {mode === 'calc-years' 
+                  ? `${result.toFixed(1)} שנים`
+                  : `₪${result.toLocaleString('he-IL', {maximumFractionDigits: 0})}`
+                }
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="m-app" onClick={() => { if (menuCatId) setMenuCatId(null) }}>
       {screen === 'home' && <HomeScreen />}
@@ -2330,6 +2579,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       {screen === 'detail' && <DetailScreen />}
       {screen === 'forecast-chart' && <ForecastChartScreen />}
       {screen === 'net-chart' && <NetChartScreen />}
+      {screen === 'mortgage-calc' && <MortgageCalculator />}
       {renderCatMgmt()}
       <InlineSheet />
       <QuickAddSheet 
