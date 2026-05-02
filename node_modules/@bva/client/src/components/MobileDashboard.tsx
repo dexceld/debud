@@ -1073,27 +1073,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           </div>
         )}
 
-        {/* Spacer before footer */}
-        <div style={{ flex: 1, minHeight: 40 }} />
-
-        {/* Footer */}
-        <div style={{
-          padding: '12px 16px',
-          textAlign: 'center',
-          color: '#666',
-          borderTop: '1px solid #E5E7EB'
-        }}>
-          <div style={{ fontSize: 11, color: '#999' }}>
-            © 2026 Dexcel
-          </div>
-        </div>
-
-        {/* Tools Section - Separate from Budget Tools */}
+        {/* Tools Section */}
         <div style={{
           padding: '16px',
           background: '#FAFAFA',
           borderTop: '2px solid #E0E0E0',
-          marginTop: '8px'
+          marginTop: '16px'
         }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: '#999', marginBottom: 12, textAlign: 'center' }}>
             כלים נוספים
@@ -1147,7 +1132,22 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           </button>
         </div>
 
-        {/* Dexcel Branding - Below Footer */}
+        {/* Spacer before footer */}
+        <div style={{ flex: 1, minHeight: 20 }} />
+
+        {/* Footer */}
+        <div style={{
+          padding: '12px 16px',
+          textAlign: 'center',
+          color: '#666',
+          borderTop: '1px solid #E5E7EB'
+        }}>
+          <div style={{ fontSize: 11, color: '#999' }}>
+            © 2026 Dexcel
+          </div>
+        </div>
+
+        {/* Dexcel Branding */}
         <div style={{
           padding: '12px 16px 20px 16px',
           textAlign: 'center',
