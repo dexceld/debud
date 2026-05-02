@@ -1750,23 +1750,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   // --- INLINE SHEET — single category, no navigation away ---
   const InlineSheet = () => {
     if (!inlineSheet) return null
-    console.log('[InlineSheet] Rendering for cat:', inlineSheet.cat.name, 'amount:', inlineSheetAmount)
     const { cat, forecastOnly } = inlineSheet
     const [month, setMonth] = useState(inlineSheet.month)
     const [alsoForecast, setAlsoForecast] = useState(false)
     const [forecastEnd, setForecastEnd] = useState('')  // '' = forever
     const inputRef = useRef<HTMLInputElement>(null)
-    const hasFocusedRef = useRef(false)
-
-    useEffect(() => {
-      console.log('[InlineSheet] useEffect running, hasFocused:', hasFocusedRef.current)
-      // Focus only once
-      if (!hasFocusedRef.current && inputRef.current) {
-        console.log('[InlineSheet] Focusing input')
-        hasFocusedRef.current = true
-        inputRef.current.focus()
-      }
-    })
 
     const close = () => setInlineSheet(null)
     const startIdx = months.indexOf(month)
@@ -1830,6 +1818,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               value={inlineSheetAmount}
               onChange={e => setInlineSheetAmount(e.target.value)}
               className="m-qi-global-amount"
+              autoFocus
             />
             <select value={month} onChange={e => setMonth(e.target.value)} className="m-qi-global-month">
               {months.map(m => <option key={m} value={m}>{m}</option>)}
