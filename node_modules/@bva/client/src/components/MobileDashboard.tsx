@@ -3443,7 +3443,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <label>שם הלקוח</label>
             <input 
               type="text"
-              value={clientFormName}
+              defaultValue={clientFormName}
               onChange={e => setClientFormName(e.target.value)}
               placeholder="שם הלקוח"
             />
@@ -3454,7 +3454,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <input 
               type="number"
               inputMode="numeric"
-              value={clientFormRate}
+              defaultValue={clientFormRate}
               onChange={e => setClientFormRate(e.target.value)}
               placeholder="100"
             />
@@ -3465,7 +3465,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <input 
               type="number"
               inputMode="decimal"
-              value={clientFormVat}
+              defaultValue={clientFormVat}
               onChange={e => setClientFormVat(e.target.value)}
               placeholder="18"
             />
@@ -3476,7 +3476,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <input 
               type="number"
               inputMode="decimal"
-              value={clientFormIncomeTax}
+              defaultValue={clientFormIncomeTax}
               onChange={e => setClientFormIncomeTax(e.target.value)}
               placeholder="30"
             />
