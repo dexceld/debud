@@ -3581,6 +3581,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               defaultValue={clientFormName}
               onChange={e => setClientFormName(e.target.value)}
               placeholder="שם הלקוח"
+              autoFocus
             />
           </div>
 
@@ -4085,6 +4086,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               defaultValue={employeeFormName}
               onChange={e => setEmployeeFormName(e.target.value)}
               placeholder="שם העובד"
+              autoFocus
             />
           </div>
 
