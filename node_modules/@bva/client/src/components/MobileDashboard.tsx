@@ -176,6 +176,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [addClientOpen, setAddClientOpen] = useState(false)
   const [editClientId, setEditClientId] = useState<string | null>(null)
   const [addTimeEntryOpen, setAddTimeEntryOpen] = useState(false)
+  const [quickTimeEntryOpen, setQuickTimeEntryOpen] = useState(false)
+  const [quickTimeClientId, setQuickTimeClientId] = useState<string>('')
   const [timeSettingsOpen, setTimeSettingsOpen] = useState(false)
   const [defaultVat, setDefaultVat] = useState(() => {
     const saved = localStorage.getItem(lsKey('time_default_vat'))
@@ -3293,6 +3295,67 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             })()}
           </div>
         )}
+
+        {/* Floating Action Buttons */}
+        <button 
+          className="m-fab-time-add-client"
+          onClick={() => {
+            setClientFormVat(defaultVat)
+            setClientFormIncomeTax(defaultIncomeTax)
+            setAddClientOpen(true)
+          }}
+          style={{
+            position: 'fixed',
+            bottom: '100px',
+            right: '24px',
+            width: '56px',
+            height: '56px',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #047857 0%, #065f46 100%)',
+            color: 'white',
+            border: 'none',
+            boxShadow: '0 6px 20px rgba(4, 120, 87, 0.4)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.3s',
+            zIndex: 100
+          }}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </button>
+
+        <button 
+          className="m-fab-time-add-entry"
+          onClick={() => setQuickTimeEntryOpen(true)}
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            right: '24px',
+            width: '64px',
+            height: '64px',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            color: 'white',
+            border: 'none',
+            boxShadow: '0 8px 24px rgba(16, 185, 129, 0.4)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.3s',
+            zIndex: 100
+          }}
+        >
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </button>
       </div>
     )
   }
@@ -3446,6 +3509,163 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               מחק לקוח
             </button>
           )}
+        </div>
+      </>
+    )
+  }
+
+  // Quick Time Entry Modal (from main screen)
+  const QuickTimeEntryModal = () => {
+    if (!quickTimeEntryOpen) return null
+
+    // Initialize form on open
+    if (!entryFormStartDate) {
+      const today = new Date().toISOString().split('T')[0]
+      setEntryFormStartDate(today)
+      setEntryFormEndDate(today)
+    }
+
+    const save = () => {
+      if (!quickTimeClientId || !entryFormStartDate || !entryFormEndDate || !entryFormStartTime || !entryFormEndTime) {
+        alert('נא למלא את כל השדות')
+        return
+      }
+      const entry: TimeEntry = {
+        id: Date.now().toString(),
+        clientId: quickTimeClientId,
+        employeeId: entryFormEmployeeId === 'self' ? undefined : entryFormEmployeeId,
+        startDate: entryFormStartDate,
+        endDate: entryFormEndDate,
+        startTime: entryFormStartTime,
+        endTime: entryFormEndTime,
+        notes: entryFormNotes
+      }
+      setTimeEntries(prev => [...prev, entry])
+      setEntryFormStartDate('')
+      setEntryFormEndDate('')
+      setEntryFormStartTime('')
+      setEntryFormEndTime('')
+      setEntryFormNotes('')
+      setEntryFormEmployeeId('self')
+      setQuickTimeClientId('')
+      setQuickTimeEntryOpen(false)
+    }
+
+    return (
+      <>
+        <div className="m-overlay" onClick={() => setQuickTimeEntryOpen(false)} />
+        <div className="m-top-sheet">
+          <div className="m-sheet-header">
+            <h2>דיווח שעות מהיר</h2>
+            <button className="m-close-btn" onClick={() => setQuickTimeEntryOpen(false)}>✕</button>
+          </div>
+
+          <div className="m-mortgage-field">
+            <label>לקוח</label>
+            <select 
+              value={quickTimeClientId}
+              onChange={e => setQuickTimeClientId(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                border: '2px solid #E5E7EB',
+                borderRadius: '10px',
+                fontSize: '16px'
+              }}
+            >
+              <option value="">בחר לקוח</option>
+              {clients.map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Start Date & Time */}
+          <div className="m-mortgage-field">
+            <label>מתי</label>
+            <div style={{display: 'flex', gap: '8px'}}>
+              <input 
+                type="date"
+                value={entryFormStartDate}
+                onChange={e => {
+                  setEntryFormStartDate(e.target.value)
+                  if (!entryFormEndDate || entryFormEndDate < e.target.value) {
+                    setEntryFormEndDate(e.target.value)
+                  }
+                }}
+                style={{flex: 1}}
+              />
+              <input 
+                type="time"
+                value={entryFormStartTime}
+                onChange={e => setEntryFormStartTime(e.target.value)}
+                style={{width: '110px'}}
+              />
+            </div>
+          </div>
+
+          {/* End Date & Time */}
+          <div className="m-mortgage-field">
+            <label>עד</label>
+            <div style={{display: 'flex', gap: '8px'}}>
+              <input 
+                type="date"
+                value={entryFormEndDate}
+                onChange={e => setEntryFormEndDate(e.target.value)}
+                min={entryFormStartDate}
+                style={{flex: 1}}
+              />
+              <input 
+                type="time"
+                value={entryFormEndTime}
+                onChange={e => setEntryFormEndTime(e.target.value)}
+                style={{width: '110px'}}
+              />
+            </div>
+          </div>
+
+          <div className="m-mortgage-field">
+            <label>דיווח בשם</label>
+            <select 
+              value={entryFormEmployeeId}
+              onChange={e => setEntryFormEmployeeId(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                border: '2px solid #E5E7EB',
+                borderRadius: '10px',
+                fontSize: '16px'
+              }}
+            >
+              <option value="self">עצמי</option>
+              {employees.map(emp => (
+                <option key={emp.id} value={emp.id}>{emp.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="m-mortgage-field">
+            <label>הערות</label>
+            <textarea 
+              value={entryFormNotes}
+              onChange={e => setEntryFormNotes(e.target.value)}
+              placeholder="הערות..."
+              rows={3}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                border: '2px solid #E5E7EB',
+                borderRadius: '10px',
+                fontSize: '16px',
+                fontFamily: 'inherit',
+                resize: 'vertical'
+              }}
+            />
+          </div>
+
+          <button className="m-mortgage-calc-btn" onClick={save}>
+            שמור דיווח
+          </button>
         </div>
       </>
     )
@@ -3798,6 +4018,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       {renderCatMgmt()}
       <InlineSheet />
       <AddClientModal />
+      <QuickTimeEntryModal />
       <AddTimeEntryModal />
       <TimeSettingsModal />
       <AddEmployeeModal />
