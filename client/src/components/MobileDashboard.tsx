@@ -4082,7 +4082,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <label>שם העובד</label>
             <input 
               type="text"
-              value={employeeFormName}
+              defaultValue={employeeFormName}
               onChange={e => setEmployeeFormName(e.target.value)}
               placeholder="שם העובד"
             />
@@ -4093,7 +4093,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <input 
               type="email"
               inputMode="email"
-              value={employeeFormEmail}
+              defaultValue={employeeFormEmail}
               onChange={e => setEmployeeFormEmail(e.target.value)}
               placeholder="email@example.com"
             />
