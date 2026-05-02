@@ -176,6 +176,15 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [addClientOpen, setAddClientOpen] = useState(false)
   const [editClientId, setEditClientId] = useState<string | null>(null)
   const [addTimeEntryOpen, setAddTimeEntryOpen] = useState(false)
+  const [timeSettingsOpen, setTimeSettingsOpen] = useState(false)
+  const [defaultVat, setDefaultVat] = useState(() => {
+    const saved = localStorage.getItem(lsKey('time_default_vat'))
+    return saved || '18'
+  })
+  const [defaultIncomeTax, setDefaultIncomeTax] = useState(() => {
+    const saved = localStorage.getItem(lsKey('time_default_income_tax'))
+    return saved || '30'
+  })
   const [summaryFromDate, setSummaryFromDate] = useState('')
   const [summaryToDate, setSummaryToDate] = useState('')
   const [summaryClientFilter, setSummaryClientFilter] = useState<string>('all')
@@ -367,6 +376,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   useEffect(() => { localStorage.setItem(lsKey('time_clients'), JSON.stringify(clients)) }, [clients])
   useEffect(() => { localStorage.setItem(lsKey('time_entries'), JSON.stringify(timeEntries)) }, [timeEntries])
   useEffect(() => { localStorage.setItem(lsKey('time_employees'), JSON.stringify(employees)) }, [employees])
+  useEffect(() => { localStorage.setItem(lsKey('time_default_vat'), defaultVat) }, [defaultVat])
+  useEffect(() => { localStorage.setItem(lsKey('time_default_income_tax'), defaultIncomeTax) }, [defaultIncomeTax])
   useEffect(() => {
     if (openingBalance) localStorage.setItem(lsKey('opening_balance'), JSON.stringify(openingBalance))
     else localStorage.removeItem(lsKey('opening_balance'))
@@ -2846,17 +2857,28 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
           <h1 className="m-title">דיווחי שעות</h1>
-          {timeTrackingTab === 'clients' && (
-            <button className="m-add-btn" onClick={() => setAddClientOpen(true)}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <div style={{display: 'flex', gap: '8px'}}>
+            <button className="m-add-btn" onClick={() => setTimeSettingsOpen(true)}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 1v6m0 6v6m5.2-13.2l-4.2 4.2m0 6l4.2 4.2M23 12h-6m-6 0H1m18.2 5.2l-4.2-4.2m0-6l4.2-4.2"/>
+              </svg>
             </button>
-          )}
-          {timeTrackingTab === 'employees' && (
-            <button className="m-add-btn" onClick={() => setAddEmployeeOpen(true)}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            </button>
-          )}
-          {timeTrackingTab !== 'clients' && timeTrackingTab !== 'employees' && <div style={{width:40}}></div>}
+            {timeTrackingTab === 'clients' && (
+              <button className="m-add-btn" onClick={() => {
+                setClientFormVat(defaultVat)
+                setClientFormIncomeTax(defaultIncomeTax)
+                setAddClientOpen(true)
+              }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+            )}
+            {timeTrackingTab === 'employees' && (
+              <button className="m-add-btn" onClick={() => setAddEmployeeOpen(true)}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Tabs */}
@@ -3567,6 +3589,88 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     )
   }
 
+  // Time Tracking Settings Modal
+  const TimeSettingsModal = () => {
+    if (!timeSettingsOpen) return null
+
+    const [tempVat, setTempVat] = useState(defaultVat)
+    const [tempIncomeTax, setTempIncomeTax] = useState(defaultIncomeTax)
+
+    const save = () => {
+      setDefaultVat(tempVat)
+      setDefaultIncomeTax(tempIncomeTax)
+      setTimeSettingsOpen(false)
+    }
+
+    return (
+      <>
+        <div className="m-overlay" onClick={() => setTimeSettingsOpen(false)} />
+        <div className="m-top-sheet">
+          <div className="m-sheet-header">
+            <h2>הגדרות דיווחי שעות</h2>
+            <button className="m-close-btn" onClick={() => setTimeSettingsOpen(false)}>✕</button>
+          </div>
+
+          <div className="m-mortgage-field">
+            <label>אחוז מע"מ ברירת מחדל (%)</label>
+            <input 
+              type="number"
+              inputMode="decimal"
+              value={tempVat}
+              onChange={e => setTempVat(e.target.value)}
+              placeholder="18"
+            />
+            <div style={{fontSize: 12, color: '#6B7280', marginTop: 4}}>
+              ערך זה יוצג אוטומטית בעת הוספת לקוח חדש
+            </div>
+          </div>
+
+          <div className="m-mortgage-field">
+            <label>אחוז מס הכנסה ברירת מחדל (%)</label>
+            <input 
+              type="number"
+              inputMode="decimal"
+              value={tempIncomeTax}
+              onChange={e => setTempIncomeTax(e.target.value)}
+              placeholder="30"
+            />
+            <div style={{fontSize: 12, color: '#6B7280', marginTop: 4}}>
+              ערך זה יוצג אוטומטית בעת הוספת לקוח חדש
+            </div>
+          </div>
+
+          <div className="m-mortgage-field">
+            <label>דוגמה לחישוב</label>
+            <div style={{
+              padding: '12px',
+              background: '#F0FDF4',
+              border: '2px solid #BBF7D0',
+              borderRadius: '10px',
+              fontSize: '14px',
+              color: '#166534'
+            }}>
+              <div>תעריף: ₪100</div>
+              <div>+ מע"מ ({tempVat}%): ₪{(100 * parseFloat(tempVat || '0') / 100).toFixed(2)}</div>
+              <div style={{borderTop: '1px solid #BBF7D0', marginTop: 4, paddingTop: 4}}>
+                = ברוטו: ₪{(100 * (1 + parseFloat(tempVat || '0') / 100)).toFixed(2)}
+              </div>
+              <div style={{marginTop: 8}}>
+                - מס הכנסה ({tempIncomeTax}%): ₪{(100 * (1 + parseFloat(tempVat || '0') / 100) * parseFloat(tempIncomeTax || '0') / 100).toFixed(2)}
+              </div>
+              <div style={{borderTop: '1px solid #BBF7D0', marginTop: 4, paddingTop: 4, fontWeight: 700}}>
+                = נטו: ₪{(100 * (1 + parseFloat(tempVat || '0') / 100) * (1 - parseFloat(tempIncomeTax || '0') / 100)).toFixed(2)}
+              </div>
+            </div>
+          </div>
+
+          <button className="m-mortgage-calc-btn" onClick={save}>
+            שמור הגדרות
+          </button>
+        </div>
+      </>
+    )
+  }
+
   // Add Employee Modal
   const AddEmployeeModal = () => {
     if (!addEmployeeOpen) return null
@@ -3695,6 +3799,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       <InlineSheet />
       <AddClientModal />
       <AddTimeEntryModal />
+      <TimeSettingsModal />
       <AddEmployeeModal />
       <QuickAddSheet 
         globalAmountValue={quickAddGlobalAmount}
