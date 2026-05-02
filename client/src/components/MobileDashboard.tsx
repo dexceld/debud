@@ -191,6 +191,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [summaryToDate, setSummaryToDate] = useState('')
   const [summaryClientFilter, setSummaryClientFilter] = useState<string>('all')
   const [summaryStatusFilter, setSummaryStatusFilter] = useState<string>('all')
+  const [reportsPeriod, setReportsPeriod] = useState<'week' | 'month' | 'year'>('week')
   const [clientFormName, setClientFormName] = useState('')
   const [clientFormRate, setClientFormRate] = useState('')
   const [clientFormVat, setClientFormVat] = useState('18')
@@ -2998,43 +2999,164 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
         {/* Tab 3: Reports */}
         {timeTrackingTab === 'reports' && (
-          <div className="m-time-entries">
-            {timeEntries.length === 0 ? (
-              <div className="m-empty-state">אין דיווחים עדיין</div>
-            ) : (
-              [...timeEntries]
-                .sort((a, b) => {
-                  const dateA = new Date(`${a.startDate}T${a.startTime}`)
-                  const dateB = new Date(`${b.startDate}T${b.startTime}`)
-                  return dateB.getTime() - dateA.getTime()
-                })
-                .map(entry => {
-                  const client = clients.find(c => c.id === entry.clientId)
-                  if (!client) return null
-                  const hours = calculateHours(entry)
-                  const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100)
-                  return (
-                    <div key={entry.id} className="m-time-entry">
-                      <div className="m-time-entry-header">
-                        <span className="m-time-entry-date">
-                          {new Date(entry.startDate).toLocaleDateString('he-IL')}
-                        </span>
-                        <span className="m-time-entry-hours">{hours.toFixed(2)} שעות</span>
+          <div className="m-time-summary-tab">
+            {/* Period Filter */}
+            <div style={{display: 'flex', gap: '8px', marginBottom: '16px', justifyContent: 'center'}}>
+              <button 
+                onClick={() => setReportsPeriod('week')}
+                style={{
+                  flex: 1,
+                  padding: '10px',
+                  background: reportsPeriod === 'week' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : '#F3F4F6',
+                  color: reportsPeriod === 'week' ? 'white' : '#6B7280',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              >
+                שבוע
+              </button>
+              <button 
+                onClick={() => setReportsPeriod('month')}
+                style={{
+                  flex: 1,
+                  padding: '10px',
+                  background: reportsPeriod === 'month' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : '#F3F4F6',
+                  color: reportsPeriod === 'month' ? 'white' : '#6B7280',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              >
+                חודש
+              </button>
+              <button 
+                onClick={() => setReportsPeriod('year')}
+                style={{
+                  flex: 1,
+                  padding: '10px',
+                  background: reportsPeriod === 'year' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : '#F3F4F6',
+                  color: reportsPeriod === 'year' ? 'white' : '#6B7280',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              >
+                שנה
+              </button>
+            </div>
+
+            {(() => {
+              const now = new Date()
+              let startDate = new Date()
+              
+              if (reportsPeriod === 'week') {
+                startDate.setDate(now.getDate() - 7)
+              } else if (reportsPeriod === 'month') {
+                startDate.setMonth(now.getMonth() - 1)
+              } else {
+                startDate.setFullYear(now.getFullYear() - 1)
+              }
+
+              const filteredEntries = timeEntries.filter(e => {
+                const entryDate = new Date(e.startDate)
+                return entryDate >= startDate && entryDate <= now
+              })
+
+              const totalHours = filteredEntries.reduce((sum, e) => sum + calculateHours(e), 0)
+              let totalAmount = 0
+              filteredEntries.forEach(e => {
+                const client = clients.find(c => c.id === e.clientId)
+                if (client) {
+                  const hours = calculateHours(e)
+                  totalAmount += hours * client.hourlyRate * (1 + client.vatPercent / 100)
+                }
+              })
+
+              return (
+                <>
+                  {/* Summary Card */}
+                  <div style={{
+                    padding: '20px',
+                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                    borderRadius: '16px',
+                    marginBottom: '20px',
+                    boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)'
+                  }}>
+                    <div style={{fontSize: 14, color: 'rgba(255,255,255,0.9)', marginBottom: 12, textAlign: 'center'}}>
+                      {reportsPeriod === 'week' ? 'שבוע אחרון' : reportsPeriod === 'month' ? 'חודש אחרון' : 'שנה אחרונה'}
+                    </div>
+                    <div style={{display: 'flex', justifyContent: 'space-around', gap: '20px'}}>
+                      <div style={{textAlign: 'center'}}>
+                        <div style={{fontSize: 28, fontWeight: 700, color: 'white'}}>{totalHours.toFixed(1)}</div>
+                        <div style={{fontSize: 13, color: 'rgba(255,255,255,0.8)'}}>שעות</div>
                       </div>
-                      <div className="m-time-entry-client">{client.name}</div>
-                      <div className="m-time-entry-time">
-                        {entry.startTime} - {entry.endTime}
-                      </div>
-                      {entry.notes && (
-                        <div className="m-time-entry-notes">{entry.notes}</div>
-                      )}
-                      <div className="m-time-entry-amount">
-                        ₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
+                      <div style={{textAlign: 'center'}}>
+                        <div style={{fontSize: 28, fontWeight: 700, color: 'white'}}>₪{totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
+                        <div style={{fontSize: 13, color: 'rgba(255,255,255,0.8)'}}>הכנסות</div>
                       </div>
                     </div>
-                  )
-                })
-            )}
+                  </div>
+
+                  {/* Compact List */}
+                  <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
+                    {filteredEntries.length === 0 ? (
+                      <div className="m-empty-state">אין דיווחים בתקופה זו</div>
+                    ) : (
+                      [...filteredEntries]
+                        .sort((a, b) => {
+                          const dateA = new Date(`${a.startDate}T${a.startTime}`)
+                          const dateB = new Date(`${b.startDate}T${b.startTime}`)
+                          return dateB.getTime() - dateA.getTime()
+                        })
+                        .map(entry => {
+                          const client = clients.find(c => c.id === entry.clientId)
+                          if (!client) return null
+                          const hours = calculateHours(entry)
+                          const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100)
+                          return (
+                            <div 
+                              key={entry.id} 
+                              style={{
+                                padding: '12px 16px',
+                                background: 'white',
+                                border: '1px solid #E5E7EB',
+                                borderRadius: '10px',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center'
+                              }}
+                            >
+                              <div style={{flex: 1}}>
+                                <div style={{fontSize: 14, fontWeight: 600, color: '#10b981', marginBottom: 2}}>
+                                  {client.name}
+                                </div>
+                                <div style={{fontSize: 12, color: '#6B7280'}}>
+                                  {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit'})} · {entry.startTime}-{entry.endTime}
+                                </div>
+                              </div>
+                              <div style={{textAlign: 'left'}}>
+                                <div style={{fontSize: 16, fontWeight: 700, color: '#111827'}}>
+                                  ₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
+                                </div>
+                                <div style={{fontSize: 12, color: '#6B7280'}}>
+                                  {hours.toFixed(1)} שעות
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })
+                    )}
+                  </div>
+                </>
+              )
+            })()}
           </div>
         )}
 
