@@ -4438,3 +4438,27 @@
   font-weight: 700;
   color: white;
 }
+
+.m-fab-time {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  z-index: 100;
+}
+
+.m-fab-time:active {
+  transform: scale(0.95);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}

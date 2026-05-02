@@ -173,6 +173,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [timerRunning, setTimerRunning] = useState(false)
   const [timerStart, setTimerStart] = useState<Date | null>(null)
   const [addClientOpen, setAddClientOpen] = useState(false)
+  const [editClientId, setEditClientId] = useState<string | null>(null)
   const [addTimeEntryOpen, setAddTimeEntryOpen] = useState(false)
   const [summaryFromDate, setSummaryFromDate] = useState('')
   const [summaryToDate, setSummaryToDate] = useState('')
@@ -2713,6 +2714,15 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         setTimerRunning(false)
       }
 
+      const openEditClient = () => {
+        setClientFormName(client.name)
+        setClientFormRate(client.hourlyRate.toString())
+        setClientFormVat(client.vatPercent.toString())
+        setClientFormIncomeTax(client.incomeTaxPercent.toString())
+        setEditClientId(client.id)
+        setAddClientOpen(true)
+      }
+
       return (
         <div className="m-screen">
           <div className="m-header">
@@ -2720,8 +2730,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
             <h1 className="m-title">{client.name}</h1>
-            <button className="m-add-btn" onClick={() => setAddTimeEntryOpen(true)}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <button className="m-add-btn" onClick={openEditClient}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <circle cx="12" cy="12" r="1"/>
+                <circle cx="12" cy="5" r="1"/>
+                <circle cx="12" cy="19" r="1"/>
+              </svg>
             </button>
           </div>
 
@@ -2807,6 +2821,17 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               })
             )}
           </div>
+
+          {/* Floating Action Button */}
+          <button 
+            className="m-fab-time"
+            onClick={() => setAddTimeEntryOpen(true)}
+          >
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </button>
         </div>
       )
     }
@@ -3078,18 +3103,37 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         alert('נא למלא שם ותעריף')
         return
       }
-      const client: Client = {
-        id: Date.now().toString(),
-        name: clientFormName,
-        hourlyRate: parseFloat(clientFormRate),
-        vatPercent: parseFloat(clientFormVat),
-        incomeTaxPercent: parseFloat(clientFormIncomeTax)
+      
+      if (editClientId) {
+        // עריכת לקוח קיים
+        setClients(prev => prev.map(c => 
+          c.id === editClientId 
+            ? {
+                ...c,
+                name: clientFormName,
+                hourlyRate: parseFloat(clientFormRate),
+                vatPercent: parseFloat(clientFormVat),
+                incomeTaxPercent: parseFloat(clientFormIncomeTax)
+              }
+            : c
+        ))
+      } else {
+        // לקוח חדש
+        const client: Client = {
+          id: Date.now().toString(),
+          name: clientFormName,
+          hourlyRate: parseFloat(clientFormRate),
+          vatPercent: parseFloat(clientFormVat),
+          incomeTaxPercent: parseFloat(clientFormIncomeTax)
+        }
+        setClients(prev => [...prev, client])
       }
-      setClients(prev => [...prev, client])
+      
       setClientFormName('')
       setClientFormRate('')
       setClientFormVat('18')
       setClientFormIncomeTax('30')
+      setEditClientId(null)
       setAddClientOpen(false)
     }
 
@@ -3105,8 +3149,15 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         <div className="m-overlay" onClick={() => setAddClientOpen(false)} />
         <div className="m-top-sheet">
           <div className="m-sheet-header">
-            <h2>לקוח חדש</h2>
-            <button className="m-close-btn" onClick={() => setAddClientOpen(false)}>✕</button>
+            <h2>{editClientId ? 'עריכת לקוח' : 'לקוח חדש'}</h2>
+            <button className="m-close-btn" onClick={() => {
+              setAddClientOpen(false)
+              setEditClientId(null)
+              setClientFormName('')
+              setClientFormRate('')
+              setClientFormVat('18')
+              setClientFormIncomeTax('30')
+            }}>✕</button>
           </div>
 
           <div className="m-mortgage-field">
@@ -3163,8 +3214,35 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           </div>
 
           <button className="m-mortgage-calc-btn" onClick={save}>
-            שמור לקוח
+            {editClientId ? 'עדכן לקוח' : 'שמור לקוח'}
           </button>
+          
+          {editClientId && (
+            <button 
+              onClick={() => {
+                if (confirm('למחוק את הלקוח?')) {
+                  setClients(prev => prev.filter(c => c.id !== editClientId))
+                  setAddClientOpen(false)
+                  setEditClientId(null)
+                  setSelectedClientId(null)
+                }
+              }}
+              style={{
+                width: '100%',
+                padding: '14px',
+                background: '#ef4444',
+                color: 'white',
+                border: 'none',
+                borderRadius: '12px',
+                fontSize: '16px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                marginTop: '12px'
+              }}
+            >
+              מחק לקוח
+            </button>
+          )}
         </div>
       </>
     )
@@ -3217,46 +3295,48 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <button className="m-close-btn" onClick={() => setAddTimeEntryOpen(false)}>✕</button>
           </div>
 
+          {/* Start Date & Time */}
           <div className="m-mortgage-field">
-            <label>תאריך התחלה</label>
-            <input 
-              type="date"
-              value={entryFormStartDate}
-              onChange={e => {
-                setEntryFormStartDate(e.target.value)
-                if (!entryFormEndDate || entryFormEndDate < e.target.value) {
-                  setEntryFormEndDate(e.target.value)
-                }
-              }}
-            />
+            <label>מתי</label>
+            <div style={{display: 'flex', gap: '8px'}}>
+              <input 
+                type="date"
+                value={entryFormStartDate}
+                onChange={e => {
+                  setEntryFormStartDate(e.target.value)
+                  if (!entryFormEndDate || entryFormEndDate < e.target.value) {
+                    setEntryFormEndDate(e.target.value)
+                  }
+                }}
+                style={{flex: 1}}
+              />
+              <input 
+                type="time"
+                value={entryFormStartTime}
+                onChange={e => setEntryFormStartTime(e.target.value)}
+                style={{width: '110px'}}
+              />
+            </div>
           </div>
 
+          {/* End Date & Time */}
           <div className="m-mortgage-field">
-            <label>תאריך סיום</label>
-            <input 
-              type="date"
-              value={entryFormEndDate}
-              onChange={e => setEntryFormEndDate(e.target.value)}
-              min={entryFormStartDate}
-            />
-          </div>
-
-          <div className="m-mortgage-field">
-            <label>שעת התחלה</label>
-            <input 
-              type="time"
-              value={entryFormStartTime}
-              onChange={e => setEntryFormStartTime(e.target.value)}
-            />
-          </div>
-
-          <div className="m-mortgage-field">
-            <label>שעת סיום</label>
-            <input 
-              type="time"
-              value={entryFormEndTime}
-              onChange={e => setEntryFormEndTime(e.target.value)}
-            />
+            <label>עד</label>
+            <div style={{display: 'flex', gap: '8px'}}>
+              <input 
+                type="date"
+                value={entryFormEndDate}
+                onChange={e => setEntryFormEndDate(e.target.value)}
+                min={entryFormStartDate}
+                style={{flex: 1}}
+              />
+              <input 
+                type="time"
+                value={entryFormEndTime}
+                onChange={e => setEntryFormEndTime(e.target.value)}
+                style={{width: '110px'}}
+              />
+            </div>
           </div>
 
           <div className="m-mortgage-field">
