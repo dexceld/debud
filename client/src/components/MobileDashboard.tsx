@@ -3676,6 +3676,22 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       setEntryFormEndDate(today)
     }
 
+    // Calculate hours and amount
+    let calculatedHours = 0
+    let calculatedAmount = 0
+    if (entryFormStartDate && entryFormEndDate && entryFormStartTime && entryFormEndTime) {
+      const start = new Date(`${entryFormStartDate}T${entryFormStartTime}`)
+      const end = new Date(`${entryFormEndDate}T${entryFormEndTime}`)
+      calculatedHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60)
+      
+      if (quickTimeClientId) {
+        const client = clients.find(c => c.id === quickTimeClientId)
+        if (client && calculatedHours > 0) {
+          calculatedAmount = calculatedHours * client.hourlyRate * (1 + client.vatPercent / 100)
+        }
+      }
+    }
+
     const save = () => {
       if (!quickTimeClientId || !entryFormStartDate || !entryFormEndDate || !entryFormStartTime || !entryFormEndTime) {
         alert('נא למלא את כל השדות')
@@ -3813,6 +3829,30 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               }}
             />
           </div>
+
+          {/* Calculation Summary */}
+          {calculatedHours > 0 && (
+            <div style={{
+              padding: '16px',
+              background: '#F0FDF4',
+              border: '2px solid #BBF7D0',
+              borderRadius: '12px',
+              marginBottom: '16px'
+            }}>
+              <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
+                <span style={{fontSize: 14, color: '#166534'}}>שעות:</span>
+                <span style={{fontSize: 16, fontWeight: 700, color: '#15803D'}}>{calculatedHours.toFixed(2)}</span>
+              </div>
+              {calculatedAmount > 0 && (
+                <div style={{display: 'flex', justifyContent: 'space-between'}}>
+                  <span style={{fontSize: 14, color: '#166534'}}>סכום:</span>
+                  <span style={{fontSize: 18, fontWeight: 700, color: '#15803D'}}>
+                    ₪{calculatedAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
 
           <button className="m-mortgage-calc-btn" onClick={save}>
             שמור דיווח
