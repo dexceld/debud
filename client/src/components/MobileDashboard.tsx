@@ -2850,10 +2850,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
       const clientEntries = timeEntries.filter(e => e.clientId === selectedClientId)
 
-      const totalHours = clientEntries.reduce((sum, e) => sum + calculateHours(e), 0)
-      const grossAmount = totalHours * client.hourlyRate * (1 + client.vatPercent / 100) // ברוטו כולל מע"מ
-      const netAmount = grossAmount * (1 - client.incomeTaxPercent / 100) // נטו אחרי מס הכנסה
-
       const startTimer = () => {
         setTimerStart(new Date())
         setTimerRunning(true)
@@ -2890,7 +2886,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       return (
         <div className="m-screen">
           <div className="m-header">
-            <button className="m-back-btn" onClick={() => setSelectedClientId(null)}>
+            <button className="m-back-btn" onClick={() => { setSelectedClientId(null); setScreen('home'); }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
             <h1 className="m-title">{client.name}</h1>
@@ -2936,33 +2932,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </div>
           )}
 
-          {/* Summary */}
-          <div className="m-time-summary">
-            <div className="m-time-summary-row">
-              <span>סה"כ שעות:</span>
-              <span className="m-time-summary-value">{totalHours.toFixed(2)}</span>
-            </div>
-            <div className="m-time-summary-row">
-              <span>תעריף לשעה:</span>
-              <span className="m-time-summary-value">₪{client.hourlyRate.toLocaleString()}</span>
-            </div>
-            <div className="m-time-summary-row">
-              <span>מע"מ ({client.vatPercent}%):</span>
-              <span className="m-time-summary-value">₪{(totalHours * client.hourlyRate * client.vatPercent / 100).toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
-            </div>
-            <div className="m-time-summary-row">
-              <span>ברוטו:</span>
-              <span className="m-time-summary-value">₪{grossAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
-            </div>
-            <div className="m-time-summary-row">
-              <span>מס הכנסה ({client.incomeTaxPercent}%):</span>
-              <span className="m-time-summary-value">₪{(grossAmount * client.incomeTaxPercent / 100).toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
-            </div>
-            <div className="m-time-summary-row m-time-summary-total">
-              <span>נטו:</span>
-              <span className="m-time-summary-value">₪{netAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
-            </div>
-          </div>
 
           {/* Time Entries List - Compact, scrolls with the page */}
           <div>
@@ -3010,7 +2979,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           <span style={{width: 8, height: 8, borderRadius: '50%', background: empStatusColor, flexShrink: 0, marginLeft: -4}} title="עובד" />
                         )}
                         <div>
-                          <div style={{fontSize: 13, color: '#374151'}}>
+                          <div style={{fontSize: 15, fontWeight: 600, color: '#111827'}}>
                             {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit'})} · {entry.startTime}-{entry.endTime}
                           </div>
                           {entry.notes && (
