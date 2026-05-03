@@ -2890,13 +2890,40 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
             <h1 className="m-title">{client.name}</h1>
-            <button className="m-add-btn" onClick={openEditClient}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <circle cx="12" cy="12" r="1"/>
-                <circle cx="12" cy="5" r="1"/>
-                <circle cx="12" cy="19" r="1"/>
-              </svg>
-            </button>
+            <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+              {/* Floating Manual Entry Button */}
+              <button
+                onClick={() => setAddTimeEntryOpen(true)}
+                style={{
+                  background: 'rgba(59, 130, 246, 0.85)',
+                  backdropFilter: 'blur(4px)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '20px',
+                  padding: '6px 12px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                ידני
+              </button>
+              <button className="m-add-btn" onClick={openEditClient}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <circle cx="12" cy="12" r="1"/>
+                  <circle cx="12" cy="5" r="1"/>
+                  <circle cx="12" cy="19" r="1"/>
+                </svg>
+              </button>
+            </div>
           </div>
 
           <TimerBanner />
@@ -2916,13 +2943,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               disabled={!timerRunning}
             >
               ⏹ סיום
-            </button>
-            <button
-              className="m-timer-btn"
-              onClick={() => setAddTimeEntryOpen(true)}
-              style={{background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: 'white', minWidth: '100px'}}
-            >
-              ＋ ידני
             </button>
           </div>
 
