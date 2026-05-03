@@ -2886,7 +2886,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       return (
         <div className="m-screen">
           <div className="m-header">
-            <button className="m-back-btn" onClick={() => { setSelectedClientId(null); setScreen('home'); }}>
+            <button className="m-back-btn" onClick={() => setSelectedClientId(null)}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
             <h1 className="m-title">{client.name}</h1>
