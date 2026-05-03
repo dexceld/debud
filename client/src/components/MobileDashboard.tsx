@@ -3246,177 +3246,156 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </div>
 
             {(() => {
+              // Group entries by period (weeks, months, or years)
               const now = new Date()
-              let startDate = new Date()
-              
-              if (reportsPeriod === 'week') {
-                startDate.setDate(now.getDate() - 7)
-              } else if (reportsPeriod === 'month') {
-                startDate.setMonth(now.getMonth() - 1)
-              } else {
-                startDate.setFullYear(now.getFullYear() - 1)
-              }
+              const periods: {label: string, start: Date, end: Date, entries: TimeEntry[]}[] = []
 
-              const filteredEntries = timeEntries.filter(e => {
-                const entryDate = new Date(e.startDate)
-                return entryDate >= startDate && entryDate <= now
-              })
+              // Generate last 12 periods
+              for (let i = 0; i < 12; i++) {
+                const periodEnd = new Date(now)
+                const periodStart = new Date(now)
 
-              const totalHours = filteredEntries.reduce((sum, e) => sum + calculateHours(e), 0)
-              let totalAmount = 0
-              filteredEntries.forEach(e => {
-                const client = clients.find(c => c.id === e.clientId)
-                if (client) {
-                  const hours = calculateHours(e)
-                  totalAmount += hours * client.hourlyRate * (1 + client.vatPercent / 100)
+                if (reportsPeriod === 'week') {
+                  periodEnd.setDate(now.getDate() - (i * 7))
+                  periodStart.setDate(now.getDate() - ((i + 1) * 7) + 1)
+                } else if (reportsPeriod === 'month') {
+                  periodEnd.setMonth(now.getMonth() - i)
+                  periodEnd.setDate(0) // last day of month
+                  periodStart.setMonth(now.getMonth() - i - 1)
+                  periodStart.setDate(1) // first day of month
+                } else {
+                  periodEnd.setFullYear(now.getFullYear() - i)
+                  periodEnd.setMonth(11, 31) // Dec 31
+                  periodStart.setFullYear(now.getFullYear() - i - 1)
+                  periodStart.setMonth(0, 1) // Jan 1
                 }
-              })
+
+                const periodEntries = timeEntries.filter(e => {
+                  const entryDate = new Date(e.startDate)
+                  return entryDate >= periodStart && entryDate <= periodEnd
+                })
+
+                if (periodEntries.length > 0 || i === 0) { // Show current period even if empty
+                  let label = ''
+                  if (reportsPeriod === 'week') {
+                    label = i === 0 ? 'שבוע הנוכחי' : i === 1 ? 'שבוע שעבר' : `לפני ${i} שבועות`
+                  } else if (reportsPeriod === 'month') {
+                    label = periodStart.toLocaleDateString('he-IL', {month: 'long', year: 'numeric'})
+                  } else {
+                    label = periodStart.getFullYear().toString()
+                  }
+
+                  periods.push({
+                    label,
+                    start: periodStart,
+                    end: periodEnd,
+                    entries: periodEntries
+                  })
+                }
+              }
 
               return (
                 <>
-                  {/* Summary Row - compact, not prominent */}
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '12px 16px',
-                    marginBottom: '12px',
-                    background: '#F9FAFB',
-                    borderRadius: '10px',
-                    border: '1px solid #E5E7EB'
-                  }}>
-                    <div style={{fontSize: 13, color: '#6B7280'}}>
-                      {reportsPeriod === 'week' ? 'שבוע אחרון' : reportsPeriod === 'month' ? 'חודש אחרון' : 'שנה אחרונה'}
-                    </div>
-                    <div style={{display: 'flex', gap: '16px', fontSize: 14}}>
-                      <span style={{color: '#374151'}}><strong>{totalHours.toFixed(1)}</strong> שעות</span>
-                      <span style={{color: '#059669'}}><strong>₪{totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</strong></span>
-                    </div>
-                  </div>
+                  {/* Period Summary Cards */}
+                  {periods.map((period, idx) => {
+                    const totalHours = period.entries.reduce((sum, e) => sum + calculateHours(e), 0)
+                    let totalAmount = 0
+                    period.entries.forEach(e => {
+                      const client = clients.find(c => c.id === e.clientId)
+                      if (client) {
+                        const hours = calculateHours(e)
+                        totalAmount += hours * client.hourlyRate * (1 + client.vatPercent / 100)
+                      }
+                    })
 
-                  {/* Bulk action bar */}
-                  {selectedEntryIds.length > 0 ? (
-                    <div style={{
-                      position: 'sticky', top: 0, zIndex: 5,
-                      background: '#1d4ed8', color: 'white',
-                      padding: '10px 12px', borderRadius: 10,
-                      marginBottom: 8, display: 'flex',
-                      alignItems: 'center', justifyContent: 'space-between',
-                      boxShadow: '0 4px 12px rgba(29,78,216,0.3)'
-                    }}>
-                      <div style={{fontWeight: 600}}>{selectedEntryIds.length} נבחרו</div>
-                      <div style={{display: 'flex', gap: 6}}>
-                        <button
-                          onClick={() => setBulkActionOpen(true)}
-                          style={{background: 'white', color: '#1d4ed8', border: 'none', padding: '7px 12px', borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: 'pointer'}}
-                        >פעולה</button>
-                        <button
-                          onClick={() => setSelectedEntryIds([])}
-                          style={{background: 'transparent', color: 'white', border: '1px solid rgba(255,255,255,0.5)', padding: '7px 10px', borderRadius: 8, fontSize: 13, cursor: 'pointer'}}
-                        >בטל</button>
+                    return (
+                      <div key={idx} style={{
+                        background: idx === 0 ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'white',
+                        borderRadius: '12px',
+                        padding: '14px 16px',
+                        marginBottom: '10px',
+                        border: idx === 0 ? 'none' : '1px solid #E5E7EB',
+                        boxShadow: idx === 0 ? '0 4px 12px rgba(16, 185, 129, 0.25)' : '0 1px 3px rgba(0,0,0,0.05)'
+                      }}>
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginBottom: period.entries.length > 0 ? '10px' : '0'
+                        }}>
+                          <div style={{
+                            fontSize: 14,
+                            fontWeight: 600,
+                            color: idx === 0 ? 'white' : '#374151'
+                          }}>
+                            {period.label}
+                          </div>
+                          <div style={{display: 'flex', gap: '12px', fontSize: 13}}>
+                            <span style={{color: idx === 0 ? 'rgba(255,255,255,0.9)' : '#6B7280'}}>
+                              {totalHours.toFixed(1)} שע'
+                            </span>
+                            <span style={{color: idx === 0 ? 'white' : '#059669', fontWeight: 600}}>
+                              ₪{totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Show entry count for past periods */}
+                        {idx > 0 && period.entries.length > 0 && (
+                          <div style={{
+                            fontSize: 12,
+                            color: '#9CA3AF',
+                            marginTop: '4px'
+                          }}>
+                            {period.entries.length} דיווחים
+                          </div>
+                        )}
+
+                        {/* Expandable entry list for current period */}
+                        {idx === 0 && period.entries.length > 0 && (
+                          <div style={{
+                            marginTop: '10px',
+                            paddingTop: '10px',
+                            borderTop: '1px solid rgba(255,255,255,0.2)'
+                          }}>
+                            {period.entries.slice(0, 3).map((entry, eidx) => {
+                              const client = clients.find(c => c.id === entry.clientId)
+                              if (!client) return null
+                              const hours = calculateHours(entry)
+                              return (
+                                <div key={entry.id} style={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  padding: '6px 0',
+                                  fontSize: 12,
+                                  color: 'rgba(255,255,255,0.9)',
+                                  borderBottom: eidx < 2 && eidx < period.entries.length - 1 ? '1px solid rgba(255,255,255,0.15)' : 'none'
+                                }}>
+                                  <span>{client.name} · {new Date(entry.startDate).toLocaleDateString('he-IL', {day:'numeric', month:'short'})}</span>
+                                  <span>{hours.toFixed(1)}ש</span>
+                                </div>
+                              )
+                            })}
+                            {period.entries.length > 3 && (
+                              <div style={{
+                                textAlign: 'center',
+                                fontSize: 11,
+                                color: 'rgba(255,255,255,0.7)',
+                                marginTop: '6px',
+                                paddingTop: '6px'
+                              }}>
+                                + עוד {period.entries.length - 3} דיווחים
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ) : (
-                    filteredEntries.length > 0 && (
-                      <button
-                        onClick={() => setSelectedEntryIds(filteredEntries.map(e => e.id))}
-                        style={{
-                          width: '100%', padding: '10px', marginBottom: 8,
-                          background: '#EFF6FF', color: '#1d4ed8', border: '1px dashed #93c5fd',
-                          borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer'
-                        }}
-                      >
-                        ☑ בחר את כל {filteredEntries.length} הדיווחים בטווח
-                      </button>
                     )
-                  )}
+                  })}
 
-                  {/* Compact List with separators, clickable */}
-                  {filteredEntries.length === 0 ? (
+                  {periods.length === 0 && (
                     <div className="m-empty-state">אין דיווחים בתקופה זו</div>
-                  ) : (
-                    <div style={{background: 'white', border: '1px solid #E5E7EB', borderRadius: 12, overflow: 'hidden'}}>
-                      {[...filteredEntries]
-                        .sort((a, b) => {
-                          const dateA = new Date(`${a.startDate}T${a.startTime}`)
-                          const dateB = new Date(`${b.startDate}T${b.startTime}`)
-                          return dateB.getTime() - dateA.getTime()
-                        })
-                        .map((entry, idx, arr) => {
-                          const client = clients.find(c => c.id === entry.clientId)
-                          if (!client) return null
-                          const hours = calculateHours(entry)
-                          const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100)
-                          const status = entry.billingStatus || 'pending'
-                          const statusColor = status === 'paid' ? '#10b981' : status === 'invoiced' ? '#3b82f6' : '#f59e0b'
-                          const statusLabel = status === 'paid' ? 'שולם' : status === 'invoiced' ? 'נחשב' : 'ממתין'
-                          const isSelected = selectedEntryIds.includes(entry.id)
-                          const inSelectMode = selectedEntryIds.length > 0
-                          return (
-                            <div 
-                              key={entry.id} 
-                              onClick={() => {
-                                if (inSelectMode) {
-                                  setSelectedEntryIds(prev => prev.includes(entry.id) ? prev.filter(i => i !== entry.id) : [...prev, entry.id])
-                                } else {
-                                  setSelectedClientId(entry.clientId)
-                                  setEntryFormStartDate(entry.startDate)
-                                  setEntryFormEndDate(entry.endDate)
-                                  setEntryFormStartTime(entry.startTime)
-                                  setEntryFormEndTime(entry.endTime)
-                                  setEntryFormNotes(entry.notes || '')
-                                  setEntryFormEmployeeId(entry.employeeId || 'self')
-                                  setEditEntryId(entry.id)
-                                  setAddTimeEntryOpen(true)
-                                }
-                              }}
-                              onContextMenu={(e) => {
-                                e.preventDefault()
-                                setSelectedEntryIds(prev => prev.includes(entry.id) ? prev : [...prev, entry.id])
-                              }}
-                              style={{
-                                padding: '10px 14px',
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                borderBottom: idx < arr.length - 1 ? '2px solid #E5E7EB' : 'none',
-                                background: isSelected ? '#EFF6FF' : 'white',
-                                cursor: 'pointer'
-                              }}
-                            >
-                              <div style={{flex: 1, display: 'flex', alignItems: 'center', gap: 10, minWidth: 0}}>
-                                {inSelectMode && (
-                                  <input
-                                    type="checkbox"
-                                    checked={isSelected}
-                                    onChange={() => {}}
-                                    style={{width: 18, height: 18, accentColor: '#1d4ed8'}}
-                                  />
-                                )}
-                                <span style={{width: 8, height: 8, borderRadius: '50%', background: statusColor, flexShrink: 0}} title={statusLabel} />
-                                {entry.employeeId && (
-                                  <span style={{width: 8, height: 8, borderRadius: '50%', background: entry.employeePaidStatus === 'paid' ? '#8b5cf6' : '#cbd5e1', flexShrink: 0, marginLeft: -2}} title="עובד" />
-                                )}
-                                <div style={{minWidth: 0}}>
-                                  <div style={{fontSize: 14, fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
-                                    {client.name}
-                                  </div>
-                                  <div style={{fontSize: 12, color: '#6B7280'}}>
-                                    {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit'})} · {entry.startTime}-{entry.endTime}
-                                    {entry.invoiceNumber && <span style={{marginInlineStart: 6, color: '#3b82f6'}}>• #{entry.invoiceNumber}</span>}
-                                  </div>
-                                </div>
-                              </div>
-                              <div style={{textAlign: 'left', marginLeft: 8}}>
-                                <div style={{fontSize: 15, fontWeight: 700, color: '#111827'}}>
-                                  ₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
-                                </div>
-                                <div style={{fontSize: 11, color: '#6B7280'}}>{hours.toFixed(1)}h</div>
-                              </div>
-                            </div>
-                          )
-                        })}
-                    </div>
                   )}
                 </>
               )
