@@ -2891,12 +2891,20 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </button>
             <h1 className="m-title">{client.name}</h1>
             <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
-              {/* Floating Manual Entry Button */}
+              {/* Manual Entry Button */}
               <button
-                onClick={() => setAddTimeEntryOpen(true)}
+                onClick={() => {
+                  setEditEntryId(null)
+                  setEntryFormStartDate('')
+                  setEntryFormEndDate('')
+                  setEntryFormStartTime('')
+                  setEntryFormEndTime('')
+                  setEntryFormNotes('')
+                  setEntryFormEmployeeId('self')
+                  setAddTimeEntryOpen(true)
+                }}
                 style={{
-                  background: 'rgba(59, 130, 246, 0.85)',
-                  backdropFilter: 'blur(4px)',
+                  background: 'rgba(59, 130, 246, 0.9)',
                   color: 'white',
                   border: 'none',
                   borderRadius: '20px',
@@ -2999,8 +3007,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           <span style={{width: 8, height: 8, borderRadius: '50%', background: empStatusColor, flexShrink: 0, marginLeft: -4}} title="עובד" />
                         )}
                         <div>
-                          <div style={{fontSize: 15, fontWeight: 600, color: '#111827'}}>
-                            {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit'})} · {entry.startTime}-{entry.endTime}
+                          <div style={{fontSize: 16, fontWeight: 700, color: '#111827'}}>
+                            {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit'})}
+                          </div>
+                          <div style={{fontSize: 12, color: '#6B7280', marginTop: '2px'}}>
+                            {entry.startTime}-{entry.endTime}
                           </div>
                           {entry.notes && (
                             <div style={{fontSize: 12, color: '#9CA3AF', marginTop: 2}}>{entry.notes}</div>
