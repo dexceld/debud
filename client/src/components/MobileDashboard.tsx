@@ -3351,54 +3351,66 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           </div>
                         </div>
 
-                        {/* Show entry count for past periods */}
-                        {idx > 0 && period.entries.length > 0 && (
+                        {/* Full entry list for this period */}
+                        {period.entries.length > 0 && (
                           <div style={{
-                            fontSize: 12,
-                            color: '#9CA3AF',
-                            marginTop: '4px'
+                            marginTop: '12px',
+                            background: idx === 0 ? 'rgba(255,255,255,0.15)' : '#F9FAFB',
+                            borderRadius: '8px',
+                            padding: '8px 10px'
                           }}>
-                            {period.entries.length} דיווחים
-                          </div>
-                        )}
-
-                        {/* Expandable entry list for current period */}
-                        {idx === 0 && period.entries.length > 0 && (
-                          <div style={{
-                            marginTop: '10px',
-                            paddingTop: '10px',
-                            borderTop: '1px solid rgba(255,255,255,0.2)'
-                          }}>
-                            {period.entries.slice(0, 3).map((entry, eidx) => {
+                            {period.entries.map((entry, eidx) => {
                               const client = clients.find(c => c.id === entry.clientId)
                               if (!client) return null
                               const hours = calculateHours(entry)
+                              const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100)
+                              const status = entry.billingStatus || 'pending'
+                              const statusColor = status === 'paid' ? '#10b981' : status === 'invoiced' ? '#3b82f6' : '#f59e0b'
                               return (
-                                <div key={entry.id} style={{
-                                  display: 'flex',
-                                  justifyContent: 'space-between',
-                                  alignItems: 'center',
-                                  padding: '6px 0',
-                                  fontSize: 12,
-                                  color: 'rgba(255,255,255,0.9)',
-                                  borderBottom: eidx < 2 && eidx < period.entries.length - 1 ? '1px solid rgba(255,255,255,0.15)' : 'none'
-                                }}>
-                                  <span>{client.name} · {new Date(entry.startDate).toLocaleDateString('he-IL', {day:'numeric', month:'short'})}</span>
-                                  <span>{hours.toFixed(1)}ש</span>
+                                <div
+                                  key={entry.id}
+                                  onClick={() => {
+                                    setSelectedClientId(entry.clientId)
+                                    setEntryFormStartDate(entry.startDate)
+                                    setEntryFormEndDate(entry.endDate)
+                                    setEntryFormStartTime(entry.startTime)
+                                    setEntryFormEndTime(entry.endTime)
+                                    setEntryFormNotes(entry.notes || '')
+                                    setEntryFormEmployeeId(entry.employeeId || 'self')
+                                    setEditEntryId(entry.id)
+                                    setAddTimeEntryOpen(true)
+                                  }}
+                                  style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    padding: '8px 0',
+                                    borderBottom: eidx < period.entries.length - 1 ? (idx === 0 ? '1px solid rgba(255,255,255,0.2)' : '1px solid #E5E7EB') : 'none',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+                                    <span style={{width: 6, height: 6, borderRadius: '50%', background: statusColor, flexShrink: 0}} />
+                                    <div>
+                                      <div style={{fontSize: 13, fontWeight: 600, color: idx === 0 ? 'white' : '#374151'}}>
+                                        {client.name}
+                                      </div>
+                                      <div style={{fontSize: 11, color: idx === 0 ? 'rgba(255,255,255,0.8)' : '#6B7280'}}>
+                                        {new Date(entry.startDate).toLocaleDateString('he-IL', {day: 'numeric', month: 'short'})} · {entry.startTime}-{entry.endTime}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div style={{textAlign: 'left'}}>
+                                    <div style={{fontSize: 13, fontWeight: 600, color: idx === 0 ? 'white' : '#111827'}}>
+                                      ₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
+                                    </div>
+                                    <div style={{fontSize: 11, color: idx === 0 ? 'rgba(255,255,255,0.8)' : '#6B7280'}}>
+                                      {hours.toFixed(1)}ש
+                                    </div>
+                                  </div>
                                 </div>
                               )
                             })}
-                            {period.entries.length > 3 && (
-                              <div style={{
-                                textAlign: 'center',
-                                fontSize: 11,
-                                color: 'rgba(255,255,255,0.7)',
-                                marginTop: '6px',
-                                paddingTop: '6px'
-                              }}>
-                                + עוד {period.entries.length - 3} דיווחים
-                              </div>
-                            )}
                           </div>
                         )}
                       </div>
