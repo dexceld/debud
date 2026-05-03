@@ -105,8 +105,10 @@ type TimeEntry = {
   startTime: string // HH:MM
   endTime: string // HH:MM
   notes: string
-  billingStatus?: 'pending' | 'invoiced' | 'paid' // סטטוס חיוב
-  invoiceNumber?: string // מספר חשבונית
+  billingStatus?: 'pending' | 'invoiced' | 'paid' // סטטוס חיוב ללקוח
+  invoiceNumber?: string // מספר חשבונית ללקוח
+  employeePaidStatus?: 'pending' | 'paid' // סטטוס תשלום לעובד
+  employeeInvoiceNumber?: string // מספר חשבונית של העובד אליי
 }
 
 export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode }: { uid: string; userEmail: string; userPhoto?: string; isLocalMode?: boolean }) {
@@ -218,6 +220,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [selectedEntryIds, setSelectedEntryIds] = useState<string[]>([])
   const [bulkActionOpen, setBulkActionOpen] = useState(false)
   const [bulkInvoiceNumber, setBulkInvoiceNumber] = useState('')
+  const [bulkEmployeeInvoiceNumber, setBulkEmployeeInvoiceNumber] = useState('')
   // Long-press helpers (shared across cards)
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const longPressFiredRef = useRef(false)
@@ -2902,21 +2905,28 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
           <TimerBanner />
 
-          {/* Timer Buttons */}
+          {/* Timer & Manual Entry Buttons */}
           <div className="m-timer-row">
-            <button 
+            <button
               className="m-timer-btn m-timer-start"
               onClick={startTimer}
               disabled={timerRunning}
             >
               ▶ התחלה
             </button>
-            <button 
+            <button
               className="m-timer-btn m-timer-stop"
               onClick={stopTimer}
               disabled={!timerRunning}
             >
               ⏹ סיום
+            </button>
+            <button
+              className="m-timer-btn"
+              onClick={() => setAddTimeEntryOpen(true)}
+              style={{background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: 'white', minWidth: '100px'}}
+            >
+              ＋ ידני
             </button>
           </div>
 
@@ -2955,7 +2965,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           </div>
 
           {/* Time Entries List - Compact, scrolls with the page */}
-          <div style={{ paddingBottom: '100px' }}>
+          <div>
             {clientEntries.length === 0 ? (
               <div className="m-empty-state">אין דיווחי שעות עדיין</div>
             ) : (
@@ -2969,9 +2979,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100)
                   const status = entry.billingStatus || 'pending'
                   const statusColor = status === 'paid' ? '#10b981' : status === 'invoiced' ? '#3b82f6' : '#f59e0b'
+                  const empStatus = entry.employeePaidStatus || 'pending'
+                  const empStatusColor = empStatus === 'paid' ? '#8b5cf6' : '#cbd5e1'
+                  const hasEmployee = !!entry.employeeId
                   return (
-                    <div 
-                      key={entry.id} 
+                    <div
+                      key={entry.id}
                       onClick={() => {
                         setEntryFormStartDate(entry.startDate)
                         setEntryFormEndDate(entry.endDate)
@@ -2987,12 +3000,15 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        borderBottom: idx < arr.length - 1 ? '1px solid #F3F4F6' : 'none',
+                        borderBottom: idx < arr.length - 1 ? '2px solid #E5E7EB' : 'none',
                         cursor: 'pointer'
                       }}
                     >
                       <div style={{flex: 1, display:'flex', alignItems:'center', gap: 8}}>
-                        <span style={{width: 8, height: 8, borderRadius: '50%', background: statusColor, flexShrink: 0}} />
+                        <span style={{width: 8, height: 8, borderRadius: '50%', background: statusColor, flexShrink: 0}} title="לקוח" />
+                        {hasEmployee && (
+                          <span style={{width: 8, height: 8, borderRadius: '50%', background: empStatusColor, flexShrink: 0, marginLeft: -4}} title="עובד" />
+                        )}
                         <div>
                           <div style={{fontSize: 13, color: '#374151'}}>
                             {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit'})} · {entry.startTime}-{entry.endTime}
@@ -3017,16 +3033,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             )}
           </div>
 
-          {/* Floating Action Button */}
-          <button 
-            className="m-fab-time"
-            onClick={() => setAddTimeEntryOpen(true)}
-          >
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="12" y1="5" x2="12" y2="19"/>
-              <line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-          </button>
         </div>
       )
     }
@@ -3039,24 +3045,38 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
           <h1 className="m-title">דיווחי שעות</h1>
-          <div style={{display: 'flex', gap: '8px'}}>
-            <button className="m-add-btn" onClick={() => setTimeSettingsOpen(true)}>
-              <svg viewBox="0 0 20 20" fill="currentColor" width="20" height="20">
+          <div className="m-header-actions">
+            <button className="m-hbtn m-hbtn-gear" onClick={() => setTimeSettingsOpen(true)}>
+              <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
                 <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
               </svg>
+              <span className="m-hbtn-label">הגדרות</span>
             </button>
-            {timeTrackingTab === 'clients' && (
-              <button className="m-add-btn" onClick={() => {
-                setClientFormVat(defaultVat)
-                setClientFormIncomeTax(defaultIncomeTax)
-                setAddClientOpen(true)
+            {(timeTrackingTab === 'clients' || timeTrackingTab === 'reports') && (
+              <button className="m-hbtn m-hbtn-plus" onClick={() => {
+                if (timeTrackingTab === 'clients') {
+                  setClientFormVat(defaultVat)
+                  setClientFormIncomeTax(defaultIncomeTax)
+                  setAddClientOpen(true)
+                } else {
+                  setQuickTimeClientId('')
+                  setEntryFormStartDate('')
+                  setEntryFormEndDate('')
+                  setEntryFormStartTime('')
+                  setEntryFormEndTime('')
+                  setEntryFormNotes('')
+                  setEntryFormEmployeeId('self')
+                  setQuickTimeEntryOpen(true)
+                }
               }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span className="m-hbtn-label">חדש</span>
               </button>
             )}
             {timeTrackingTab === 'employees' && (
-              <button className="m-add-btn" onClick={() => setAddEmployeeOpen(true)}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <button className="m-hbtn m-hbtn-plus" onClick={() => setAddEmployeeOpen(true)}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span className="m-hbtn-label">חדש</span>
               </button>
             )}
           </div>
@@ -3066,29 +3086,29 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
         {/* Tabs */}
         <div className="m-time-tabs">
-          <button 
+          <button
             className={`m-time-tab ${timeTrackingTab === 'clients' ? 'active' : ''}`}
             onClick={() => setTimeTrackingTab('clients')}
           >
             לקוחות
           </button>
-          <button 
-            className={`m-time-tab ${timeTrackingTab === 'employees' ? 'active' : ''}`}
-            onClick={() => setTimeTrackingTab('employees')}
-          >
-            עובדים
-          </button>
-          <button 
+          <button
             className={`m-time-tab ${timeTrackingTab === 'reports' ? 'active' : ''}`}
             onClick={() => setTimeTrackingTab('reports')}
           >
             דיווחים
           </button>
-          <button 
+          <button
             className={`m-time-tab ${timeTrackingTab === 'summary' ? 'active' : ''}`}
             onClick={() => setTimeTrackingTab('summary')}
           >
             סיכום
+          </button>
+          <button
+            className={`m-time-tab ${timeTrackingTab === 'employees' ? 'active' : ''}`}
+            onClick={() => setTimeTrackingTab('employees')}
+          >
+            עובדים
           </button>
         </div>
 
@@ -3102,14 +3122,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <div style={{fontSize: 14, color: '#999'}}>לחץ על + כדי להוסיף לקוח ראשון</div>
             </div>
           ) : (
-            clients.map(client => {
-              const clientEntries = timeEntries.filter(e => e.clientId === client.id)
-              const totalHours = clientEntries.reduce((sum, e) => {
-                const start = new Date(`${e.startDate}T${e.startTime}`)
-                const end = new Date(`${e.endDate}T${e.endTime}`)
-                return sum + (end.getTime() - start.getTime()) / (1000 * 60 * 60)
-              }, 0)
-              
+            [...clients]
+              .map(c => ({...c, entryCount: timeEntries.filter(e => e.clientId === c.id).length}))
+              .sort((a, b) => b.entryCount - a.entryCount)
+              .map(client => {
               const openClientEdit = () => {
                 setClientFormName(client.name)
                 setClientFormRate(String(client.hourlyRate))
@@ -3119,8 +3135,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 setAddClientOpen(true)
               }
               return (
-                <div 
-                  key={client.id} 
+                <div
+                  key={client.id}
                   className="m-client-card"
                   onClick={() => {
                     if (longPressFiredRef.current) { longPressFiredRef.current = false; return }
@@ -3136,10 +3152,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   onContextMenu={(e) => { e.preventDefault(); openClientEdit() }}
                 >
                   <div className="m-client-name">{client.name}</div>
-                  <div className="m-client-rate">₪{client.hourlyRate}/שעה</div>
-                  <div className="m-client-stats">
-                    {totalHours.toFixed(1)} שעות · {clientEntries.length} דיווחים
-                  </div>
                 </div>
               )
             })
@@ -3273,26 +3285,23 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
               return (
                 <>
-                  {/* Summary Card */}
+                  {/* Summary Row - compact, not prominent */}
                   <div style={{
-                    padding: '20px',
-                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                    borderRadius: '16px',
-                    marginBottom: '20px',
-                    boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)'
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '12px 16px',
+                    marginBottom: '12px',
+                    background: '#F9FAFB',
+                    borderRadius: '10px',
+                    border: '1px solid #E5E7EB'
                   }}>
-                    <div style={{fontSize: 14, color: 'rgba(255,255,255,0.9)', marginBottom: 12, textAlign: 'center'}}>
+                    <div style={{fontSize: 13, color: '#6B7280'}}>
                       {reportsPeriod === 'week' ? 'שבוע אחרון' : reportsPeriod === 'month' ? 'חודש אחרון' : 'שנה אחרונה'}
                     </div>
-                    <div style={{display: 'flex', justifyContent: 'space-around', gap: '20px'}}>
-                      <div style={{textAlign: 'center'}}>
-                        <div style={{fontSize: 28, fontWeight: 700, color: 'white'}}>{totalHours.toFixed(1)}</div>
-                        <div style={{fontSize: 13, color: 'rgba(255,255,255,0.8)'}}>שעות</div>
-                      </div>
-                      <div style={{textAlign: 'center'}}>
-                        <div style={{fontSize: 28, fontWeight: 700, color: 'white'}}>₪{totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
-                        <div style={{fontSize: 13, color: 'rgba(255,255,255,0.8)'}}>הכנסות</div>
-                      </div>
+                    <div style={{display: 'flex', gap: '16px', fontSize: 14}}>
+                      <span style={{color: '#374151'}}><strong>{totalHours.toFixed(1)}</strong> שעות</span>
+                      <span style={{color: '#059669'}}><strong>₪{totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</strong></span>
                     </div>
                   </div>
 
@@ -3381,7 +3390,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                 display: 'flex',
                                 justifyContent: 'space-between',
                                 alignItems: 'center',
-                                borderBottom: idx < arr.length - 1 ? '1px solid #F3F4F6' : 'none',
+                                borderBottom: idx < arr.length - 1 ? '2px solid #E5E7EB' : 'none',
                                 background: isSelected ? '#EFF6FF' : 'white',
                                 cursor: 'pointer'
                               }}
@@ -3396,6 +3405,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                   />
                                 )}
                                 <span style={{width: 8, height: 8, borderRadius: '50%', background: statusColor, flexShrink: 0}} title={statusLabel} />
+                                {entry.employeeId && (
+                                  <span style={{width: 8, height: 8, borderRadius: '50%', background: entry.employeePaidStatus === 'paid' ? '#8b5cf6' : '#cbd5e1', flexShrink: 0, marginLeft: -2}} title="עובד" />
+                                )}
                                 <div style={{minWidth: 0}}>
                                   <div style={{fontSize: 14, fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
                                     {client.name}
@@ -3698,7 +3710,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                               display: 'flex',
                               justifyContent: 'space-between',
                               alignItems: 'center',
-                              borderBottom: idx < arr.length - 1 ? '1px solid #F3F4F6' : 'none',
+                              borderBottom: idx < arr.length - 1 ? '2px solid #E5E7EB' : 'none',
                               background: isSelected ? '#EFF6FF' : 'white',
                               cursor: 'pointer'
                             }}
@@ -3708,6 +3720,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                 <input type="checkbox" checked={isSelected} onChange={() => {}} style={{width: 18, height: 18, accentColor: '#1d4ed8'}} />
                               )}
                               <span style={{width: 8, height: 8, borderRadius: '50%', background: statusColor, flexShrink: 0}} />
+                              {entry.employeeId && (
+                                <span style={{width: 8, height: 8, borderRadius: '50%', background: entry.employeePaidStatus === 'paid' ? '#8b5cf6' : '#cbd5e1', flexShrink: 0, marginLeft: -2}} title="עובד" />
+                              )}
                               <div style={{minWidth: 0}}>
                                 <div style={{fontSize: 14, fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
                                   {client.name}
@@ -3970,6 +3985,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   // Quick Time Entry Modal (from main screen)
   const QuickTimeEntryModal = () => {
     if (!quickTimeEntryOpen) return null
+    const [fieldErrors, setFieldErrors] = useState<{client?: boolean, date?: boolean, time?: boolean}>({})
 
     // Initialize form on open
     if (!entryFormStartDate) {
@@ -3995,10 +4011,16 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     }
 
     const save = () => {
-      if (!quickTimeClientId || !entryFormStartDate || !entryFormEndDate || !entryFormStartTime || !entryFormEndTime) {
-        alert('נא למלא את כל השדות')
+      const errors: {client?: boolean, date?: boolean, time?: boolean} = {}
+      if (!quickTimeClientId) errors.client = true
+      if (!entryFormStartDate || !entryFormEndDate) errors.date = true
+      if (!entryFormStartTime || !entryFormEndTime) errors.time = true
+
+      if (Object.keys(errors).length > 0) {
+        setFieldErrors(errors)
         return
       }
+      setFieldErrors({})
       const entry: TimeEntry = {
         id: Date.now().toString(),
         clientId: quickTimeClientId,
@@ -4030,16 +4052,21 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           </div>
 
           <div className="m-mortgage-field">
-            <label>לקוח</label>
-            <select 
+            <label>לקוח {fieldErrors.client && <span style={{color: '#DC2626'}}>(נדרש)</span>}</label>
+            <select
+              autoFocus
               value={quickTimeClientId}
-              onChange={e => setQuickTimeClientId(e.target.value)}
+              onChange={e => {
+                setQuickTimeClientId(e.target.value)
+                if (e.target.value) setFieldErrors(prev => ({...prev, client: false}))
+              }}
               style={{
                 width: '100%',
                 padding: '12px 16px',
-                border: '2px solid #E5E7EB',
+                border: fieldErrors.client ? '2px solid #DC2626' : '2px solid #E5E7EB',
                 borderRadius: '10px',
-                fontSize: '16px'
+                fontSize: '16px',
+                backgroundColor: fieldErrors.client ? '#FEF2F2' : 'white'
               }}
             >
               <option value="">בחר לקוח</option>
@@ -4167,6 +4194,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   // Add/Edit Time Entry Modal
   const AddTimeEntryModal = () => {
     if (!addTimeEntryOpen || !selectedClientId) return null
+    const [fieldErrors, setFieldErrors] = useState<{date?: boolean, time?: boolean}>({})
 
     // Initialize form on open (only when not editing — edit pre-fills before opening)
     if (!entryFormStartDate && !editEntryId) {
@@ -4190,10 +4218,15 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     }
 
     const save = () => {
-      if (!entryFormStartDate || !entryFormEndDate || !entryFormStartTime || !entryFormEndTime) {
-        alert('נא למלא את כל השדות')
+      const errors: {date?: boolean, time?: boolean} = {}
+      if (!entryFormStartDate || !entryFormEndDate) errors.date = true
+      if (!entryFormStartTime || !entryFormEndTime) errors.time = true
+
+      if (Object.keys(errors).length > 0) {
+        setFieldErrors(errors)
         return
       }
+      setFieldErrors({})
       if (editEntryId) {
         setTimeEntries(prev => prev.map(en =>
           en.id === editEntryId
@@ -4243,44 +4276,54 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
           {/* Start Date & Time */}
           <div className="m-mortgage-field">
-            <label>מתי</label>
+            <label>מתי {fieldErrors.date && <span style={{color: '#DC2626'}}>(נדרש)</span>}</label>
             <div style={{display: 'flex', gap: '8px'}}>
-              <input 
+              <input
                 type="date"
                 value={entryFormStartDate}
                 onChange={e => {
                   setEntryFormStartDate(e.target.value)
+                  if (e.target.value) setFieldErrors(prev => ({...prev, date: false}))
                   if (!entryFormEndDate || entryFormEndDate < e.target.value) {
                     setEntryFormEndDate(e.target.value)
                   }
                 }}
-                style={{flex: 1}}
+                style={{flex: 1, border: fieldErrors.date ? '2px solid #DC2626' : undefined, backgroundColor: fieldErrors.date ? '#FEF2F2' : undefined}}
               />
-              <input 
+              <input
                 type="time"
                 value={entryFormStartTime}
-                onChange={e => setEntryFormStartTime(e.target.value)}
-                style={{width: '110px'}}
+                onChange={e => {
+                  setEntryFormStartTime(e.target.value)
+                  if (e.target.value) setFieldErrors(prev => ({...prev, time: false}))
+                }}
+                style={{width: '110px', border: fieldErrors.time ? '2px solid #DC2626' : undefined, backgroundColor: fieldErrors.time ? '#FEF2F2' : undefined}}
               />
             </div>
           </div>
 
           {/* End Date & Time */}
           <div className="m-mortgage-field">
-            <label>עד</label>
+            <label>עד {fieldErrors.time && !entryFormEndTime && <span style={{color: '#DC2626'}}>(נדרש)</span>}</label>
             <div style={{display: 'flex', gap: '8px'}}>
-              <input 
+              <input
                 type="date"
                 value={entryFormEndDate}
-                onChange={e => setEntryFormEndDate(e.target.value)}
+                onChange={e => {
+                  setEntryFormEndDate(e.target.value)
+                  if (e.target.value) setFieldErrors(prev => ({...prev, date: false}))
+                }}
                 min={entryFormStartDate}
-                style={{flex: 1}}
+                style={{flex: 1, border: fieldErrors.date ? '2px solid #DC2626' : undefined, backgroundColor: fieldErrors.date ? '#FEF2F2' : undefined}}
               />
-              <input 
+              <input
                 type="time"
                 value={entryFormEndTime}
-                onChange={e => setEntryFormEndTime(e.target.value)}
-                style={{width: '110px'}}
+                onChange={e => {
+                  setEntryFormEndTime(e.target.value)
+                  if (e.target.value) setFieldErrors(prev => ({...prev, time: false}))
+                }}
+                style={{width: '110px', border: fieldErrors.time ? '2px solid #DC2626' : undefined, backgroundColor: fieldErrors.time ? '#FEF2F2' : undefined}}
               />
             </div>
           </div>
@@ -4463,7 +4506,21 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const close = () => {
       setBulkActionOpen(false)
       setBulkInvoiceNumber('')
+      setBulkEmployeeInvoiceNumber('')
     }
+
+    // How many of the selected entries have an employeeId — affects whether the employee section is shown
+    const employeeEntriesCount = timeEntries.filter(e => selectedEntryIds.includes(e.id) && e.employeeId).length
+
+    // Sum of selected entries (gross — what client owes me)
+    const sumGross = timeEntries.filter(e => selectedEntryIds.includes(e.id)).reduce((sum, e) => {
+      const c = clients.find(cl => cl.id === e.clientId)
+      if (!c) return sum
+      const start = new Date(`${e.startDate}T${e.startTime}`)
+      const end = new Date(`${e.endDate}T${e.endTime}`)
+      const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60)
+      return sum + hours * c.hourlyRate * (1 + c.vatPercent / 100)
+    }, 0)
 
     const applyStatus = (st: 'pending' | 'invoiced' | 'paid') => {
       setTimeEntries(prev => prev.map(e =>
@@ -4478,6 +4535,26 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         selectedEntryIds.includes(e.id) ? { ...e, invoiceNumber: num, billingStatus: e.billingStatus === 'paid' ? 'paid' : 'invoiced' } : e
       ))
       setSuccessToast(`נשמר מספר חשבונית ל-${selectedEntryIds.length} דיווחים`)
+      setTimeout(() => setSuccessToast(null), 2000)
+      setSelectedEntryIds([])
+      close()
+    }
+
+    const applyEmployeePaid = (st: 'pending' | 'paid') => {
+      setTimeEntries(prev => prev.map(e =>
+        selectedEntryIds.includes(e.id) && e.employeeId ? { ...e, employeePaidStatus: st } : e
+      ))
+    }
+
+    const applyEmployeeInvoiceNumber = () => {
+      const num = bulkEmployeeInvoiceNumber.trim()
+      if (!num) { alert('נא להזין מספר חשבונית'); return }
+      setTimeEntries(prev => prev.map(e =>
+        selectedEntryIds.includes(e.id) && e.employeeId
+          ? { ...e, employeeInvoiceNumber: num, employeePaidStatus: e.employeePaidStatus === 'paid' ? 'paid' : 'pending' }
+          : e
+      ))
+      setSuccessToast(`נשמר מספר חשבונית עובד ל-${employeeEntriesCount} דיווחים`)
       setTimeout(() => setSuccessToast(null), 2000)
       setSelectedEntryIds([])
       close()
@@ -4499,8 +4576,22 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <button className="m-close-btn" onClick={close}>✕</button>
           </div>
 
+          {/* Selected sum summary */}
+          <div style={{
+            padding: '14px 16px', marginBottom: 16,
+            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+            borderRadius: 12, color: 'white',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+          }}>
+            <div>
+              <div style={{fontSize: 12, opacity: 0.85}}>סה"כ ברוטו של הסימון</div>
+              <div style={{fontSize: 22, fontWeight: 700}}>₪{sumGross.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
+            </div>
+            <div style={{fontSize: 13, opacity: 0.9}}>{selectedEntryIds.length} דיווחים</div>
+          </div>
+
           <div className="m-mortgage-field">
-            <label>שינוי סטטוס</label>
+            <label>סטטוס חיוב ללקוח</label>
             <div style={{display: 'flex', gap: 8, flexWrap: 'wrap'}}>
               <button onClick={() => { applyStatus('pending'); close() }}
                 style={{flex: 1, minWidth: 90, padding: '12px', background: '#fef3c7', color: '#92400e', border: '2px solid #fde68a', borderRadius: 10, fontWeight: 600, cursor: 'pointer'}}>
@@ -4533,6 +4624,41 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               שמירת מספר חשבונית תסמן אוטומטית את הדיווחים כ"חויב" (אם לא שולמו).
             </div>
           </div>
+
+          {/* Employee payment section — only shown when selected entries include employee reports */}
+          {employeeEntriesCount > 0 && (
+            <div style={{marginTop: 24, paddingTop: 20, borderTop: '2px dashed #E5E7EB'}}>
+              <div style={{fontSize: 14, fontWeight: 700, color: '#1d4ed8', marginBottom: 12}}>
+                📋 תשלום לעובד ({employeeEntriesCount} דיווחים)
+              </div>
+              <div className="m-mortgage-field">
+                <label>סטטוס שילמתי לעובד</label>
+                <div style={{display: 'flex', gap: 8, flexWrap: 'wrap'}}>
+                  <button onClick={() => { applyEmployeePaid('pending'); close() }}
+                    style={{flex: 1, minWidth: 90, padding: '12px', background: '#fef3c7', color: '#92400e', border: '2px solid #fde68a', borderRadius: 10, fontWeight: 600, cursor: 'pointer'}}>
+                    ⏳ לא שילמתי
+                  </button>
+                  <button onClick={() => { applyEmployeePaid('paid'); close() }}
+                    style={{flex: 1, minWidth: 90, padding: '12px', background: '#d1fae5', color: '#065f46', border: '2px solid #6ee7b7', borderRadius: 10, fontWeight: 600, cursor: 'pointer'}}>
+                    ✓ שילמתי
+                  </button>
+                </div>
+              </div>
+              <div className="m-mortgage-field" style={{marginTop: 12}}>
+                <label>מספר חשבונית שהעובד הפיק</label>
+                <input
+                  type="text"
+                  value={bulkEmployeeInvoiceNumber}
+                  onChange={e => setBulkEmployeeInvoiceNumber(e.target.value)}
+                  placeholder="לדוגמה: 2026-001"
+                />
+                <button onClick={applyEmployeeInvoiceNumber}
+                  style={{width: '100%', padding: '12px', marginTop: 8, background: '#1d4ed8', color: 'white', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer'}}>
+                  שמור מספר חשבונית עובד
+                </button>
+              </div>
+            </div>
+          )}
 
           <button onClick={deleteAll}
             style={{width: '100%', padding: '14px', marginTop: '12px', background: '#fef2f2', color: '#b91c1c', border: '2px solid #fecaca', borderRadius: 12, fontSize: 15, fontWeight: 600, cursor: 'pointer'}}>
@@ -4626,7 +4752,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
           <div className="m-mortgage-field">
             <label>לקוחות מקושרים</label>
-            <div style={{marginTop: 8}}>
+            <div style={{marginTop: 8, maxHeight: '200px', overflow: 'auto', paddingRight: '4px'}}>
               {clients.length === 0 ? (
                 <div style={{fontSize: 14, color: '#999'}}>אין לקוחות עדיין</div>
               ) : (
