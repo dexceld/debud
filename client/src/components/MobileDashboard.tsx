@@ -3385,10 +3385,41 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 }
               }
 
+              // Calculate total for all entries
+              const grandTotalHours = periods.reduce((sum, p) => sum + p.entries.reduce((s, e) => s + calculateHours(e), 0), 0)
+              let grandTotalAmount = 0
+              periods.forEach(p => {
+                p.entries.forEach(e => {
+                  const client = clients.find(c => c.id === e.clientId)
+                  if (client) {
+                    const hours = calculateHours(e)
+                    grandTotalAmount += hours * client.hourlyRate * (1 + client.vatPercent / 100)
+                  }
+                })
+              })
+
               return (
                 <>
-                  {/* Period Summary Cards */}
-                  {periods.map((period, idx) => {
+                  {/* Grand Total Header */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '12px 16px',
+                    marginBottom: '12px',
+                    background: 'white',
+                    borderRadius: '10px',
+                    border: '1px solid #E5E7EB'
+                  }}>
+                    <span style={{fontSize: 14, fontWeight: 700, color: '#111827'}}>סה"כ דיווחים</span>
+                    <div style={{display: 'flex', gap: '16px', fontSize: 14}}>
+                      <span style={{color: '#3B82F6', fontWeight: 600}}>{grandTotalHours.toFixed(2)}h</span>
+                      <span style={{color: '#059669', fontWeight: 700}}>₪{grandTotalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
+                    </div>
+                  </div>
+
+                  {/* Period Sections */}
+                  {periods.map((period) => {
                     const totalHours = period.entries.reduce((sum, e) => sum + calculateHours(e), 0)
                     let totalAmount = 0
                     period.entries.forEach(e => {
@@ -3400,52 +3431,35 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     })
 
                     return (
-                      <div key={idx} style={{
-                        background: idx === 0 ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'white',
-                        borderRadius: '12px',
-                        padding: '14px 16px',
-                        marginBottom: '10px',
-                        border: idx === 0 ? 'none' : '1px solid #E5E7EB',
-                        boxShadow: idx === 0 ? '0 4px 12px rgba(16, 185, 129, 0.25)' : '0 1px 3px rgba(0,0,0,0.05)'
-                      }}>
+                      <div key={period.label}>
+                        {/* Period Header - Green bar like reference */}
                         <div style={{
+                          background: '#BBF7D0',
+                          padding: '10px 16px',
                           display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'center',
-                          marginBottom: period.entries.length > 0 ? '10px' : '0'
+                          marginTop: '8px',
+                          marginBottom: '0',
+                          borderRadius: '0'
                         }}>
-                          <div style={{
-                            fontSize: 14,
-                            fontWeight: 600,
-                            color: idx === 0 ? 'white' : '#374151'
-                          }}>
+                          <span style={{fontSize: 13, fontWeight: 700, color: '#065F46', textTransform: 'uppercase'}}>
                             {period.label}
-                          </div>
+                          </span>
                           <div style={{display: 'flex', gap: '12px', fontSize: 13}}>
-                            <span style={{color: idx === 0 ? 'rgba(255,255,255,0.9)' : '#6B7280'}}>
-                              {totalHours.toFixed(1)} שע'
-                            </span>
-                            <span style={{color: idx === 0 ? 'white' : '#059669', fontWeight: 600}}>
-                              ₪{totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
-                            </span>
+                            <span style={{color: '#047857', fontWeight: 600}}>{totalHours.toFixed(1)}h</span>
+                            <span style={{color: '#047857', fontWeight: 700}}>₪{totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
                           </div>
                         </div>
 
-                        {/* Full entry list for this period */}
+                        {/* Entries List - Consistent styling like reference */}
                         {period.entries.length > 0 && (
-                          <div style={{
-                            marginTop: '12px',
-                            background: idx === 0 ? 'rgba(255,255,255,0.15)' : '#F9FAFB',
-                            borderRadius: '8px',
-                            padding: '8px 10px'
-                          }}>
-                            {period.entries.map((entry, eidx) => {
+                          <div style={{background: 'white', marginBottom: '8px'}}>
+                            {period.entries.map((entry) => {
                               const client = clients.find(c => c.id === entry.clientId)
                               if (!client) return null
                               const hours = calculateHours(entry)
                               const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100)
-                              const status = entry.billingStatus || 'pending'
-                              const statusColor = status === 'paid' ? '#10b981' : status === 'invoiced' ? '#3b82f6' : '#f59e0b'
                               return (
                                 <div
                                   key={entry.id}
@@ -3464,29 +3478,17 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                     display: 'flex',
                                     justifyContent: 'space-between',
                                     alignItems: 'center',
-                                    padding: '8px 0',
-                                    borderBottom: eidx < period.entries.length - 1 ? (idx === 0 ? '1px solid rgba(255,255,255,0.2)' : '1px solid #E5E7EB') : 'none',
+                                    padding: '12px 16px',
+                                    borderBottom: '1px solid #F3F4F6',
                                     cursor: 'pointer'
                                   }}
                                 >
-                                  <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
-                                    <span style={{width: 6, height: 6, borderRadius: '50%', background: statusColor, flexShrink: 0}} />
-                                    <div>
-                                      <div style={{fontSize: 13, fontWeight: 600, color: idx === 0 ? 'white' : '#374151'}}>
-                                        {client.name}
-                                      </div>
-                                      <div style={{fontSize: 11, color: idx === 0 ? 'rgba(255,255,255,0.8)' : '#6B7280'}}>
-                                        {new Date(entry.startDate).toLocaleDateString('he-IL', {day: 'numeric', month: 'short'})} · {entry.startTime}-{entry.endTime}
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div style={{textAlign: 'left'}}>
-                                    <div style={{fontSize: 13, fontWeight: 600, color: idx === 0 ? 'white' : '#111827'}}>
-                                      ₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
-                                    </div>
-                                    <div style={{fontSize: 11, color: idx === 0 ? 'rgba(255,255,255,0.8)' : '#6B7280'}}>
-                                      {hours.toFixed(1)}ש
-                                    </div>
+                                  <span style={{fontSize: 14, color: '#111827', fontWeight: 500}}>
+                                    {client.name}
+                                  </span>
+                                  <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+                                    <span style={{fontSize: 14, color: '#6B7280'}}>{hours.toFixed(2)}h</span>
+                                    <span style={{fontSize: 14, color: '#059669', fontWeight: 600, minWidth: '70px', textAlign: 'left'}}>₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
                                   </div>
                                 </div>
                               )
