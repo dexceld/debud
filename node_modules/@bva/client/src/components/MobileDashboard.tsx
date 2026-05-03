@@ -3555,23 +3555,55 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
               }
 
+              // Find first and last entry dates
+              const sortedByDate = [...filteredEntries].sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+              const firstDate = sortedByDate[0]?.startDate
+              const lastDate = sortedByDate[sortedByDate.length - 1]?.startDate
+
               return (
                 <>
-                  <div className="m-summary-total">
-                    <div className="m-summary-total-label">סה"כ הכנסות</div>
-                    <div className="m-summary-total-value">
-                      ₪{totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
+                  {/* Compact Summary Card */}
+                  <div style={{
+                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                    borderRadius: '12px',
+                    padding: '16px',
+                    color: 'white',
+                    marginBottom: '16px'
+                  }}>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      marginBottom: '12px'
+                    }}>
+                      <div>
+                        <div style={{fontSize: '12px', opacity: 0.9, marginBottom: '4px'}}>סה"כ הכנסות</div>
+                        <div style={{fontSize: '28px', fontWeight: 700}}>
+                          ₪{totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
+                        </div>
+                      </div>
+                      <div style={{textAlign: 'left'}}>
+                        <div style={{fontSize: '20px', fontWeight: 700}}>{totalHours.toFixed(1)}</div>
+                        <div style={{fontSize: '11px', opacity: 0.8}}>שעות</div>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="m-time-summary">
-                    <div className="m-time-summary-row">
-                      <span>סה"כ שעות:</span>
-                      <span className="m-time-summary-value">{totalHours.toFixed(2)}</span>
-                    </div>
-                    <div className="m-time-summary-row">
-                      <span>מספר דיווחים:</span>
-                      <span className="m-time-summary-value">{filteredEntries.length}</span>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      paddingTop: '10px',
+                      borderTop: '1px solid rgba(255,255,255,0.2)',
+                      fontSize: '12px'
+                    }}>
+                      <div style={{opacity: 0.9}}>
+                        {filteredEntries.length} דיווחים
+                      </div>
+                      <div style={{opacity: 0.9, direction: 'ltr'}}>
+                        {firstDate && new Date(firstDate).toLocaleDateString('he-IL', {day: 'numeric', month: 'short'})}
+                        {firstDate && lastDate && firstDate !== lastDate && ' - '}
+                        {lastDate && firstDate !== lastDate && new Date(lastDate).toLocaleDateString('he-IL', {day: 'numeric', month: 'short'})}
+                      </div>
                     </div>
                   </div>
 
