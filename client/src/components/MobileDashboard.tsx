@@ -218,6 +218,21 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [selectedEntryIds, setSelectedEntryIds] = useState<string[]>([])
   const [bulkActionOpen, setBulkActionOpen] = useState(false)
   const [bulkInvoiceNumber, setBulkInvoiceNumber] = useState('')
+  // Long-press helpers (shared across cards)
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const longPressFiredRef = useRef(false)
+  const startLongPress = (cb: () => void) => {
+    longPressFiredRef.current = false
+    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current)
+    longPressTimerRef.current = setTimeout(() => {
+      longPressFiredRef.current = true
+      cb()
+    }, 500)
+  }
+  const cancelLongPress = () => {
+    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current)
+    longPressTimerRef.current = null
+  }
   const [quickNewName, setQuickNewName] = useState('')
   const quickNewNameRef = useRef('')
   const [quickNewGroupId, setQuickNewGroupId] = useState('g4')
@@ -2939,12 +2954,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </div>
           </div>
 
-          {/* Time Entries List - Compact & Scrollable */}
-          <div style={{
-            overflowY: 'auto',
-            maxHeight: 'calc(100vh - 480px)',
-            paddingBottom: '100px'
-          }}>
+          {/* Time Entries List - Compact, scrolls with the page */}
+          <div style={{ paddingBottom: '100px' }}>
             {clientEntries.length === 0 ? (
               <div className="m-empty-state">אין דיווחי שעות עדיין</div>
             ) : (
@@ -3099,11 +3110,30 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 return sum + (end.getTime() - start.getTime()) / (1000 * 60 * 60)
               }, 0)
               
+              const openClientEdit = () => {
+                setClientFormName(client.name)
+                setClientFormRate(String(client.hourlyRate))
+                setClientFormVat(String(client.vatPercent))
+                setClientFormIncomeTax(String(client.incomeTaxPercent))
+                setEditClientId(client.id)
+                setAddClientOpen(true)
+              }
               return (
                 <div 
                   key={client.id} 
                   className="m-client-card"
-                  onClick={() => setSelectedClientId(client.id)}
+                  onClick={() => {
+                    if (longPressFiredRef.current) { longPressFiredRef.current = false; return }
+                    setSelectedClientId(client.id)
+                  }}
+                  onTouchStart={() => startLongPress(openClientEdit)}
+                  onTouchEnd={cancelLongPress}
+                  onTouchMove={cancelLongPress}
+                  onTouchCancel={cancelLongPress}
+                  onMouseDown={() => startLongPress(openClientEdit)}
+                  onMouseUp={cancelLongPress}
+                  onMouseLeave={cancelLongPress}
+                  onContextMenu={(e) => { e.preventDefault(); openClientEdit() }}
                 >
                   <div className="m-client-name">{client.name}</div>
                   <div className="m-client-rate">₪{client.hourlyRate}/שעה</div>
@@ -3267,7 +3297,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   </div>
 
                   {/* Bulk action bar */}
-                  {selectedEntryIds.length > 0 && (
+                  {selectedEntryIds.length > 0 ? (
                     <div style={{
                       position: 'sticky', top: 0, zIndex: 5,
                       background: '#1d4ed8', color: 'white',
@@ -3288,6 +3318,19 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                         >בטל</button>
                       </div>
                     </div>
+                  ) : (
+                    filteredEntries.length > 0 && (
+                      <button
+                        onClick={() => setSelectedEntryIds(filteredEntries.map(e => e.id))}
+                        style={{
+                          width: '100%', padding: '10px', marginBottom: 8,
+                          background: '#EFF6FF', color: '#1d4ed8', border: '1px dashed #93c5fd',
+                          borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer'
+                        }}
+                      >
+                        ☑ בחר את כל {filteredEntries.length} הדיווחים בטווח
+                      </button>
+                    )
                   )}
 
                   {/* Compact List with separators, clickable */}
@@ -3573,80 +3616,119 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     </button>
                   </div>
 
-                  {/* Entries List with Status */}
-                  <div className="m-time-entries" style={{marginTop: '20px'}}>
-                    {filteredEntries.map(entry => {
-                      const client = clients.find(c => c.id === entry.clientId)
-                      if (!client) return null
-                      const hours = calculateHours(entry)
-                      const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100)
-                      const status = entry.billingStatus || 'pending'
-                      
-                      const statusColors = {
-                        pending: { bg: '#FEF3C7', border: '#FDE047', text: '#92400E' },
-                        invoiced: { bg: '#DBEAFE', border: '#93C5FD', text: '#1E40AF' },
-                        paid: { bg: '#D1FAE5', border: '#6EE7B7', text: '#065F46' }
-                      }
-                      const statusLabels = {
-                        pending: 'ממתין',
-                        invoiced: 'חויב',
-                        paid: 'שולם'
-                      }
-                      
-                      return (
-                        <div 
-                          key={entry.id} 
-                          className="m-time-entry"
-                          style={{
-                            background: statusColors[status].bg,
-                            borderColor: statusColors[status].border
-                          }}
-                        >
-                          <div className="m-time-entry-header">
-                            <span className="m-time-entry-date">
-                              {new Date(entry.startDate).toLocaleDateString('he-IL')}
-                            </span>
-                            <span className="m-time-entry-hours">{hours.toFixed(2)} שעות</span>
-                          </div>
-                          <div className="m-time-entry-client">{client.name}</div>
-                          <div className="m-time-entry-time">
-                            {entry.startTime} - {entry.endTime}
-                          </div>
-                          {entry.notes && (
-                            <div className="m-time-entry-notes">{entry.notes}</div>
-                          )}
-                          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px'}}>
-                            <div className="m-time-entry-amount">
-                              ₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
+                  {/* Bulk-select bar */}
+                  {selectedEntryIds.length > 0 ? (
+                    <div style={{
+                      position: 'sticky', top: 0, zIndex: 5,
+                      background: '#1d4ed8', color: 'white',
+                      padding: '10px 12px', borderRadius: 10,
+                      margin: '16px 0 8px', display: 'flex',
+                      alignItems: 'center', justifyContent: 'space-between',
+                      boxShadow: '0 4px 12px rgba(29,78,216,0.3)'
+                    }}>
+                      <div style={{fontWeight: 600}}>{selectedEntryIds.length} נבחרו</div>
+                      <div style={{display: 'flex', gap: 6}}>
+                        <button
+                          onClick={() => setBulkActionOpen(true)}
+                          style={{background: 'white', color: '#1d4ed8', border: 'none', padding: '7px 12px', borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: 'pointer'}}
+                        >פעולה</button>
+                        <button
+                          onClick={() => setSelectedEntryIds([])}
+                          style={{background: 'transparent', color: 'white', border: '1px solid rgba(255,255,255,0.5)', padding: '7px 10px', borderRadius: 8, fontSize: 13, cursor: 'pointer'}}
+                        >בטל</button>
+                      </div>
+                    </div>
+                  ) : (
+                    filteredEntries.length > 0 && (
+                      <button
+                        onClick={() => setSelectedEntryIds(filteredEntries.map(e => e.id))}
+                        style={{
+                          width: '100%', padding: '10px', marginTop: 14, marginBottom: 4,
+                          background: '#EFF6FF', color: '#1d4ed8', border: '1px dashed #93c5fd',
+                          borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer'
+                        }}
+                      >
+                        ☑ בחר את כל {filteredEntries.length} הדיווחים בטווח
+                      </button>
+                    )
+                  )}
+
+                  {/* Compact Entries List */}
+                  {filteredEntries.length > 0 && (
+                    <div style={{background: 'white', border: '1px solid #E5E7EB', borderRadius: 12, overflow: 'hidden', marginTop: 8}}>
+                      {[...filteredEntries].sort((a,b) => {
+                        const dA = new Date(`${a.startDate}T${a.startTime}`).getTime()
+                        const dB = new Date(`${b.startDate}T${b.startTime}`).getTime()
+                        return dB - dA
+                      }).map((entry, idx, arr) => {
+                        const client = clients.find(c => c.id === entry.clientId)
+                        if (!client) return null
+                        const hours = calculateHours(entry)
+                        const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100)
+                        const status = entry.billingStatus || 'pending'
+                        const statusColor = status === 'paid' ? '#10b981' : status === 'invoiced' ? '#3b82f6' : '#f59e0b'
+                        const isSelected = selectedEntryIds.includes(entry.id)
+                        const inSelectMode = selectedEntryIds.length > 0
+                        const toggleSelect = () => setSelectedEntryIds(prev => prev.includes(entry.id) ? prev.filter(i => i !== entry.id) : [...prev, entry.id])
+                        const openEdit = () => {
+                          setSelectedClientId(entry.clientId)
+                          setEntryFormStartDate(entry.startDate)
+                          setEntryFormEndDate(entry.endDate)
+                          setEntryFormStartTime(entry.startTime)
+                          setEntryFormEndTime(entry.endTime)
+                          setEntryFormNotes(entry.notes || '')
+                          setEntryFormEmployeeId(entry.employeeId || 'self')
+                          setEditEntryId(entry.id)
+                          setAddTimeEntryOpen(true)
+                        }
+                        return (
+                          <div
+                            key={entry.id}
+                            onClick={() => {
+                              if (longPressFiredRef.current) { longPressFiredRef.current = false; return }
+                              if (inSelectMode) toggleSelect(); else openEdit()
+                            }}
+                            onTouchStart={() => startLongPress(toggleSelect)}
+                            onTouchEnd={cancelLongPress}
+                            onTouchMove={cancelLongPress}
+                            onTouchCancel={cancelLongPress}
+                            onContextMenu={(e) => { e.preventDefault(); toggleSelect() }}
+                            style={{
+                              padding: '10px 14px',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              borderBottom: idx < arr.length - 1 ? '1px solid #F3F4F6' : 'none',
+                              background: isSelected ? '#EFF6FF' : 'white',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <div style={{flex: 1, display: 'flex', alignItems: 'center', gap: 10, minWidth: 0}}>
+                              {inSelectMode && (
+                                <input type="checkbox" checked={isSelected} onChange={() => {}} style={{width: 18, height: 18, accentColor: '#1d4ed8'}} />
+                              )}
+                              <span style={{width: 8, height: 8, borderRadius: '50%', background: statusColor, flexShrink: 0}} />
+                              <div style={{minWidth: 0}}>
+                                <div style={{fontSize: 14, fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
+                                  {client.name}
+                                </div>
+                                <div style={{fontSize: 12, color: '#6B7280'}}>
+                                  {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit'})} · {entry.startTime}-{entry.endTime}
+                                  {entry.invoiceNumber && <span style={{marginInlineStart: 6, color: '#3b82f6'}}>• #{entry.invoiceNumber}</span>}
+                                </div>
+                              </div>
                             </div>
-                            <select
-                              value={status}
-                              onChange={e => {
-                                const newStatus = e.target.value as 'pending' | 'invoiced' | 'paid'
-                                setTimeEntries(prev => prev.map(te => 
-                                  te.id === entry.id ? {...te, billingStatus: newStatus} : te
-                                ))
-                              }}
-                              style={{
-                                padding: '6px 10px',
-                                borderRadius: '8px',
-                                border: `2px solid ${statusColors[status].border}`,
-                                background: 'white',
-                                color: statusColors[status].text,
-                                fontSize: '13px',
-                                fontWeight: '600',
-                                cursor: 'pointer'
-                              }}
-                            >
-                              <option value="pending">{statusLabels.pending}</option>
-                              <option value="invoiced">{statusLabels.invoiced}</option>
-                              <option value="paid">{statusLabels.paid}</option>
-                            </select>
+                            <div style={{textAlign: 'left', marginLeft: 8}}>
+                              <div style={{fontSize: 15, fontWeight: 700, color: '#111827'}}>
+                                ₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
+                              </div>
+                              <div style={{fontSize: 11, color: '#6B7280'}}>{hours.toFixed(1)}h</div>
+                            </div>
                           </div>
-                        </div>
-                      )
-                    })}
-                  </div>
+                        )
+                      })}
+                    </div>
+                  )}
                 </>
               )
             })()}
