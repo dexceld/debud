@@ -2843,7 +2843,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       )
     }
 
-    if (selectedClientId) {
+    // Show client view only if no modal is open (to prevent jump when editing from summary)
+    if (selectedClientId && !addTimeEntryOpen && !quickTimeEntryOpen) {
       // Show time entries for selected client
       const client = clients.find(c => c.id === selectedClientId)
       if (!client) return null
