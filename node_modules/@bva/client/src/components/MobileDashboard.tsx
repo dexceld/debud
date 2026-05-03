@@ -2892,38 +2892,19 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </button>
             <h1 className="m-title">{client.name}</h1>
             <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
-              {/* Manual Entry Button */}
-              <button
-                onClick={() => {
-                  setEditEntryId(null)
-                  setEntryFormStartDate('')
-                  setEntryFormEndDate('')
-                  setEntryFormStartTime('')
-                  setEntryFormEndTime('')
-                  setEntryFormNotes('')
-                  setEntryFormEmployeeId('self')
-                  setAddTimeEntryOpen(true)
-                }}
-                style={{
-                  background: 'rgba(59, 130, 246, 0.9)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '20px',
-                  padding: '6px 12px',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
-                }}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <line x1="12" y1="5" x2="12" y2="19"/>
-                  <line x1="5" y1="12" x2="19" y2="12"/>
-                </svg>
-                ידני
+              {/* Add Entry Button - like other screens */}
+              <button className="m-hbtn m-hbtn-plus" onClick={() => {
+                setEditEntryId(null)
+                setEntryFormStartDate('')
+                setEntryFormEndDate('')
+                setEntryFormStartTime('')
+                setEntryFormEndTime('')
+                setEntryFormNotes('')
+                setEntryFormEmployeeId('self')
+                setAddTimeEntryOpen(true)
+              }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span className="m-hbtn-label">חדש</span>
               </button>
               <button className="m-add-btn" onClick={openEditClient}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
