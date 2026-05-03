@@ -4186,14 +4186,16 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const [fieldErrors, setFieldErrors] = useState<{date?: boolean, time?: boolean}>({})
 
     // Initialize form on open (only when not editing — edit pre-fills before opening)
-    if (!entryFormStartDate && !editEntryId) {
-      const today = new Date().toISOString().split('T')[0]
-      const now = new Date().toTimeString().slice(0, 5)
-      setEntryFormStartDate(today)
-      setEntryFormEndDate(today)
-      setEntryFormStartTime(now)
-      setEntryFormEndTime(now)
-    }
+    useEffect(() => {
+      if (!entryFormStartDate && !editEntryId) {
+        const today = new Date().toISOString().split('T')[0]
+        const now = new Date().toTimeString().slice(0, 5)
+        setEntryFormStartDate(today)
+        setEntryFormEndDate(today)
+        setEntryFormStartTime(now)
+        setEntryFormEndTime(now)
+      }
+    }, [addTimeEntryOpen, editEntryId])
 
     const closeModal = () => {
       setAddTimeEntryOpen(false)
