@@ -3046,6 +3046,85 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           </button>
           <h1 className="m-title">דיווחי שעות</h1>
           <div className="m-header-actions">
+            {timeTrackingTab === 'summary' && (
+              <>
+                <button className="m-hbtn" onClick={() => {
+                  // Export to Excel - trigger from summary results
+                  const filteredEntries = timeEntries.filter(e => {
+                    const entryDate = new Date(e.startDate)
+                    const from = summaryFromDate ? new Date(summaryFromDate) : null
+                    const to = summaryToDate ? new Date(summaryToDate) : null
+                    if (from && entryDate < from) return false
+                    if (to && entryDate > to) return false
+                    if (summaryClientFilter !== 'all' && e.clientId !== summaryClientFilter) return false
+                    if (summaryStatusFilter !== 'all' && (e.billingStatus || 'pending') !== summaryStatusFilter) return false
+                    return true
+                  })
+                  if (filteredEntries.length === 0) return
+                  import('xlsx').then(XLSX => {
+                    const data = filteredEntries.map(e => {
+                      const client = clients.find(c => c.id === e.clientId)
+                      const hours = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60)
+                      const amount = client ? hours * client.hourlyRate * (1 + client.vatPercent / 100) : 0
+                      return {
+                        תאריך: e.startDate,
+                        לקוח: client?.name || '',
+                        'שעות': hours.toFixed(2),
+                        סכום: amount.toFixed(2),
+                        סטטוס: (e.billingStatus || 'pending') === 'paid' ? 'שולם' : (e.billingStatus || 'pending') === 'invoiced' ? 'חויב' : 'ממתין',
+                        הערות: e.notes || ''
+                      }
+                    })
+                    const ws = XLSX.utils.json_to_sheet(data)
+                    const wb = XLSX.utils.book_new()
+                    XLSX.utils.book_append_sheet(wb, ws, 'דיווחים')
+                    XLSX.writeFile(wb, `דיווחי_שעות_${new Date().toISOString().split('T')[0]}.xlsx`)
+                  })
+                }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  <span className="m-hbtn-label">אקסל</span>
+                </button>
+                <button className="m-hbtn" onClick={() => {
+                  // Send by Email - trigger from summary results
+                  const filteredEntries = timeEntries.filter(e => {
+                    const entryDate = new Date(e.startDate)
+                    const from = summaryFromDate ? new Date(summaryFromDate) : null
+                    const to = summaryToDate ? new Date(summaryToDate) : null
+                    if (from && entryDate < from) return false
+                    if (to && entryDate > to) return false
+                    if (summaryClientFilter !== 'all' && e.clientId !== summaryClientFilter) return false
+                    if (summaryStatusFilter !== 'all' && (e.billingStatus || 'pending') !== summaryStatusFilter) return false
+                    return true
+                  })
+                  if (filteredEntries.length === 0) return
+                  const totalHours = filteredEntries.reduce((sum, e) => sum + (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60), 0)
+                  let totalAmount = 0
+                  filteredEntries.forEach(e => {
+                    const client = clients.find(c => c.id === e.clientId)
+                    if (client) {
+                      const hours = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60)
+                      totalAmount += hours * client.hourlyRate * (1 + client.vatPercent / 100)
+                    }
+                  })
+                  const subject = `דיווח שעות - ${filteredEntries.length} דיווחים`
+                  let body = `דיווח שעות\n\n`
+                  body += `תקופה: ${summaryFromDate || 'התחלה'} עד ${summaryToDate || 'סוף'}\n`
+                  body += `סה"כ שעות: ${totalHours.toFixed(2)}\n`
+                  body += `סה"כ הכנסות: ₪${totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}\n\n`
+                  body += `דיווחים:\n`
+                  filteredEntries.forEach(e => {
+                    const client = clients.find(c => c.id === e.clientId)
+                    const hours = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60)
+                    const amount = client ? hours * client.hourlyRate * (1 + client.vatPercent / 100) : 0
+                    body += `${e.startDate} ${e.startTime}-${e.endTime} | ${client?.name} | ${hours.toFixed(2)} שעות | ₪${amount.toFixed(2)}\n`
+                  })
+                  window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+                }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                  <span className="m-hbtn-label">מייל</span>
+                </button>
+              </>
+            )}
             <button className="m-hbtn m-hbtn-gear" onClick={() => setTimeSettingsOpen(true)}>
               <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
                 <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
@@ -3429,64 +3508,42 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         {/* Tab 3: Summary */}
         {timeTrackingTab === 'summary' && (
           <div className="m-time-summary-tab">
-            {/* Filters */}
-            <div className="m-summary-filters">
-              <div className="m-mortgage-field">
-                <label>תקופה</label>
-                <div style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
-                  <input 
-                    type="date"
-                    value={summaryFromDate}
-                    onChange={e => setSummaryFromDate(e.target.value)}
-                    style={{flex: 1}}
-                  />
-                  <span style={{color: '#6B7280', fontSize: '14px'}}>עד</span>
-                  <input 
-                    type="date"
-                    value={summaryToDate}
-                    onChange={e => setSummaryToDate(e.target.value)}
-                    style={{flex: 1}}
-                  />
-                </div>
-              </div>
-              <div className="m-mortgage-field">
-                <label>לקוח</label>
-                <select 
-                  value={summaryClientFilter}
-                  onChange={e => setSummaryClientFilter(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    border: '2px solid #E5E7EB',
-                    borderRadius: '10px',
-                    fontSize: '16px'
-                  }}
-                >
-                  <option value="all">כל הלקוחות</option>
-                  {clients.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="m-mortgage-field">
-                <label>סטטוס חיוב</label>
-                <select 
-                  value={summaryStatusFilter}
-                  onChange={e => setSummaryStatusFilter(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    border: '2px solid #E5E7EB',
-                    borderRadius: '10px',
-                    fontSize: '16px'
-                  }}
-                >
-                  <option value="all">הכל</option>
-                  <option value="pending">ממתין לחיוב</option>
-                  <option value="invoiced">חויב</option>
-                  <option value="paid">שולם</option>
-                </select>
-              </div>
+            {/* Compact Filters */}
+            <div style={{display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap'}}>
+              <input
+                type="date"
+                value={summaryFromDate}
+                onChange={e => setSummaryFromDate(e.target.value)}
+                placeholder="מתאריך"
+                style={{flex: 1, minWidth: '110px', padding: '8px 10px', border: '1px solid #E5E7EB', borderRadius: '8px', fontSize: '13px'}}
+              />
+              <input
+                type="date"
+                value={summaryToDate}
+                onChange={e => setSummaryToDate(e.target.value)}
+                placeholder="עד תאריך"
+                style={{flex: 1, minWidth: '110px', padding: '8px 10px', border: '1px solid #E5E7EB', borderRadius: '8px', fontSize: '13px'}}
+              />
+              <select
+                value={summaryClientFilter}
+                onChange={e => setSummaryClientFilter(e.target.value)}
+                style={{flex: 1, minWidth: '100px', padding: '8px 10px', border: '1px solid #E5E7EB', borderRadius: '8px', fontSize: '13px'}}
+              >
+                <option value="all">כל הלקוחות</option>
+                {clients.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+              <select
+                value={summaryStatusFilter}
+                onChange={e => setSummaryStatusFilter(e.target.value)}
+                style={{flex: 1, minWidth: '90px', padding: '8px 10px', border: '1px solid #E5E7EB', borderRadius: '8px', fontSize: '13px'}}
+              >
+                <option value="all">כל הסטטוסים</option>
+                <option value="pending">ממתין</option>
+                <option value="invoiced">חויב</option>
+                <option value="paid">שולם</option>
+              </select>
             </div>
 
             {/* Summary Results */}
@@ -3514,46 +3571,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   totalAmount += hours * client.hourlyRate * (1 + client.vatPercent / 100)
                 }
               })
-
-              const exportToExcel = () => {
-                // יצירת CSV (Excel יכול לפתוח)
-                let csv = 'תאריך,שעת התחלה,שעת סיום,שעות,לקוח,עובד,סכום,סטטוס,הערות\n'
-                
-                filteredEntries.forEach(e => {
-                  const client = clients.find(c => c.id === e.clientId)
-                  const employee = e.employeeId ? employees.find(emp => emp.id === e.employeeId) : null
-                  const hours = calculateHours(e)
-                  const amount = client ? hours * client.hourlyRate * (1 + client.vatPercent / 100) : 0
-                  const status = e.billingStatus === 'invoiced' ? 'חויב' : e.billingStatus === 'paid' ? 'שולם' : 'ממתין'
-                  
-                  csv += `${e.startDate},${e.startTime},${e.endTime},${hours.toFixed(2)},${client?.name || ''},${employee?.name || 'עצמי'},${amount.toFixed(2)},${status},"${e.notes}"\n`
-                })
-                
-                // הורדה
-                const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' })
-                const link = document.createElement('a')
-                link.href = URL.createObjectURL(blob)
-                link.download = `דיווח_שעות_${summaryFromDate}_${summaryToDate}.csv`
-                link.click()
-              }
-
-              const sendByEmail = () => {
-                const subject = `דיווח שעות ${summaryFromDate} - ${summaryToDate}`
-                let body = `דיווח שעות\n\n`
-                body += `תקופה: ${summaryFromDate} עד ${summaryToDate}\n`
-                body += `סה"כ שעות: ${totalHours.toFixed(2)}\n`
-                body += `סה"כ הכנסות: ₪${totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}\n\n`
-                body += `דיווחים:\n`
-                
-                filteredEntries.forEach(e => {
-                  const client = clients.find(c => c.id === e.clientId)
-                  const hours = calculateHours(e)
-                  const amount = client ? hours * client.hourlyRate * (1 + client.vatPercent / 100) : 0
-                  body += `${e.startDate} ${e.startTime}-${e.endTime} | ${client?.name} | ${hours.toFixed(2)} שעות | ₪${amount.toFixed(2)}\n`
-                })
-                
-                window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-              }
 
               // Find first and last entry dates
               const sortedByDate = [...filteredEntries].sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
@@ -3607,49 +3624,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     </div>
                   </div>
 
-                  {/* Export Buttons */}
-                  <div style={{display: 'flex', gap: '12px', marginTop: '16px'}}>
-                    <button 
-                      onClick={exportToExcel}
-                      style={{
-                        flex: 1,
-                        padding: '14px',
-                        background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '12px',
-                        fontSize: '15px',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px'
-                      }}
-                    >
-                      📊 ייצא לאקסל
-                    </button>
-                    <button 
-                      onClick={sendByEmail}
-                      style={{
-                        flex: 1,
-                        padding: '14px',
-                        background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '12px',
-                        fontSize: '15px',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px'
-                      }}
-                    >
-                      📧 שלח במייל
-                    </button>
-                  </div>
 
                   {/* Bulk-select bar */}
                   {selectedEntryIds.length > 0 ? (
