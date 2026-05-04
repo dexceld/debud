@@ -3665,11 +3665,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     return (
                       <div key={key}>
                         {/* Period subtotal header */}
-                        <div style={{background: '#BBF7D0', padding: '8px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4}}>
-                          <span style={{fontSize: 13, fontWeight: 700, color: '#065F46'}}>{getPeriodLabel(key)}</span>
-                          <div style={{display: 'flex', gap: 12, fontSize: 13}}>
-                            <span style={{color: '#047857', fontWeight: 600}}>{totalHours.toFixed(1)}h</span>
-                            <span style={{color: '#047857', fontWeight: 700}}>₪{totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
+                        <div style={{background: '#BBF7D0', padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6}}>
+                          <span style={{fontSize: 16, fontWeight: 700, color: '#065F46'}}>{getPeriodLabel(key)}</span>
+                          <div style={{display: 'flex', gap: 14, alignItems: 'center'}}>
+                            <span style={{fontSize: 15, color: '#047857', fontWeight: 600}}>{totalHours.toFixed(1)}h</span>
+                            <span style={{fontSize: 16, color: '#047857', fontWeight: 800}}>₪{totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
                           </div>
                         </div>
 
