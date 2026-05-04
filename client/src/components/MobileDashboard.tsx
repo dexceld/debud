@@ -5135,12 +5135,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       {screen === 'time-tracking' && <TimeTrackingScreen />}
       {renderCatMgmt()}
       <InlineSheet />
-      {AddClientModal()}
-      {QuickTimeEntryModal()}
-      {AddTimeEntryModal()}
-      {TimeSettingsModal()}
-      {AddEmployeeModal()}
-      {BulkActionModal()}
+      <AddClientModal />
+      <QuickTimeEntryModal />
+      <AddTimeEntryModal />
+      <TimeSettingsModal />
+      <AddEmployeeModal />
+      <BulkActionModal />
       <QuickAddSheet 
         globalAmountValue={quickAddGlobalAmount}
         setGlobalAmountValue={setQuickAddGlobalAmount}
