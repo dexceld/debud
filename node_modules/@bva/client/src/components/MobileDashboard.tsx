@@ -217,6 +217,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [employeeFormClients, setEmployeeFormClients] = useState<string[]>([])
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null)
   const [editEmployeeId, setEditEmployeeId] = useState<string | null>(null)
+  const [employeeStatusFilter, setEmployeeStatusFilter] = useState<'all' | 'pending' | 'invoiced' | 'paid'>('all')
   // Floating action buttons state (moved from IIFE to top-level to fix hooks violation)
   const [fabPos, setFabPos] = useState(() => {
     const saved = localStorage.getItem(lsKey('time_fab_pos'))
@@ -3051,6 +3052,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         employeeEntries = employeeEntries.filter(e => new Date(e.startDate) >= yearAgo)
       }
 
+      // Apply status filter
+      if (employeeStatusFilter !== 'all') {
+        employeeEntries = employeeEntries.filter(e => (e.billingStatus || 'pending') === employeeStatusFilter)
+      }
+
       // Sort by date desc
       employeeEntries.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
 
@@ -3073,7 +3079,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           </div>
 
           {/* Period Filter */}
-          <div style={{display: 'flex', gap: '8px', padding: '0 16px 12px', justifyContent: 'center'}}>
+          <div style={{display: 'flex', gap: '8px', padding: '0 16px 8px', justifyContent: 'center'}}>
             <button 
               onClick={() => setSummaryPeriod('week')}
               style={{
@@ -3137,6 +3143,74 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               }}
             >
               הכל
+            </button>
+          </div>
+
+          {/* Status Filter */}
+          <div style={{display: 'flex', gap: '8px', padding: '0 16px 12px', justifyContent: 'center'}}>
+            <button 
+              onClick={() => setEmployeeStatusFilter('all')}
+              style={{
+                flex: 1,
+                padding: '8px 12px',
+                borderRadius: '20px',
+                border: 'none',
+                background: employeeStatusFilter === 'all' ? '#1d4ed8' : '#e5e7eb',
+                color: employeeStatusFilter === 'all' ? 'white' : '#374151',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              כל הסטטוסים
+            </button>
+            <button 
+              onClick={() => setEmployeeStatusFilter('pending')}
+              style={{
+                flex: 1,
+                padding: '8px 12px',
+                borderRadius: '20px',
+                border: 'none',
+                background: employeeStatusFilter === 'pending' ? '#f59e0b' : '#e5e7eb',
+                color: employeeStatusFilter === 'pending' ? 'white' : '#374151',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              ממתין
+            </button>
+            <button 
+              onClick={() => setEmployeeStatusFilter('invoiced')}
+              style={{
+                flex: 1,
+                padding: '8px 12px',
+                borderRadius: '20px',
+                border: 'none',
+                background: employeeStatusFilter === 'invoiced' ? '#3b82f6' : '#e5e7eb',
+                color: employeeStatusFilter === 'invoiced' ? 'white' : '#374151',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              חויב
+            </button>
+            <button 
+              onClick={() => setEmployeeStatusFilter('paid')}
+              style={{
+                flex: 1,
+                padding: '8px 12px',
+                borderRadius: '20px',
+                border: 'none',
+                background: employeeStatusFilter === 'paid' ? '#10b981' : '#e5e7eb',
+                color: employeeStatusFilter === 'paid' ? 'white' : '#374151',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              שולם
             </button>
           </div>
 
