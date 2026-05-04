@@ -3715,7 +3715,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
         {/* Tab 3: Summary */}
         {timeTrackingTab === 'summary' && (
-          <div className="m-time-summary-tab">
+          <div style={{display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden'}}>
+          <div style={{flexShrink: 0, padding: '12px 16px 0', background: 'white', borderBottom: '1px solid #E5E7EB'}}>
             {/* Compact Filters */}
             <div style={{display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap'}}>
               <input
@@ -3804,7 +3805,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               >שולם</button>
             </div>
 
-            {/* Summary Results */}
+          </div>
+          <div style={{flex: 1, overflowY: 'auto', padding: '12px 16px', paddingBottom: 100}}>
             {(() => {
               const filteredEntries = timeEntries.filter(e => {
                 const entryDate = new Date(e.startDate)
@@ -4039,6 +4041,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 </>
               )
             })()}
+          </div>
           </div>
         )}
 
