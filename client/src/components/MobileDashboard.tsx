@@ -112,6 +112,22 @@ type TimeEntry = {
   employeePaymentAmount?: number // סכום ששולם לעובד בפועל
 }
 
+type ChargeEntry = {
+  id: string
+  clientId: string
+  date: string // YYYY-MM-DD
+  amount: number
+  tagId: string
+  notes?: string
+  billingStatus?: 'pending' | 'invoiced' | 'paid'
+  invoiceNumber?: string
+}
+
+type ChargeTag = {
+  id: string
+  name: string
+}
+
 export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode }: { uid: string; userEmail: string; userPhoto?: string; isLocalMode?: boolean }) {
   // Prefix localStorage keys with uid so each account has separate data
   const lsKey = (key: string) => uid ? `${uid}:${key}` : key
@@ -161,6 +177,27 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [quickSearch, setQuickSearch] = useState('')
   
   // Time Tracking State
+  const [chargeEntries, setChargeEntries] = useState<ChargeEntry[]>(() => {
+    const saved = localStorage.getItem(lsKey('charge_entries'))
+    return saved ? JSON.parse(saved) : []
+  })
+  const [chargeTags, setChargeTags] = useState<ChargeTag[]>(() => {
+    const saved = localStorage.getItem(lsKey('charge_tags'))
+    return saved ? JSON.parse(saved) : [
+      { id: 'travel', name: 'נסיעות' },
+      { id: 'parking', name: 'חניה' },
+      { id: 'toll', name: 'כביש 6' },
+      { id: 'fixprice', name: 'פיתוח פיקס' },
+    ]
+  })
+  const [addChargeOpen, setAddChargeOpen] = useState(false)
+  const [editChargeId, setEditChargeId] = useState<string | null>(null)
+  const [chargeFormClientId, setChargeFormClientId] = useState('')
+  const [chargeFormDate, setChargeFormDate] = useState('')
+  const [chargeFormAmount, setChargeFormAmount] = useState('')
+  const [chargeFormTagId, setChargeFormTagId] = useState('')
+  const [chargeFormNotes, setChargeFormNotes] = useState('')
+  const [chargeFormNewTag, setChargeFormNewTag] = useState('')
   const [clients, setClients] = useState<Client[]>(() => {
     const saved = localStorage.getItem(lsKey('time_clients'))
     return saved ? JSON.parse(saved) : []
@@ -501,6 +538,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   useEffect(() => { localStorage.setItem(lsKey('time_clients'), JSON.stringify(clients)) }, [clients])
   useEffect(() => { localStorage.setItem(lsKey('time_entries'), JSON.stringify(timeEntries)) }, [timeEntries])
   useEffect(() => { localStorage.setItem(lsKey('time_employees'), JSON.stringify(employees)) }, [employees])
+  useEffect(() => { localStorage.setItem(lsKey('charge_entries'), JSON.stringify(chargeEntries)) }, [chargeEntries])
+  useEffect(() => { localStorage.setItem(lsKey('charge_tags'), JSON.stringify(chargeTags)) }, [chargeTags])
   useEffect(() => { localStorage.setItem(lsKey('time_default_vat'), defaultVat) }, [defaultVat])
   useEffect(() => { localStorage.setItem(lsKey('time_default_income_tax'), defaultIncomeTax) }, [defaultIncomeTax])
   useEffect(() => {
@@ -3511,6 +3550,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 <span className="m-hbtn-label">חדש</span>
               </button>
             )}
+            {timeTrackingTab === 'reports' && (
+              <button className="m-hbtn" onClick={() => { setChargeFormClientId(''); setChargeFormDate(new Date().toISOString().split('T')[0]); setChargeFormAmount(''); setChargeFormTagId(''); setChargeFormNotes(''); setEditChargeId(null); setAddChargeOpen(true) }}
+                style={{background: '#f3e8ff', color: '#7c3aed', border: 'none', borderRadius: 8, padding: '6px 10px', fontSize: 12, fontWeight: 700, cursor: 'pointer'}}>
+                ₪ חיוב
+              </button>
+            )}
             {timeTrackingTab === 'employees' && (
               <button className="m-hbtn m-hbtn-plus" onClick={() => setAddEmployeeOpen(true)}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -3747,20 +3792,30 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 grouped[key].push(e)
               })
 
-              const keys = Object.keys(grouped).sort((a, b) => b.localeCompare(a))
+              // Also group charge entries by period
+              const chargeGrouped: Record<string, ChargeEntry[]> = {}
+              chargeEntries.forEach(e => {
+                const key = getPeriodKey(e.date)
+                if (!chargeGrouped[key]) chargeGrouped[key] = []
+                chargeGrouped[key].push(e)
+              })
 
-              if (keys.length === 0) return <div className="m-empty-state">אין דיווחים</div>
+              const allKeys = Array.from(new Set([...Object.keys(grouped), ...Object.keys(chargeGrouped)])).sort((a, b) => b.localeCompare(a))
+
+              if (allKeys.length === 0) return <div className="m-empty-state">אין דיווחים</div>
 
               return (
                 <>
-                  {keys.map(key => {
-                    const entries = grouped[key]
+                  {allKeys.map(key => {
+                    const entries = grouped[key] || []
+                    const charges = chargeGrouped[key] || []
                     const totalHours = entries.reduce((sum, e) => sum + calculateHours(e), 0)
                     let totalAmount = 0
                     entries.forEach(e => {
                       const client = clients.find(c => c.id === e.clientId)
                       if (client) totalAmount += calculateHours(e) * client.hourlyRate * (1 + client.vatPercent / 100)
                     })
+                    charges.forEach(c => { totalAmount += c.amount })
 
                     return (
                       <div key={key}>
@@ -3768,7 +3823,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                         <div style={{background: '#BBF7D0', padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6}}>
                           <span style={{fontSize: 16, fontWeight: 700, color: '#065F46'}}>{getPeriodLabel(key)}</span>
                           <div style={{display: 'flex', gap: 14, alignItems: 'center'}}>
-                            <span style={{fontSize: 15, color: '#047857', fontWeight: 600}}>{totalHours.toFixed(1)}h</span>
+                            {totalHours > 0 && <span style={{fontSize: 15, color: '#047857', fontWeight: 600}}>{totalHours.toFixed(1)}h</span>}
                             <span style={{fontSize: 16, color: '#047857', fontWeight: 800}}>₪{totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
                           </div>
                         </div>
@@ -3809,6 +3864,44 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                 <div style={{textAlign: 'left', flexShrink: 0}}>
                                   <div style={{fontSize: 14, fontWeight: 700, color: '#059669'}}>₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
                                   <div style={{fontSize: 12, color: '#6B7280'}}>{hours.toFixed(1)}h</div>
+                                </div>
+                              </div>
+                            )
+                          })}
+                          {charges.map(charge => {
+                            const client = clients.find(c => c.id === charge.clientId)
+                            if (!client) return null
+                            const tag = chargeTags.find(t => t.id === charge.tagId)
+                            const status = charge.billingStatus || 'pending'
+                            return (
+                              <div key={charge.id}
+                                onClick={() => {
+                                  setChargeFormClientId(charge.clientId)
+                                  setChargeFormDate(charge.date)
+                                  setChargeFormAmount(String(charge.amount))
+                                  setChargeFormTagId(charge.tagId)
+                                  setChargeFormNotes(charge.notes || '')
+                                  setEditChargeId(charge.id)
+                                  setAddChargeOpen(true)
+                                }}
+                                style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', borderBottom: '1px solid #F9FAFB', cursor: 'pointer', background: '#faf5ff'}}
+                              >
+                                <div style={{minWidth: 0}}>
+                                  <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
+                                    <span style={{fontSize: 14, fontWeight: 600, color: '#111827'}}>{client.name}</span>
+                                    <span style={{fontSize: 11, padding: '1px 6px', borderRadius: 4, background: '#ede9fe', color: '#7c3aed', fontWeight: 600}}>{tag?.name || charge.tagId}</span>
+                                  </div>
+                                  <div style={{fontSize: 12, color: '#6B7280'}}>
+                                    {new Date(charge.date).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit'})}
+                                    {charge.notes && ` · ${charge.notes}`}
+                                    <span style={{marginRight: 6, fontSize: 11, padding: '1px 5px', borderRadius: 4, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e'}}>
+                                      {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div style={{textAlign: 'left', flexShrink: 0}}>
+                                  <div style={{fontSize: 14, fontWeight: 700, color: '#7c3aed'}}>₪{charge.amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
+                                  <div style={{fontSize: 11, color: '#9CA3AF'}}>חיוב</div>
                                 </div>
                               </div>
                             )
@@ -4645,6 +4738,142 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     )
   }
 
+  // Add / Edit Charge Modal
+  const AddChargeModal = () => {
+    if (!addChargeOpen) return null
+    const [newTagName, setNewTagName] = useState('')
+    const [showNewTag, setShowNewTag] = useState(false)
+    const [fieldErrors, setFieldErrors] = useState<{client?: boolean, date?: boolean, amount?: boolean, tag?: boolean}>({})
+
+    const save = () => {
+      const errors: typeof fieldErrors = {}
+      if (!chargeFormClientId) errors.client = true
+      if (!chargeFormDate) errors.date = true
+      if (!chargeFormAmount || isNaN(parseFloat(chargeFormAmount))) errors.amount = true
+      if (!chargeFormTagId) errors.tag = true
+      if (Object.keys(errors).length > 0) { setFieldErrors(errors); return }
+
+      const entry: ChargeEntry = {
+        id: editChargeId || Date.now().toString(),
+        clientId: chargeFormClientId,
+        date: chargeFormDate,
+        amount: parseFloat(chargeFormAmount),
+        tagId: chargeFormTagId,
+        notes: chargeFormNotes || undefined,
+        billingStatus: 'pending',
+      }
+      if (editChargeId) {
+        setChargeEntries(prev => prev.map(e => e.id === editChargeId ? entry : e))
+      } else {
+        setChargeEntries(prev => [...prev, entry])
+      }
+      setAddChargeOpen(false); setEditChargeId(null)
+      setChargeFormClientId(''); setChargeFormDate(''); setChargeFormAmount(''); setChargeFormTagId(''); setChargeFormNotes('')
+    }
+
+    const addTag = () => {
+      const name = newTagName.trim()
+      if (!name) return
+      const id = Date.now().toString()
+      setChargeTags(prev => [...prev, { id, name }])
+      setChargeFormTagId(id)
+      setNewTagName(''); setShowNewTag(false)
+    }
+
+    return (
+      <>
+        <div className="m-overlay" onClick={() => { setAddChargeOpen(false); setEditChargeId(null) }} />
+        <div className="m-top-sheet" style={{maxHeight: '90vh', overflowY: 'auto'}}>
+          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16}}>
+            <h2 style={{fontSize: 18, fontWeight: 700, margin: 0}}>{editChargeId ? 'עריכת חיוב' : 'חיוב חד-פעמי'}</h2>
+            <button onClick={() => { setAddChargeOpen(false); setEditChargeId(null) }} style={{background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: '#6B7280'}}>✕</button>
+          </div>
+
+          {/* Client */}
+          <div style={{marginBottom: 14}}>
+            <div style={{fontSize: 11, color: '#9CA3AF', fontWeight: 700, marginBottom: 6}}>לקוח {fieldErrors.client && <span style={{color: '#ef4444'}}>*</span>}</div>
+            <div style={{display: 'flex', gap: 6, flexWrap: 'wrap'}}>
+              {clients.map(c => (
+                <button key={c.id} onClick={() => setChargeFormClientId(c.id)}
+                  style={{padding: '6px 12px', borderRadius: 16, border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                    background: chargeFormClientId === c.id ? '#1d4ed8' : '#F3F4F6',
+                    color: chargeFormClientId === c.id ? 'white' : '#374151'}}>
+                  {c.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Date */}
+          <div style={{marginBottom: 14}}>
+            <div style={{fontSize: 11, color: '#9CA3AF', fontWeight: 700, marginBottom: 6}}>תאריך {fieldErrors.date && <span style={{color: '#ef4444'}}>*</span>}</div>
+            <input type="date" value={chargeFormDate} onChange={e => setChargeFormDate(e.target.value)}
+              style={{width: '100%', padding: '10px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 15, outline: 'none'}} />
+          </div>
+
+          {/* Amount */}
+          <div style={{marginBottom: 14}}>
+            <div style={{fontSize: 11, color: '#9CA3AF', fontWeight: 700, marginBottom: 6}}>סכום ₪ {fieldErrors.amount && <span style={{color: '#ef4444'}}>*</span>}</div>
+            <input type="number" inputMode="decimal" placeholder="0" defaultValue={chargeFormAmount} onBlur={e => setChargeFormAmount(e.target.value)}
+              style={{width: '100%', padding: '10px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 15, outline: 'none'}} />
+          </div>
+
+          {/* Tag */}
+          <div style={{marginBottom: 14}}>
+            <div style={{fontSize: 11, color: '#9CA3AF', fontWeight: 700, marginBottom: 6}}>
+              סוג חיוב {fieldErrors.tag && <span style={{color: '#ef4444'}}>*</span>}
+            </div>
+            <div style={{display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6}}>
+              {chargeTags.map(tag => (
+                <button key={tag.id} onClick={() => setChargeFormTagId(tag.id)}
+                  style={{padding: '6px 12px', borderRadius: 16, border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                    background: chargeFormTagId === tag.id ? '#7c3aed' : '#F3F4F6',
+                    color: chargeFormTagId === tag.id ? 'white' : '#374151'}}>
+                  {tag.name}
+                </button>
+              ))}
+              <button onClick={() => setShowNewTag(v => !v)}
+                style={{padding: '6px 12px', borderRadius: 16, border: '1px dashed #c4b5fd', fontSize: 13, fontWeight: 600, cursor: 'pointer', background: 'transparent', color: '#7c3aed'}}>
+                + חדש
+              </button>
+            </div>
+            {showNewTag && (
+              <div style={{display: 'flex', gap: 6}}>
+                <input placeholder="שם תיוג חדש" value={newTagName} onChange={e => setNewTagName(e.target.value)}
+                  style={{flex: 1, padding: '8px 10px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 14, outline: 'none'}} />
+                <button onClick={addTag}
+                  style={{padding: '8px 14px', background: '#7c3aed', color: 'white', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer'}}>הוסף</button>
+              </div>
+            )}
+          </div>
+
+          {/* Notes */}
+          <div style={{marginBottom: 14}}>
+            <input placeholder="הערה (אופציונלי)" defaultValue={chargeFormNotes} onBlur={e => setChargeFormNotes(e.target.value)}
+              style={{width: '100%', border: 'none', borderBottom: '1px solid #E5E7EB', padding: '8px 0', fontSize: 15, background: 'none', outline: 'none'}} />
+          </div>
+
+          {editChargeId && (
+            <button onClick={() => { if (confirm('למחוק חיוב זה?')) { setChargeEntries(prev => prev.filter(e => e.id !== editChargeId)); setAddChargeOpen(false); setEditChargeId(null) } }}
+              style={{width: '100%', padding: '12px', marginBottom: 10, background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer'}}>
+              מחק חיוב
+            </button>
+          )}
+
+          <div style={{display: 'flex', gap: 10}}>
+            <button onClick={() => { setAddChargeOpen(false); setEditChargeId(null) }}
+              style={{flex: 1, padding: '14px', background: '#F3F4F6', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer', color: '#6B7280'}}>
+              ביטול
+            </button>
+            <button className="m-mortgage-calc-btn" onClick={save} style={{flex: 2, margin: 0}}>
+              {editChargeId ? 'עדכן' : 'שמור'} ✓
+            </button>
+          </div>
+        </div>
+      </>
+    )
+  }
+
   // Quick Time Entry Modal (from main screen)
   const QuickTimeEntryModal = () => {
     if (!quickTimeEntryOpen) return null
@@ -5444,6 +5673,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       {renderCatMgmt()}
       <InlineSheet />
       <AddClientModal />
+      <AddChargeModal />
       <QuickTimeEntryModal />
       <AddTimeEntryModal />
       {/* Global Floating Action Buttons */}
