@@ -4801,7 +4801,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           </div>
 
 
-          <div style={{display: 'flex', gap: 10, marginTop: 16}}>
+          {calculatedAmount > 0 && (
+            <div style={{textAlign: 'center', padding: '8px 0', fontSize: 18, fontWeight: 800, color: '#10b981'}}>
+              ₪{calculatedAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
+            </div>
+          )}
+
+          <div style={{display: 'flex', gap: 10, marginTop: 8}}>
             <button onClick={() => setQuickTimeEntryOpen(false)}
               style={{flex: 1, padding: '14px', background: '#F3F4F6', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer', color: '#6B7280'}}>
               ביטול
