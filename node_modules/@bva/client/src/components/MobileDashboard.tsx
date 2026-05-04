@@ -4034,7 +4034,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               }}
             >
               <option value="">בחר לקוח</option>
-              {clients.map(c => (
+              {clients && clients.map(c => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select>
@@ -4162,14 +4162,17 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
     // Initialize form on open (only when adding new, not editing)
     useEffect(() => {
-      if (addTimeEntryOpen && !editEntryId && !entryFormStartDate) {
-        const today = new Date().toISOString().split('T')[0]
-        const now = new Date().toTimeString().slice(0, 5)
-        setEntryFormStartDate(today)
-        setEntryFormEndDate(today)
-        setEntryFormStartTime(now)
-        setEntryFormEndTime(now)
-        // Initialize clientId from selectedClientId if available
+      if (addTimeEntryOpen && !editEntryId) {
+        // Initialize date/time if not set
+        if (!entryFormStartDate) {
+          const today = new Date().toISOString().split('T')[0]
+          const now = new Date().toTimeString().slice(0, 5)
+          setEntryFormStartDate(today)
+          setEntryFormEndDate(today)
+          setEntryFormStartTime(now)
+          setEntryFormEndTime(now)
+        }
+        // Initialize clientId from selectedClientId if available and not already set
         if (selectedClientId && !entryFormClientId) {
           setEntryFormClientId(selectedClientId)
         }
@@ -4322,7 +4325,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 }}
               >
                 <option value="">בחר לקוח...</option>
-                {clients.map(c => (
+                {clients && clients.map(c => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
