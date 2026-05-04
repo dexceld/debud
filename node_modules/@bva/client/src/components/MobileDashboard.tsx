@@ -338,6 +338,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
   // Time tracking back-button refs (to allow Android back to navigate within time tracking)
   const selectedClientIdRef = useRef<string | null>(null)
+  const selectedEmployeeIdRef = useRef<string | null>(null)
   const addClientOpenRef = useRef(false)
   const addEmployeeOpenRef = useRef(false)
   const addTimeEntryOpenRef = useRef(false)
@@ -346,6 +347,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const bulkActionOpenRef = useRef(false)
   const selectedEntryIdsRef = useRef<string[]>([])
   useEffect(() => { selectedClientIdRef.current = selectedClientId }, [selectedClientId])
+  useEffect(() => { selectedEmployeeIdRef.current = selectedEmployeeId }, [selectedEmployeeId])
   useEffect(() => { addClientOpenRef.current = addClientOpen }, [addClientOpen])
   useEffect(() => { addEmployeeOpenRef.current = addEmployeeOpen }, [addEmployeeOpen])
   useEffect(() => { addTimeEntryOpenRef.current = addTimeEntryOpen }, [addTimeEntryOpen])
@@ -390,6 +392,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           setQuickTimeEntryOpen(false)
         } else if (selectedEntryIdsRef.current.length > 0) {
           setSelectedEntryIds([])
+        } else if (selectedEmployeeIdRef.current) {
+          setSelectedEmployeeId(null)
         } else if (selectedClientIdRef.current) {
           setSelectedClientId(null)
         } else if (screenRef.current !== 'home') {
