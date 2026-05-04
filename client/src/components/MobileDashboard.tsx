@@ -3688,8 +3688,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                 <div style={{fontSize: 14, fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
                                   {client.name}
                                 </div>
-                                <div style={{fontSize: 12, color: '#6B7280'}}>
-                                  {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit'})} · {entry.startTime}-{entry.endTime}
+                                <div style={{fontSize: 13, color: '#374151', fontWeight: 500}}>
+                                  {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit', year: 'numeric'})}
                                   {entry.invoiceNumber && <span style={{marginInlineStart: 6, color: '#3b82f6'}}>• #{entry.invoiceNumber}</span>}
                                 </div>
                               </div>
