@@ -4345,32 +4345,27 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const pad = (n: number) => String(n).padStart(2, '0')
 
     const isHourStep = step === 'startH' || step === 'endH'
-    const clockSize = 260
+    // Use available screen width for clock size
+    const clockSize = Math.min(window.innerWidth - 32, 340)
     const cx = clockSize / 2
     const cy = clockSize / 2
-    const r = 100
+    const rOuter = clockSize * 0.42  // outer ring radius
+    const rInner = clockSize * 0.26  // inner ring radius (12-23)
 
     const numbers = isHourStep
       ? Array.from({length: 24}, (_, i) => i)
       : [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]
 
     const count = numbers.length
-    // For 24h: inner ring 12-23, outer ring 0-11
     const getPos = (i: number) => {
       if (isHourStep) {
         const n = numbers[i]
         const angle = ((n % 12) / 12) * 2 * Math.PI - Math.PI / 2
-        const radius = n < 12 ? r : r * 0.62
-        return {
-          x: cx + radius * Math.cos(angle),
-          y: cy + radius * Math.sin(angle)
-        }
+        const radius = n < 12 ? rOuter : rInner
+        return { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) }
       } else {
         const angle = (i / count) * 2 * Math.PI - Math.PI / 2
-        return {
-          x: cx + r * Math.cos(angle),
-          y: cy + r * Math.sin(angle)
-        }
+        return { x: cx + rOuter * Math.cos(angle), y: cy + rOuter * Math.sin(angle) }
       }
     }
 
@@ -4381,7 +4376,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       else if (step === 'startM') { setStartM(val); setStep('endH') }
       else if (step === 'endH') { setEndH(val); setStep('endM') }
       else {
-        // endM - done
         const s = `${pad(startH!)}:${pad(startM!)}`
         const e = `${pad(endH!)}:${pad(val)}`
         onChange(s, e)
@@ -4391,31 +4385,36 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
     const stepLabel = step === 'startH' ? 'שעת התחלה' : step === 'startM' ? `התחלה ${pad(startH!)} — דקות` : step === 'endH' ? `התחלה ${pad(startH!)}:${pad(startM!)} — שעת סיום` : `סיום ${pad(endH!)} — דקות`
 
-    // Hand line to selected number
     const handPos = selectedVal !== null ? (() => {
       const idx = numbers.indexOf(selectedVal)
       return idx >= 0 ? getPos(idx) : null
     })() : null
 
+    const dotR = clockSize * 0.075  // touch target radius
+    const fontSize = isHourStep
+      ? (clockSize * 0.055)
+      : (clockSize * 0.052)
+    const fontSizeInner = clockSize * 0.045
+
     return (
       <>
         <div className="m-overlay" onClick={onClose} />
-        <div style={{position: 'fixed', bottom: 0, left: 0, right: 0, background: 'white', borderRadius: '16px 16px 0 0', padding: '16px 16px 24px', zIndex: 500}}>
+        <div style={{position: 'fixed', bottom: 0, left: 0, right: 0, background: 'white', borderRadius: '16px 16px 0 0', padding: '16px 16px 28px', zIndex: 500}}>
           {/* Header */}
-          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8}}>
-            <button onClick={onClose} style={{border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: '#9CA3AF'}}>✕</button>
-            <div style={{fontWeight: 700, fontSize: 15, color: '#1F2937'}}>{stepLabel}</div>
-            <div style={{width: 32}} />
+          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6}}>
+            <button onClick={onClose} style={{border: 'none', background: 'none', fontSize: 22, cursor: 'pointer', color: '#9CA3AF', padding: '4px 8px'}}>✕</button>
+            <div style={{fontWeight: 700, fontSize: 16, color: '#1F2937'}}>{stepLabel}</div>
+            <div style={{width: 40}} />
           </div>
 
           {/* Time display */}
-          <div style={{textAlign: 'center', marginBottom: 12}}>
-            <span style={{fontSize: 36, fontWeight: 700, letterSpacing: 2}}>
-              <span style={{color: (step === 'startH' || step === 'startM') ? '#1d4ed8' : '#9CA3AF'}}>
+          <div style={{textAlign: 'center', marginBottom: 14}}>
+            <span style={{fontSize: 42, fontWeight: 800, letterSpacing: 3, fontVariantNumeric: 'tabular-nums'}}>
+              <span style={{color: (step === 'startH' || step === 'startM') ? '#1d4ed8' : '#CBD5E1'}}>
                 {startH !== null ? pad(startH) : '--'}:{startM !== null ? pad(startM) : '--'}
               </span>
-              <span style={{color: '#D1D5DB', margin: '0 8px', fontSize: 24}}>→</span>
-              <span style={{color: (step === 'endH' || step === 'endM') ? '#1d4ed8' : '#9CA3AF'}}>
+              <span style={{color: '#E2E8F0', margin: '0 10px', fontSize: 28, fontWeight: 400}}>→</span>
+              <span style={{color: (step === 'endH' || step === 'endM') ? '#1d4ed8' : '#CBD5E1'}}>
                 {endH !== null ? pad(endH) : '--'}:--
               </span>
             </span>
@@ -4423,32 +4422,25 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
           {/* Analog Clock */}
           <div style={{display: 'flex', justifyContent: 'center'}}>
-            <svg width={clockSize} height={clockSize} style={{touchAction: 'none'}}>
-              {/* Clock face */}
-              <circle cx={cx} cy={cy} r={cx - 4} fill="#F8FAFC" stroke="#E5E7EB" strokeWidth={2} />
-
-              {/* Hand line */}
+            <svg width={clockSize} height={clockSize} style={{touchAction: 'none', display: 'block'}}>
+              <circle cx={cx} cy={cy} r={cx - 2} fill="#F8FAFC" stroke="#E5E7EB" strokeWidth={2} />
               {handPos && (
-                <line x1={cx} y1={cy} x2={handPos.x} y2={handPos.y} stroke="#1d4ed8" strokeWidth={2} strokeLinecap="round" />
+                <line x1={cx} y1={cy} x2={handPos.x} y2={handPos.y} stroke="#1d4ed8" strokeWidth={3} strokeLinecap="round" />
               )}
-              {/* Center dot */}
-              <circle cx={cx} cy={cy} r={4} fill="#1d4ed8" />
-
-              {/* Numbers */}
+              <circle cx={cx} cy={cy} r={5} fill="#1d4ed8" />
               {numbers.map((n, i) => {
                 const pos = getPos(i)
                 const isSelected = selectedVal === n
+                const isInner = isHourStep && n >= 12
+                const fr = isInner ? fontSizeInner : fontSize
+                const dr = isInner ? dotR * 0.85 : dotR
                 return (
                   <g key={n} onClick={() => handleSelect(n)} style={{cursor: 'pointer'}}>
-                    <circle cx={pos.x} cy={pos.y} r={18} fill={isSelected ? '#1d4ed8' : 'transparent'} />
-                    <text
-                      x={pos.x} y={pos.y}
-                      textAnchor="middle" dominantBaseline="central"
-                      fontSize={isHourStep ? (n < 12 ? 14 : 12) : 13}
-                      fontWeight={isSelected ? 700 : 400}
-                      fill={isSelected ? 'white' : '#374151'}
-                    >
-                      {isHourStep ? pad(n) : pad(n)}
+                    <circle cx={pos.x} cy={pos.y} r={dr} fill={isSelected ? '#1d4ed8' : 'transparent'} />
+                    <text x={pos.x} y={pos.y} textAnchor="middle" dominantBaseline="central"
+                      fontSize={fr} fontWeight={isSelected ? 700 : 500}
+                      fill={isSelected ? 'white' : '#1E293B'}>
+                      {pad(n)}
                     </text>
                   </g>
                 )
@@ -4456,13 +4448,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </svg>
           </div>
 
-          {/* Back button */}
           {step !== 'startH' && (
             <button onClick={() => {
               if (step === 'startM') setStep('startH')
-              else if (step === 'endH') { setStep('startM') }
+              else if (step === 'endH') setStep('startM')
               else setStep('endH')
-            }} style={{marginTop: 8, width: '100%', padding: '10px', background: 'none', border: 'none', color: '#6B7280', fontSize: 14, cursor: 'pointer'}}>
+            }} style={{marginTop: 10, width: '100%', padding: '10px', background: 'none', border: 'none', color: '#6B7280', fontSize: 15, cursor: 'pointer'}}>
               ← חזור
             </button>
           )}
