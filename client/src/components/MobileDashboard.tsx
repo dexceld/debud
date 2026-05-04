@@ -4762,11 +4762,14 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             />
           )}
 
-          {/* Duration display */}
+          {/* Duration + Amount on one row */}
           {calculatedHours > 0 && (
             <div style={{display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F3F4F6'}}>
               <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>משך</div>
-              <div style={{flex: 1, fontSize: 17, fontWeight: 700, color: '#111827', textAlign: 'right'}}>{calculatedHours.toFixed(2)} שעות</div>
+              <div style={{flex: 1, fontSize: 17, fontWeight: 700, color: '#111827'}}>{calculatedHours.toFixed(1)} שעות</div>
+              {calculatedAmount > 0 && (
+                <div style={{fontSize: 17, fontWeight: 700, color: '#10b981'}}>₪{calculatedAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
+              )}
             </div>
           )}
 
@@ -4789,15 +4792,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               style={{width: '100%', border: 'none', borderBottom: '1px solid #E5E7EB', padding: '8px 0', fontSize: 15, background: 'none', outline: 'none'}} />
           </div>
 
-          {/* BASE RATE row */}
-          {calculatedAmount > 0 && (
-            <div style={{display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F3F4F6'}}>
-              <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>סכום</div>
-              <div style={{flex: 1, fontSize: 17, fontWeight: 700, color: '#10b981', textAlign: 'right'}}>
-                ₪{calculatedAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
-              </div>
-            </div>
-          )}
 
           <div style={{display: 'flex', gap: 10, marginTop: 16}}>
             <button onClick={() => setQuickTimeEntryOpen(false)}
@@ -4979,6 +4973,25 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               onClose={() => setTimePickerOpen(false)}
             />
           )}
+
+          {/* Duration + Amount inline */}
+          {(() => {
+            if (!entryFormStartDate || !entryFormEndDate || !entryFormStartTime || !entryFormEndTime) return null
+            const start = new Date(`${entryFormStartDate}T${entryFormStartTime}`)
+            const end = new Date(`${entryFormEndDate}T${entryFormEndTime}`)
+            const hrs = (end.getTime() - start.getTime()) / (1000 * 60 * 60)
+            if (hrs <= 0) return null
+            const cid = entryFormClientId || selectedClientId
+            const cl = clients.find(c => c && c.id === cid)
+            const amt = cl && cl.hourlyRate ? hrs * cl.hourlyRate * (1 + (cl.vatPercent || 0) / 100) : 0
+            return (
+              <div style={{display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F3F4F6'}}>
+                <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>משך</div>
+                <div style={{flex: 1, fontSize: 17, fontWeight: 700, color: '#111827'}}>{hrs.toFixed(1)} שעות</div>
+                {amt > 0 && <div style={{fontSize: 17, fontWeight: 700, color: '#10b981'}}>₪{amt.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>}
+              </div>
+            )
+          })()}
 
           {/* Employee row */}
           {Array.isArray(employees) && employees.length > 0 && (
