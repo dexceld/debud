@@ -3969,11 +3969,14 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const [fieldErrors, setFieldErrors] = useState<{client?: boolean, date?: boolean, time?: boolean}>({})
 
     // Initialize form on open
-    if (!entryFormStartDate) {
-      const today = new Date().toISOString().split('T')[0]
-      setEntryFormStartDate(today)
-      setEntryFormEndDate(today)
-    }
+    useEffect(() => {
+      if (!entryFormStartDate) {
+        const today = new Date().toISOString().split('T')[0]
+        setEntryFormStartDate(today)
+        setEntryFormEndDate(today)
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [quickTimeEntryOpen])
 
     // Calculate hours and amount
     let calculatedHours = 0
@@ -4177,9 +4180,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     if (!addTimeEntryOpen || !selectedClientId) return null
     const [fieldErrors, setFieldErrors] = useState<{date?: boolean, time?: boolean}>({})
 
-    // Initialize form on open (only when not editing — edit pre-fills before opening)
+    // Initialize form on open (only when adding new, not editing)
     useEffect(() => {
-      if (!entryFormStartDate && !editEntryId) {
+      if (addTimeEntryOpen && !editEntryId && !entryFormStartDate) {
         const today = new Date().toISOString().split('T')[0]
         const now = new Date().toTimeString().slice(0, 5)
         setEntryFormStartDate(today)
@@ -4187,6 +4190,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         setEntryFormStartTime(now)
         setEntryFormEndTime(now)
       }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [addTimeEntryOpen, editEntryId])
 
     const closeModal = () => {
