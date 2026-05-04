@@ -4691,7 +4691,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
           {/* Notes */}
           <div style={{padding: '10px 0'}}>
-            <input value={entryFormNotes} onChange={e => setEntryFormNotes(e.target.value)} placeholder="הערה (אופציונלי)"
+            <input key="quick-notes" defaultValue={entryFormNotes} onBlur={e => setEntryFormNotes(e.target.value)} placeholder="הערה (אופציונלי)"
               style={{width: '100%', border: 'none', borderBottom: '1px solid #E5E7EB', padding: '8px 0', fontSize: 15, background: 'none', outline: 'none'}} />
           </div>
 
@@ -4886,7 +4886,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
           {/* Notes */}
           <div style={{padding: '10px 0', borderBottom: '1px solid #F3F4F6'}}>
-            <input value={entryFormNotes} onChange={e => setEntryFormNotes(e.target.value)} placeholder="הערה (אופציונלי)"
+            <input key="add-notes" defaultValue={entryFormNotes} onBlur={e => setEntryFormNotes(e.target.value)} placeholder="הערה (אופציונלי)"
               style={{width: '100%', border: 'none', padding: '4px 0', fontSize: 15, background: 'none', outline: 'none'}} />
           </div>
 
