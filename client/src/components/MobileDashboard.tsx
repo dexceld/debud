@@ -227,6 +227,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   // Separate refs for each button to prevent conflicts
   const clientFabDragRef = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number; moved: boolean } | null>(null)
   const timeFabDragRef = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number; moved: boolean } | null>(null)
+  const clientFabTouchHandled = useRef(false)
+  const timeFabTouchHandled = useRef(false)
   const [editEntryId, setEditEntryId] = useState<string | null>(null)
   const [datePickerOpen, setDatePickerOpen] = useState(false)
   const [timePickerOpen, setTimePickerOpen] = useState(false)
@@ -4069,12 +4071,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               const newY = Math.max(0, Math.min(window.innerHeight - 160, clientFabDragRef.current.startPosY + dy))
               setFabPos({ x: newX, y: newY })
             }}
-            onTouchEnd={(e) => {
-              e.preventDefault()
+            onTouchEnd={() => {
               const wasDrag = clientFabDragRef.current?.moved
               clientFabDragRef.current = null
               localStorage.setItem(lsKey('time_fab_pos'), JSON.stringify(fabPos))
               if (!wasDrag) {
+                clientFabTouchHandled.current = true
                 setClientFormName('')
                 setClientFormRate('')
                 setClientFormVat(defaultVat)
@@ -4084,6 +4086,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               }
             }}
             onClick={() => {
+              if (clientFabTouchHandled.current) { clientFabTouchHandled.current = false; return }
               setClientFormName('')
               setClientFormRate('')
               setClientFormVat(defaultVat)
@@ -4115,12 +4118,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               const newY = Math.max(0, Math.min(window.innerHeight - 160, timeFabDragRef.current.startPosY + dy))
               setFabPos({ x: newX, y: newY })
             }}
-            onTouchEnd={(e) => {
-              e.preventDefault()
+            onTouchEnd={() => {
               const wasDrag = timeFabDragRef.current?.moved
               timeFabDragRef.current = null
               localStorage.setItem(lsKey('time_fab_pos'), JSON.stringify(fabPos))
               if (!wasDrag) {
+                timeFabTouchHandled.current = true
                 setEntryFormStartDate('')
                 setEntryFormEndDate('')
                 setEntryFormStartTime('')
@@ -4133,6 +4136,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               }
             }}
             onClick={() => {
+              if (timeFabTouchHandled.current) { timeFabTouchHandled.current = false; return }
               setEntryFormStartDate('')
               setEntryFormEndDate('')
               setEntryFormStartTime('')
