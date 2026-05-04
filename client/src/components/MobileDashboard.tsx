@@ -4057,10 +4057,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </select>
           </div>
 
-          {/* Start Date & Time */}
+          {/* Date Range - Combined */}
           <div className="m-mortgage-field">
-            <label>מתי</label>
-            <div style={{display: 'flex', gap: '8px'}}>
+            <label>תאריך</label>
+            <div style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
               <input 
                 type="date"
                 value={entryFormStartDate}
@@ -4072,19 +4072,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 }}
                 style={{flex: 1}}
               />
-              <input 
-                type="time"
-                value={entryFormStartTime}
-                onChange={e => setEntryFormStartTime(e.target.value)}
-                style={{width: '110px'}}
-              />
-            </div>
-          </div>
-
-          {/* End Date & Time */}
-          <div className="m-mortgage-field">
-            <label>עד</label>
-            <div style={{display: 'flex', gap: '8px'}}>
+              <span style={{color: '#6B7280', fontSize: '14px'}}>→</span>
               <input 
                 type="date"
                 value={entryFormEndDate}
@@ -4092,11 +4080,36 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 min={entryFormStartDate}
                 style={{flex: 1}}
               />
+            </div>
+          </div>
+
+          {/* Time Range - Combined with smart auto-end */}
+          <div className="m-mortgage-field">
+            <label>שעות</label>
+            <div style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
+              <input 
+                type="time"
+                value={entryFormStartTime}
+                onChange={e => {
+                  const val = e.target.value
+                  setEntryFormStartTime(val)
+                  // Auto-set end time 1 hour later if not set
+                  if (val && !entryFormEndTime) {
+                    const [h, m] = val.split(':').map(Number)
+                    const endH = (h + 1) % 24
+                    setEntryFormEndTime(`${endH.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`)
+                  }
+                }}
+                style={{flex: 1}}
+                placeholder="התחלה"
+              />
+              <span style={{color: '#6B7280', fontSize: '14px'}}>→</span>
               <input 
                 type="time"
                 value={entryFormEndTime}
                 onChange={e => setEntryFormEndTime(e.target.value)}
-                style={{width: '110px'}}
+                style={{flex: 1}}
+                placeholder="סיום"
               />
             </div>
           </div>
@@ -4270,10 +4283,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <button className="m-close-btn" onClick={closeModal}>✕</button>
           </div>
 
-          {/* Start Date & Time */}
+          {/* Date Range - Combined */}
           <div className="m-mortgage-field">
-            <label>מתי {fieldErrors.date && <span style={{color: '#DC2626'}}>(נדרש)</span>}</label>
-            <div style={{display: 'flex', gap: '8px'}}>
+            <label>תאריך {fieldErrors.date && <span style={{color: '#DC2626'}}>(נדרש)</span>}</label>
+            <div style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
               <input
                 type="date"
                 value={entryFormStartDate}
@@ -4286,22 +4299,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 }}
                 style={{flex: 1, border: fieldErrors.date ? '2px solid #DC2626' : undefined, backgroundColor: fieldErrors.date ? '#FEF2F2' : undefined}}
               />
-              <input
-                type="time"
-                value={entryFormStartTime}
-                onChange={e => {
-                  setEntryFormStartTime(e.target.value)
-                  if (e.target.value) setFieldErrors(prev => ({...prev, time: false}))
-                }}
-                style={{width: '110px', border: fieldErrors.time ? '2px solid #DC2626' : undefined, backgroundColor: fieldErrors.time ? '#FEF2F2' : undefined}}
-              />
-            </div>
-          </div>
-
-          {/* End Date & Time */}
-          <div className="m-mortgage-field">
-            <label>עד {fieldErrors.time && !entryFormEndTime && <span style={{color: '#DC2626'}}>(נדרש)</span>}</label>
-            <div style={{display: 'flex', gap: '8px'}}>
+              <span style={{color: '#6B7280', fontSize: '14px'}}>→</span>
               <input
                 type="date"
                 value={entryFormEndDate}
@@ -4312,6 +4310,31 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 min={entryFormStartDate}
                 style={{flex: 1, border: fieldErrors.date ? '2px solid #DC2626' : undefined, backgroundColor: fieldErrors.date ? '#FEF2F2' : undefined}}
               />
+            </div>
+          </div>
+
+          {/* Time Range - Combined with smart flow */}
+          <div className="m-mortgage-field">
+            <label>שעות {fieldErrors.time && <span style={{color: '#DC2626'}}>(נדרש)</span>}</label>
+            <div style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
+              <input
+                type="time"
+                value={entryFormStartTime}
+                onChange={e => {
+                  const val = e.target.value
+                  setEntryFormStartTime(val)
+                  if (val) setFieldErrors(prev => ({...prev, time: false}))
+                  // Auto-set end time 1 hour later if not set
+                  if (val && !entryFormEndTime) {
+                    const [h, m] = val.split(':').map(Number)
+                    const endH = (h + 1) % 24
+                    setEntryFormEndTime(`${endH.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`)
+                  }
+                }}
+                style={{flex: 1, border: fieldErrors.time ? '2px solid #DC2626' : undefined, backgroundColor: fieldErrors.time ? '#FEF2F2' : undefined}}
+                placeholder="התחלה"
+              />
+              <span style={{color: '#6B7280', fontSize: '14px'}}>→</span>
               <input
                 type="time"
                 value={entryFormEndTime}
@@ -4319,7 +4342,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   setEntryFormEndTime(e.target.value)
                   if (e.target.value) setFieldErrors(prev => ({...prev, time: false}))
                 }}
-                style={{width: '110px', border: fieldErrors.time ? '2px solid #DC2626' : undefined, backgroundColor: fieldErrors.time ? '#FEF2F2' : undefined}}
+                style={{flex: 1, border: fieldErrors.time ? '2px solid #DC2626' : undefined, backgroundColor: fieldErrors.time ? '#FEF2F2' : undefined}}
+                placeholder="סיום"
               />
             </div>
           </div>
