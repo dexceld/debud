@@ -3333,7 +3333,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               </div>
               <div style={{display: 'flex', gap: 6}}>
                 <input type="text" placeholder="מס' חשבונית עובד"
-                  value={bulkEmployeeInvoiceNumber} onChange={e => setBulkEmployeeInvoiceNumber(e.target.value)}
+                  key="emp-invoice-employee" defaultValue={bulkEmployeeInvoiceNumber} onBlur={e => setBulkEmployeeInvoiceNumber(e.target.value)}
                   style={{flex: 1, padding: '8px 10px', fontSize: 13, border: 'none', borderRadius: 8, background: '#334155', color: 'white', outline: 'none'}} />
                 <button onClick={() => {
                   if (!bulkEmployeeInvoiceNumber.trim()) return
@@ -3910,7 +3910,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               </div>
               <div style={{display: 'flex', gap: 6}}>
                 <input type="number" inputMode="numeric" pattern="[0-9]*" placeholder="מס' חשבונית"
-                  value={bulkInvoiceNumber} onChange={e => setBulkInvoiceNumber(e.target.value)}
+                  key="bulk-invoice" defaultValue={bulkInvoiceNumber} onBlur={e => setBulkInvoiceNumber(e.target.value)}
                   style={{flex: 1, padding: '8px 10px', fontSize: 13, border: 'none', borderRadius: 8, background: '#334155', color: 'white', outline: 'none'}} />
                 <button onClick={() => {
                   if (!bulkInvoiceNumber.trim()) return
@@ -5193,8 +5193,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               type="number"
               inputMode="numeric"
               pattern="[0-9]*"
-              value={bulkInvoiceNumber}
-              onChange={e => setBulkInvoiceNumber(e.target.value)}
+              defaultValue={bulkInvoiceNumber}
+              onBlur={e => setBulkInvoiceNumber(e.target.value)}
               placeholder="לדוגמה: 2026001"
             />
             <button onClick={applyInvoiceNumber}
