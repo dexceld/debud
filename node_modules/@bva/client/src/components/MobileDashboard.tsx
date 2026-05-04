@@ -3366,40 +3366,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 }
               }
 
-              // Calculate total for all entries
-              const grandTotalHours = periods.reduce((sum, p) => sum + p.entries.reduce((s, e) => s + calculateHours(e), 0), 0)
-              let grandTotalAmount = 0
-              periods.forEach(p => {
-                p.entries.forEach(e => {
-                  const client = clients.find(c => c.id === e.clientId)
-                  if (client) {
-                    const hours = calculateHours(e)
-                    grandTotalAmount += hours * client.hourlyRate * (1 + client.vatPercent / 100)
-                  }
-                })
-              })
-
               return (
                 <>
-                  {/* Grand Total Header */}
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '12px 16px',
-                    marginBottom: '12px',
-                    background: 'white',
-                    borderRadius: '10px',
-                    border: '1px solid #E5E7EB'
-                  }}>
-                    <span style={{fontSize: 14, fontWeight: 700, color: '#111827'}}>סה"כ דיווחים</span>
-                    <div style={{display: 'flex', gap: '16px', fontSize: 14}}>
-                      <span style={{color: '#3B82F6', fontWeight: 600}}>{grandTotalHours.toFixed(2)}h</span>
-                      <span style={{color: '#059669', fontWeight: 700}}>₪{grandTotalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
-                    </div>
-                  </div>
-
-                  {/* Period Sections */}
+                  {/* Period Sections - grouped by selected period (week/month/year) */}
                   {periods.map((period) => {
                     const totalHours = period.entries.reduce((sum, e) => sum + calculateHours(e), 0)
                     let totalAmount = 0
