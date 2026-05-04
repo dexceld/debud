@@ -3950,13 +3950,17 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
     // Initialize form on open
     useEffect(() => {
-      if (quickTimeEntryOpen && !entryFormStartDate) {
+      if (quickTimeEntryOpen) {
         const today = new Date().toISOString().split('T')[0]
         const now = new Date().toTimeString().slice(0, 5)
-        setEntryFormStartDate(today)
-        setEntryFormEndDate(today)
-        setEntryFormStartTime(now)
-        setEntryFormEndTime(now)
+        if (!entryFormStartDate) {
+          setEntryFormStartDate(today)
+          setEntryFormEndDate(today)
+        }
+        if (!entryFormStartTime) {
+          setEntryFormStartTime(now)
+          setEntryFormEndTime(now)
+        }
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [quickTimeEntryOpen])
@@ -4101,7 +4105,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               }}
             >
               <option value="self">עצמי</option>
-              {employees.map(emp => (
+              {employees && employees.map(emp => (
                 <option key={emp.id} value={emp.id}>{emp.name}</option>
               ))}
             </select>
@@ -4166,12 +4170,14 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     // Initialize form on open (only when adding new, not editing)
     useEffect(() => {
       if (addTimeEntryOpen && !editEntryId) {
-        // Initialize date/time if not set
+        const today = new Date().toISOString().split('T')[0]
+        const now = new Date().toTimeString().slice(0, 5)
+        // Only initialize if dates are empty
         if (!entryFormStartDate) {
-          const today = new Date().toISOString().split('T')[0]
-          const now = new Date().toTimeString().slice(0, 5)
           setEntryFormStartDate(today)
           setEntryFormEndDate(today)
+        }
+        if (!entryFormStartTime) {
           setEntryFormStartTime(now)
           setEntryFormEndTime(now)
         }
@@ -4349,7 +4355,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               }}
             >
               <option value="self">עצמי</option>
-              {employees.map(emp => (
+              {employees && employees.map(emp => (
                 <option key={emp.id} value={emp.id}>{emp.name}</option>
               ))}
             </select>
