@@ -3638,7 +3638,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                         const inSelectMode = selectedEntryIds.length > 0
                         const toggleSelect = () => setSelectedEntryIds(prev => prev.includes(entry.id) ? prev.filter(i => i !== entry.id) : [...prev, entry.id])
                         const openEdit = () => {
-                          setSelectedClientId(entry.clientId)
+                          // Open modal FIRST to prevent view switch
+                          setAddTimeEntryOpen(true)
                           setEntryFormStartDate(entry.startDate)
                           setEntryFormEndDate(entry.endDate)
                           setEntryFormStartTime(entry.startTime)
@@ -3646,7 +3647,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           setEntryFormNotes(entry.notes || '')
                           setEntryFormEmployeeId(entry.employeeId || 'self')
                           setEditEntryId(entry.id)
-                          setAddTimeEntryOpen(true)
+                          setSelectedClientId(entry.clientId)
                         }
                         return (
                           <div
