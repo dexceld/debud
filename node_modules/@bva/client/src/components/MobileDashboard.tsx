@@ -237,6 +237,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [timePickerOpen, setTimePickerOpen] = useState(false)
   const [selectedEntryIds, setSelectedEntryIds] = useState<string[]>([])
   const [employeeSelectedIds, setEmployeeSelectedIds] = useState<string[]>([])
+  const [swipedEntryId, setSwipedEntryId] = useState<string | null>(null)
+  const swipeTouchStartX = useRef(0)
+  const swipeTouchStartY = useRef(0)
   const [bulkActionOpen, setBulkActionOpen] = useState(false)
   const [bulkInvoiceNumber, setBulkInvoiceNumber] = useState('')
   const [bulkEmployeeInvoiceNumber, setBulkEmployeeInvoiceNumber] = useState('')
@@ -4032,28 +4035,60 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           setEditEntryId(entry.id)
                           setSelectedClientId(entry.clientId)
                         }
+                        const isSwiped = swipedEntryId === entry.id
                         return (
-                          <div
-                            key={entry.id}
-                            onClick={() => {
-                              if (longPressFiredRef.current) { longPressFiredRef.current = false; return }
-                              if (inSelectMode) toggleSelect(); else openEdit()
-                            }}
-                            onTouchStart={() => startLongPress(toggleSelect)}
-                            onTouchEnd={cancelLongPress}
-                            onTouchMove={cancelLongPress}
-                            onTouchCancel={cancelLongPress}
-                            onContextMenu={(e) => { e.preventDefault(); toggleSelect() }}
-                            style={{
-                              padding: '10px 14px',
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              borderBottom: '1px solid #E5E7EB',
-                              background: isSelected ? '#EFF6FF' : 'white',
-                              cursor: 'pointer'
-                            }}
-                          >
+                          <div key={entry.id} style={{position: 'relative', overflow: 'hidden', borderBottom: '1px solid #E5E7EB'}}>
+                            {/* Swipe action backdrop */}
+                            <div style={{position: 'absolute', inset: 0, display: 'flex', alignItems: 'stretch', justifyContent: 'flex-start'}}>
+                              <button onClick={() => { setTimeEntries(prev => prev.map(e => e.id === entry.id ? {...e, billingStatus: 'pending'} : e)); setSwipedEntryId(null) }}
+                                style={{width: 72, background: '#f59e0b', color: 'white', border: 'none', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2}}>
+                                <span style={{fontSize: 18}}>⏳</span>ממתין
+                              </button>
+                              <button onClick={() => { setTimeEntries(prev => prev.map(e => e.id === entry.id ? {...e, billingStatus: 'invoiced'} : e)); setSwipedEntryId(null) }}
+                                style={{width: 72, background: '#3b82f6', color: 'white', border: 'none', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2}}>
+                                <span style={{fontSize: 18}}>📄</span>חויב
+                              </button>
+                              <button onClick={() => { setTimeEntries(prev => prev.map(e => e.id === entry.id ? {...e, billingStatus: 'paid'} : e)); setSwipedEntryId(null) }}
+                                style={{width: 72, background: '#10b981', color: 'white', border: 'none', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2}}>
+                                <span style={{fontSize: 18}}>✅</span>שולם
+                              </button>
+                            </div>
+                            {/* Row */}
+                            <div
+                              onClick={() => {
+                                if (isSwiped) { setSwipedEntryId(null); return }
+                                if (longPressFiredRef.current) { longPressFiredRef.current = false; return }
+                                if (inSelectMode) toggleSelect(); else openEdit()
+                              }}
+                              onTouchStart={(e) => {
+                                swipeTouchStartX.current = e.touches[0].clientX
+                                swipeTouchStartY.current = e.touches[0].clientY
+                                if (!isSwiped) startLongPress(toggleSelect)
+                              }}
+                              onTouchMove={(e) => {
+                                const dx = e.touches[0].clientX - swipeTouchStartX.current
+                                const dy = e.touches[0].clientY - swipeTouchStartY.current
+                                if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
+                                  cancelLongPress()
+                                  if (dx < -30) setSwipedEntryId(entry.id)
+                                  else if (dx > 30 && isSwiped) setSwipedEntryId(null)
+                                }
+                              }}
+                              onTouchEnd={cancelLongPress}
+                              onTouchCancel={cancelLongPress}
+                              onContextMenu={(e) => { e.preventDefault(); toggleSelect() }}
+                              style={{
+                                padding: '10px 14px',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                background: isSelected ? '#EFF6FF' : 'white',
+                                cursor: 'pointer',
+                                transform: isSwiped ? 'translateX(216px)' : 'translateX(0)',
+                                transition: 'transform 0.2s ease',
+                                position: 'relative', zIndex: 1
+                              }}
+                            >
                             <div style={{flex: 1, display: 'flex', alignItems: 'center', gap: 10, minWidth: 0}}>
                               {inSelectMode && (
                                 <input type="checkbox" checked={isSelected} onChange={() => {}} style={{width: 18, height: 18, accentColor: '#1d4ed8'}} />
@@ -4088,6 +4123,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                               </div>
                               <div style={{fontSize: 11, color: '#6B7280'}}>{hours.toFixed(1)}h</div>
                             </div>
+                          </div>
                           </div>
                         )
                       })}
