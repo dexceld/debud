@@ -2809,14 +2809,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       return (end.getTime() - start.getTime()) / (1000 * 60 * 60)
     }
 
-    // Initialize summary dates to current month
-    if (!summaryFromDate) {
-      const now = new Date()
-      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
-      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-      setSummaryFromDate(firstDay.toISOString().split('T')[0])
-      setSummaryToDate(lastDay.toISOString().split('T')[0])
-    }
 
     // Persistent timer banner — defined here so both selected-client and main views can use it
     const stopGlobalTimer = () => {
@@ -3013,23 +3005,29 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                       }}
                     >
                       <div style={{flex: 1, display:'flex', alignItems:'center', gap: 8}}>
-                        <span style={{width: 8, height: 8, borderRadius: '50%', background: statusColor, flexShrink: 0}} title="לקוח" />
-                        {hasEmployee && (
-                          <span style={{width: 8, height: 8, borderRadius: '50%', background: empStatusColor, flexShrink: 0, marginLeft: -4}} title="עובד" />
-                        )}
                         <div>
-                          <div style={{fontSize: 16, fontWeight: 700, color: '#111827'}}>
-                            {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit'})}
+                          <div style={{display:'flex', alignItems:'center', gap: 6, flexWrap:'wrap'}}>
+                            <span style={{fontSize: 16, fontWeight: 700, color: '#111827'}}>
+                              {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit'})}
+                            </span>
+                            <span style={{
+                              fontSize: 11, padding: '2px 6px', borderRadius: '4px', fontWeight: 600,
+                              background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7',
+                              color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e'
+                            }}>
+                              {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
+                            </span>
+                            {entry.invoiceNumber && <span style={{fontSize: 11, color: '#3b82f6'}}>#{entry.invoiceNumber}</span>}
                           </div>
                           <div style={{fontSize: 12, color: '#6B7280', marginTop: '2px'}}>
-                            {entry.startTime}-{entry.endTime}
+                            {entry.startTime}–{entry.endTime}
                           </div>
                           {entry.notes && (
                             <div style={{fontSize: 12, color: '#9CA3AF', marginTop: 2}}>{entry.notes}</div>
                           )}
                         </div>
                       </div>
-                      <div style={{textAlign: 'left', marginLeft: '12px'}}>
+                      <div style={{textAlign: 'left', marginLeft: '12px', flexShrink: 0}}>
                         <div style={{fontSize: 15, fontWeight: 700, color: '#111827'}}>
                           ₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
                         </div>
@@ -3450,7 +3448,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             className={`m-time-tab ${timeTrackingTab === 'summary' ? 'active' : ''}`}
             onClick={() => setTimeTrackingTab('summary')}
           >
-            סיכום
+            ניהול חיובים
           </button>
           <button
             className={`m-time-tab ${timeTrackingTab === 'employees' ? 'active' : ''}`}
