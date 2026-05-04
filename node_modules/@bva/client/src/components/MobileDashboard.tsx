@@ -4168,11 +4168,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     onClose: () => void
   }) => {
     const today = new Date()
-    const [viewYear, setViewYear] = useState(startDate ? new Date(startDate).getFullYear() : today.getFullYear())
-    const [viewMonth, setViewMonth] = useState(startDate ? new Date(startDate).getMonth() : today.getMonth())
-    const [picking, setPicking] = useState<'start' | 'end'>(startDate ? 'end' : 'start')
-    const [tempStart, setTempStart] = useState(startDate)
-    const [tempEnd, setTempEnd] = useState(endDate)
+    const todayStr = today.toISOString().split('T')[0]
+    // Always open to current month, never pre-select anything
+    const [viewYear, setViewYear] = useState(today.getFullYear())
+    const [viewMonth, setViewMonth] = useState(today.getMonth())
+    const [picking, setPicking] = useState<'start' | 'end'>('start')
+    const [tempStart, setTempStart] = useState('')
+    const [tempEnd, setTempEnd] = useState('')
 
     const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate()
     const firstDayOfWeek = new Date(viewYear, viewMonth, 1).getDay() // 0=Sun
@@ -4223,6 +4225,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1) }
       else setViewMonth(m => m + 1)
     }
+    const prevYear = () => setViewYear(y => y - 1)
+    const nextYear = () => setViewYear(y => y + 1)
 
     // Build calendar grid
     const cells: (number | null)[] = []
@@ -4237,16 +4241,27 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           background: 'white', borderRadius: '16px 16px 0 0',
           padding: '16px', zIndex: 500, maxHeight: '80vh', overflowY: 'auto'
         }}>
-          {/* Header */}
-          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12}}>
-            <button onClick={prevMonth} style={{border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', padding: '4px 8px'}}>‹</button>
-            <div style={{fontWeight: 700, fontSize: 16}}>{monthNames[viewMonth]} {viewYear}</div>
-            <button onClick={nextMonth} style={{border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', padding: '4px 8px'}}>›</button>
+          {/* Header - Month */}
+          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4}}>
+            <button onClick={prevMonth} style={{border: 'none', background: 'none', fontSize: 22, cursor: 'pointer', padding: '4px 10px', color: '#374151'}}>‹</button>
+            <div style={{fontWeight: 700, fontSize: 16}}>{monthNames[viewMonth]}</div>
+            <button onClick={nextMonth} style={{border: 'none', background: 'none', fontSize: 22, cursor: 'pointer', padding: '4px 10px', color: '#374151'}}>›</button>
+          </div>
+          {/* Header - Year */}
+          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10}}>
+            <button onClick={prevYear} style={{border: 'none', background: 'none', fontSize: 16, cursor: 'pointer', padding: '2px 10px', color: '#6B7280'}}>«</button>
+            <div style={{fontSize: 14, color: '#6B7280', fontWeight: 600}}>{viewYear}</div>
+            <button onClick={nextYear} style={{border: 'none', background: 'none', fontSize: 16, cursor: 'pointer', padding: '2px 10px', color: '#6B7280'}}>»</button>
           </div>
 
           {/* Instructions */}
           <div style={{textAlign: 'center', fontSize: 13, color: '#6B7280', marginBottom: 12}}>
-            {picking === 'start' ? 'בחר תאריך התחלה' : `מ-${tempStart} — בחר תאריך סיום (או לחץ שוב לאותו יום)`}
+            {picking === 'start'
+              ? 'בחר תאריך התחלה'
+              : tempStart === tempEnd
+                ? `נבחר: ${new Date(tempStart).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'})} — לחץ על יום אחר לטווח`
+                : `${new Date(tempStart).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'})} → ${new Date(tempEnd).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'})}`
+            }
           </div>
 
           {/* Day names */}
@@ -4269,11 +4284,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   onClick={() => handleDayClick(d)}
                   style={{
                     padding: '10px 4px',
-                    border: 'none',
+                    border: start || end ? 'none' : toDateStr(viewYear, viewMonth, d) === todayStr ? '2px solid #9CA3AF' : 'none',
                     borderRadius: start || end ? '50%' : inRange ? '0' : '50%',
                     background: start || end ? '#1d4ed8' : inRange ? '#dbeafe' : 'transparent',
                     color: start || end ? 'white' : inRange ? '#1e40af' : '#111827',
-                    fontWeight: start || end ? 700 : 400,
+                    fontWeight: start || end ? 700 : toDateStr(viewYear, viewMonth, d) === todayStr ? 600 : 400,
                     fontSize: 15,
                     cursor: 'pointer',
                     width: '100%'
