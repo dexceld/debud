@@ -5364,7 +5364,14 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           {screen === 'time-tracking' && (
             <button
               className="m-fab-glass m-fab-with-label"
-              onTouchEnd={(e) => { e.stopPropagation(); if (!clientFabDragRef.current?.moved) { setClientFormName(''); setClientFormRate(''); setClientFormVat(defaultVat); setClientFormIncomeTax(defaultIncomeTax); setEditClientId(null); setAddClientOpen(true) } }}
+              onTouchEnd={(e) => {
+                e.stopPropagation()
+                const wasDrag = clientFabDragRef.current?.moved
+                clientFabDragRef.current = null
+                timeFabDragRef.current = null
+                localStorage.setItem(lsKey('time_fab_pos'), JSON.stringify(fabPos))
+                if (!wasDrag) { setClientFormName(''); setClientFormRate(''); setClientFormVat(defaultVat); setClientFormIncomeTax(defaultIncomeTax); setEditClientId(null); setAddClientOpen(true) }
+              }}
               onClick={() => { setClientFormName(''); setClientFormRate(''); setClientFormVat(defaultVat); setClientFormIncomeTax(defaultIncomeTax); setEditClientId(null); setAddClientOpen(true) }}
               title="הוספת לקוח"
             >
@@ -5374,7 +5381,14 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           )}
           <button
             className="m-fab-glass forecast m-fab-with-label"
-            onTouchEnd={(e) => { e.stopPropagation(); if (!timeFabDragRef.current?.moved) { openQuickEntry() } }}
+            onTouchEnd={(e) => {
+              e.stopPropagation()
+              const wasDrag = timeFabDragRef.current?.moved
+              timeFabDragRef.current = null
+              clientFabDragRef.current = null
+              localStorage.setItem(lsKey('time_fab_pos'), JSON.stringify(fabPos))
+              if (!wasDrag) openQuickEntry()
+            }}
             onClick={openQuickEntry}
             title="דיווח מהיר"
           >
