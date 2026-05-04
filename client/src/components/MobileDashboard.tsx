@@ -4323,7 +4323,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <div className="m-mortgage-field">
             <label>לקוח {fieldErrors.client && <span style={{color: '#DC2626'}}>(נדרש)</span>}</label>
             <select
-              autoFocus
               value={quickTimeClientId}
               onChange={e => {
                 setQuickTimeClientId(e.target.value)
