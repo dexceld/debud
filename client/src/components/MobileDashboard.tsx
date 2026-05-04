@@ -3689,16 +3689,66 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
-              <select
-                value={summaryStatusFilter}
-                onChange={e => setSummaryStatusFilter(e.target.value)}
-                style={{flex: 1, minWidth: '90px', padding: '8px 10px', border: '1px solid #E5E7EB', borderRadius: '8px', fontSize: '13px'}}
-              >
-                <option value="all">כל הסטטוסים</option>
-                <option value="pending">ממתין</option>
-                <option value="invoiced">חויב</option>
-                <option value="paid">שולם</option>
-              </select>
+            </div>
+
+            {/* Status Filter Slider */}
+            <div style={{display: 'flex', gap: '4px', marginBottom: '12px', background: '#f3f4f6', padding: '4px', borderRadius: '20px'}}>
+              <button 
+                onClick={() => setSummaryStatusFilter('all')}
+                style={{
+                  flex: 1,
+                  padding: '6px 8px',
+                  borderRadius: '16px',
+                  border: 'none',
+                  background: summaryStatusFilter === 'all' ? '#1d4ed8' : 'transparent',
+                  color: summaryStatusFilter === 'all' ? 'white' : '#374151',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >הכל</button>
+              <button 
+                onClick={() => setSummaryStatusFilter('pending')}
+                style={{
+                  flex: 1,
+                  padding: '6px 8px',
+                  borderRadius: '16px',
+                  border: 'none',
+                  background: summaryStatusFilter === 'pending' ? '#f59e0b' : 'transparent',
+                  color: summaryStatusFilter === 'pending' ? 'white' : '#374151',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >ממתין</button>
+              <button 
+                onClick={() => setSummaryStatusFilter('invoiced')}
+                style={{
+                  flex: 1,
+                  padding: '6px 8px',
+                  borderRadius: '16px',
+                  border: 'none',
+                  background: summaryStatusFilter === 'invoiced' ? '#3b82f6' : 'transparent',
+                  color: summaryStatusFilter === 'invoiced' ? 'white' : '#374151',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >חויב</button>
+              <button 
+                onClick={() => setSummaryStatusFilter('paid')}
+                style={{
+                  flex: 1,
+                  padding: '6px 8px',
+                  borderRadius: '16px',
+                  border: 'none',
+                  background: summaryStatusFilter === 'paid' ? '#10b981' : 'transparent',
+                  color: summaryStatusFilter === 'paid' ? 'white' : '#374151',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >שולם</button>
             </div>
 
             {/* Summary Results */}
@@ -3737,84 +3787,109 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   {/* Compact Summary Card */}
                   <div style={{
                     background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                    borderRadius: '12px',
-                    padding: '16px',
+                    borderRadius: '10px',
+                    padding: '10px 12px',
                     color: 'white',
-                    marginBottom: '16px'
+                    marginBottom: '12px'
                   }}>
                     <div style={{
                       display: 'flex',
                       justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      marginBottom: '12px'
+                      alignItems: 'center'
                     }}>
                       <div>
-                        <div style={{fontSize: '12px', opacity: 0.9, marginBottom: '4px'}}>סה"כ הכנסות</div>
-                        <div style={{fontSize: '28px', fontWeight: 700}}>
+                        <div style={{fontSize: '11px', opacity: 0.9}}>סה"כ</div>
+                        <div style={{fontSize: '20px', fontWeight: 700}}>
                           ₪{totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
                         </div>
                       </div>
+                      <div style={{textAlign: 'center'}}>
+                        <div style={{fontSize: '18px', fontWeight: 700}}>{totalHours.toFixed(1)}</div>
+                        <div style={{fontSize: '10px', opacity: 0.8}}>שעות</div>
+                      </div>
                       <div style={{textAlign: 'left'}}>
-                        <div style={{fontSize: '20px', fontWeight: 700}}>{totalHours.toFixed(1)}</div>
-                        <div style={{fontSize: '11px', opacity: 0.8}}>שעות</div>
-                      </div>
-                    </div>
-
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      paddingTop: '10px',
-                      borderTop: '1px solid rgba(255,255,255,0.2)',
-                      fontSize: '12px'
-                    }}>
-                      <div style={{opacity: 0.9}}>
-                        {filteredEntries.length} דיווחים
-                      </div>
-                      <div style={{opacity: 0.9, direction: 'ltr'}}>
-                        {firstDate && new Date(firstDate).toLocaleDateString('he-IL', {day: 'numeric', month: 'short'})}
-                        {firstDate && lastDate && firstDate !== lastDate && ' - '}
-                        {lastDate && firstDate !== lastDate && new Date(lastDate).toLocaleDateString('he-IL', {day: 'numeric', month: 'short'})}
+                        <div style={{fontSize: '18px', fontWeight: 700}}>{filteredEntries.length}</div>
+                        <div style={{fontSize: '10px', opacity: 0.8}}>דיווחים</div>
                       </div>
                     </div>
                   </div>
 
-
-                  {/* Bulk-select bar */}
-                  {selectedEntryIds.length > 0 ? (
+                  {/* Inline Bulk Controls - When entries selected */}
+                  {selectedEntryIds.length > 0 && (
                     <div style={{
-                      position: 'sticky', top: 0, zIndex: 5,
-                      background: '#1d4ed8', color: 'white',
-                      padding: '10px 12px', borderRadius: 10,
-                      margin: '16px 0 8px', display: 'flex',
-                      alignItems: 'center', justifyContent: 'space-between',
-                      boxShadow: '0 4px 12px rgba(29,78,216,0.3)'
+                      background: '#f8fafc',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '10px',
+                      padding: '10px',
+                      marginBottom: '12px'
                     }}>
-                      <div style={{fontWeight: 600}}>{selectedEntryIds.length} נבחרו</div>
-                      <div style={{display: 'flex', gap: 6}}>
-                        <button
-                          onClick={() => setBulkActionOpen(true)}
-                          style={{background: 'white', color: '#1d4ed8', border: 'none', padding: '7px 12px', borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: 'pointer'}}
-                        >פעולה</button>
-                        <button
-                          onClick={() => setSelectedEntryIds([])}
-                          style={{background: 'transparent', color: 'white', border: '1px solid rgba(255,255,255,0.5)', padding: '7px 10px', borderRadius: 8, fontSize: 13, cursor: 'pointer'}}
-                        >בטל</button>
+                      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
+                        <span style={{fontSize: '13px', fontWeight: 600, color: '#374151'}}>{selectedEntryIds.length} דיווחים נבחרו</span>
+                        <button onClick={() => setSelectedEntryIds([])} style={{fontSize: '12px', color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer'}}>בטל בחירה</button>
+                      </div>
+                      
+                      {/* Inline Status Buttons */}
+                      <div style={{display: 'flex', gap: '6px', marginBottom: '8px'}}>
+                        <span style={{fontSize: '12px', color: '#6b7280', alignSelf: 'center'}}>סטטוס:</span>
+                        <button 
+                          onClick={() => {
+                            setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: 'pending'} : e))
+                            setSelectedEntryIds([])
+                          }}
+                          style={{flex: 1, padding: '6px 8px', fontSize: '11px', border: 'none', borderRadius: '6px', background: '#fef3c7', color: '#92400e', fontWeight: 600, cursor: 'pointer'}}
+                        >ממתין</button>
+                        <button 
+                          onClick={() => {
+                            setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: 'invoiced'} : e))
+                            setSelectedEntryIds([])
+                          }}
+                          style={{flex: 1, padding: '6px 8px', fontSize: '11px', border: 'none', borderRadius: '6px', background: '#dbeafe', color: '#1e40af', fontWeight: 600, cursor: 'pointer'}}
+                        >חויב</button>
+                        <button 
+                          onClick={() => {
+                            setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: 'paid'} : e))
+                            setSelectedEntryIds([])
+                          }}
+                          style={{flex: 1, padding: '6px 8px', fontSize: '11px', border: 'none', borderRadius: '6px', background: '#dcfce7', color: '#166534', fontWeight: 600, cursor: 'pointer'}}
+                        >שולם</button>
+                      </div>
+                      
+                      {/* Inline Invoice Number */}
+                      <div style={{display: 'flex', gap: '6px'}}>
+                        <input 
+                          type="number"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          placeholder="מס' חשבונית"
+                          value={bulkInvoiceNumber}
+                          onChange={e => setBulkInvoiceNumber(e.target.value)}
+                          style={{flex: 1, padding: '6px 8px', fontSize: '12px', border: '1px solid #d1d5db', borderRadius: '6px'}}
+                        />
+                        <button 
+                          onClick={() => {
+                            if (!bulkInvoiceNumber.trim()) { alert('נא להזין מספר חשבונית'); return }
+                            setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? { ...e, invoiceNumber: bulkInvoiceNumber.trim(), billingStatus: e.billingStatus === 'paid' ? 'paid' : 'invoiced' } : e))
+                            setBulkInvoiceNumber('')
+                            setSelectedEntryIds([])
+                          }}
+                          style={{padding: '6px 12px', fontSize: '12px', border: 'none', borderRadius: '6px', background: '#1d4ed8', color: 'white', fontWeight: 600, cursor: 'pointer'}}
+                        >שמור</button>
                       </div>
                     </div>
-                  ) : (
-                    filteredEntries.length > 0 && (
-                      <button
-                        onClick={() => setSelectedEntryIds(filteredEntries.map(e => e.id))}
-                        style={{
-                          width: '100%', padding: '10px', marginTop: 14, marginBottom: 4,
-                          background: '#EFF6FF', color: '#1d4ed8', border: '1px dashed #93c5fd',
-                          borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer'
-                        }}
-                      >
-                        ☑ בחר את כל {filteredEntries.length} הדיווחים בטווח
-                      </button>
-                    )
+                  )}
+
+                  {/* Select All Button */}
+                  {selectedEntryIds.length === 0 && filteredEntries.length > 0 && (
+                    <button
+                      onClick={() => setSelectedEntryIds(filteredEntries.map(e => e.id))}
+                      style={{
+                        width: '100%', padding: '8px', marginBottom: '12px',
+                        background: '#EFF6FF', color: '#1d4ed8', border: '1px dashed #93c5fd',
+                        borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer'
+                      }}
+                    >
+                      ☑ בחר את כל {filteredEntries.length} הדיווחים
+                    </button>
                   )}
 
                   {/* Compact Entries List */}
