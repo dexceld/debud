@@ -4186,23 +4186,25 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const handleDayClick = (d: number) => {
       const dateStr = toDateStr(viewYear, viewMonth, d)
       if (picking === 'start') {
+        // First click: set start = end (single day), wait for second click
         setTempStart(dateStr)
         setTempEnd(dateStr)
         setPicking('end')
-      } else {
-        if (dateStr < tempStart) {
+      } else if (picking === 'end') {
+        if (dateStr === tempStart) {
+          // Clicked same day again → reset to new start pick
+          setTempStart(dateStr)
+          setTempEnd(dateStr)
+          setPicking('end')
+        } else if (dateStr < tempStart) {
+          // Clicked before start → swap
           setTempStart(dateStr)
           setTempEnd(tempStart)
-        } else if (dateStr === tempStart) {
-          // same day clicked = single day, confirm
-          onChange(tempStart, tempStart)
-          onClose()
-          return
         } else {
+          // Normal: set end
           setTempEnd(dateStr)
         }
-        onChange(tempStart, dateStr < tempStart ? tempStart : dateStr)
-        onClose()
+        // After selecting end, stay open — user presses הגדר
       }
     }
 
@@ -4283,23 +4285,31 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             })}
           </div>
 
-          {/* Confirm single day button */}
-          {picking === 'end' && tempStart && (
-            <div style={{marginTop: 12, display: 'flex', gap: 8}}>
-              <button
-                onClick={() => { onChange(tempStart, tempStart); onClose() }}
-                style={{flex: 1, padding: '12px', background: '#F3F4F6', border: 'none', borderRadius: 8, fontSize: 15, cursor: 'pointer'}}
-              >
-                יום בודד ({tempStart})
-              </button>
-              <button
-                onClick={onClose}
-                style={{padding: '12px 16px', background: '#FEF2F2', border: 'none', borderRadius: 8, fontSize: 15, cursor: 'pointer', color: '#DC2626'}}
-              >
-                ביטול
-              </button>
-            </div>
-          )}
+          {/* Confirm button */}
+          <div style={{marginTop: 16, display: 'flex', gap: 8}}>
+            <button
+              onClick={onClose}
+              style={{padding: '12px 16px', background: '#F3F4F6', border: 'none', borderRadius: 10, fontSize: 15, cursor: 'pointer', color: '#6B7280'}}
+            >
+              ביטול
+            </button>
+            <button
+              onClick={() => { if (tempStart) { onChange(tempStart, tempEnd || tempStart); onClose() } }}
+              disabled={!tempStart}
+              style={{
+                flex: 1, padding: '12px', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: tempStart ? 'pointer' : 'default',
+                background: tempStart ? '#1d4ed8' : '#E5E7EB',
+                color: tempStart ? 'white' : '#9CA3AF'
+              }}
+            >
+              {!tempStart
+                ? 'הגדר'
+                : tempStart === tempEnd
+                  ? `הגדר · ${new Date(tempStart).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit'})}`
+                  : `הגדר · ${new Date(tempStart).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit'})} – ${new Date(tempEnd).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit'})}`
+              }
+            </button>
+          </div>
         </div>
       </>
     )
