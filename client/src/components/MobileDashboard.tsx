@@ -218,6 +218,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null)
   const [editEmployeeId, setEditEmployeeId] = useState<string | null>(null)
   const [employeeStatusFilter, setEmployeeStatusFilter] = useState<'all' | 'pending' | 'invoiced' | 'paid'>('all')
+  const [summaryPeriod, setSummaryPeriod] = useState<'week' | 'month' | 'year' | 'all'>('all')
   // Floating action buttons state (moved from IIFE to top-level to fix hooks violation)
   const [fabPos, setFabPos] = useState(() => {
     const saved = localStorage.getItem(lsKey('time_fab_pos'))
@@ -3070,12 +3071,14 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </button>
             <h1 className="m-title">{employee.name}</h1>
             <div style={{display: 'flex', gap: 8}}>
-              <button className="m-hbtn m-hbtn-plus" onClick={() => {
-                // Open bulk action for employee entries
-                setSelectedEntryIds(employeeEntries.map(e => e.id))
-                setBulkActionOpen(true)
+              <button className="m-hbtn" onClick={() => {
+                setEmployeeFormName(employee.name)
+                setEmployeeFormEmail(employee.email)
+                setEmployeeFormClients(employee.clientIds)
+                setEditEmployeeId(employee.id)
+                setAddEmployeeOpen(true)
               }}>
-                <span className="m-hbtn-label">פעולות</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
               </button>
             </div>
           </div>
@@ -3245,7 +3248,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                         setEntryFormEmployeeId(entry.employeeId || 'self')
                         setEntryFormClientId(entry.clientId)
                         setEditEntryId(entry.id)
-                        setSelectedClientId(entry.clientId)
                         setAddTimeEntryOpen(true)
                       }}
                       style={{
@@ -3270,11 +3272,15 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           {entry.employeePaidStatus === 'paid' && <span style={{fontSize: 11, color: '#8b5cf6'}}>✓ שולם לעובד</span>}
                         </div>
                       </div>
-                      <div style={{textAlign: 'left'}}>
-                        <div style={{fontSize: 15, fontWeight: 700, color: '#111827'}}>
-                          ₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
+                      <div style={{display: 'flex', alignItems: 'center', gap: 10}}>
+                        <div style={{textAlign: 'left'}}>
+                          <div style={{fontSize: 15, fontWeight: 700, color: '#111827'}}>₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
+                          <div style={{fontSize: 11, color: '#6B7280'}}>{hours.toFixed(1)}h</div>
                         </div>
-                        <div style={{fontSize: 11, color: '#6B7280'}}>{hours.toFixed(1)}h</div>
+                        <button
+                          onClick={(ev) => { ev.stopPropagation(); setEmployeeFormName(employee.name); setEmployeeFormEmail(employee.email); setEmployeeFormClients(employee.clientIds); setEditEmployeeId(employee.id); setAddEmployeeOpen(true) }}
+                          style={{background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', padding: '4px', fontSize: 18, lineHeight: 1}}
+                        >⋯</button>
                       </div>
                     </div>
                   )
