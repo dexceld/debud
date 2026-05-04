@@ -4686,49 +4686,45 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <button className="m-close-btn" onClick={() => setQuickTimeEntryOpen(false)}>✕</button>
           </div>
 
-          <div className="m-mortgage-field">
-            <label>לקוח {fieldErrors.client && <span style={{color: '#DC2626'}}>(נדרש)</span>}</label>
-            <select
-              value={quickTimeClientId}
-              onChange={e => {
-                setQuickTimeClientId(e.target.value)
-                if (e.target.value) setFieldErrors(prev => ({...prev, client: false}))
-              }}
-              style={{
-                width: '100%',
-                padding: '12px 16px',
-                border: fieldErrors.client ? '2px solid #DC2626' : '2px solid #E5E7EB',
-                borderRadius: '10px',
-                fontSize: '16px',
-                backgroundColor: fieldErrors.client ? '#FEF2F2' : 'white'
-              }}
-            >
-              <option value="">בחר לקוח</option>
+          {/* Client picker */}
+          <div style={{marginBottom: 8}}>
+            <div style={{fontSize: 11, color: '#9CA3AF', fontWeight: 700, marginBottom: 4, letterSpacing: 1}}>לקוח {fieldErrors.client && <span style={{color:'#DC2626'}}>*</span>}</div>
+            <div style={{display: 'flex', flexWrap: 'wrap', gap: 8}}>
               {Array.isArray(clients) && clients.map(c => c && c.id ? (
-                <option key={c.id} value={c.id}>{c.name}</option>
+                <button key={c.id} onClick={() => { setQuickTimeClientId(c.id); setFieldErrors(prev => ({...prev, client: false})) }}
+                  style={{padding: '8px 16px', borderRadius: 20, border: 'none', fontSize: 14, fontWeight: 600,
+                    background: quickTimeClientId === c.id ? '#1d4ed8' : '#F3F4F6',
+                    color: quickTimeClientId === c.id ? 'white' : '#374151', cursor: 'pointer'}}
+                >{c.name}</button>
               ) : null)}
-            </select>
+            </div>
+            {fieldErrors.client && <div style={{fontSize: 12, color: '#DC2626', marginTop: 4}}>נדרש לבחור לקוח</div>}
           </div>
 
-          {/* Date Range - Booking style picker */}
-          <div className="m-mortgage-field">
-            <label>תאריך</label>
-            <button
-              onClick={() => setDatePickerOpen(true)}
-              style={{
-                width: '100%', padding: '12px 16px', textAlign: 'right',
-                border: '1px solid #E5E7EB', borderRadius: '8px',
-                background: 'white', fontSize: '15px', cursor: 'pointer',
-                color: entryFormStartDate ? '#111827' : '#9CA3AF'
-              }}
-            >
-              {entryFormStartDate
-                ? entryFormStartDate === entryFormEndDate
-                  ? entryFormStartDate
-                  : `${entryFormStartDate} → ${entryFormEndDate}`
-                : 'בחר תאריך'}
+          <div style={{borderTop: '1px solid #F3F4F6', margin: '12px 0'}} />
+
+          {/* START row */}
+          <div style={{display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F3F4F6'}}>
+            <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>התחלה</div>
+            <button onClick={() => setDatePickerOpen(true)} style={{flex: 1, textAlign: 'right', border: 'none', background: 'none', fontSize: 17, fontWeight: 700, color: entryFormStartDate ? '#111827' : '#9CA3AF', cursor: 'pointer'}}>
+              {entryFormStartDate || 'בחר תאריך'}
+            </button>
+            <button onClick={() => { setTimePickerOpen(true) }} style={{minWidth: 70, textAlign: 'left', border: 'none', background: 'none', fontSize: 17, fontWeight: 700, color: entryFormStartTime ? '#1d4ed8' : '#9CA3AF', cursor: 'pointer'}}>
+              {entryFormStartTime || 'שעה'}
             </button>
           </div>
+
+          {/* END row */}
+          <div style={{display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F3F4F6'}}>
+            <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>סיום</div>
+            <button onClick={() => setDatePickerOpen(true)} style={{flex: 1, textAlign: 'right', border: 'none', background: 'none', fontSize: 17, fontWeight: 700, color: entryFormEndDate ? '#111827' : '#9CA3AF', cursor: 'pointer'}}>
+              {entryFormEndDate || 'בחר תאריך'}
+            </button>
+            <button onClick={() => { setTimePickerOpen(true) }} style={{minWidth: 70, textAlign: 'left', border: 'none', background: 'none', fontSize: 17, fontWeight: 700, color: entryFormEndTime ? '#1d4ed8' : '#9CA3AF', cursor: 'pointer'}}>
+              {entryFormEndTime || 'שעה'}
+            </button>
+          </div>
+
           {datePickerOpen && (
             <DateRangePicker
               startDate={entryFormStartDate}
@@ -4737,24 +4733,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               onClose={() => setDatePickerOpen(false)}
             />
           )}
-
-          {/* Time Range - Custom picker */}
-          <div className="m-mortgage-field">
-            <label>שעות</label>
-            <button
-              onClick={() => setTimePickerOpen(true)}
-              style={{
-                width: '100%', padding: '12px 16px', textAlign: 'right',
-                border: '1px solid #E5E7EB', borderRadius: '8px',
-                background: 'white', fontSize: '15px', cursor: 'pointer',
-                color: entryFormStartTime ? '#111827' : '#9CA3AF'
-              }}
-            >
-              {entryFormStartTime && entryFormEndTime
-                ? `${entryFormStartTime} → ${entryFormEndTime}`
-                : 'בחר שעות'}
-            </button>
-          </div>
           {timePickerOpen && (
             <TimeRangePicker
               startTime={entryFormStartTime}
@@ -4764,72 +4742,52 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             />
           )}
 
-          <div className="m-mortgage-field">
-            <label>דיווח בשם</label>
-            <select 
-              value={entryFormEmployeeId}
-              onChange={e => setEntryFormEmployeeId(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '12px 16px',
-                border: '2px solid #E5E7EB',
-                borderRadius: '10px',
-                fontSize: '16px'
-              }}
-            >
-              <option value="self">עצמי</option>
-              {Array.isArray(employees) && employees.map(emp => emp && emp.id ? (
-                <option key={emp.id} value={emp.id}>{emp.name}</option>
-              ) : null)}
-            </select>
-          </div>
-
-          <div className="m-mortgage-field">
-            <label>הערות</label>
-            <textarea 
-              value={entryFormNotes}
-              onChange={e => setEntryFormNotes(e.target.value)}
-              placeholder="הערות..."
-              rows={3}
-              style={{
-                width: '100%',
-                padding: '12px 16px',
-                border: '2px solid #E5E7EB',
-                borderRadius: '10px',
-                fontSize: '16px',
-                fontFamily: 'inherit',
-                resize: 'vertical'
-              }}
-            />
-          </div>
-
-          {/* Calculation Summary */}
+          {/* Duration display */}
           {calculatedHours > 0 && (
-            <div style={{
-              padding: '16px',
-              background: '#F0FDF4',
-              border: '2px solid #BBF7D0',
-              borderRadius: '12px',
-              marginBottom: '16px'
-            }}>
-              <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
-                <span style={{fontSize: 14, color: '#166534'}}>שעות:</span>
-                <span style={{fontSize: 16, fontWeight: 700, color: '#15803D'}}>{calculatedHours.toFixed(2)}</span>
-              </div>
-              {calculatedAmount > 0 && (
-                <div style={{display: 'flex', justifyContent: 'space-between'}}>
-                  <span style={{fontSize: 14, color: '#166534'}}>סכום:</span>
-                  <span style={{fontSize: 18, fontWeight: 700, color: '#15803D'}}>
-                    ₪{calculatedAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
-                  </span>
-                </div>
-              )}
+            <div style={{display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F3F4F6'}}>
+              <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>משך</div>
+              <div style={{flex: 1, fontSize: 17, fontWeight: 700, color: '#111827', textAlign: 'right'}}>{calculatedHours.toFixed(2)} שעות</div>
             </div>
           )}
 
-          <button className="m-mortgage-calc-btn" onClick={save}>
-            שמור דיווח
-          </button>
+          {/* Employee row */}
+          {Array.isArray(employees) && employees.length > 0 && (
+            <div style={{display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F3F4F6'}}>
+              <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>עובד</div>
+              <div style={{flex: 1, display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end'}}>
+                <button onClick={() => setEntryFormEmployeeId('self')} style={{padding: '6px 12px', borderRadius: 16, border: 'none', fontSize: 13, fontWeight: 600, background: entryFormEmployeeId === 'self' ? '#1d4ed8' : '#F3F4F6', color: entryFormEmployeeId === 'self' ? 'white' : '#374151', cursor: 'pointer'}}>עצמי</button>
+                {employees.map(emp => emp && emp.id ? (
+                  <button key={emp.id} onClick={() => setEntryFormEmployeeId(emp.id)} style={{padding: '6px 12px', borderRadius: 16, border: 'none', fontSize: 13, fontWeight: 600, background: entryFormEmployeeId === emp.id ? '#1d4ed8' : '#F3F4F6', color: entryFormEmployeeId === emp.id ? 'white' : '#374151', cursor: 'pointer'}}>{emp.name}</button>
+                ) : null)}
+              </div>
+            </div>
+          )}
+
+          {/* Notes */}
+          <div style={{padding: '10px 0'}}>
+            <input value={entryFormNotes} onChange={e => setEntryFormNotes(e.target.value)} placeholder="הערה (אופציונלי)"
+              style={{width: '100%', border: 'none', borderBottom: '1px solid #E5E7EB', padding: '8px 0', fontSize: 15, background: 'none', outline: 'none'}} />
+          </div>
+
+          {/* BASE RATE row */}
+          {calculatedAmount > 0 && (
+            <div style={{display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F3F4F6'}}>
+              <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>סכום</div>
+              <div style={{flex: 1, fontSize: 17, fontWeight: 700, color: '#10b981', textAlign: 'right'}}>
+                ₪{calculatedAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
+              </div>
+            </div>
+          )}
+
+          <div style={{display: 'flex', gap: 10, marginTop: 16}}>
+            <button onClick={() => setQuickTimeEntryOpen(false)}
+              style={{flex: 1, padding: '14px', background: '#F3F4F6', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer', color: '#6B7280'}}>
+              ביטול
+            </button>
+            <button className="m-mortgage-calc-btn" onClick={save} style={{flex: 2, margin: 0}}>
+              שמור ✓
+            </button>
+          </div>
         </div>
       </>
     )
@@ -4937,26 +4895,54 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <button className="m-close-btn" onClick={closeModal}>✕</button>
           </div>
 
-          {/* Date Range - Booking style picker */}
-          <div className="m-mortgage-field">
-            <label>תאריך {fieldErrors.date && <span style={{color: '#DC2626'}}>(נדרש)</span>}</label>
-            <button
-              onClick={() => { setDatePickerOpen(true); setFieldErrors(prev => ({...prev, date: false})) }}
-              style={{
-                width: '100%', padding: '12px 16px', textAlign: 'right',
-                border: fieldErrors.date ? '2px solid #DC2626' : '1px solid #E5E7EB',
-                borderRadius: '8px', background: fieldErrors.date ? '#FEF2F2' : 'white',
-                fontSize: '15px', cursor: 'pointer',
-                color: entryFormStartDate ? '#111827' : '#9CA3AF'
-              }}
-            >
-              {entryFormStartDate
-                ? entryFormStartDate === entryFormEndDate
-                  ? entryFormStartDate
-                  : `${entryFormStartDate} → ${entryFormEndDate}`
-                : 'בחר תאריך'}
+          {/* Client picker - only when no pre-selected client */}
+          {!selectedClientId && (
+            <div style={{marginBottom: 8}}>
+              <div style={{fontSize: 11, color: '#9CA3AF', fontWeight: 700, marginBottom: 4, letterSpacing: 1}}>לקוח {fieldErrors.client && <span style={{color:'#DC2626'}}>*</span>}</div>
+              <div style={{display: 'flex', flexWrap: 'wrap', gap: 8}}>
+                {Array.isArray(clients) && clients.map(c => c && c.id ? (
+                  <button key={c.id} onClick={() => { setEntryFormClientId(c.id); setFieldErrors(prev => ({...prev, client: false})) }}
+                    style={{padding: '8px 16px', borderRadius: 20, border: 'none', fontSize: 14, fontWeight: 600,
+                      background: entryFormClientId === c.id ? '#1d4ed8' : '#F3F4F6',
+                      color: entryFormClientId === c.id ? 'white' : '#374151', cursor: 'pointer'}}
+                  >{c.name}</button>
+                ) : null)}
+              </div>
+              {fieldErrors.client && <div style={{fontSize: 12, color: '#DC2626', marginTop: 4}}>נדרש לבחור לקוח</div>}
+              <div style={{borderTop: '1px solid #F3F4F6', margin: '12px 0'}} />
+            </div>
+          )}
+
+          {/* START row */}
+          <div style={{display: 'flex', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #F3F4F6'}}>
+            <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>התחלה</div>
+            <button onClick={() => { setDatePickerOpen(true); setFieldErrors(prev => ({...prev, date: false})) }}
+              style={{flex: 1, textAlign: 'right', border: 'none', background: 'none', fontSize: 17, fontWeight: 700,
+                color: fieldErrors.date ? '#DC2626' : entryFormStartDate ? '#111827' : '#9CA3AF', cursor: 'pointer'}}>
+              {entryFormStartDate || 'בחר תאריך'}
+            </button>
+            <button onClick={() => { setTimePickerOpen(true); setFieldErrors(prev => ({...prev, time: false})) }}
+              style={{minWidth: 70, textAlign: 'left', border: 'none', background: 'none', fontSize: 17, fontWeight: 700,
+                color: fieldErrors.time ? '#DC2626' : entryFormStartTime ? '#1d4ed8' : '#9CA3AF', cursor: 'pointer'}}>
+              {entryFormStartTime || 'שעה'}
             </button>
           </div>
+
+          {/* END row */}
+          <div style={{display: 'flex', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #F3F4F6'}}>
+            <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>סיום</div>
+            <button onClick={() => { setDatePickerOpen(true); setFieldErrors(prev => ({...prev, date: false})) }}
+              style={{flex: 1, textAlign: 'right', border: 'none', background: 'none', fontSize: 17, fontWeight: 700,
+                color: entryFormEndDate ? '#111827' : '#9CA3AF', cursor: 'pointer'}}>
+              {entryFormEndDate || 'בחר תאריך'}
+            </button>
+            <button onClick={() => { setTimePickerOpen(true); setFieldErrors(prev => ({...prev, time: false})) }}
+              style={{minWidth: 70, textAlign: 'left', border: 'none', background: 'none', fontSize: 17, fontWeight: 700,
+                color: entryFormEndTime ? '#1d4ed8' : '#9CA3AF', cursor: 'pointer'}}>
+              {entryFormEndTime || 'שעה'}
+            </button>
+          </div>
+
           {datePickerOpen && (
             <DateRangePicker
               startDate={entryFormStartDate}
@@ -4965,25 +4951,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               onClose={() => setDatePickerOpen(false)}
             />
           )}
-
-          {/* Time Range - Custom picker */}
-          <div className="m-mortgage-field">
-            <label>שעות {fieldErrors.time && <span style={{color: '#DC2626'}}>(נדרש)</span>}</label>
-            <button
-              onClick={() => { setTimePickerOpen(true); setFieldErrors(prev => ({...prev, time: false})) }}
-              style={{
-                width: '100%', padding: '12px 16px', textAlign: 'right',
-                border: fieldErrors.time ? '2px solid #DC2626' : '1px solid #E5E7EB',
-                borderRadius: '8px', background: fieldErrors.time ? '#FEF2F2' : 'white',
-                fontSize: '15px', cursor: 'pointer',
-                color: entryFormStartTime ? '#111827' : '#9CA3AF'
-              }}
-            >
-              {entryFormStartTime && entryFormEndTime
-                ? `${entryFormStartTime} → ${entryFormEndTime}`
-                : 'בחר שעות'}
-            </button>
-          </div>
           {timePickerOpen && (
             <TimeRangePicker
               startTime={entryFormStartTime}
@@ -4993,89 +4960,40 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             />
           )}
 
-          {/* Client Selection - only when no pre-selected client */}
-          {!selectedClientId && (
-            <div className="m-mortgage-field">
-              <label>לקוח {fieldErrors.client && <span style={{color: '#DC2626'}}>(נדרש)</span>}</label>
-              <select
-                value={entryFormClientId}
-                onChange={e => {
-                  setEntryFormClientId(e.target.value)
-                  if (e.target.value) setFieldErrors(prev => ({...prev, client: false}))
-                }}
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  border: fieldErrors.client ? '2px solid #DC2626' : '2px solid #E5E7EB',
-                  borderRadius: '10px',
-                  fontSize: '16px',
-                  backgroundColor: fieldErrors.client ? '#FEF2F2' : undefined
-                }}
-              >
-                <option value="">בחר לקוח...</option>
-                {Array.isArray(clients) && clients.map(c => c && c.id ? (
-                  <option key={c.id} value={c.id}>{c.name}</option>
+          {/* Employee row */}
+          {Array.isArray(employees) && employees.length > 0 && (
+            <div style={{display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F3F4F6'}}>
+              <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>עובד</div>
+              <div style={{flex: 1, display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end'}}>
+                <button onClick={() => setEntryFormEmployeeId('self')} style={{padding: '6px 12px', borderRadius: 16, border: 'none', fontSize: 13, fontWeight: 600, background: entryFormEmployeeId === 'self' ? '#1d4ed8' : '#F3F4F6', color: entryFormEmployeeId === 'self' ? 'white' : '#374151', cursor: 'pointer'}}>עצמי</button>
+                {employees.map(emp => emp && emp.id ? (
+                  <button key={emp.id} onClick={() => setEntryFormEmployeeId(emp.id)} style={{padding: '6px 12px', borderRadius: 16, border: 'none', fontSize: 13, fontWeight: 600, background: entryFormEmployeeId === emp.id ? '#1d4ed8' : '#F3F4F6', color: entryFormEmployeeId === emp.id ? 'white' : '#374151', cursor: 'pointer'}}>{emp.name}</button>
                 ) : null)}
-              </select>
+              </div>
             </div>
           )}
 
-          <div className="m-mortgage-field">
-            <label>דיווח בשם</label>
-            <select 
-              value={entryFormEmployeeId}
-              onChange={e => setEntryFormEmployeeId(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '12px 16px',
-                border: '2px solid #E5E7EB',
-                borderRadius: '10px',
-                fontSize: '16px'
-              }}
-            >
-              <option value="self">עצמי</option>
-              {Array.isArray(employees) && employees.map(emp => emp && emp.id ? (
-                <option key={emp.id} value={emp.id}>{emp.name}</option>
-              ) : null)}
-            </select>
+          {/* Notes */}
+          <div style={{padding: '10px 0', borderBottom: '1px solid #F3F4F6'}}>
+            <input value={entryFormNotes} onChange={e => setEntryFormNotes(e.target.value)} placeholder="הערה (אופציונלי)"
+              style={{width: '100%', border: 'none', padding: '4px 0', fontSize: 15, background: 'none', outline: 'none'}} />
           </div>
 
-          <div className="m-mortgage-field">
-            <label>הערות</label>
-            <textarea 
-              value={entryFormNotes}
-              onChange={e => setEntryFormNotes(e.target.value)}
-              placeholder="הערות..."
-              rows={3}
-              style={{
-                width: '100%',
-                padding: '12px 16px',
-                border: '2px solid #E5E7EB',
-                borderRadius: '10px',
-                fontSize: '16px',
-                fontFamily: 'inherit',
-                resize: 'vertical'
-              }}
-            />
-          </div>
-
-          <button className="m-mortgage-calc-btn" onClick={save}>
-            {editEntryId ? 'עדכן דיווח' : 'שמור דיווח'}
-          </button>
-
-          {editEntryId && (
-            <button
-              onClick={deleteEntry}
-              style={{
-                width: '100%', padding: '14px', marginTop: '12px',
-                background: '#ef4444', color: 'white',
-                border: 'none', borderRadius: '12px',
-                fontSize: '16px', fontWeight: '600', cursor: 'pointer'
-              }}
-            >
-              מחק דיווח
+          <div style={{display: 'flex', gap: 10, marginTop: 16}}>
+            {editEntryId && (
+              <button onClick={deleteEntry}
+                style={{padding: '14px 16px', background: '#FEF2F2', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer', color: '#DC2626'}}>
+                מחק
+              </button>
+            )}
+            <button onClick={closeModal}
+              style={{flex: 1, padding: '14px', background: '#F3F4F6', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer', color: '#6B7280'}}>
+              ביטול
             </button>
-          )}
+            <button className="m-mortgage-calc-btn" onClick={save} style={{flex: 2, margin: 0}}>
+              {editEntryId ? 'עדכן ✓' : 'שמור ✓'}
+            </button>
+          </div>
         </div>
       </>
     )
