@@ -4368,10 +4368,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const [startM, setStartM] = useState<number | null>(null)
     const [endH, setEndH] = useState<number | null>(null)
     const pad = (n: number) => String(n).padStart(2, '0')
+    // Fix size once on mount — never recalculate on step change
+    const clockSizeRef = useRef(Math.min(window.innerWidth - 32, 340))
 
     const isHourStep = step === 'startH' || step === 'endH'
-    // Use available screen width for clock size
-    const clockSize = Math.min(window.innerWidth - 32, 340)
+    const clockSize = clockSizeRef.current
     const cx = clockSize / 2
     const cy = clockSize / 2
     const rOuter = clockSize * 0.42  // outer ring radius
