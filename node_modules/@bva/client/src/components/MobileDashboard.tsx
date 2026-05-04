@@ -3842,10 +3842,44 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </div>
 
           </div>
+          {/* Sticky bottom action bar when entries selected */}
+          {selectedEntryIds.length > 0 && (
+            <div style={{
+              position: 'sticky', bottom: 0, zIndex: 50,
+              background: '#1e293b',
+              borderTop: '2px solid #334155',
+              padding: '10px 16px 16px',
+              flexShrink: 0
+            }}>
+              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8}}>
+                <span style={{fontSize: 13, fontWeight: 700, color: 'white'}}>שנה סטטוס ({selectedEntryIds.length} נבחרו):</span>
+                <button onClick={() => setSelectedEntryIds([])} style={{fontSize: 12, color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer'}}>✕ בטל</button>
+              </div>
+              <div style={{display: 'flex', gap: 6, marginBottom: 8}}>
+                <button onClick={() => { setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: 'pending'} : e)); setSelectedEntryIds([]) }}
+                  style={{flex: 1, padding: '10px 4px', fontSize: 13, border: 'none', borderRadius: 8, background: '#fef3c7', color: '#92400e', fontWeight: 700, cursor: 'pointer'}}>⏳ ממתין</button>
+                <button onClick={() => { setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: 'invoiced'} : e)); setSelectedEntryIds([]) }}
+                  style={{flex: 1, padding: '10px 4px', fontSize: 13, border: 'none', borderRadius: 8, background: '#dbeafe', color: '#1e40af', fontWeight: 700, cursor: 'pointer'}}>📄 חויב</button>
+                <button onClick={() => { setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: 'paid'} : e)); setSelectedEntryIds([]) }}
+                  style={{flex: 1, padding: '10px 4px', fontSize: 13, border: 'none', borderRadius: 8, background: '#dcfce7', color: '#166534', fontWeight: 700, cursor: 'pointer'}}>✅ שולם</button>
+              </div>
+              <div style={{display: 'flex', gap: 6}}>
+                <input type="number" inputMode="numeric" pattern="[0-9]*" placeholder="מס' חשבונית"
+                  value={bulkInvoiceNumber} onChange={e => setBulkInvoiceNumber(e.target.value)}
+                  style={{flex: 1, padding: '8px 10px', fontSize: 13, border: 'none', borderRadius: 8, background: '#334155', color: 'white', outline: 'none'}} />
+                <button onClick={() => {
+                  if (!bulkInvoiceNumber.trim()) return
+                  setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, invoiceNumber: bulkInvoiceNumber.trim(), billingStatus: e.billingStatus === 'paid' ? 'paid' : 'invoiced'} : e))
+                  setBulkInvoiceNumber('')
+                  setSelectedEntryIds([])
+                }} style={{padding: '8px 14px', fontSize: 13, border: 'none', borderRadius: 8, background: '#3b82f6', color: 'white', fontWeight: 700, cursor: 'pointer'}}>שמור</button>
+              </div>
+            </div>
+          )}
           <div
             ref={summaryScrollRef}
             onScroll={() => { if (summaryScrollRef.current) summaryScrollPos.current = summaryScrollRef.current.scrollTop }}
-            style={{flex: 1, overflowY: 'auto', padding: '12px 16px', paddingBottom: 100}}
+            style={{flex: 1, overflowY: 'auto', padding: '12px 16px', paddingBottom: selectedEntryIds.length > 0 ? 20 : 100}}
           >
             {(() => {
               const filteredEntries = timeEntries.filter(e => {
@@ -3910,59 +3944,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     </div>
                   </div>
 
-                  {/* Inline Bulk Controls - When entries selected */}
-                  {selectedEntryIds.length > 0 && (
-                    <div style={{
-                      background: '#f8fafc',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '10px',
-                      padding: '10px',
-                      marginBottom: '12px'
-                    }}>
-                      <div style={{display: 'flex', justifyContent: 'flex-end', marginBottom: '8px'}}>
-                        <button onClick={() => setSelectedEntryIds([])} style={{fontSize: '12px', color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer'}}>בטל בחירה</button>
-                      </div>
-                      
-                      {/* Change Status Buttons */}
-                      <div style={{fontSize: '11px', color: '#9CA3AF', fontWeight: 700, letterSpacing: 1, marginBottom: 5}}>שנה סטטוס ל:</div>
-                      <div style={{display: 'flex', gap: '6px', marginBottom: '8px'}}>
-                        <button 
-                          onClick={() => { setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: 'pending'} : e)); setSelectedEntryIds([]) }}
-                          style={{flex: 1, padding: '8px 4px', fontSize: '12px', border: '2px solid #f59e0b', borderRadius: '8px', background: 'white', color: '#92400e', fontWeight: 700, cursor: 'pointer'}}
-                        >⏳ ממתין</button>
-                        <button 
-                          onClick={() => { setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: 'invoiced'} : e)); setSelectedEntryIds([]) }}
-                          style={{flex: 1, padding: '8px 4px', fontSize: '12px', border: '2px solid #3b82f6', borderRadius: '8px', background: 'white', color: '#1e40af', fontWeight: 700, cursor: 'pointer'}}
-                        >📄 חויב</button>
-                        <button 
-                          onClick={() => { setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: 'paid'} : e)); setSelectedEntryIds([]) }}
-                          style={{flex: 1, padding: '8px 4px', fontSize: '12px', border: '2px solid #10b981', borderRadius: '8px', background: 'white', color: '#166534', fontWeight: 700, cursor: 'pointer'}}
-                        >✅ שולם</button>
-                      </div>
-                      
-                      {/* Inline Invoice Number */}
-                      <div style={{display: 'flex', gap: '6px'}}>
-                        <input 
-                          type="number"
-                          inputMode="numeric"
-                          pattern="[0-9]*"
-                          placeholder="מס' חשבונית"
-                          value={bulkInvoiceNumber}
-                          onChange={e => setBulkInvoiceNumber(e.target.value)}
-                          style={{flex: 1, padding: '6px 8px', fontSize: '12px', border: '1px solid #d1d5db', borderRadius: '6px'}}
-                        />
-                        <button 
-                          onClick={() => {
-                            if (!bulkInvoiceNumber.trim()) { alert('נא להזין מספר חשבונית'); return }
-                            setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? { ...e, invoiceNumber: bulkInvoiceNumber.trim(), billingStatus: e.billingStatus === 'paid' ? 'paid' : 'invoiced' } : e))
-                            setBulkInvoiceNumber('')
-                            setSelectedEntryIds([])
-                          }}
-                          style={{padding: '6px 12px', fontSize: '12px', border: 'none', borderRadius: '6px', background: '#1d4ed8', color: 'white', fontWeight: 600, cursor: 'pointer'}}
-                        >שמור</button>
-                      </div>
-                    </div>
-                  )}
 
                   {/* Select All Button */}
                   {selectedEntryIds.length === 0 && filteredEntries.length > 0 && (
