@@ -3030,20 +3030,26 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   const empStatus = entry.employeePaidStatus || 'pending'
                   const empStatusColor = empStatus === 'paid' ? '#8b5cf6' : '#cbd5e1'
                   const hasEmployee = !!entry.employeeId
+                  const openEntryEdit = () => {
+                    setEntryFormStartDate(entry.startDate)
+                    setEntryFormEndDate(entry.endDate)
+                    setEntryFormStartTime(entry.startTime)
+                    setEntryFormEndTime(entry.endTime)
+                    setEntryFormNotes(entry.notes || '')
+                    setEntryFormEmployeeId(entry.employeeId || 'self')
+                    setEntryFormClientId(entry.clientId)
+                    setEditEntryId(entry.id)
+                    setAddTimeEntryOpen(true)
+                  }
                   return (
                     <div
                       key={entry.id}
-                      onClick={() => {
-                        setEntryFormStartDate(entry.startDate)
-                        setEntryFormEndDate(entry.endDate)
-                        setEntryFormStartTime(entry.startTime)
-                        setEntryFormEndTime(entry.endTime)
-                        setEntryFormNotes(entry.notes || '')
-                        setEntryFormEmployeeId(entry.employeeId || 'self')
-                        setEntryFormClientId(entry.clientId)
-                        setEditEntryId(entry.id)
-                        setAddTimeEntryOpen(true)
-                      }}
+                      onTouchStart={() => startLongPress(openEntryEdit)}
+                      onTouchEnd={cancelLongPress}
+                      onTouchMove={cancelLongPress}
+                      onTouchCancel={cancelLongPress}
+                      onContextMenu={(e) => { e.preventDefault(); openEntryEdit() }}
+                      onClick={() => { if (longPressFiredRef.current) { longPressFiredRef.current = false } }}
                       style={{
                         padding: '10px 0',
                         display: 'flex',
@@ -4163,8 +4169,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                         const inSelectMode = selectedEntryIds.length > 0
                         const toggleSelect = () => setSelectedEntryIds(prev => prev.includes(entry.id) ? prev.filter(i => i !== entry.id) : [...prev, entry.id])
                         const openEdit = () => {
-                          // Open modal FIRST to prevent view switch
-                          setAddTimeEntryOpen(true)
                           setEntryFormStartDate(entry.startDate)
                           setEntryFormEndDate(entry.endDate)
                           setEntryFormStartTime(entry.startTime)
@@ -4173,7 +4177,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           setEntryFormEmployeeId(entry.employeeId || 'self')
                           setEntryFormClientId(entry.clientId)
                           setEditEntryId(entry.id)
-                          setSelectedClientId(entry.clientId)
+                          setAddTimeEntryOpen(true)
                         }
                         const isSwiped = swipedEntryId === entry.id
                         return (
@@ -4198,12 +4202,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                               onClick={() => {
                                 if (isSwiped) { setSwipedEntryId(null); return }
                                 if (longPressFiredRef.current) { longPressFiredRef.current = false; return }
-                                if (inSelectMode) toggleSelect(); else openEdit()
+                                toggleSelect()
                               }}
                               onTouchStart={(e) => {
                                 swipeTouchStartX.current = e.touches[0].clientX
                                 swipeTouchStartY.current = e.touches[0].clientY
-                                if (!isSwiped) startLongPress(toggleSelect)
+                                if (!isSwiped) startLongPress(openEdit)
                               }}
                               onTouchMove={(e) => {
                                 const dx = e.touches[0].clientX - swipeTouchStartX.current
@@ -4230,9 +4234,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                               }}
                             >
                             <div style={{flex: 1, display: 'flex', alignItems: 'center', gap: 10, minWidth: 0}}>
-                              {inSelectMode && (
-                                <input type="checkbox" checked={isSelected} onChange={() => {}} style={{width: 18, height: 18, accentColor: '#1d4ed8'}} />
-                              )}
+                              <input type="checkbox" checked={isSelected} onChange={() => {}} style={{width: 18, height: 18, accentColor: '#1d4ed8'}} />
                               <span style={{width: 8, height: 8, borderRadius: '50%', background: statusColor, flexShrink: 0}} />
                               {entry.employeeId && (
                                 <span style={{width: 8, height: 8, borderRadius: '50%', background: entry.employeePaidStatus === 'paid' ? '#8b5cf6' : '#cbd5e1', flexShrink: 0, marginLeft: -2}} title="עובד" />
