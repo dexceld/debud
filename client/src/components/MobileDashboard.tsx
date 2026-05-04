@@ -5345,13 +5345,17 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               className="m-fab-glass m-fab-with-label"
               onTouchEnd={(e) => {
                 e.stopPropagation()
+                e.preventDefault()
                 const wasDrag = clientFabDragRef.current?.moved
                 clientFabDragRef.current = null
                 timeFabDragRef.current = null
                 localStorage.setItem(lsKey('time_fab_pos'), JSON.stringify(fabPos))
                 if (!wasDrag) { setClientFormName(''); setClientFormRate(''); setClientFormVat(defaultVat); setClientFormIncomeTax(defaultIncomeTax); setEditClientId(null); setAddClientOpen(true) }
               }}
-              onClick={() => { setClientFormName(''); setClientFormRate(''); setClientFormVat(defaultVat); setClientFormIncomeTax(defaultIncomeTax); setEditClientId(null); setAddClientOpen(true) }}
+              onClick={(e) => {
+                if (e.detail === 0) return
+                setClientFormName(''); setClientFormRate(''); setClientFormVat(defaultVat); setClientFormIncomeTax(defaultIncomeTax); setEditClientId(null); setAddClientOpen(true)
+              }}
               title="הוספת לקוח"
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -5362,13 +5366,17 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             className="m-fab-glass forecast m-fab-with-label"
             onTouchEnd={(e) => {
               e.stopPropagation()
+              e.preventDefault()
               const wasDrag = timeFabDragRef.current?.moved
               timeFabDragRef.current = null
               clientFabDragRef.current = null
               localStorage.setItem(lsKey('time_fab_pos'), JSON.stringify(fabPos))
               if (!wasDrag) openQuickEntry()
             }}
-            onClick={openQuickEntry}
+            onClick={(e) => {
+              if (e.detail === 0) return // fired from touch, already handled
+              openQuickEntry()
+            }}
             title="דיווח מהיר"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
