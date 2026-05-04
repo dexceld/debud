@@ -4851,10 +4851,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <div className="m-mortgage-field">
             <label>מספר חשבונית</label>
             <input
-              type="text"
+              type="number"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={bulkInvoiceNumber}
               onChange={e => setBulkInvoiceNumber(e.target.value)}
-              placeholder="לדוגמה: 2026-001"
+              placeholder="לדוגמה: 2026001"
             />
             <button onClick={applyInvoiceNumber}
               style={{width: '100%', padding: '12px', marginTop: 8, background: '#1d4ed8', color: 'white', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer'}}>
