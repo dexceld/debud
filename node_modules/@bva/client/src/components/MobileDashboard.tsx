@@ -228,6 +228,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const timeFabDragRef = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number; moved: boolean } | null>(null)
   const [editEntryId, setEditEntryId] = useState<string | null>(null)
   const [datePickerOpen, setDatePickerOpen] = useState(false)
+  const [timePickerOpen, setTimePickerOpen] = useState(false)
   const [selectedEntryIds, setSelectedEntryIds] = useState<string[]>([])
   const [bulkActionOpen, setBulkActionOpen] = useState(false)
   const [bulkInvoiceNumber, setBulkInvoiceNumber] = useState('')
@@ -4309,6 +4310,138 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     )
   }
 
+  // Time Range Picker - two-step in one screen
+  const TimeRangePicker = ({ startTime, endTime, onChange, onClose }: {
+    startTime: string
+    endTime: string
+    onChange: (start: string, end: string) => void
+    onClose: () => void
+  }) => {
+    const [picking, setPicking] = useState<'start' | 'end'>(startTime ? 'end' : 'start')
+    const [tempStart, setTempStart] = useState(startTime)
+    const [selHour, setSelHour] = useState<number | null>(startTime ? parseInt(startTime.split(':')[0]) : null)
+    const [selMin, setSelMin] = useState<number | null>(startTime ? parseInt(startTime.split(':')[1]) : null)
+
+    const hours = Array.from({length: 24}, (_, i) => i)
+    const mins = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]
+
+    const pad = (n: number) => String(n).padStart(2, '0')
+
+    const handleConfirm = () => {
+      if (selHour === null || selMin === null) return
+      const timeStr = `${pad(selHour)}:${pad(selMin)}`
+      if (picking === 'start') {
+        setTempStart(timeStr)
+        setPicking('end')
+        setSelHour(null)
+        setSelMin(null)
+      } else {
+        onChange(tempStart, timeStr)
+        onClose()
+      }
+    }
+
+    return (
+      <>
+        <div className="m-overlay" onClick={onClose} />
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0,
+          background: 'white', borderRadius: '16px 16px 0 0',
+          padding: '16px', zIndex: 500
+        }}>
+          {/* Header */}
+          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16}}>
+            <button onClick={onClose} style={{border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: '#6B7280'}}>✕</button>
+            <div style={{fontWeight: 700, fontSize: 16}}>
+              {picking === 'start' ? 'שעת התחלה' : `עד מתי? (התחלה: ${tempStart})`}
+            </div>
+            <div style={{width: 32}} />
+          </div>
+
+          {/* Hours row */}
+          <div style={{marginBottom: 8}}>
+            <div style={{fontSize: 12, color: '#9CA3AF', marginBottom: 6, fontWeight: 600}}>שעה</div>
+            <div style={{display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4}}>
+              {hours.map(h => (
+                <button
+                  key={h}
+                  onClick={() => setSelHour(h)}
+                  style={{
+                    flexShrink: 0,
+                    width: 44, height: 44,
+                    borderRadius: '50%',
+                    border: 'none',
+                    background: selHour === h ? '#1d4ed8' : '#F3F4F6',
+                    color: selHour === h ? 'white' : '#111827',
+                    fontWeight: selHour === h ? 700 : 400,
+                    fontSize: 15,
+                    cursor: 'pointer'
+                  }}
+                >
+                  {pad(h)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Minutes row */}
+          <div style={{marginBottom: 16}}>
+            <div style={{fontSize: 12, color: '#9CA3AF', marginBottom: 6, fontWeight: 600}}>דקות</div>
+            <div style={{display: 'flex', gap: 6, flexWrap: 'wrap'}}>
+              {mins.map(m => (
+                <button
+                  key={m}
+                  onClick={() => setSelMin(m)}
+                  style={{
+                    width: 52, height: 44,
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: selMin === m ? '#1d4ed8' : '#F3F4F6',
+                    color: selMin === m ? 'white' : '#111827',
+                    fontWeight: selMin === m ? 700 : 400,
+                    fontSize: 15,
+                    cursor: 'pointer'
+                  }}
+                >
+                  :{pad(m)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Preview + Confirm */}
+          <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
+            <div style={{flex: 1, fontSize: 18, fontWeight: 700, color: selHour !== null && selMin !== null ? '#1d4ed8' : '#D1D5DB', textAlign: 'center'}}>
+              {selHour !== null && selMin !== null ? `${pad(selHour)}:${pad(selMin)}` : '--:--'}
+            </div>
+            <button
+              onClick={handleConfirm}
+              disabled={selHour === null || selMin === null}
+              style={{
+                flex: 2, padding: '14px',
+                background: selHour !== null && selMin !== null ? '#1d4ed8' : '#E5E7EB',
+                color: selHour !== null && selMin !== null ? 'white' : '#9CA3AF',
+                border: 'none', borderRadius: '10px',
+                fontSize: 16, fontWeight: 700, cursor: selHour !== null && selMin !== null ? 'pointer' : 'default'
+              }}
+            >
+              {picking === 'start' ? 'הגדר התחלה ←' : 'הגדר סיום ✓'}
+            </button>
+          </div>
+
+          {picking === 'end' && (
+            <button
+              onClick={() => { setPicking('start'); setTempStart(''); setSelHour(null); setSelMin(null) }}
+              style={{marginTop: 8, width: '100%', padding: '10px', background: 'none', border: 'none', color: '#6B7280', fontSize: 14, cursor: 'pointer'}}
+            >
+              ← שנה שעת התחלה
+            </button>
+          )}
+        </div>
+      </>
+    )
+  }
+
   // Add Client Modal
   const AddClientModal = () => {
     if (!addClientOpen) return null
@@ -4605,55 +4738,31 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             />
           )}
 
-          {/* Time Range - Booking style flow */}
+          {/* Time Range - Custom picker */}
           <div className="m-mortgage-field">
-            <label>
-              {!entryFormStartTime ? 'בחר שעת התחלה' : 
-               !entryFormEndTime ? `התחלה: ${entryFormStartTime} - בחר שעת סיום` :
-               `שעות: ${entryFormStartTime} → ${entryFormEndTime}`}
-            </label>
-            <input 
-              type="time"
-              value={!entryFormStartTime ? '' : !entryFormEndTime ? '' : entryFormStartTime}
-              onChange={e => {
-                const val = e.target.value
-                if (!entryFormStartTime) {
-                  // First pick - start time
-                  setEntryFormStartTime(val)
-                } else if (!entryFormEndTime) {
-                  // Second pick - end time (must be after start)
-                  if (val > entryFormStartTime) {
-                    setEntryFormEndTime(val)
-                  } else {
-                    // If end is before start, swap them
-                    setEntryFormEndTime(entryFormStartTime)
-                    setEntryFormStartTime(val)
-                  }
-                } else {
-                  // Reset - new start time
-                  setEntryFormStartTime(val)
-                  setEntryFormEndTime('')
-                }
+            <label>שעות</label>
+            <button
+              onClick={() => setTimePickerOpen(true)}
+              style={{
+                width: '100%', padding: '12px 16px', textAlign: 'right',
+                border: '1px solid #E5E7EB', borderRadius: '8px',
+                background: 'white', fontSize: '15px', cursor: 'pointer',
+                color: entryFormStartTime ? '#111827' : '#9CA3AF'
               }}
-              style={{width: '100%'}}
-            />
-            {entryFormEndTime && (
-              <button 
-                onClick={() => { setEntryFormStartTime(''); setEntryFormEndTime(''); }}
-                style={{
-                  marginTop: '8px',
-                  padding: '8px 12px',
-                  background: '#F3F4F6',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  cursor: 'pointer'
-                }}
-              >
-                בחר מחדש
-              </button>
-            )}
+            >
+              {entryFormStartTime && entryFormEndTime
+                ? `${entryFormStartTime} → ${entryFormEndTime}`
+                : 'בחר שעות'}
+            </button>
           </div>
+          {timePickerOpen && (
+            <TimeRangePicker
+              startTime={entryFormStartTime}
+              endTime={entryFormEndTime}
+              onChange={(s, e) => { setEntryFormStartTime(s); setEntryFormEndTime(e) }}
+              onClose={() => setTimePickerOpen(false)}
+            />
+          )}
 
           <div className="m-mortgage-field">
             <label>דיווח בשם</label>
@@ -4857,56 +4966,32 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             />
           )}
 
-          {/* Time Range - Booking style flow */}
+          {/* Time Range - Custom picker */}
           <div className="m-mortgage-field">
-            <label>
-              {!entryFormStartTime ? `בחר שעת התחלה ${fieldErrors.time ? '(נדרש)' : ''}` : 
-               !entryFormEndTime ? `התחלה: ${entryFormStartTime} - בחר שעת סיום` :
-               `שעות: ${entryFormStartTime} → ${entryFormEndTime}`}
-            </label>
-            <input
-              type="time"
-              value={!entryFormStartTime ? '' : !entryFormEndTime ? '' : entryFormStartTime}
-              onChange={e => {
-                const val = e.target.value
-                if (val) setFieldErrors(prev => ({...prev, time: false}))
-                if (!entryFormStartTime) {
-                  // First pick - start time
-                  setEntryFormStartTime(val)
-                } else if (!entryFormEndTime) {
-                  // Second pick - end time (must be after start)
-                  if (val > entryFormStartTime) {
-                    setEntryFormEndTime(val)
-                  } else {
-                    // If end is before start, swap them
-                    setEntryFormEndTime(entryFormStartTime)
-                    setEntryFormStartTime(val)
-                  }
-                } else {
-                  // Reset - new start time
-                  setEntryFormStartTime(val)
-                  setEntryFormEndTime('')
-                }
+            <label>שעות {fieldErrors.time && <span style={{color: '#DC2626'}}>(נדרש)</span>}</label>
+            <button
+              onClick={() => { setTimePickerOpen(true); setFieldErrors(prev => ({...prev, time: false})) }}
+              style={{
+                width: '100%', padding: '12px 16px', textAlign: 'right',
+                border: fieldErrors.time ? '2px solid #DC2626' : '1px solid #E5E7EB',
+                borderRadius: '8px', background: fieldErrors.time ? '#FEF2F2' : 'white',
+                fontSize: '15px', cursor: 'pointer',
+                color: entryFormStartTime ? '#111827' : '#9CA3AF'
               }}
-              style={{width: '100%', border: fieldErrors.time ? '2px solid #DC2626' : undefined, backgroundColor: fieldErrors.time ? '#FEF2F2' : undefined}}
-            />
-            {entryFormEndTime && (
-              <button 
-                onClick={() => { setEntryFormStartTime(''); setEntryFormEndTime(''); }}
-                style={{
-                  marginTop: '8px',
-                  padding: '8px 12px',
-                  background: '#F3F4F6',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  cursor: 'pointer'
-                }}
-              >
-                בחר מחדש
-              </button>
-            )}
+            >
+              {entryFormStartTime && entryFormEndTime
+                ? `${entryFormStartTime} → ${entryFormEndTime}`
+                : 'בחר שעות'}
+            </button>
           </div>
+          {timePickerOpen && (
+            <TimeRangePicker
+              startTime={entryFormStartTime}
+              endTime={entryFormEndTime}
+              onChange={(s, e) => { setEntryFormStartTime(s); setEntryFormEndTime(e) }}
+              onClose={() => setTimePickerOpen(false)}
+            />
+          )}
 
           {/* Client Selection - only when no pre-selected client */}
           {!selectedClientId && (
