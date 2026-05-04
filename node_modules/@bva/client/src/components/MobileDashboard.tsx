@@ -227,6 +227,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const clientFabDragRef = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number; moved: boolean } | null>(null)
   const timeFabDragRef = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number; moved: boolean } | null>(null)
   const [editEntryId, setEditEntryId] = useState<string | null>(null)
+  const [datePickerOpen, setDatePickerOpen] = useState(false)
   const [selectedEntryIds, setSelectedEntryIds] = useState<string[]>([])
   const [bulkActionOpen, setBulkActionOpen] = useState(false)
   const [bulkInvoiceNumber, setBulkInvoiceNumber] = useState('')
@@ -4163,6 +4164,151 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     )
   }
 
+  // Date Range Picker - Booking style
+  const DateRangePicker = ({ startDate, endDate, onChange, onClose }: {
+    startDate: string
+    endDate: string
+    onChange: (start: string, end: string) => void
+    onClose: () => void
+  }) => {
+    const today = new Date()
+    const [viewYear, setViewYear] = useState(startDate ? new Date(startDate).getFullYear() : today.getFullYear())
+    const [viewMonth, setViewMonth] = useState(startDate ? new Date(startDate).getMonth() : today.getMonth())
+    const [picking, setPicking] = useState<'start' | 'end'>(startDate ? 'end' : 'start')
+    const [tempStart, setTempStart] = useState(startDate)
+    const [tempEnd, setTempEnd] = useState(endDate)
+
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate()
+    const firstDayOfWeek = new Date(viewYear, viewMonth, 1).getDay() // 0=Sun
+
+    const monthNames = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר']
+    const dayNames = ['א','ב','ג','ד','ה','ו','ש']
+
+    const toDateStr = (y: number, m: number, d: number) =>
+      `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+
+    const handleDayClick = (d: number) => {
+      const dateStr = toDateStr(viewYear, viewMonth, d)
+      if (picking === 'start') {
+        setTempStart(dateStr)
+        setTempEnd(dateStr)
+        setPicking('end')
+      } else {
+        if (dateStr < tempStart) {
+          setTempStart(dateStr)
+          setTempEnd(tempStart)
+        } else if (dateStr === tempStart) {
+          // same day clicked = single day, confirm
+          onChange(tempStart, tempStart)
+          onClose()
+          return
+        } else {
+          setTempEnd(dateStr)
+        }
+        onChange(tempStart, dateStr < tempStart ? tempStart : dateStr)
+        onClose()
+      }
+    }
+
+    const isStart = (d: number) => toDateStr(viewYear, viewMonth, d) === tempStart
+    const isEnd = (d: number) => toDateStr(viewYear, viewMonth, d) === tempEnd
+    const isInRange = (d: number) => {
+      const ds = toDateStr(viewYear, viewMonth, d)
+      return ds > tempStart && ds < tempEnd
+    }
+
+    const prevMonth = () => {
+      if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1) }
+      else setViewMonth(m => m - 1)
+    }
+    const nextMonth = () => {
+      if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1) }
+      else setViewMonth(m => m + 1)
+    }
+
+    // Build calendar grid
+    const cells: (number | null)[] = []
+    for (let i = 0; i < firstDayOfWeek; i++) cells.push(null)
+    for (let d = 1; d <= daysInMonth; d++) cells.push(d)
+
+    return (
+      <>
+        <div className="m-overlay" onClick={onClose} />
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0,
+          background: 'white', borderRadius: '16px 16px 0 0',
+          padding: '16px', zIndex: 500, maxHeight: '80vh', overflowY: 'auto'
+        }}>
+          {/* Header */}
+          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12}}>
+            <button onClick={prevMonth} style={{border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', padding: '4px 8px'}}>‹</button>
+            <div style={{fontWeight: 700, fontSize: 16}}>{monthNames[viewMonth]} {viewYear}</div>
+            <button onClick={nextMonth} style={{border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', padding: '4px 8px'}}>›</button>
+          </div>
+
+          {/* Instructions */}
+          <div style={{textAlign: 'center', fontSize: 13, color: '#6B7280', marginBottom: 12}}>
+            {picking === 'start' ? 'בחר תאריך התחלה' : `מ-${tempStart} — בחר תאריך סיום (או לחץ שוב לאותו יום)`}
+          </div>
+
+          {/* Day names */}
+          <div style={{display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 4}}>
+            {dayNames.map(d => (
+              <div key={d} style={{textAlign: 'center', fontSize: 11, color: '#9CA3AF', fontWeight: 600, padding: '4px 0'}}>{d}</div>
+            ))}
+          </div>
+
+          {/* Days */}
+          <div style={{display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2}}>
+            {cells.map((d, i) => {
+              if (!d) return <div key={i} />
+              const start = isStart(d)
+              const end = isEnd(d)
+              const inRange = isInRange(d)
+              return (
+                <button
+                  key={i}
+                  onClick={() => handleDayClick(d)}
+                  style={{
+                    padding: '10px 4px',
+                    border: 'none',
+                    borderRadius: start || end ? '50%' : inRange ? '0' : '50%',
+                    background: start || end ? '#1d4ed8' : inRange ? '#dbeafe' : 'transparent',
+                    color: start || end ? 'white' : inRange ? '#1e40af' : '#111827',
+                    fontWeight: start || end ? 700 : 400,
+                    fontSize: 15,
+                    cursor: 'pointer',
+                    width: '100%'
+                  }}
+                >
+                  {d}
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Confirm single day button */}
+          {picking === 'end' && tempStart && (
+            <div style={{marginTop: 12, display: 'flex', gap: 8}}>
+              <button
+                onClick={() => { onChange(tempStart, tempStart); onClose() }}
+                style={{flex: 1, padding: '12px', background: '#F3F4F6', border: 'none', borderRadius: 8, fontSize: 15, cursor: 'pointer'}}
+              >
+                יום בודד ({tempStart})
+              </button>
+              <button
+                onClick={onClose}
+                style={{padding: '12px 16px', background: '#FEF2F2', border: 'none', borderRadius: 8, fontSize: 15, cursor: 'pointer', color: '#DC2626'}}
+              >
+                ביטול
+              </button>
+            </div>
+          )}
+        </div>
+      </>
+    )
+  }
+
   // Add Client Modal
   const AddClientModal = () => {
     if (!addClientOpen) return null
@@ -4431,38 +4577,33 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </select>
           </div>
 
-          {/* Date Range - Booking style single picker */}
+          {/* Date Range - Booking style picker */}
           <div className="m-mortgage-field">
-            <label>
-              {!entryFormStartDate ? 'בחר תאריך התחלה' : 
-               entryFormStartDate === entryFormEndDate ? 'תאריך יחיד (לחץ שוב לטווח)' :
-               `טווח: ${entryFormStartDate} → ${entryFormEndDate}`}
-            </label>
-            <input 
-              type="date"
-              value={entryFormStartDate}
-              onChange={e => {
-                const val = e.target.value
-                if (!entryFormStartDate) {
-                  // First pick - set both to same date
-                  setEntryFormStartDate(val)
-                  setEntryFormEndDate(val)
-                } else if (val === entryFormStartDate && entryFormStartDate === entryFormEndDate) {
-                  // Same date clicked twice - keep single day
-                  setEntryFormStartDate(val)
-                  setEntryFormEndDate(val)
-                } else if (val < entryFormStartDate) {
-                  // Earlier date picked - make it start
-                  setEntryFormStartDate(val)
-                  setEntryFormEndDate(entryFormStartDate)
-                } else {
-                  // Later or same date - make it end
-                  setEntryFormEndDate(val)
-                }
+            <label>תאריך</label>
+            <button
+              onClick={() => setDatePickerOpen(true)}
+              style={{
+                width: '100%', padding: '12px 16px', textAlign: 'right',
+                border: '1px solid #E5E7EB', borderRadius: '8px',
+                background: 'white', fontSize: '15px', cursor: 'pointer',
+                color: entryFormStartDate ? '#111827' : '#9CA3AF'
               }}
-              style={{width: '100%'}}
-            />
+            >
+              {entryFormStartDate
+                ? entryFormStartDate === entryFormEndDate
+                  ? entryFormStartDate
+                  : `${entryFormStartDate} → ${entryFormEndDate}`
+                : 'בחר תאריך'}
+            </button>
           </div>
+          {datePickerOpen && (
+            <DateRangePicker
+              startDate={entryFormStartDate}
+              endDate={entryFormEndDate}
+              onChange={(s, e) => { setEntryFormStartDate(s); setEntryFormEndDate(e) }}
+              onClose={() => setDatePickerOpen(false)}
+            />
+          )}
 
           {/* Time Range - Booking style flow */}
           <div className="m-mortgage-field">
@@ -4687,39 +4828,34 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <button className="m-close-btn" onClick={closeModal}>✕</button>
           </div>
 
-          {/* Date Range - Booking style single picker */}
+          {/* Date Range - Booking style picker */}
           <div className="m-mortgage-field">
-            <label>
-              {!entryFormStartDate ? `בחר תאריך התחלה ${fieldErrors.date ? '(נדרש)' : ''}` : 
-               entryFormStartDate === entryFormEndDate ? 'תאריך יחיד (לחץ שוב לטווח)' :
-               `טווח: ${entryFormStartDate} → ${entryFormEndDate}`}
-            </label>
-            <input
-              type="date"
-              value={entryFormStartDate}
-              onChange={e => {
-                const val = e.target.value
-                if (val) setFieldErrors(prev => ({...prev, date: false}))
-                if (!entryFormStartDate) {
-                  // First pick - set both to same date
-                  setEntryFormStartDate(val)
-                  setEntryFormEndDate(val)
-                } else if (val === entryFormStartDate && entryFormStartDate === entryFormEndDate) {
-                  // Same date clicked twice - keep single day
-                  setEntryFormStartDate(val)
-                  setEntryFormEndDate(val)
-                } else if (val < entryFormStartDate) {
-                  // Earlier date picked - make it start
-                  setEntryFormStartDate(val)
-                  setEntryFormEndDate(entryFormStartDate)
-                } else {
-                  // Later or same date - make it end
-                  setEntryFormEndDate(val)
-                }
+            <label>תאריך {fieldErrors.date && <span style={{color: '#DC2626'}}>(נדרש)</span>}</label>
+            <button
+              onClick={() => { setDatePickerOpen(true); setFieldErrors(prev => ({...prev, date: false})) }}
+              style={{
+                width: '100%', padding: '12px 16px', textAlign: 'right',
+                border: fieldErrors.date ? '2px solid #DC2626' : '1px solid #E5E7EB',
+                borderRadius: '8px', background: fieldErrors.date ? '#FEF2F2' : 'white',
+                fontSize: '15px', cursor: 'pointer',
+                color: entryFormStartDate ? '#111827' : '#9CA3AF'
               }}
-              style={{width: '100%', border: fieldErrors.date ? '2px solid #DC2626' : undefined, backgroundColor: fieldErrors.date ? '#FEF2F2' : undefined}}
-            />
+            >
+              {entryFormStartDate
+                ? entryFormStartDate === entryFormEndDate
+                  ? entryFormStartDate
+                  : `${entryFormStartDate} → ${entryFormEndDate}`
+                : 'בחר תאריך'}
+            </button>
           </div>
+          {datePickerOpen && (
+            <DateRangePicker
+              startDate={entryFormStartDate}
+              endDate={entryFormEndDate}
+              onChange={(s, e) => { setEntryFormStartDate(s); setEntryFormEndDate(e) }}
+              onClose={() => setDatePickerOpen(false)}
+            />
+          )}
 
           {/* Time Range - Booking style flow */}
           <div className="m-mortgage-field">
