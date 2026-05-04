@@ -109,6 +109,7 @@ type TimeEntry = {
   invoiceNumber?: string // מספר חשבונית ללקוח
   employeePaidStatus?: 'pending' | 'paid' // סטטוס תשלום לעובד
   employeeInvoiceNumber?: string // מספר חשבונית של העובד אליי
+  employeePaymentAmount?: number // סכום ששולם לעובד בפועל
 }
 
 export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode }: { uid: string; userEmail: string; userPhoto?: string; isLocalMode?: boolean }) {
@@ -243,6 +244,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [bulkActionOpen, setBulkActionOpen] = useState(false)
   const [bulkInvoiceNumber, setBulkInvoiceNumber] = useState('')
   const [bulkEmployeeInvoiceNumber, setBulkEmployeeInvoiceNumber] = useState('')
+  const [bulkEmployeePaymentAmount, setBulkEmployeePaymentAmount] = useState('')
   // Long-press helpers (shared across cards)
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const longPressFiredRef = useRef(false)
@@ -3302,6 +3304,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                               {empPaid ? '✓ שולם' : '⏳ ממתין'}
                             </span>
                             {entry.employeeInvoiceNumber && <span style={{fontSize: 11, color: '#8b5cf6'}}>#{entry.employeeInvoiceNumber}</span>}
+                            {entry.employeePaymentAmount != null && <span style={{fontSize: 11, color: '#a78bfa', fontWeight: 700}}>₪{entry.employeePaymentAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>}
                           </div>
                           <div style={{fontSize: 12, color: '#6B7280', marginTop: 2}}>
                             {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit', year: 'numeric'})} · {entry.startTime}–{entry.endTime}
@@ -3326,10 +3329,20 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 <button onClick={() => setEmployeeSelectedIds([])} style={{fontSize: 12, color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer'}}>✕ בטל</button>
               </div>
               <div style={{display: 'flex', gap: 6, marginBottom: 8}}>
-                <button onClick={() => { setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) ? {...e, employeePaidStatus: 'pending'} : e)); setEmployeeSelectedIds([]); setEmployeeStatusFilter('all') }}
+                <button onClick={() => { setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) ? {...e, employeePaidStatus: 'pending', employeePaymentAmount: undefined} : e)); setEmployeeSelectedIds([]); setEmployeeStatusFilter('all') }}
                   style={{flex: 1, padding: '10px 4px', fontSize: 13, border: 'none', borderRadius: 8, background: '#fef3c7', color: '#92400e', fontWeight: 700, cursor: 'pointer'}}>⏳ טרם שולם</button>
-                <button onClick={() => { setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) ? {...e, employeePaidStatus: 'paid'} : e)); setEmployeeSelectedIds([]); setEmployeeStatusFilter('all') }}
-                  style={{flex: 1, padding: '10px 4px', fontSize: 13, border: 'none', borderRadius: 8, background: '#f3e8ff', color: '#6b21a8', fontWeight: 700, cursor: 'pointer'}}>✅ שולם לעובד</button>
+                <button onClick={() => {
+                  const amt = parseFloat(bulkEmployeePaymentAmount)
+                  setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) ? {...e, employeePaidStatus: 'paid', ...(isNaN(amt) ? {} : {employeePaymentAmount: amt})} : e))
+                  setBulkEmployeePaymentAmount('')
+                  setEmployeeSelectedIds([])
+                  setEmployeeStatusFilter('all')
+                }} style={{flex: 1, padding: '10px 4px', fontSize: 13, border: 'none', borderRadius: 8, background: '#f3e8ff', color: '#6b21a8', fontWeight: 700, cursor: 'pointer'}}>✅ שולם לעובד</button>
+              </div>
+              <div style={{display: 'flex', gap: 6, marginBottom: 6}}>
+                <input type="number" inputMode="decimal" placeholder="סכום ששולם לעובד ₪"
+                  key="emp-payment-amount" defaultValue={bulkEmployeePaymentAmount} onBlur={e => setBulkEmployeePaymentAmount(e.target.value)}
+                  style={{flex: 1, padding: '8px 10px', fontSize: 13, border: 'none', borderRadius: 8, background: '#334155', color: 'white', outline: 'none'}} />
               </div>
               <div style={{display: 'flex', gap: 6}}>
                 <input type="text" placeholder="מס' חשבונית עובד"
@@ -3337,7 +3350,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   style={{flex: 1, padding: '8px 10px', fontSize: 13, border: 'none', borderRadius: 8, background: '#334155', color: 'white', outline: 'none'}} />
                 <button onClick={() => {
                   if (!bulkEmployeeInvoiceNumber.trim()) return
-                  setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) ? {...e, employeeInvoiceNumber: bulkEmployeeInvoiceNumber.trim(), employeePaidStatus: 'pending'} : e))
+                  setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) ? {...e, employeeInvoiceNumber: bulkEmployeeInvoiceNumber.trim()} : e))
                   setBulkEmployeeInvoiceNumber('')
                   setEmployeeSelectedIds([])
                   setEmployeeStatusFilter('all')
