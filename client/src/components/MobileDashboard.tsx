@@ -210,6 +210,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [entryFormEndTime, setEntryFormEndTime] = useState('')
   const [entryFormNotes, setEntryFormNotes] = useState('')
   const [entryFormEmployeeId, setEntryFormEmployeeId] = useState<string>('self')
+  const [entryFormClientId, setEntryFormClientId] = useState<string>('')
   const [addEmployeeOpen, setAddEmployeeOpen] = useState(false)
   const [employeeFormName, setEmployeeFormName] = useState('')
   const [employeeFormEmail, setEmployeeFormEmail] = useState('')
@@ -2895,6 +2896,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               {/* Add Entry Button - like other screens */}
               <button className="m-hbtn m-hbtn-plus" onClick={() => {
                 setEditEntryId(null)
+                setEntryFormClientId(selectedClientId || '')
                 setEntryFormStartDate('')
                 setEntryFormEndDate('')
                 setEntryFormStartTime('')
@@ -2971,6 +2973,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                         setEntryFormEndTime(entry.endTime)
                         setEntryFormNotes(entry.notes || '')
                         setEntryFormEmployeeId(entry.employeeId || 'self')
+                        setEntryFormClientId(entry.clientId)
                         setEditEntryId(entry.id)
                         setAddTimeEntryOpen(true)
                       }}
@@ -3421,6 +3424,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                     setEntryFormEndTime(entry.endTime)
                                     setEntryFormNotes(entry.notes || '')
                                     setEntryFormEmployeeId(entry.employeeId || 'self')
+                                    setEntryFormClientId(entry.clientId)
                                     setEditEntryId(entry.id)
                                     setAddTimeEntryOpen(true)
                                   }}
@@ -3646,6 +3650,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           setEntryFormEndTime(entry.endTime)
                           setEntryFormNotes(entry.notes || '')
                           setEntryFormEmployeeId(entry.employeeId || 'self')
+                          setEntryFormClientId(entry.clientId)
                           setEditEntryId(entry.id)
                           setSelectedClientId(entry.clientId)
                         }
@@ -4152,8 +4157,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
   // Add/Edit Time Entry Modal
   const AddTimeEntryModal = () => {
-    if (!addTimeEntryOpen || !selectedClientId) return null
-    const [fieldErrors, setFieldErrors] = useState<{date?: boolean, time?: boolean}>({})
+    if (!addTimeEntryOpen) return null
+    const [fieldErrors, setFieldErrors] = useState<{client?: boolean, date?: boolean, time?: boolean}>({})
 
     // Initialize form on open (only when adding new, not editing)
     useEffect(() => {
@@ -4164,6 +4169,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         setEntryFormEndDate(today)
         setEntryFormStartTime(now)
         setEntryFormEndTime(now)
+        // Initialize clientId from selectedClientId if available
+        if (selectedClientId && !entryFormClientId) {
+          setEntryFormClientId(selectedClientId)
+        }
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [addTimeEntryOpen, editEntryId])
@@ -4177,10 +4186,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       setEntryFormEndTime('')
       setEntryFormNotes('')
       setEntryFormEmployeeId('self')
+      setEntryFormClientId('')
     }
 
     const save = () => {
-      const errors: {date?: boolean, time?: boolean} = {}
+      const clientId = entryFormClientId || selectedClientId
+      const errors: {client?: boolean, date?: boolean, time?: boolean} = {}
+      if (!clientId) errors.client = true
       if (!entryFormStartDate || !entryFormEndDate) errors.date = true
       if (!entryFormStartTime || !entryFormEndTime) errors.time = true
 
@@ -4194,7 +4206,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           en.id === editEntryId
             ? {
                 ...en,
-                clientId: selectedClientId,
+                clientId: clientId!,
                 employeeId: entryFormEmployeeId === 'self' ? undefined : entryFormEmployeeId,
                 startDate: entryFormStartDate,
                 endDate: entryFormEndDate,
@@ -4207,7 +4219,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       } else {
         const entry: TimeEntry = {
           id: Date.now().toString(),
-          clientId: selectedClientId,
+          clientId: clientId!,
           employeeId: entryFormEmployeeId === 'self' ? undefined : entryFormEmployeeId,
           startDate: entryFormStartDate,
           endDate: entryFormEndDate,
@@ -4289,6 +4301,33 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               />
             </div>
           </div>
+
+          {/* Client Selection - only when no pre-selected client */}
+          {!selectedClientId && (
+            <div className="m-mortgage-field">
+              <label>לקוח {fieldErrors.client && <span style={{color: '#DC2626'}}>(נדרש)</span>}</label>
+              <select
+                value={entryFormClientId}
+                onChange={e => {
+                  setEntryFormClientId(e.target.value)
+                  if (e.target.value) setFieldErrors(prev => ({...prev, client: false}))
+                }}
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  border: fieldErrors.client ? '2px solid #DC2626' : '2px solid #E5E7EB',
+                  borderRadius: '10px',
+                  fontSize: '16px',
+                  backgroundColor: fieldErrors.client ? '#FEF2F2' : undefined
+                }}
+              >
+                <option value="">בחר לקוח...</option>
+                {clients.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div className="m-mortgage-field">
             <label>דיווח בשם</label>
