@@ -3598,146 +3598,115 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </div>
 
             {(() => {
-              // Group entries by period (weeks, months, or years)
-              const now = new Date()
-              const periods: {label: string, start: Date, end: Date, entries: TimeEntry[]}[] = []
-
-              // Generate last 12 periods
-              for (let i = 0; i < 12; i++) {
-                const periodEnd = new Date(now)
-                const periodStart = new Date(now)
-
+              // Group ALL entries by period key
+              const getPeriodKey = (dateStr: string) => {
+                const d = new Date(dateStr)
                 if (reportsPeriod === 'week') {
-                  periodEnd.setDate(now.getDate() - (i * 7))
-                  periodStart.setDate(now.getDate() - ((i + 1) * 7) + 1)
+                  // ISO week: Mon-Sun
+                  const day = d.getDay() === 0 ? 6 : d.getDay() - 1 // Mon=0
+                  const mon = new Date(d); mon.setDate(d.getDate() - day)
+                  return mon.toISOString().split('T')[0]
                 } else if (reportsPeriod === 'month') {
-                  periodEnd.setMonth(now.getMonth() - i)
-                  periodEnd.setDate(0) // last day of month
-                  periodStart.setMonth(now.getMonth() - i - 1)
-                  periodStart.setDate(1) // first day of month
+                  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
                 } else {
-                  periodEnd.setFullYear(now.getFullYear() - i)
-                  periodEnd.setMonth(11, 31) // Dec 31
-                  periodStart.setFullYear(now.getFullYear() - i - 1)
-                  periodStart.setMonth(0, 1) // Jan 1
-                }
-
-                const periodEntries = timeEntries.filter(e => {
-                  const entryDate = new Date(e.startDate)
-                  return entryDate >= periodStart && entryDate <= periodEnd
-                })
-
-                if (periodEntries.length > 0 || i === 0) { // Show current period even if empty
-                  let label = ''
-                  if (reportsPeriod === 'week') {
-                    label = i === 0 ? 'שבוע הנוכחי' : i === 1 ? 'שבוע שעבר' : `לפני ${i} שבועות`
-                  } else if (reportsPeriod === 'month') {
-                    label = periodStart.toLocaleDateString('he-IL', {month: 'long', year: 'numeric'})
-                  } else {
-                    label = periodStart.getFullYear().toString()
-                  }
-
-                  periods.push({
-                    label,
-                    start: periodStart,
-                    end: periodEnd,
-                    entries: periodEntries
-                  })
+                  return `${d.getFullYear()}`
                 }
               }
 
+              const getPeriodLabel = (key: string) => {
+                if (reportsPeriod === 'week') {
+                  const mon = new Date(key)
+                  const sun = new Date(mon); sun.setDate(mon.getDate() + 6)
+                  return `${mon.toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'})} – ${sun.toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'})}`
+                } else if (reportsPeriod === 'month') {
+                  const [y, m] = key.split('-')
+                  return new Date(parseInt(y), parseInt(m) - 1, 1).toLocaleDateString('he-IL', {month: 'long', year: 'numeric'})
+                } else {
+                  return key
+                }
+              }
+
+              // Sort all entries by date desc
+              const sorted = [...timeEntries].sort((a, b) => b.startDate.localeCompare(a.startDate))
+
+              // Group by period key
+              const grouped: Record<string, TimeEntry[]> = {}
+              sorted.forEach(e => {
+                const key = getPeriodKey(e.startDate)
+                if (!grouped[key]) grouped[key] = []
+                grouped[key].push(e)
+              })
+
+              const keys = Object.keys(grouped).sort((a, b) => b.localeCompare(a))
+
+              if (keys.length === 0) return <div className="m-empty-state">אין דיווחים</div>
+
               return (
                 <>
-                  {/* Period Sections - grouped by selected period (week/month/year) */}
-                  {periods.map((period) => {
-                    const totalHours = period.entries.reduce((sum, e) => sum + calculateHours(e), 0)
+                  {keys.map(key => {
+                    const entries = grouped[key]
+                    const totalHours = entries.reduce((sum, e) => sum + calculateHours(e), 0)
                     let totalAmount = 0
-                    period.entries.forEach(e => {
+                    entries.forEach(e => {
                       const client = clients.find(c => c.id === e.clientId)
-                      if (client) {
-                        const hours = calculateHours(e)
-                        totalAmount += hours * client.hourlyRate * (1 + client.vatPercent / 100)
-                      }
+                      if (client) totalAmount += calculateHours(e) * client.hourlyRate * (1 + client.vatPercent / 100)
                     })
 
                     return (
-                      <div key={period.label}>
-                        {/* Period Header - Green bar like reference */}
-                        <div style={{
-                          background: '#BBF7D0',
-                          padding: '10px 16px',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          marginTop: '8px',
-                          marginBottom: '0',
-                          borderRadius: '0'
-                        }}>
-                          <span style={{fontSize: 13, fontWeight: 700, color: '#065F46', textTransform: 'uppercase'}}>
-                            {period.label}
-                          </span>
-                          <div style={{display: 'flex', gap: '12px', fontSize: 13}}>
+                      <div key={key}>
+                        {/* Period subtotal header */}
+                        <div style={{background: '#BBF7D0', padding: '8px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4}}>
+                          <span style={{fontSize: 13, fontWeight: 700, color: '#065F46'}}>{getPeriodLabel(key)}</span>
+                          <div style={{display: 'flex', gap: 12, fontSize: 13}}>
                             <span style={{color: '#047857', fontWeight: 600}}>{totalHours.toFixed(1)}h</span>
                             <span style={{color: '#047857', fontWeight: 700}}>₪{totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
                           </div>
                         </div>
 
-                        {/* Entries List - Consistent styling like reference */}
-                        {period.entries.length > 0 && (
-                          <div style={{background: 'white', marginBottom: '8px'}}>
-                            {period.entries.map((entry) => {
-                              const client = clients.find(c => c.id === entry.clientId)
-                              if (!client) return null
-                              const hours = calculateHours(entry)
-                              const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100)
-                              return (
-                                <div
-                                  key={entry.id}
-                                  onClick={() => {
-                                    setSelectedClientId(entry.clientId)
-                                    setEntryFormStartDate(entry.startDate)
-                                    setEntryFormEndDate(entry.endDate)
-                                    setEntryFormStartTime(entry.startTime)
-                                    setEntryFormEndTime(entry.endTime)
-                                    setEntryFormNotes(entry.notes || '')
-                                    setEntryFormEmployeeId(entry.employeeId || 'self')
-                                    setEntryFormClientId(entry.clientId)
-                                    setEditEntryId(entry.id)
-                                    setAddTimeEntryOpen(true)
-                                  }}
-                                  style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    padding: '12px 16px',
-                                    borderBottom: '1px solid #F3F4F6',
-                                    cursor: 'pointer'
-                                  }}
-                                >
-                                  <div style={{minWidth: 0}}>
-                                    <div style={{fontSize: 14, color: '#111827', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
-                                      {client.name}
-                                    </div>
-                                    <div style={{fontSize: 12, color: '#6B7280'}}>
-                                      {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit'})}
-                                    </div>
-                                  </div>
-                                  <div style={{display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0}}>
-                                    <span style={{fontSize: 14, color: '#6B7280'}}>{hours.toFixed(2)}h</span>
-                                    <span style={{fontSize: 14, color: '#059669', fontWeight: 600, minWidth: '70px', textAlign: 'left'}}>₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
+                        {/* Entries in this period */}
+                        <div style={{background: 'white', marginBottom: 4}}>
+                          {entries.map(entry => {
+                            const client = clients.find(c => c.id === entry.clientId)
+                            if (!client) return null
+                            const hours = calculateHours(entry)
+                            const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100)
+                            const status = entry.billingStatus || 'pending'
+                            return (
+                              <div key={entry.id}
+                                onClick={() => {
+                                  setEntryFormStartDate(entry.startDate)
+                                  setEntryFormEndDate(entry.endDate)
+                                  setEntryFormStartTime(entry.startTime)
+                                  setEntryFormEndTime(entry.endTime)
+                                  setEntryFormNotes(entry.notes || '')
+                                  setEntryFormEmployeeId(entry.employeeId || 'self')
+                                  setEntryFormClientId(entry.clientId)
+                                  setEditEntryId(entry.id)
+                                  setAddTimeEntryOpen(true)
+                                }}
+                                style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', borderBottom: '1px solid #F9FAFB', cursor: 'pointer'}}
+                              >
+                                <div style={{minWidth: 0}}>
+                                  <div style={{fontSize: 14, fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{client.name}</div>
+                                  <div style={{fontSize: 12, color: '#6B7280'}}>
+                                    {new Date(entry.startDate).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit'})}
+                                    {entry.startTime && ` · ${entry.startTime}–${entry.endTime}`}
+                                    <span style={{marginRight: 6, fontSize: 11, padding: '1px 5px', borderRadius: 4, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e'}}>
+                                      {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
+                                    </span>
                                   </div>
                                 </div>
-                              )
-                            })}
-                          </div>
-                        )}
+                                <div style={{textAlign: 'left', flexShrink: 0}}>
+                                  <div style={{fontSize: 14, fontWeight: 700, color: '#059669'}}>₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
+                                  <div style={{fontSize: 12, color: '#6B7280'}}>{hours.toFixed(1)}h</div>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
                       </div>
                     )
                   })}
-
-                  {periods.length === 0 && (
-                    <div className="m-empty-state">אין דיווחים בתקופה זו</div>
-                  )}
                 </>
               )
             })()}
@@ -4091,16 +4060,19 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               const newY = Math.max(0, Math.min(window.innerHeight - 160, clientFabDragRef.current.startPosY + dy))
               setFabPos({ x: newX, y: newY })
             }}
-            onTouchEnd={() => {
-              if (!clientFabDragRef.current) return
-              const wasDrag = clientFabDragRef.current.moved
+            onTouchEnd={(e) => {
+              e.preventDefault()
+              const wasDrag = clientFabDragRef.current?.moved
               clientFabDragRef.current = null
+              localStorage.setItem(lsKey('time_fab_pos'), JSON.stringify(fabPos))
               if (!wasDrag) {
+                setClientFormName('')
+                setClientFormRate('')
                 setClientFormVat(defaultVat)
                 setClientFormIncomeTax(defaultIncomeTax)
+                setEditClientId(null)
                 setAddClientOpen(true)
               }
-              localStorage.setItem(lsKey('time_fab_pos'), JSON.stringify(fabPos))
             }}
             onClick={() => {
               setClientFormName('')
@@ -4134,12 +4106,22 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               const newY = Math.max(0, Math.min(window.innerHeight - 160, timeFabDragRef.current.startPosY + dy))
               setFabPos({ x: newX, y: newY })
             }}
-            onTouchEnd={() => {
-              if (!timeFabDragRef.current) return
-              const wasDrag = timeFabDragRef.current.moved
+            onTouchEnd={(e) => {
+              e.preventDefault()
+              const wasDrag = timeFabDragRef.current?.moved
               timeFabDragRef.current = null
-              if (!wasDrag) setQuickTimeEntryOpen(true)
               localStorage.setItem(lsKey('time_fab_pos'), JSON.stringify(fabPos))
+              if (!wasDrag) {
+                setEntryFormStartDate('')
+                setEntryFormEndDate('')
+                setEntryFormStartTime('')
+                setEntryFormEndTime('')
+                setEntryFormNotes('')
+                setEntryFormEmployeeId('self')
+                setEntryFormClientId('')
+                setEditEntryId(null)
+                setQuickTimeEntryOpen(true)
+              }
             }}
             onClick={() => {
               setEntryFormStartDate('')
