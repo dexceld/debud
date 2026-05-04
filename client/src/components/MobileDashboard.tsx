@@ -3864,15 +3864,24 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               })
 
               const totalHours = filteredEntries.reduce((sum, e) => sum + calculateHours(e), 0)
-              
               let totalAmount = 0
               filteredEntries.forEach(e => {
                 const client = clients.find(c => c.id === e.clientId)
-                if (client) {
-                  const hours = calculateHours(e)
-                  totalAmount += hours * client.hourlyRate * (1 + client.vatPercent / 100)
-                }
+                if (client) totalAmount += calculateHours(e) * client.hourlyRate * (1 + client.vatPercent / 100)
               })
+
+              // Selected entries totals
+              const selectedEntries = selectedEntryIds.length > 0 ? filteredEntries.filter(e => selectedEntryIds.includes(e.id)) : []
+              const selHours = selectedEntries.reduce((sum, e) => sum + calculateHours(e), 0)
+              let selAmount = 0
+              selectedEntries.forEach(e => {
+                const client = clients.find(c => c.id === e.clientId)
+                if (client) selAmount += calculateHours(e) * client.hourlyRate * (1 + client.vatPercent / 100)
+              })
+
+              const cardHours = selectedEntryIds.length > 0 ? selHours : totalHours
+              const cardAmount = selectedEntryIds.length > 0 ? selAmount : totalAmount
+              const cardLabel = selectedEntryIds.length > 0 ? `נבחרו ${selectedEntryIds.length}` : 'סה"כ'
 
               // Find first and last entry dates
               const sortedByDate = [...filteredEntries].sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
@@ -3889,24 +3898,16 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     color: 'white',
                     marginBottom: '12px'
                   }}>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}>
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                       <div>
-                        <div style={{fontSize: '11px', opacity: 0.9}}>סה"כ</div>
+                        <div style={{fontSize: '11px', opacity: 0.9}}>{cardLabel}</div>
                         <div style={{fontSize: '20px', fontWeight: 700}}>
-                          ₪{totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
+                          ₪{cardAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
                         </div>
                       </div>
                       <div style={{textAlign: 'center'}}>
-                        <div style={{fontSize: '18px', fontWeight: 700}}>{totalHours.toFixed(1)}</div>
+                        <div style={{fontSize: '18px', fontWeight: 700}}>{cardHours.toFixed(1)}</div>
                         <div style={{fontSize: '10px', opacity: 0.8}}>שעות</div>
-                      </div>
-                      <div style={{textAlign: 'left'}}>
-                        <div style={{fontSize: '18px', fontWeight: 700}}>{filteredEntries.length}</div>
-                        <div style={{fontSize: '10px', opacity: 0.8}}>דיווחים</div>
                       </div>
                     </div>
                   </div>
@@ -3920,8 +3921,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                       padding: '10px',
                       marginBottom: '12px'
                     }}>
-                      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
-                        <span style={{fontSize: '13px', fontWeight: 600, color: '#374151'}}>{selectedEntryIds.length} דיווחים נבחרו</span>
+                      <div style={{display: 'flex', justifyContent: 'flex-end', marginBottom: '8px'}}>
                         <button onClick={() => setSelectedEntryIds([])} style={{fontSize: '12px', color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer'}}>בטל בחירה</button>
                       </div>
                       
