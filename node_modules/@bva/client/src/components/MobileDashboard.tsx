@@ -197,6 +197,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   })
   const [summaryFromDate, setSummaryFromDate] = useState('')
   const [summaryToDate, setSummaryToDate] = useState('')
+  const [summaryDatePickerOpen, setSummaryDatePickerOpen] = useState(false)
   const [summaryClientFilter, setSummaryClientFilter] = useState<string>('all')
   const [summaryStatusFilter, setSummaryStatusFilter] = useState<string>('all')
   const [reportsPeriod, setReportsPeriod] = useState<'week' | 'month' | 'year'>('week')
@@ -3729,20 +3730,30 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <div style={{flexShrink: 0, padding: '12px 16px 0', background: 'white', borderBottom: '1px solid #E5E7EB'}}>
             {/* Compact Filters */}
             <div style={{display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap'}}>
-              <input
-                type="date"
-                value={summaryFromDate}
-                onChange={e => setSummaryFromDate(e.target.value)}
-                placeholder="מתאריך"
-                style={{flex: 1, minWidth: '110px', padding: '8px 10px', border: '1px solid #E5E7EB', borderRadius: '8px', fontSize: '13px'}}
-              />
-              <input
-                type="date"
-                value={summaryToDate}
-                onChange={e => setSummaryToDate(e.target.value)}
-                placeholder="עד תאריך"
-                style={{flex: 1, minWidth: '110px', padding: '8px 10px', border: '1px solid #E5E7EB', borderRadius: '8px', fontSize: '13px'}}
-              />
+              <button
+                onClick={() => setSummaryDatePickerOpen(true)}
+                style={{
+                  flex: 2, minWidth: '140px', padding: '8px 12px',
+                  border: '1px solid #E5E7EB', borderRadius: '8px', fontSize: '13px',
+                  background: summaryFromDate ? '#EFF6FF' : 'white',
+                  color: summaryFromDate ? '#1d4ed8' : '#9CA3AF',
+                  fontWeight: summaryFromDate ? 600 : 400,
+                  cursor: 'pointer', textAlign: 'right'
+                }}
+              >
+                {summaryFromDate
+                  ? summaryFromDate === summaryToDate
+                    ? `📅 ${new Date(summaryFromDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'})}`
+                    : `📅 ${new Date(summaryFromDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'})} – ${new Date(summaryToDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'})}`
+                  : 'בחר תקופה'
+                }
+              </button>
+              {summaryFromDate && (
+                <button onClick={() => { setSummaryFromDate(''); setSummaryToDate('') }}
+                  style={{padding: '8px 10px', border: '1px solid #E5E7EB', borderRadius: '8px', fontSize: '13px', background: 'white', color: '#9CA3AF', cursor: 'pointer'}}>
+                  ✕
+                </button>
+              )}
               <select
                 value={summaryClientFilter}
                 onChange={e => setSummaryClientFilter(e.target.value)}
@@ -3754,6 +3765,14 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 ))}
               </select>
             </div>
+            {summaryDatePickerOpen && (
+              <DateRangePicker
+                startDate={summaryFromDate}
+                endDate={summaryToDate}
+                onChange={(s, e) => { setSummaryFromDate(s); setSummaryToDate(e) }}
+                onClose={() => setSummaryDatePickerOpen(false)}
+              />
+            )}
 
             {/* Status Filter Slider */}
             <div style={{display: 'flex', gap: '4px', marginBottom: '12px', background: '#f3f4f6', padding: '4px', borderRadius: '20px'}}>
