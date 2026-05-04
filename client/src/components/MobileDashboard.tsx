@@ -3856,11 +3856,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 <button onClick={() => setSelectedEntryIds([])} style={{fontSize: 12, color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer'}}>✕ בטל</button>
               </div>
               <div style={{display: 'flex', gap: 6, marginBottom: 8}}>
-                <button onClick={() => { setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: 'pending'} : e)); setSelectedEntryIds([]) }}
+                <button onClick={() => { setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: 'pending'} : e)); setSelectedEntryIds([]); setSummaryStatusFilter('all') }}
                   style={{flex: 1, padding: '10px 4px', fontSize: 13, border: 'none', borderRadius: 8, background: '#fef3c7', color: '#92400e', fontWeight: 700, cursor: 'pointer'}}>⏳ ממתין</button>
-                <button onClick={() => { setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: 'invoiced'} : e)); setSelectedEntryIds([]) }}
+                <button onClick={() => { setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: 'invoiced'} : e)); setSelectedEntryIds([]); setSummaryStatusFilter('all') }}
                   style={{flex: 1, padding: '10px 4px', fontSize: 13, border: 'none', borderRadius: 8, background: '#dbeafe', color: '#1e40af', fontWeight: 700, cursor: 'pointer'}}>📄 חויב</button>
-                <button onClick={() => { setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: 'paid'} : e)); setSelectedEntryIds([]) }}
+                <button onClick={() => { setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: 'paid'} : e)); setSelectedEntryIds([]); setSummaryStatusFilter('all') }}
                   style={{flex: 1, padding: '10px 4px', fontSize: 13, border: 'none', borderRadius: 8, background: '#dcfce7', color: '#166534', fontWeight: 700, cursor: 'pointer'}}>✅ שולם</button>
               </div>
               <div style={{display: 'flex', gap: 6}}>
@@ -3872,6 +3872,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, invoiceNumber: bulkInvoiceNumber.trim(), billingStatus: e.billingStatus === 'paid' ? 'paid' : 'invoiced'} : e))
                   setBulkInvoiceNumber('')
                   setSelectedEntryIds([])
+                  setSummaryStatusFilter('all')
                 }} style={{padding: '8px 14px', fontSize: 13, border: 'none', borderRadius: 8, background: '#3b82f6', color: 'white', fontWeight: 700, cursor: 'pointer'}}>שמור</button>
               </div>
             </div>
