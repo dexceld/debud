@@ -4346,61 +4346,87 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </select>
           </div>
 
-          {/* Date Range - Combined */}
+          {/* Date Range - Booking style single picker */}
           <div className="m-mortgage-field">
-            <label>תאריך</label>
-            <div style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
-              <input 
-                type="date"
-                value={entryFormStartDate}
-                onChange={e => {
-                  setEntryFormStartDate(e.target.value)
-                  if (!entryFormEndDate || entryFormEndDate < e.target.value) {
-                    setEntryFormEndDate(e.target.value)
-                  }
-                }}
-                style={{flex: 1}}
-              />
-              <span style={{color: '#6B7280', fontSize: '14px'}}>→</span>
-              <input 
-                type="date"
-                value={entryFormEndDate}
-                onChange={e => setEntryFormEndDate(e.target.value)}
-                min={entryFormStartDate}
-                style={{flex: 1}}
-              />
-            </div>
+            <label>
+              {!entryFormStartDate ? 'בחר תאריך התחלה' : 
+               entryFormStartDate === entryFormEndDate ? 'תאריך יחיד (לחץ שוב לטווח)' :
+               `טווח: ${entryFormStartDate} → ${entryFormEndDate}`}
+            </label>
+            <input 
+              type="date"
+              value={entryFormStartDate}
+              onChange={e => {
+                const val = e.target.value
+                if (!entryFormStartDate) {
+                  // First pick - set both to same date
+                  setEntryFormStartDate(val)
+                  setEntryFormEndDate(val)
+                } else if (val === entryFormStartDate && entryFormStartDate === entryFormEndDate) {
+                  // Same date clicked twice - keep single day
+                  setEntryFormStartDate(val)
+                  setEntryFormEndDate(val)
+                } else if (val < entryFormStartDate) {
+                  // Earlier date picked - make it start
+                  setEntryFormStartDate(val)
+                  setEntryFormEndDate(entryFormStartDate)
+                } else {
+                  // Later or same date - make it end
+                  setEntryFormEndDate(val)
+                }
+              }}
+              style={{width: '100%'}}
+            />
           </div>
 
-          {/* Time Range - Combined with smart auto-end */}
+          {/* Time Range - Booking style flow */}
           <div className="m-mortgage-field">
-            <label>שעות</label>
-            <div style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
-              <input 
-                type="time"
-                value={entryFormStartTime}
-                onChange={e => {
-                  const val = e.target.value
+            <label>
+              {!entryFormStartTime ? 'בחר שעת התחלה' : 
+               !entryFormEndTime ? `התחלה: ${entryFormStartTime} - בחר שעת סיום` :
+               `שעות: ${entryFormStartTime} → ${entryFormEndTime}`}
+            </label>
+            <input 
+              type="time"
+              value={!entryFormStartTime ? '' : !entryFormEndTime ? '' : entryFormStartTime}
+              onChange={e => {
+                const val = e.target.value
+                if (!entryFormStartTime) {
+                  // First pick - start time
                   setEntryFormStartTime(val)
-                  // Auto-set end time 1 hour later if not set
-                  if (val && !entryFormEndTime) {
-                    const [h, m] = val.split(':').map(Number)
-                    const endH = (h + 1) % 24
-                    setEntryFormEndTime(`${endH.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`)
+                } else if (!entryFormEndTime) {
+                  // Second pick - end time (must be after start)
+                  if (val > entryFormStartTime) {
+                    setEntryFormEndTime(val)
+                  } else {
+                    // If end is before start, swap them
+                    setEntryFormEndTime(entryFormStartTime)
+                    setEntryFormStartTime(val)
                   }
+                } else {
+                  // Reset - new start time
+                  setEntryFormStartTime(val)
+                  setEntryFormEndTime('')
+                }
+              }}
+              style={{width: '100%'}}
+            />
+            {entryFormEndTime && (
+              <button 
+                onClick={() => { setEntryFormStartTime(''); setEntryFormEndTime(''); }}
+                style={{
+                  marginTop: '8px',
+                  padding: '8px 12px',
+                  background: '#F3F4F6',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  cursor: 'pointer'
                 }}
-                style={{flex: 1}}
-                placeholder="התחלה"
-              />
-              <span style={{color: '#6B7280', fontSize: '14px'}}>→</span>
-              <input 
-                type="time"
-                value={entryFormEndTime}
-                onChange={e => setEntryFormEndTime(e.target.value)}
-                style={{flex: 1}}
-                placeholder="סיום"
-              />
-            </div>
+              >
+                בחר מחדש
+              </button>
+            )}
           </div>
 
           <div className="m-mortgage-field">
@@ -4576,69 +4602,89 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <button className="m-close-btn" onClick={closeModal}>✕</button>
           </div>
 
-          {/* Date Range - Combined */}
+          {/* Date Range - Booking style single picker */}
           <div className="m-mortgage-field">
-            <label>תאריך {fieldErrors.date && <span style={{color: '#DC2626'}}>(נדרש)</span>}</label>
-            <div style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
-              <input
-                type="date"
-                value={entryFormStartDate}
-                onChange={e => {
-                  setEntryFormStartDate(e.target.value)
-                  if (e.target.value) setFieldErrors(prev => ({...prev, date: false}))
-                  if (!entryFormEndDate || entryFormEndDate < e.target.value) {
-                    setEntryFormEndDate(e.target.value)
-                  }
-                }}
-                style={{flex: 1, border: fieldErrors.date ? '2px solid #DC2626' : undefined, backgroundColor: fieldErrors.date ? '#FEF2F2' : undefined}}
-              />
-              <span style={{color: '#6B7280', fontSize: '14px'}}>→</span>
-              <input
-                type="date"
-                value={entryFormEndDate}
-                onChange={e => {
-                  setEntryFormEndDate(e.target.value)
-                  if (e.target.value) setFieldErrors(prev => ({...prev, date: false}))
-                }}
-                min={entryFormStartDate}
-                style={{flex: 1, border: fieldErrors.date ? '2px solid #DC2626' : undefined, backgroundColor: fieldErrors.date ? '#FEF2F2' : undefined}}
-              />
-            </div>
+            <label>
+              {!entryFormStartDate ? `בחר תאריך התחלה ${fieldErrors.date ? '(נדרש)' : ''}` : 
+               entryFormStartDate === entryFormEndDate ? 'תאריך יחיד (לחץ שוב לטווח)' :
+               `טווח: ${entryFormStartDate} → ${entryFormEndDate}`}
+            </label>
+            <input
+              type="date"
+              value={entryFormStartDate}
+              onChange={e => {
+                const val = e.target.value
+                if (val) setFieldErrors(prev => ({...prev, date: false}))
+                if (!entryFormStartDate) {
+                  // First pick - set both to same date
+                  setEntryFormStartDate(val)
+                  setEntryFormEndDate(val)
+                } else if (val === entryFormStartDate && entryFormStartDate === entryFormEndDate) {
+                  // Same date clicked twice - keep single day
+                  setEntryFormStartDate(val)
+                  setEntryFormEndDate(val)
+                } else if (val < entryFormStartDate) {
+                  // Earlier date picked - make it start
+                  setEntryFormStartDate(val)
+                  setEntryFormEndDate(entryFormStartDate)
+                } else {
+                  // Later or same date - make it end
+                  setEntryFormEndDate(val)
+                }
+              }}
+              style={{width: '100%', border: fieldErrors.date ? '2px solid #DC2626' : undefined, backgroundColor: fieldErrors.date ? '#FEF2F2' : undefined}}
+            />
           </div>
 
-          {/* Time Range - Combined with smart flow */}
+          {/* Time Range - Booking style flow */}
           <div className="m-mortgage-field">
-            <label>שעות {fieldErrors.time && <span style={{color: '#DC2626'}}>(נדרש)</span>}</label>
-            <div style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
-              <input
-                type="time"
-                value={entryFormStartTime}
-                onChange={e => {
-                  const val = e.target.value
+            <label>
+              {!entryFormStartTime ? `בחר שעת התחלה ${fieldErrors.time ? '(נדרש)' : ''}` : 
+               !entryFormEndTime ? `התחלה: ${entryFormStartTime} - בחר שעת סיום` :
+               `שעות: ${entryFormStartTime} → ${entryFormEndTime}`}
+            </label>
+            <input
+              type="time"
+              value={!entryFormStartTime ? '' : !entryFormEndTime ? '' : entryFormStartTime}
+              onChange={e => {
+                const val = e.target.value
+                if (val) setFieldErrors(prev => ({...prev, time: false}))
+                if (!entryFormStartTime) {
+                  // First pick - start time
                   setEntryFormStartTime(val)
-                  if (val) setFieldErrors(prev => ({...prev, time: false}))
-                  // Auto-set end time 1 hour later if not set
-                  if (val && !entryFormEndTime) {
-                    const [h, m] = val.split(':').map(Number)
-                    const endH = (h + 1) % 24
-                    setEntryFormEndTime(`${endH.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`)
+                } else if (!entryFormEndTime) {
+                  // Second pick - end time (must be after start)
+                  if (val > entryFormStartTime) {
+                    setEntryFormEndTime(val)
+                  } else {
+                    // If end is before start, swap them
+                    setEntryFormEndTime(entryFormStartTime)
+                    setEntryFormStartTime(val)
                   }
+                } else {
+                  // Reset - new start time
+                  setEntryFormStartTime(val)
+                  setEntryFormEndTime('')
+                }
+              }}
+              style={{width: '100%', border: fieldErrors.time ? '2px solid #DC2626' : undefined, backgroundColor: fieldErrors.time ? '#FEF2F2' : undefined}}
+            />
+            {entryFormEndTime && (
+              <button 
+                onClick={() => { setEntryFormStartTime(''); setEntryFormEndTime(''); }}
+                style={{
+                  marginTop: '8px',
+                  padding: '8px 12px',
+                  background: '#F3F4F6',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  cursor: 'pointer'
                 }}
-                style={{flex: 1, border: fieldErrors.time ? '2px solid #DC2626' : undefined, backgroundColor: fieldErrors.time ? '#FEF2F2' : undefined}}
-                placeholder="התחלה"
-              />
-              <span style={{color: '#6B7280', fontSize: '14px'}}>→</span>
-              <input
-                type="time"
-                value={entryFormEndTime}
-                onChange={e => {
-                  setEntryFormEndTime(e.target.value)
-                  if (e.target.value) setFieldErrors(prev => ({...prev, time: false}))
-                }}
-                style={{flex: 1, border: fieldErrors.time ? '2px solid #DC2626' : undefined, backgroundColor: fieldErrors.time ? '#FEF2F2' : undefined}}
-                placeholder="סיום"
-              />
-            </div>
+              >
+                בחר מחדש
+              </button>
+            )}
           </div>
 
           {/* Client Selection - only when no pre-selected client */}
