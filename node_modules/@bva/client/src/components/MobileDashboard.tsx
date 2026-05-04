@@ -5337,14 +5337,35 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       <AddTimeEntryModal />
       {/* Global Floating Action Buttons */}
       {!quickTimeEntryOpen && !addTimeEntryOpen && !addClientOpen && !addEmployeeOpen && !bulkActionOpen && (
-        <div style={{ position: 'fixed', left: fabPos.x, top: fabPos.y, display: 'flex', flexDirection: 'column', gap: 10, zIndex: 100, touchAction: 'none' }}>
+        <div
+          style={{ position: 'fixed', left: fabPos.x, top: fabPos.y, display: 'flex', flexDirection: 'column', gap: 10, zIndex: 100, touchAction: 'none' }}
+          onTouchStart={(e) => {
+            const t = e.touches[0]
+            timeFabDragRef.current = { startX: t.clientX, startY: t.clientY, startPosX: fabPos.x, startPosY: fabPos.y, moved: false }
+            clientFabDragRef.current = { startX: t.clientX, startY: t.clientY, startPosX: fabPos.x, startPosY: fabPos.y, moved: false }
+          }}
+          onTouchMove={(e) => {
+            if (!timeFabDragRef.current) return
+            const dx = e.touches[0].clientX - timeFabDragRef.current.startX
+            const dy = e.touches[0].clientY - timeFabDragRef.current.startY
+            if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
+              timeFabDragRef.current.moved = true
+              clientFabDragRef.current && (clientFabDragRef.current.moved = true)
+              setFabPos({ x: Math.max(0, Math.min(window.innerWidth - 72, timeFabDragRef.current.startPosX + dx)), y: Math.max(0, Math.min(window.innerHeight - 160, timeFabDragRef.current.startPosY + dy)) })
+            }
+          }}
+          onTouchEnd={() => {
+            const wasDrag = timeFabDragRef.current?.moved
+            timeFabDragRef.current = null
+            clientFabDragRef.current = null
+            if (wasDrag) localStorage.setItem(lsKey('time_fab_pos'), JSON.stringify(fabPos))
+          }}
+        >
           {screen === 'time-tracking' && (
             <button
               className="m-fab-glass m-fab-with-label"
-              onTouchStart={(e) => { const t = e.touches[0]; clientFabDragRef.current = { startX: t.clientX, startY: t.clientY, startPosX: fabPos.x, startPosY: fabPos.y, moved: false } }}
-              onTouchMove={(e) => { if (!clientFabDragRef.current) return; e.stopPropagation(); const dx = e.touches[0].clientX - clientFabDragRef.current.startX; const dy = e.touches[0].clientY - clientFabDragRef.current.startY; if (Math.abs(dx) > 5 || Math.abs(dy) > 5) clientFabDragRef.current.moved = true; setFabPos({ x: Math.max(0, Math.min(window.innerWidth - 72, clientFabDragRef.current.startPosX + dx)), y: Math.max(0, Math.min(window.innerHeight - 160, clientFabDragRef.current.startPosY + dy)) }) }}
-              onTouchEnd={() => { const wasDrag = clientFabDragRef.current?.moved; clientFabDragRef.current = null; localStorage.setItem(lsKey('time_fab_pos'), JSON.stringify(fabPos)); if (!wasDrag) { clientFabTouchHandled.current = true; setClientFormName(''); setClientFormRate(''); setClientFormVat(defaultVat); setClientFormIncomeTax(defaultIncomeTax); setEditClientId(null); setAddClientOpen(true) } }}
-              onClick={() => { if (clientFabTouchHandled.current) { clientFabTouchHandled.current = false; return } setClientFormName(''); setClientFormRate(''); setClientFormVat(defaultVat); setClientFormIncomeTax(defaultIncomeTax); setEditClientId(null); setAddClientOpen(true) }}
+              onTouchEnd={(e) => { e.stopPropagation(); if (!clientFabDragRef.current?.moved) { setClientFormName(''); setClientFormRate(''); setClientFormVat(defaultVat); setClientFormIncomeTax(defaultIncomeTax); setEditClientId(null); setAddClientOpen(true) } }}
+              onClick={() => { setClientFormName(''); setClientFormRate(''); setClientFormVat(defaultVat); setClientFormIncomeTax(defaultIncomeTax); setEditClientId(null); setAddClientOpen(true) }}
               title="הוספת לקוח"
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -5353,10 +5374,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           )}
           <button
             className="m-fab-glass forecast m-fab-with-label"
-            onTouchStart={(e) => { const t = e.touches[0]; timeFabDragRef.current = { startX: t.clientX, startY: t.clientY, startPosX: fabPos.x, startPosY: fabPos.y, moved: false } }}
-            onTouchMove={(e) => { if (!timeFabDragRef.current) return; e.stopPropagation(); const dx = e.touches[0].clientX - timeFabDragRef.current.startX; const dy = e.touches[0].clientY - timeFabDragRef.current.startY; if (Math.abs(dx) > 5 || Math.abs(dy) > 5) timeFabDragRef.current.moved = true; setFabPos({ x: Math.max(0, Math.min(window.innerWidth - 72, timeFabDragRef.current.startPosX + dx)), y: Math.max(0, Math.min(window.innerHeight - 160, timeFabDragRef.current.startPosY + dy)) }) }}
-            onTouchEnd={() => { const wasDrag = timeFabDragRef.current?.moved; timeFabDragRef.current = null; localStorage.setItem(lsKey('time_fab_pos'), JSON.stringify(fabPos)); if (!wasDrag) { timeFabTouchHandled.current = true; openQuickEntry() } }}
-            onClick={() => { if (timeFabTouchHandled.current) { timeFabTouchHandled.current = false; return } openQuickEntry() }}
+            onTouchEnd={(e) => { e.stopPropagation(); if (!timeFabDragRef.current?.moved) { openQuickEntry() } }}
+            onClick={openQuickEntry}
             title="דיווח מהיר"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
