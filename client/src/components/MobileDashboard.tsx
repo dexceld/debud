@@ -198,6 +198,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [summaryFromDate, setSummaryFromDate] = useState('')
   const [summaryToDate, setSummaryToDate] = useState('')
   const [summaryDatePickerOpen, setSummaryDatePickerOpen] = useState(false)
+  const summaryScrollRef = useRef<HTMLDivElement>(null)
+  const summaryScrollPos = useRef(0)
   const [summaryClientFilter, setSummaryClientFilter] = useState<string>('all')
   const [summaryStatusFilter, setSummaryStatusFilter] = useState<string>('all')
   const [reportsPeriod, setReportsPeriod] = useState<'week' | 'month' | 'year'>('week')
@@ -2793,6 +2795,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const TimeTrackingScreen = () => {
     // Android back is handled by the global popstate handler at top of MobileDashboard
 
+    // Restore summary scroll position after every render
+    useEffect(() => {
+      if (summaryScrollRef.current && summaryScrollPos.current > 0) {
+        summaryScrollRef.current.scrollTop = summaryScrollPos.current
+      }
+    })
+
     // Helper function
     const calculateHours = (entry: TimeEntry): number => {
       const start = new Date(`${entry.startDate}T${entry.startTime}`)
@@ -3835,7 +3844,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </div>
 
           </div>
-          <div style={{flex: 1, overflowY: 'auto', padding: '12px 16px', paddingBottom: 100}}>
+          <div
+            ref={summaryScrollRef}
+            onScroll={() => { if (summaryScrollRef.current) summaryScrollPos.current = summaryScrollRef.current.scrollTop }}
+            style={{flex: 1, overflowY: 'auto', padding: '12px 16px', paddingBottom: 100}}
+          >
             {(() => {
               const filteredEntries = timeEntries.filter(e => {
                 const entryDate = new Date(e.startDate)
