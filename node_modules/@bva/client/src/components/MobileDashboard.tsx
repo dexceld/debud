@@ -2998,7 +2998,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        borderBottom: idx < arr.length - 1 ? '2px solid #E5E7EB' : 'none',
+                        borderBottom: '1px solid #E5E7EB',
                         cursor: 'pointer'
                       }}
                     >
@@ -4004,7 +4004,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                               display: 'flex',
                               justifyContent: 'space-between',
                               alignItems: 'center',
-                              borderBottom: idx < arr.length - 1 ? '2px solid #E5E7EB' : 'none',
+                              borderBottom: '1px solid #E5E7EB',
                               background: isSelected ? '#EFF6FF' : 'white',
                               cursor: 'pointer'
                             }}
