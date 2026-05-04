@@ -3022,6 +3022,186 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       )
     }
 
+    // Show employee view when selectedEmployeeId is set (and no modal is open)
+    if (selectedEmployeeId && !addTimeEntryOpen && !quickTimeEntryOpen && !bulkActionOpen) {
+      const employee = employees.find(e => e.id === selectedEmployeeId)
+      if (!employee) return null
+
+      // Filter entries for this employee with period filter
+      let employeeEntries = timeEntries.filter(e => e.employeeId === selectedEmployeeId)
+      
+      // Apply period filter
+      const now = new Date()
+      if (summaryPeriod === 'week') {
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+        employeeEntries = employeeEntries.filter(e => new Date(e.startDate) >= weekAgo)
+      } else if (summaryPeriod === 'month') {
+        const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate())
+        employeeEntries = employeeEntries.filter(e => new Date(e.startDate) >= monthAgo)
+      } else if (summaryPeriod === 'year') {
+        const yearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
+        employeeEntries = employeeEntries.filter(e => new Date(e.startDate) >= yearAgo)
+      }
+
+      // Sort by date desc
+      employeeEntries.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
+
+      return (
+        <div className="m-screen">
+          <div className="m-header">
+            <button className="m-back-btn" onClick={() => setSelectedEmployeeId(null)}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <h1 className="m-title">{employee.name}</h1>
+            <div style={{display: 'flex', gap: 8}}>
+              <button className="m-hbtn m-hbtn-plus" onClick={() => {
+                // Open bulk action for employee entries
+                setSelectedEntryIds(employeeEntries.map(e => e.id))
+                setBulkActionOpen(true)
+              }}>
+                <span className="m-hbtn-label">פעולות</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Period Filter */}
+          <div style={{display: 'flex', gap: '8px', padding: '0 16px 12px', justifyContent: 'center'}}>
+            <button 
+              onClick={() => setSummaryPeriod('week')}
+              style={{
+                flex: 1,
+                padding: '8px 12px',
+                borderRadius: '20px',
+                border: 'none',
+                background: summaryPeriod === 'week' ? '#1d4ed8' : '#e5e7eb',
+                color: summaryPeriod === 'week' ? 'white' : '#374151',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              שבוע
+            </button>
+            <button 
+              onClick={() => setSummaryPeriod('month')}
+              style={{
+                flex: 1,
+                padding: '8px 12px',
+                borderRadius: '20px',
+                border: 'none',
+                background: summaryPeriod === 'month' ? '#1d4ed8' : '#e5e7eb',
+                color: summaryPeriod === 'month' ? 'white' : '#374151',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              חודש
+            </button>
+            <button 
+              onClick={() => setSummaryPeriod('year')}
+              style={{
+                flex: 1,
+                padding: '8px 12px',
+                borderRadius: '20px',
+                border: 'none',
+                background: summaryPeriod === 'year' ? '#1d4ed8' : '#e5e7eb',
+                color: summaryPeriod === 'year' ? 'white' : '#374151',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              שנה
+            </button>
+            <button 
+              onClick={() => setSummaryPeriod('all')}
+              style={{
+                flex: 1,
+                padding: '8px 12px',
+                borderRadius: '20px',
+                border: 'none',
+                background: summaryPeriod === 'all' ? '#1d4ed8' : '#e5e7eb',
+                color: summaryPeriod === 'all' ? 'white' : '#374151',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              הכל
+            </button>
+          </div>
+
+          {/* Entries List */}
+          <div className="m-clients-list" style={{paddingTop: 0}}>
+            {employeeEntries.length === 0 ? (
+              <div className="m-empty-state">
+                <div style={{fontSize: 48, marginBottom: 16}}>📋</div>
+                <div>אין דיווחים לעובד זה בתקופה שנבחרה</div>
+              </div>
+            ) : (
+              <>
+                {employeeEntries.map(entry => {
+                  const client = clients.find(c => c.id === entry.clientId)
+                  if (!client) return null
+                  const hours = calculateHours(entry)
+                  const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100)
+                  const status = entry.billingStatus || 'pending'
+                  const statusColor = status === 'paid' ? '#10b981' : status === 'invoiced' ? '#3b82f6' : '#f59e0b'
+
+                  return (
+                    <div 
+                      key={entry.id}
+                      onClick={() => {
+                        setEntryFormStartDate(entry.startDate)
+                        setEntryFormEndDate(entry.endDate)
+                        setEntryFormStartTime(entry.startTime)
+                        setEntryFormEndTime(entry.endTime)
+                        setEntryFormNotes(entry.notes || '')
+                        setEntryFormEmployeeId(entry.employeeId || 'self')
+                        setEntryFormClientId(entry.clientId)
+                        setEditEntryId(entry.id)
+                        setSelectedClientId(entry.clientId)
+                        setAddTimeEntryOpen(true)
+                      }}
+                      style={{
+                        padding: '12px 16px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        borderBottom: '1px solid #E5E7EB',
+                        background: 'white',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <div style={{flex: 1}}>
+                        <div style={{fontSize: 14, fontWeight: 600, color: '#111827'}}>
+                          {client.name}
+                        </div>
+                        <div style={{fontSize: 13, color: '#6B7280', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6}}>
+                          {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit', year: 'numeric'})}
+                          <span style={{fontSize: 11, padding: '1px 4px', borderRadius: '4px', background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e'}}>
+                            {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
+                          </span>
+                          {entry.employeePaidStatus === 'paid' && <span style={{fontSize: 11, color: '#8b5cf6'}}>✓ שולם לעובד</span>}
+                        </div>
+                      </div>
+                      <div style={{textAlign: 'left'}}>
+                        <div style={{fontSize: 15, fontWeight: 700, color: '#111827'}}>
+                          ₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
+                        </div>
+                        <div style={{fontSize: 11, color: '#6B7280'}}>{hours.toFixed(1)}h</div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </>
+            )}
+          </div>
+        </div>
+      )
+    }
+
     // Main screen with tabs
     return (
       <div className="m-screen">
@@ -3241,17 +3421,30 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   return sum + (end.getTime() - start.getTime()) / (1000 * 60 * 60)
                 }, 0)
                 
+                const openEmployeeEdit = () => {
+                  setEmployeeFormName(employee.name)
+                  setEmployeeFormEmail(employee.email)
+                  setEmployeeFormClients(employee.clientIds)
+                  setEditEmployeeId(employee.id)
+                  setAddEmployeeOpen(true)
+                }
+                
                 return (
                   <div 
                     key={employee.id} 
                     className="m-client-card"
                     onClick={() => {
-                      setEmployeeFormName(employee.name)
-                      setEmployeeFormEmail(employee.email)
-                      setEmployeeFormClients(employee.clientIds)
-                      setEditEmployeeId(employee.id)
-                      setAddEmployeeOpen(true)
+                      // Click to view employee entries
+                      setSelectedEmployeeId(employee.id)
                     }}
+                    onTouchStart={() => startLongPress(openEmployeeEdit)}
+                    onTouchEnd={cancelLongPress}
+                    onTouchMove={cancelLongPress}
+                    onTouchCancel={cancelLongPress}
+                    onMouseDown={() => startLongPress(openEmployeeEdit)}
+                    onMouseUp={cancelLongPress}
+                    onMouseLeave={cancelLongPress}
+                    onContextMenu={(e) => { e.preventDefault(); openEmployeeEdit() }}
                   >
                     <div className="m-client-name">{employee.name}</div>
                     <div className="m-client-rate">{employee.email}</div>
@@ -4671,41 +4864,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               שמירת מספר חשבונית תסמן אוטומטית את הדיווחים כ"חויב" (אם לא שולמו).
             </div>
           </div>
-
-          {/* Employee payment section — only shown when selected entries include employee reports */}
-          {employeeEntriesCount > 0 && (
-            <div style={{marginTop: 24, paddingTop: 20, borderTop: '2px dashed #E5E7EB'}}>
-              <div style={{fontSize: 14, fontWeight: 700, color: '#1d4ed8', marginBottom: 12}}>
-                📋 תשלום לעובד ({employeeEntriesCount} דיווחים)
-              </div>
-              <div className="m-mortgage-field">
-                <label>סטטוס שילמתי לעובד</label>
-                <div style={{display: 'flex', gap: 8, flexWrap: 'wrap'}}>
-                  <button onClick={() => { applyEmployeePaid('pending'); close() }}
-                    style={{flex: 1, minWidth: 90, padding: '12px', background: '#fef3c7', color: '#92400e', border: '2px solid #fde68a', borderRadius: 10, fontWeight: 600, cursor: 'pointer'}}>
-                    ⏳ לא שילמתי
-                  </button>
-                  <button onClick={() => { applyEmployeePaid('paid'); close() }}
-                    style={{flex: 1, minWidth: 90, padding: '12px', background: '#d1fae5', color: '#065f46', border: '2px solid #6ee7b7', borderRadius: 10, fontWeight: 600, cursor: 'pointer'}}>
-                    ✓ שילמתי
-                  </button>
-                </div>
-              </div>
-              <div className="m-mortgage-field" style={{marginTop: 12}}>
-                <label>מספר חשבונית שהעובד הפיק</label>
-                <input
-                  type="text"
-                  value={bulkEmployeeInvoiceNumber}
-                  onChange={e => setBulkEmployeeInvoiceNumber(e.target.value)}
-                  placeholder="לדוגמה: 2026-001"
-                />
-                <button onClick={applyEmployeeInvoiceNumber}
-                  style={{width: '100%', padding: '12px', marginTop: 8, background: '#1d4ed8', color: 'white', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer'}}>
-                  שמור מספר חשבונית עובד
-                </button>
-              </div>
-            </div>
-          )}
 
           <button onClick={deleteAll}
             style={{width: '100%', padding: '14px', marginTop: '12px', background: '#fef2f2', color: '#b91c1c', border: '2px solid #fecaca', borderRadius: 12, fontSize: 15, fontWeight: 600, cursor: 'pointer'}}>
