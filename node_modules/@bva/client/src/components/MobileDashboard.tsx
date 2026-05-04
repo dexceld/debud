@@ -236,6 +236,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [datePickerOpen, setDatePickerOpen] = useState(false)
   const [timePickerOpen, setTimePickerOpen] = useState(false)
   const [selectedEntryIds, setSelectedEntryIds] = useState<string[]>([])
+  const [employeeSelectedIds, setEmployeeSelectedIds] = useState<string[]>([])
   const [bulkActionOpen, setBulkActionOpen] = useState(false)
   const [bulkInvoiceNumber, setBulkInvoiceNumber] = useState('')
   const [bulkEmployeeInvoiceNumber, setBulkEmployeeInvoiceNumber] = useState('')
@@ -3232,7 +3233,34 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           </div>
 
           {/* Entries List */}
-          <div className="m-clients-list" style={{paddingTop: 0}}>
+          <div style={{display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden'}}>
+            {employeeSelectedIds.length > 0 && (
+              <div style={{position: 'sticky', bottom: 0, zIndex: 50, background: '#1e293b', borderTop: '2px solid #334155', padding: '10px 16px 16px', flexShrink: 0}}>
+                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8}}>
+                  <span style={{fontSize: 13, fontWeight: 700, color: 'white'}}>תשלום לעובד ({employeeSelectedIds.length} נבחרו):</span>
+                  <button onClick={() => setEmployeeSelectedIds([])} style={{fontSize: 12, color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer'}}>✕ בטל</button>
+                </div>
+                <div style={{display: 'flex', gap: 6, marginBottom: 8}}>
+                  <button onClick={() => { setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) ? {...e, employeePaidStatus: 'pending'} : e)); setEmployeeSelectedIds([]); setEmployeeStatusFilter('all') }}
+                    style={{flex: 1, padding: '10px 4px', fontSize: 13, border: 'none', borderRadius: 8, background: '#fef3c7', color: '#92400e', fontWeight: 700, cursor: 'pointer'}}>⏳ טרם שולם</button>
+                  <button onClick={() => { setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) ? {...e, employeePaidStatus: 'paid'} : e)); setEmployeeSelectedIds([]); setEmployeeStatusFilter('all') }}
+                    style={{flex: 1, padding: '10px 4px', fontSize: 13, border: 'none', borderRadius: 8, background: '#f3e8ff', color: '#6b21a8', fontWeight: 700, cursor: 'pointer'}}>✅ שולם לעובד</button>
+                </div>
+                <div style={{display: 'flex', gap: 6}}>
+                  <input type="text" placeholder="מס' חשבונית עובד"
+                    value={bulkEmployeeInvoiceNumber} onChange={e => setBulkEmployeeInvoiceNumber(e.target.value)}
+                    style={{flex: 1, padding: '8px 10px', fontSize: 13, border: 'none', borderRadius: 8, background: '#334155', color: 'white', outline: 'none'}} />
+                  <button onClick={() => {
+                    if (!bulkEmployeeInvoiceNumber.trim()) return
+                    setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) ? {...e, employeeInvoiceNumber: bulkEmployeeInvoiceNumber.trim(), employeePaidStatus: 'pending'} : e))
+                    setBulkEmployeeInvoiceNumber('')
+                    setEmployeeSelectedIds([])
+                    setEmployeeStatusFilter('all')
+                  }} style={{padding: '8px 14px', fontSize: 13, border: 'none', borderRadius: 8, background: '#8b5cf6', color: 'white', fontWeight: 700, cursor: 'pointer'}}>שמור</button>
+                </div>
+              </div>
+            )}
+            <div style={{flex: 1, overflowY: 'auto', paddingBottom: employeeSelectedIds.length > 0 ? 20 : 80}}>
             {employeeEntries.length === 0 ? (
               <div className="m-empty-state">
                 <div style={{fontSize: 48, marginBottom: 16}}>📋</div>
@@ -3240,18 +3268,32 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               </div>
             ) : (
               <>
+                {employeeSelectedIds.length === 0 && (
+                  <button onClick={() => setEmployeeSelectedIds(employeeEntries.map(e => e.id))}
+                    style={{width: '100%', padding: '8px 16px', margin: '4px 0', background: '#F5F3FF', color: '#6b21a8', border: '1px dashed #c4b5fd', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer'}}>
+                    ✓ בחר הכל
+                  </button>
+                )}
                 {employeeEntries.map(entry => {
                   const client = clients.find(c => c.id === entry.clientId)
                   if (!client) return null
                   const hours = calculateHours(entry)
                   const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100)
                   const status = entry.billingStatus || 'pending'
-                  const statusColor = status === 'paid' ? '#10b981' : status === 'invoiced' ? '#3b82f6' : '#f59e0b'
+                  const empPaid = entry.employeePaidStatus === 'paid'
+                  const isSelected = employeeSelectedIds.includes(entry.id)
+                  const toggleSelect = () => setEmployeeSelectedIds(prev => prev.includes(entry.id) ? prev.filter(i => i !== entry.id) : [...prev, entry.id])
 
                   return (
-                    <div 
+                    <div
                       key={entry.id}
+                      onTouchStart={() => startLongPress(toggleSelect)}
+                      onTouchEnd={cancelLongPress}
+                      onTouchMove={cancelLongPress}
+                      onTouchCancel={cancelLongPress}
+                      onContextMenu={(e) => { e.preventDefault(); toggleSelect() }}
                       onClick={() => {
+                        if (employeeSelectedIds.length > 0) { toggleSelect(); return }
                         setEntryFormStartDate(entry.startDate)
                         setEntryFormEndDate(entry.endDate)
                         setEntryFormStartTime(entry.startTime)
@@ -3263,42 +3305,39 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                         setAddTimeEntryOpen(true)
                       }}
                       style={{
-                        padding: '12px 16px',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        borderBottom: '1px solid #E5E7EB',
-                        background: 'white',
-                        cursor: 'pointer'
+                        padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        borderBottom: '1px solid #E5E7EB', background: isSelected ? '#F5F3FF' : 'white', cursor: 'pointer'
                       }}
                     >
-                      <div style={{flex: 1}}>
-                        <div style={{fontSize: 14, fontWeight: 600, color: '#111827'}}>
-                          {client.name}
-                        </div>
-                        <div style={{fontSize: 13, color: '#6B7280', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6}}>
-                          {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit', year: 'numeric'})}
-                          <span style={{fontSize: 11, padding: '1px 4px', borderRadius: '4px', background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e'}}>
-                            {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
-                          </span>
-                          {entry.employeePaidStatus === 'paid' && <span style={{fontSize: 11, color: '#8b5cf6'}}>✓ שולם לעובד</span>}
+                      <div style={{display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0}}>
+                        {employeeSelectedIds.length > 0 && (
+                          <input type="checkbox" checked={isSelected} onChange={() => {}} style={{width: 18, height: 18, accentColor: '#8b5cf6'}} />
+                        )}
+                        <div style={{flex: 1}}>
+                          <div style={{display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap'}}>
+                            <span style={{fontSize: 14, fontWeight: 600, color: '#111827'}}>{client.name}</span>
+                            <span style={{fontSize: 11, padding: '2px 6px', borderRadius: 4, fontWeight: 600,
+                              background: empPaid ? '#f3e8ff' : '#fef3c7',
+                              color: empPaid ? '#6b21a8' : '#92400e'}}>
+                              {empPaid ? '✓ שולם' : '⏳ ממתין'}
+                            </span>
+                            {entry.employeeInvoiceNumber && <span style={{fontSize: 11, color: '#8b5cf6'}}>#{entry.employeeInvoiceNumber}</span>}
+                          </div>
+                          <div style={{fontSize: 12, color: '#6B7280', marginTop: 2}}>
+                            {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit', year: 'numeric'})} · {entry.startTime}–{entry.endTime}
+                          </div>
                         </div>
                       </div>
-                      <div style={{display: 'flex', alignItems: 'center', gap: 10}}>
-                        <div style={{textAlign: 'left'}}>
-                          <div style={{fontSize: 15, fontWeight: 700, color: '#111827'}}>₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
-                          <div style={{fontSize: 11, color: '#6B7280'}}>{hours.toFixed(1)}h</div>
-                        </div>
-                        <button
-                          onClick={(ev) => { ev.stopPropagation(); setEmployeeFormName(employee.name); setEmployeeFormEmail(employee.email); setEmployeeFormClients(employee.clientIds); setEditEmployeeId(employee.id); setAddEmployeeOpen(true) }}
-                          style={{background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', padding: '4px', fontSize: 18, lineHeight: 1}}
-                        >⋯</button>
+                      <div style={{textAlign: 'left', flexShrink: 0}}>
+                        <div style={{fontSize: 15, fontWeight: 700, color: '#111827'}}>₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
+                        <div style={{fontSize: 11, color: '#6B7280'}}>{hours.toFixed(1)}h</div>
                       </div>
                     </div>
                   )
                 })}
               </>
             )}
+            </div>
           </div>
         </div>
       )
