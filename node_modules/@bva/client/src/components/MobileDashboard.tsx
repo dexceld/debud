@@ -4239,15 +4239,19 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     // Initialize form on open
     useEffect(() => {
       if (quickTimeEntryOpen) {
-        const today = new Date().toISOString().split('T')[0]
-        const now = new Date().toTimeString().slice(0, 5)
-        if (!entryFormStartDate) {
-          setEntryFormStartDate(today)
-          setEntryFormEndDate(today)
-        }
-        if (!entryFormStartTime) {
-          setEntryFormStartTime(now)
-          setEntryFormEndTime(now)
+        try {
+          const today = new Date().toISOString().split('T')[0]
+          const now = new Date().toTimeString().slice(0, 5)
+          if (!entryFormStartDate) {
+            setEntryFormStartDate(today)
+            setEntryFormEndDate(today)
+          }
+          if (!entryFormStartTime) {
+            setEntryFormStartTime(now)
+            setEntryFormEndTime(now)
+          }
+        } catch (e) {
+          console.error('Error initializing form:', e)
         }
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -4256,17 +4260,23 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     // Calculate hours and amount
     let calculatedHours = 0
     let calculatedAmount = 0
-    if (entryFormStartDate && entryFormEndDate && entryFormStartTime && entryFormEndTime) {
-      const start = new Date(`${entryFormStartDate}T${entryFormStartTime}`)
-      const end = new Date(`${entryFormEndDate}T${entryFormEndTime}`)
-      calculatedHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60)
-      
-      if (quickTimeClientId) {
-        const client = clients.find(c => c.id === quickTimeClientId)
-        if (client && calculatedHours > 0) {
-          calculatedAmount = calculatedHours * client.hourlyRate * (1 + client.vatPercent / 100)
+    try {
+      if (entryFormStartDate && entryFormEndDate && entryFormStartTime && entryFormEndTime) {
+        const start = new Date(`${entryFormStartDate}T${entryFormStartTime}`)
+        const end = new Date(`${entryFormEndDate}T${entryFormEndTime}`)
+        if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+          calculatedHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60)
+          
+          if (quickTimeClientId && clients && Array.isArray(clients)) {
+            const client = clients.find(c => c && c.id === quickTimeClientId)
+            if (client && calculatedHours > 0 && client.hourlyRate) {
+              calculatedAmount = calculatedHours * client.hourlyRate * (1 + (client.vatPercent || 0) / 100)
+            }
+          }
         }
       }
+    } catch (e) {
+      console.error('Error calculating hours:', e)
     }
 
     const save = () => {
@@ -4329,9 +4339,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               }}
             >
               <option value="">בחר לקוח</option>
-              {clients && clients.map(c => (
+              {Array.isArray(clients) && clients.map(c => c && c.id ? (
                 <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
+              ) : null)}
             </select>
           </div>
 
@@ -4406,9 +4416,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               }}
             >
               <option value="self">עצמי</option>
-              {employees && employees.map(emp => (
+              {Array.isArray(employees) && employees.map(emp => emp && emp.id ? (
                 <option key={emp.id} value={emp.id}>{emp.name}</option>
-              ))}
+              ) : null)}
             </select>
           </div>
 
@@ -4471,20 +4481,24 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     // Initialize form on open (only when adding new, not editing)
     useEffect(() => {
       if (addTimeEntryOpen && !editEntryId) {
-        const today = new Date().toISOString().split('T')[0]
-        const now = new Date().toTimeString().slice(0, 5)
-        // Only initialize if dates are empty
-        if (!entryFormStartDate) {
-          setEntryFormStartDate(today)
-          setEntryFormEndDate(today)
-        }
-        if (!entryFormStartTime) {
-          setEntryFormStartTime(now)
-          setEntryFormEndTime(now)
-        }
-        // Initialize clientId from selectedClientId if available and not already set
-        if (selectedClientId && !entryFormClientId) {
-          setEntryFormClientId(selectedClientId)
+        try {
+          const today = new Date().toISOString().split('T')[0]
+          const now = new Date().toTimeString().slice(0, 5)
+          // Only initialize if dates are empty
+          if (!entryFormStartDate) {
+            setEntryFormStartDate(today)
+            setEntryFormEndDate(today)
+          }
+          if (!entryFormStartTime) {
+            setEntryFormStartTime(now)
+            setEntryFormEndTime(now)
+          }
+          // Initialize clientId from selectedClientId if available and not already set
+          if (selectedClientId && !entryFormClientId) {
+            setEntryFormClientId(selectedClientId)
+          }
+        } catch (e) {
+          console.error('Error initializing add time entry form:', e)
         }
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -4646,9 +4660,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 }}
               >
                 <option value="">בחר לקוח...</option>
-                {clients && clients.map(c => (
+                {Array.isArray(clients) && clients.map(c => c && c.id ? (
                   <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
+                ) : null)}
               </select>
             </div>
           )}
@@ -4667,9 +4681,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               }}
             >
               <option value="self">עצמי</option>
-              {employees && employees.map(emp => (
+              {Array.isArray(employees) && employees.map(emp => emp && emp.id ? (
                 <option key={emp.id} value={emp.id}>{emp.name}</option>
-              ))}
+              ) : null)}
             </select>
           </div>
 
