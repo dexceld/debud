@@ -3237,34 +3237,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           </div>
 
           {/* Entries List */}
-          <div style={{display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden'}}>
-            {employeeSelectedIds.length > 0 && (
-              <div style={{position: 'sticky', bottom: 0, zIndex: 50, background: '#1e293b', borderTop: '2px solid #334155', padding: '10px 16px 16px', flexShrink: 0}}>
-                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8}}>
-                  <span style={{fontSize: 13, fontWeight: 700, color: 'white'}}>תשלום לעובד ({employeeSelectedIds.length} נבחרו):</span>
-                  <button onClick={() => setEmployeeSelectedIds([])} style={{fontSize: 12, color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer'}}>✕ בטל</button>
-                </div>
-                <div style={{display: 'flex', gap: 6, marginBottom: 8}}>
-                  <button onClick={() => { setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) ? {...e, employeePaidStatus: 'pending'} : e)); setEmployeeSelectedIds([]); setEmployeeStatusFilter('all') }}
-                    style={{flex: 1, padding: '10px 4px', fontSize: 13, border: 'none', borderRadius: 8, background: '#fef3c7', color: '#92400e', fontWeight: 700, cursor: 'pointer'}}>⏳ טרם שולם</button>
-                  <button onClick={() => { setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) ? {...e, employeePaidStatus: 'paid'} : e)); setEmployeeSelectedIds([]); setEmployeeStatusFilter('all') }}
-                    style={{flex: 1, padding: '10px 4px', fontSize: 13, border: 'none', borderRadius: 8, background: '#f3e8ff', color: '#6b21a8', fontWeight: 700, cursor: 'pointer'}}>✅ שולם לעובד</button>
-                </div>
-                <div style={{display: 'flex', gap: 6}}>
-                  <input type="text" placeholder="מס' חשבונית עובד"
-                    value={bulkEmployeeInvoiceNumber} onChange={e => setBulkEmployeeInvoiceNumber(e.target.value)}
-                    style={{flex: 1, padding: '8px 10px', fontSize: 13, border: 'none', borderRadius: 8, background: '#334155', color: 'white', outline: 'none'}} />
-                  <button onClick={() => {
-                    if (!bulkEmployeeInvoiceNumber.trim()) return
-                    setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) ? {...e, employeeInvoiceNumber: bulkEmployeeInvoiceNumber.trim(), employeePaidStatus: 'pending'} : e))
-                    setBulkEmployeeInvoiceNumber('')
-                    setEmployeeSelectedIds([])
-                    setEmployeeStatusFilter('all')
-                  }} style={{padding: '8px 14px', fontSize: 13, border: 'none', borderRadius: 8, background: '#8b5cf6', color: 'white', fontWeight: 700, cursor: 'pointer'}}>שמור</button>
-                </div>
-              </div>
-            )}
-            <div style={{flex: 1, overflowY: 'auto', paddingBottom: employeeSelectedIds.length > 0 ? 20 : 80}}>
+          <div style={{flex: 1, overflowY: 'auto', paddingBottom: employeeSelectedIds.length > 0 ? 20 : 80}}>
             {employeeEntries.length === 0 ? (
               <div className="m-empty-state">
                 <div style={{fontSize: 48, marginBottom: 16}}>📋</div>
@@ -3341,8 +3314,34 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 })}
               </>
             )}
-            </div>
           </div>
+          {/* Sticky bottom action bar when employee entries selected */}
+          {employeeSelectedIds.length > 0 && (
+            <div style={{flexShrink: 0, background: '#1e293b', borderTop: '2px solid #334155', padding: '10px 16px 16px'}}>
+              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8}}>
+                <span style={{fontSize: 13, fontWeight: 700, color: 'white'}}>תשלום לעובד ({employeeSelectedIds.length} נבחרו):</span>
+                <button onClick={() => setEmployeeSelectedIds([])} style={{fontSize: 12, color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer'}}>✕ בטל</button>
+              </div>
+              <div style={{display: 'flex', gap: 6, marginBottom: 8}}>
+                <button onClick={() => { setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) ? {...e, employeePaidStatus: 'pending'} : e)); setEmployeeSelectedIds([]); setEmployeeStatusFilter('all') }}
+                  style={{flex: 1, padding: '10px 4px', fontSize: 13, border: 'none', borderRadius: 8, background: '#fef3c7', color: '#92400e', fontWeight: 700, cursor: 'pointer'}}>⏳ טרם שולם</button>
+                <button onClick={() => { setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) ? {...e, employeePaidStatus: 'paid'} : e)); setEmployeeSelectedIds([]); setEmployeeStatusFilter('all') }}
+                  style={{flex: 1, padding: '10px 4px', fontSize: 13, border: 'none', borderRadius: 8, background: '#f3e8ff', color: '#6b21a8', fontWeight: 700, cursor: 'pointer'}}>✅ שולם לעובד</button>
+              </div>
+              <div style={{display: 'flex', gap: 6}}>
+                <input type="text" placeholder="מס' חשבונית עובד"
+                  value={bulkEmployeeInvoiceNumber} onChange={e => setBulkEmployeeInvoiceNumber(e.target.value)}
+                  style={{flex: 1, padding: '8px 10px', fontSize: 13, border: 'none', borderRadius: 8, background: '#334155', color: 'white', outline: 'none'}} />
+                <button onClick={() => {
+                  if (!bulkEmployeeInvoiceNumber.trim()) return
+                  setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) ? {...e, employeeInvoiceNumber: bulkEmployeeInvoiceNumber.trim(), employeePaidStatus: 'pending'} : e))
+                  setBulkEmployeeInvoiceNumber('')
+                  setEmployeeSelectedIds([])
+                  setEmployeeStatusFilter('all')
+                }} style={{padding: '8px 14px', fontSize: 13, border: 'none', borderRadius: 8, background: '#8b5cf6', color: 'white', fontWeight: 700, cursor: 'pointer'}}>שמור</button>
+              </div>
+            </div>
+          )}
         </div>
       )
     }
