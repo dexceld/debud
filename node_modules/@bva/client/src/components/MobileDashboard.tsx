@@ -222,7 +222,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const saved = localStorage.getItem(lsKey('time_fab_pos'))
     return saved ? JSON.parse(saved) : { x: window.innerWidth - 76, y: window.innerHeight - 200 }
   })
-  const fabDragRef = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number; moved: boolean } | null>(null)
+  // Separate refs for each button to prevent conflicts
+  const clientFabDragRef = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number; moved: boolean } | null>(null)
+  const timeFabDragRef = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number; moved: boolean } | null>(null)
   const [editEntryId, setEditEntryId] = useState<string | null>(null)
   const [selectedEntryIds, setSelectedEntryIds] = useState<string[]>([])
   const [bulkActionOpen, setBulkActionOpen] = useState(false)
@@ -4001,22 +4003,22 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             className="m-fab-glass m-fab-with-label"
             onTouchStart={(e) => {
               const t = e.touches[0]
-              fabDragRef.current = { startX: t.clientX, startY: t.clientY, startPosX: fabPos.x, startPosY: fabPos.y, moved: false }
+              clientFabDragRef.current = { startX: t.clientX, startY: t.clientY, startPosX: fabPos.x, startPosY: fabPos.y, moved: false }
             }}
             onTouchMove={(e) => {
-              if (!fabDragRef.current) return
+              if (!clientFabDragRef.current) return
               e.stopPropagation()
-              const dx = e.touches[0].clientX - fabDragRef.current.startX
-              const dy = e.touches[0].clientY - fabDragRef.current.startY
-              if (Math.abs(dx) > 5 || Math.abs(dy) > 5) fabDragRef.current.moved = true
-              const newX = Math.max(0, Math.min(window.innerWidth - 72, fabDragRef.current.startPosX + dx))
-              const newY = Math.max(0, Math.min(window.innerHeight - 160, fabDragRef.current.startPosY + dy))
+              const dx = e.touches[0].clientX - clientFabDragRef.current.startX
+              const dy = e.touches[0].clientY - clientFabDragRef.current.startY
+              if (Math.abs(dx) > 5 || Math.abs(dy) > 5) clientFabDragRef.current.moved = true
+              const newX = Math.max(0, Math.min(window.innerWidth - 72, clientFabDragRef.current.startPosX + dx))
+              const newY = Math.max(0, Math.min(window.innerHeight - 160, clientFabDragRef.current.startPosY + dy))
               setFabPos({ x: newX, y: newY })
             }}
             onTouchEnd={() => {
-              if (!fabDragRef.current) return
-              const wasDrag = fabDragRef.current.moved
-              fabDragRef.current = null
+              if (!clientFabDragRef.current) return
+              const wasDrag = clientFabDragRef.current.moved
+              clientFabDragRef.current = null
               if (!wasDrag) {
                 setClientFormVat(defaultVat)
                 setClientFormIncomeTax(defaultIncomeTax)
@@ -4025,7 +4027,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               localStorage.setItem(lsKey('time_fab_pos'), JSON.stringify(fabPos))
             }}
             onClick={() => { 
-              if (!fabDragRef.current?.moved) {
+              if (!clientFabDragRef.current?.moved) {
                 setClientFormVat(defaultVat)
                 setClientFormIncomeTax(defaultIncomeTax)
                 setAddClientOpen(true)
@@ -4043,26 +4045,26 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             className="m-fab-glass forecast m-fab-with-label"
             onTouchStart={(e) => {
               const t = e.touches[0]
-              fabDragRef.current = { startX: t.clientX, startY: t.clientY, startPosX: fabPos.x, startPosY: fabPos.y, moved: false }
+              timeFabDragRef.current = { startX: t.clientX, startY: t.clientY, startPosX: fabPos.x, startPosY: fabPos.y, moved: false }
             }}
             onTouchMove={(e) => {
-              if (!fabDragRef.current) return
+              if (!timeFabDragRef.current) return
               e.stopPropagation()
-              const dx = e.touches[0].clientX - fabDragRef.current.startX
-              const dy = e.touches[0].clientY - fabDragRef.current.startY
-              if (Math.abs(dx) > 5 || Math.abs(dy) > 5) fabDragRef.current.moved = true
-              const newX = Math.max(0, Math.min(window.innerWidth - 72, fabDragRef.current.startPosX + dx))
-              const newY = Math.max(0, Math.min(window.innerHeight - 160, fabDragRef.current.startPosY + dy))
+              const dx = e.touches[0].clientX - timeFabDragRef.current.startX
+              const dy = e.touches[0].clientY - timeFabDragRef.current.startY
+              if (Math.abs(dx) > 5 || Math.abs(dy) > 5) timeFabDragRef.current.moved = true
+              const newX = Math.max(0, Math.min(window.innerWidth - 72, timeFabDragRef.current.startPosX + dx))
+              const newY = Math.max(0, Math.min(window.innerHeight - 160, timeFabDragRef.current.startPosY + dy))
               setFabPos({ x: newX, y: newY })
             }}
             onTouchEnd={() => {
-              if (!fabDragRef.current) return
-              const wasDrag = fabDragRef.current.moved
-              fabDragRef.current = null
+              if (!timeFabDragRef.current) return
+              const wasDrag = timeFabDragRef.current.moved
+              timeFabDragRef.current = null
               if (!wasDrag) setQuickTimeEntryOpen(true)
               localStorage.setItem(lsKey('time_fab_pos'), JSON.stringify(fabPos))
             }}
-            onClick={() => { if (!fabDragRef.current?.moved) setQuickTimeEntryOpen(true) }}
+            onClick={() => { if (!timeFabDragRef.current?.moved) setQuickTimeEntryOpen(true) }}
             title="דיווח מהיר"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
