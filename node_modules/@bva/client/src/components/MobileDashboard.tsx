@@ -3433,10 +3433,15 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                     cursor: 'pointer'
                                   }}
                                 >
-                                  <span style={{fontSize: 14, color: '#111827', fontWeight: 500}}>
-                                    {client.name}
-                                  </span>
-                                  <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+                                  <div style={{minWidth: 0}}>
+                                    <div style={{fontSize: 14, color: '#111827', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
+                                      {client.name}
+                                    </div>
+                                    <div style={{fontSize: 12, color: '#6B7280'}}>
+                                      {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit'})}
+                                    </div>
+                                  </div>
+                                  <div style={{display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0}}>
                                     <span style={{fontSize: 14, color: '#6B7280'}}>{hours.toFixed(2)}h</span>
                                     <span style={{fontSize: 14, color: '#059669', fontWeight: 600, minWidth: '70px', textAlign: 'left'}}>₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
                                   </div>
