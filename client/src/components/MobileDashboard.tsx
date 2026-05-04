@@ -4100,12 +4100,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               }
               localStorage.setItem(lsKey('time_fab_pos'), JSON.stringify(fabPos))
             }}
-            onClick={() => { 
-              if (!clientFabDragRef.current?.moved) {
-                setClientFormVat(defaultVat)
-                setClientFormIncomeTax(defaultIncomeTax)
-                setAddClientOpen(true)
-              }
+            onClick={() => {
+              setClientFormName('')
+              setClientFormRate('')
+              setClientFormVat(defaultVat)
+              setClientFormIncomeTax(defaultIncomeTax)
+              setEditClientId(null)
+              setAddClientOpen(true)
             }}
             title="הוספת לקוח"
           >
@@ -4138,7 +4139,17 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               if (!wasDrag) setQuickTimeEntryOpen(true)
               localStorage.setItem(lsKey('time_fab_pos'), JSON.stringify(fabPos))
             }}
-            onClick={() => { if (!timeFabDragRef.current?.moved) setQuickTimeEntryOpen(true) }}
+            onClick={() => {
+              setEntryFormStartDate('')
+              setEntryFormEndDate('')
+              setEntryFormStartTime('')
+              setEntryFormEndTime('')
+              setEntryFormNotes('')
+              setEntryFormEmployeeId('self')
+              setEntryFormClientId('')
+              setEditEntryId(null)
+              setQuickTimeEntryOpen(true)
+            }}
             title="דיווח מהיר"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
