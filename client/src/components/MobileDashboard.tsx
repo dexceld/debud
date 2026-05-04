@@ -211,7 +211,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     return saved ? JSON.parse(saved) : []
   })
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
-  const [timeTrackingTab, setTimeTrackingTab] = useState<'clients' | 'reports' | 'summary' | 'employees'>('clients')
+  const [timeTrackingTab, setTimeTrackingTab] = useState<'clients' | 'reports' | 'summary' | 'employees'>('reports')
   const [timerRunning, setTimerRunning] = useState(() => localStorage.getItem(lsKey('timer_running')) === '1')
   const [timerStart, setTimerStart] = useState<Date | null>(() => {
     const v = localStorage.getItem(lsKey('timer_start'))
@@ -240,7 +240,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const summaryScrollPos = useRef(0)
   const [summaryClientFilter, setSummaryClientFilter] = useState<string>('all')
   const [summaryStatusFilter, setSummaryStatusFilter] = useState<string>('all')
-  const [reportsPeriod, setReportsPeriod] = useState<'week' | 'month' | 'year'>('week')
+  const [reportsPeriod, setReportsPeriod] = useState<'week' | 'month' | 'year'>('month')
   const [clientFormName, setClientFormName] = useState('')
   const [clientFormRate, setClientFormRate] = useState('')
   const [clientFormVat, setClientFormVat] = useState('18')
@@ -435,9 +435,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         } else if (selectedEntryIdsRef.current.length > 0) {
           setSelectedEntryIds([])
         } else if (selectedEmployeeIdRef.current) {
-          setSelectedEmployeeId(null)
+          setSelectedEmployeeId(null); setTimeTrackingTab('reports')
         } else if (selectedClientIdRef.current) {
-          setSelectedClientId(null)
+          setSelectedClientId(null); setTimeTrackingTab('reports')
         } else if (screenRef.current !== 'home') {
           setScreen('home')
         } else {
@@ -2953,7 +2953,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       return (
         <div className="m-screen">
           <div className="m-header">
-            <button className="m-back-btn" onClick={() => setSelectedClientId(null)}>
+            <button className="m-back-btn" onClick={() => { setSelectedClientId(null); setTimeTrackingTab('reports') }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
             <h1 className="m-title">{client.name}</h1>
@@ -3127,7 +3127,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       return (
         <div className="m-screen">
           <div className="m-header">
-            <button className="m-back-btn" onClick={() => setSelectedEmployeeId(null)}>
+            <button className="m-back-btn" onClick={() => { setSelectedEmployeeId(null); setTimeTrackingTab('reports') }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
             <h1 className="m-title">{employee.name}</h1>
