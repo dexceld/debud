@@ -4292,131 +4292,140 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     )
   }
 
-  // Time Range Picker - two-step in one screen
+  // Analog Clock Picker - 4 steps: start-hour → start-min → end-hour → end-min
   const TimeRangePicker = ({ startTime, endTime, onChange, onClose }: {
     startTime: string
     endTime: string
     onChange: (start: string, end: string) => void
     onClose: () => void
   }) => {
-    const [picking, setPicking] = useState<'start' | 'end'>(startTime ? 'end' : 'start')
-    const [tempStart, setTempStart] = useState(startTime)
-    const [selHour, setSelHour] = useState<number | null>(startTime ? parseInt(startTime.split(':')[0]) : null)
-    const [selMin, setSelMin] = useState<number | null>(startTime ? parseInt(startTime.split(':')[1]) : null)
-
-    const hours = Array.from({length: 24}, (_, i) => i)
-    const mins = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]
-
+    // step: 'startH' | 'startM' | 'endH' | 'endM'
+    const [step, setStep] = useState<'startH' | 'startM' | 'endH' | 'endM'>('startH')
+    const [startH, setStartH] = useState<number | null>(null)
+    const [startM, setStartM] = useState<number | null>(null)
+    const [endH, setEndH] = useState<number | null>(null)
     const pad = (n: number) => String(n).padStart(2, '0')
 
-    const handleConfirm = () => {
-      if (selHour === null || selMin === null) return
-      const timeStr = `${pad(selHour)}:${pad(selMin)}`
-      if (picking === 'start') {
-        setTempStart(timeStr)
-        setPicking('end')
-        setSelHour(null)
-        setSelMin(null)
+    const isHourStep = step === 'startH' || step === 'endH'
+    const clockSize = 260
+    const cx = clockSize / 2
+    const cy = clockSize / 2
+    const r = 100
+
+    const numbers = isHourStep
+      ? Array.from({length: 24}, (_, i) => i)
+      : [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]
+
+    const count = numbers.length
+    // For 24h: inner ring 12-23, outer ring 0-11
+    const getPos = (i: number) => {
+      if (isHourStep) {
+        const n = numbers[i]
+        const angle = ((n % 12) / 12) * 2 * Math.PI - Math.PI / 2
+        const radius = n < 12 ? r : r * 0.62
+        return {
+          x: cx + radius * Math.cos(angle),
+          y: cy + radius * Math.sin(angle)
+        }
       } else {
-        onChange(tempStart, timeStr)
+        const angle = (i / count) * 2 * Math.PI - Math.PI / 2
+        return {
+          x: cx + r * Math.cos(angle),
+          y: cy + r * Math.sin(angle)
+        }
+      }
+    }
+
+    const selectedVal = step === 'startH' ? startH : step === 'startM' ? startM : step === 'endH' ? endH : null
+
+    const handleSelect = (val: number) => {
+      if (step === 'startH') { setStartH(val); setStep('startM') }
+      else if (step === 'startM') { setStartM(val); setStep('endH') }
+      else if (step === 'endH') { setEndH(val); setStep('endM') }
+      else {
+        // endM - done
+        const s = `${pad(startH!)}:${pad(startM!)}`
+        const e = `${pad(endH!)}:${pad(val)}`
+        onChange(s, e)
         onClose()
       }
     }
 
+    const stepLabel = step === 'startH' ? 'שעת התחלה' : step === 'startM' ? `התחלה ${pad(startH!)} — דקות` : step === 'endH' ? `התחלה ${pad(startH!)}:${pad(startM!)} — שעת סיום` : `סיום ${pad(endH!)} — דקות`
+
+    // Hand line to selected number
+    const handPos = selectedVal !== null ? (() => {
+      const idx = numbers.indexOf(selectedVal)
+      return idx >= 0 ? getPos(idx) : null
+    })() : null
+
     return (
       <>
         <div className="m-overlay" onClick={onClose} />
-        <div style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0,
-          background: 'white', borderRadius: '16px 16px 0 0',
-          padding: '16px', zIndex: 500
-        }}>
+        <div style={{position: 'fixed', bottom: 0, left: 0, right: 0, background: 'white', borderRadius: '16px 16px 0 0', padding: '16px 16px 24px', zIndex: 500}}>
           {/* Header */}
-          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16}}>
-            <button onClick={onClose} style={{border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: '#6B7280'}}>✕</button>
-            <div style={{fontWeight: 700, fontSize: 16}}>
-              {picking === 'start' ? 'שעת התחלה' : `עד מתי? (התחלה: ${tempStart})`}
-            </div>
+          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8}}>
+            <button onClick={onClose} style={{border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: '#9CA3AF'}}>✕</button>
+            <div style={{fontWeight: 700, fontSize: 15, color: '#1F2937'}}>{stepLabel}</div>
             <div style={{width: 32}} />
           </div>
 
-          {/* Hours row */}
-          <div style={{marginBottom: 8}}>
-            <div style={{fontSize: 12, color: '#9CA3AF', marginBottom: 6, fontWeight: 600}}>שעה</div>
-            <div style={{display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4}}>
-              {hours.map(h => (
-                <button
-                  key={h}
-                  onClick={() => setSelHour(h)}
-                  style={{
-                    flexShrink: 0,
-                    width: 44, height: 44,
-                    borderRadius: '50%',
-                    border: 'none',
-                    background: selHour === h ? '#1d4ed8' : '#F3F4F6',
-                    color: selHour === h ? 'white' : '#111827',
-                    fontWeight: selHour === h ? 700 : 400,
-                    fontSize: 15,
-                    cursor: 'pointer'
-                  }}
-                >
-                  {pad(h)}
-                </button>
-              ))}
-            </div>
+          {/* Time display */}
+          <div style={{textAlign: 'center', marginBottom: 12}}>
+            <span style={{fontSize: 36, fontWeight: 700, letterSpacing: 2}}>
+              <span style={{color: (step === 'startH' || step === 'startM') ? '#1d4ed8' : '#9CA3AF'}}>
+                {startH !== null ? pad(startH) : '--'}:{startM !== null ? pad(startM) : '--'}
+              </span>
+              <span style={{color: '#D1D5DB', margin: '0 8px', fontSize: 24}}>→</span>
+              <span style={{color: (step === 'endH' || step === 'endM') ? '#1d4ed8' : '#9CA3AF'}}>
+                {endH !== null ? pad(endH) : '--'}:--
+              </span>
+            </span>
           </div>
 
-          {/* Minutes row */}
-          <div style={{marginBottom: 16}}>
-            <div style={{fontSize: 12, color: '#9CA3AF', marginBottom: 6, fontWeight: 600}}>דקות</div>
-            <div style={{display: 'flex', gap: 6, flexWrap: 'wrap'}}>
-              {mins.map(m => (
-                <button
-                  key={m}
-                  onClick={() => setSelMin(m)}
-                  style={{
-                    width: 52, height: 44,
-                    borderRadius: '8px',
-                    border: 'none',
-                    background: selMin === m ? '#1d4ed8' : '#F3F4F6',
-                    color: selMin === m ? 'white' : '#111827',
-                    fontWeight: selMin === m ? 700 : 400,
-                    fontSize: 15,
-                    cursor: 'pointer'
-                  }}
-                >
-                  :{pad(m)}
-                </button>
-              ))}
-            </div>
+          {/* Analog Clock */}
+          <div style={{display: 'flex', justifyContent: 'center'}}>
+            <svg width={clockSize} height={clockSize} style={{touchAction: 'none'}}>
+              {/* Clock face */}
+              <circle cx={cx} cy={cy} r={cx - 4} fill="#F8FAFC" stroke="#E5E7EB" strokeWidth={2} />
+
+              {/* Hand line */}
+              {handPos && (
+                <line x1={cx} y1={cy} x2={handPos.x} y2={handPos.y} stroke="#1d4ed8" strokeWidth={2} strokeLinecap="round" />
+              )}
+              {/* Center dot */}
+              <circle cx={cx} cy={cy} r={4} fill="#1d4ed8" />
+
+              {/* Numbers */}
+              {numbers.map((n, i) => {
+                const pos = getPos(i)
+                const isSelected = selectedVal === n
+                return (
+                  <g key={n} onClick={() => handleSelect(n)} style={{cursor: 'pointer'}}>
+                    <circle cx={pos.x} cy={pos.y} r={18} fill={isSelected ? '#1d4ed8' : 'transparent'} />
+                    <text
+                      x={pos.x} y={pos.y}
+                      textAnchor="middle" dominantBaseline="central"
+                      fontSize={isHourStep ? (n < 12 ? 14 : 12) : 13}
+                      fontWeight={isSelected ? 700 : 400}
+                      fill={isSelected ? 'white' : '#374151'}
+                    >
+                      {isHourStep ? pad(n) : pad(n)}
+                    </text>
+                  </g>
+                )
+              })}
+            </svg>
           </div>
 
-          {/* Preview + Confirm */}
-          <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
-            <div style={{flex: 1, fontSize: 18, fontWeight: 700, color: selHour !== null && selMin !== null ? '#1d4ed8' : '#D1D5DB', textAlign: 'center'}}>
-              {selHour !== null && selMin !== null ? `${pad(selHour)}:${pad(selMin)}` : '--:--'}
-            </div>
-            <button
-              onClick={handleConfirm}
-              disabled={selHour === null || selMin === null}
-              style={{
-                flex: 2, padding: '14px',
-                background: selHour !== null && selMin !== null ? '#1d4ed8' : '#E5E7EB',
-                color: selHour !== null && selMin !== null ? 'white' : '#9CA3AF',
-                border: 'none', borderRadius: '10px',
-                fontSize: 16, fontWeight: 700, cursor: selHour !== null && selMin !== null ? 'pointer' : 'default'
-              }}
-            >
-              {picking === 'start' ? 'הגדר התחלה ←' : 'הגדר סיום ✓'}
-            </button>
-          </div>
-
-          {picking === 'end' && (
-            <button
-              onClick={() => { setPicking('start'); setTempStart(''); setSelHour(null); setSelMin(null) }}
-              style={{marginTop: 8, width: '100%', padding: '10px', background: 'none', border: 'none', color: '#6B7280', fontSize: 14, cursor: 'pointer'}}
-            >
-              ← שנה שעת התחלה
+          {/* Back button */}
+          {step !== 'startH' && (
+            <button onClick={() => {
+              if (step === 'startM') setStep('startH')
+              else if (step === 'endH') { setStep('startM') }
+              else setStep('endH')
+            }} style={{marginTop: 8, width: '100%', padding: '10px', background: 'none', border: 'none', color: '#6B7280', fontSize: 14, cursor: 'pointer'}}>
+              ← חזור
             </button>
           )}
         </div>
