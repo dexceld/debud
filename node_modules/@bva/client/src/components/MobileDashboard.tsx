@@ -3688,9 +3688,19 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                 <div style={{fontSize: 14, fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
                                   {client.name}
                                 </div>
-                                <div style={{fontSize: 13, color: '#374151', fontWeight: 500}}>
+                                <div style={{fontSize: 13, color: '#374151', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap'}}>
                                   {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit', year: 'numeric'})}
-                                  {entry.invoiceNumber && <span style={{marginInlineStart: 6, color: '#3b82f6'}}>• #{entry.invoiceNumber}</span>}
+                                  <span style={{ 
+                                    fontSize: 11, 
+                                    padding: '2px 6px', 
+                                    borderRadius: '4px', 
+                                    background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7',
+                                    color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e',
+                                    fontWeight: 600
+                                  }}>
+                                    {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
+                                  </span>
+                                  {entry.invoiceNumber && <span style={{color: '#3b82f6'}}>• #{entry.invoiceNumber}</span>}
                                 </div>
                               </div>
                             </div>
