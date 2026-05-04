@@ -3950,10 +3950,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
     // Initialize form on open
     useEffect(() => {
-      if (!entryFormStartDate) {
+      if (quickTimeEntryOpen && !entryFormStartDate) {
         const today = new Date().toISOString().split('T')[0]
+        const now = new Date().toTimeString().slice(0, 5)
         setEntryFormStartDate(today)
         setEntryFormEndDate(today)
+        setEntryFormStartTime(now)
+        setEntryFormEndTime(now)
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [quickTimeEntryOpen])
