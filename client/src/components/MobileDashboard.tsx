@@ -2957,7 +2957,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
 
           {/* Time Entries List - Compact, scrolls with the page */}
-          <div>
+          <div style={{flex: 1, overflowY: 'auto', paddingBottom: 100}}>
             {clientEntries.length === 0 ? (
               <div className="m-empty-state">אין דיווחי שעות עדיין</div>
             ) : (
