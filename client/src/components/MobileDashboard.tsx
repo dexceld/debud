@@ -2911,10 +2911,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <button className="m-hbtn m-hbtn-plus" onClick={() => {
                 setEditEntryId(null)
                 setEntryFormClientId(selectedClientId || '')
-                setEntryFormStartDate('')
-                setEntryFormEndDate('')
-                setEntryFormStartTime('')
-                setEntryFormEndTime('')
+                const _today = new Date().toISOString().split('T')[0]
+                const _now = new Date().toTimeString().slice(0, 5)
+                setEntryFormStartDate(_today)
+                setEntryFormEndDate(_today)
+                setEntryFormStartTime(_now)
+                setEntryFormEndTime(_now)
                 setEntryFormNotes('')
                 setEntryFormEmployeeId('self')
                 setAddTimeEntryOpen(true)
@@ -4124,10 +4126,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               localStorage.setItem(lsKey('time_fab_pos'), JSON.stringify(fabPos))
               if (!wasDrag) {
                 timeFabTouchHandled.current = true
-                setEntryFormStartDate('')
-                setEntryFormEndDate('')
-                setEntryFormStartTime('')
-                setEntryFormEndTime('')
+                const today = new Date().toISOString().split('T')[0]
+                const now = new Date().toTimeString().slice(0, 5)
+                setEntryFormStartDate(today)
+                setEntryFormEndDate(today)
+                setEntryFormStartTime(now)
+                setEntryFormEndTime(now)
                 setEntryFormNotes('')
                 setEntryFormEmployeeId('self')
                 setEntryFormClientId('')
@@ -4137,10 +4141,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             }}
             onClick={() => {
               if (timeFabTouchHandled.current) { timeFabTouchHandled.current = false; return }
-              setEntryFormStartDate('')
-              setEntryFormEndDate('')
-              setEntryFormStartTime('')
-              setEntryFormEndTime('')
+              const today = new Date().toISOString().split('T')[0]
+              const now = new Date().toTimeString().slice(0, 5)
+              setEntryFormStartDate(today)
+              setEntryFormEndDate(today)
+              setEntryFormStartTime(now)
+              setEntryFormEndTime(now)
               setEntryFormNotes('')
               setEntryFormEmployeeId('self')
               setEntryFormClientId('')
@@ -4622,26 +4628,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     if (!quickTimeEntryOpen) return null
     const [fieldErrors, setFieldErrors] = useState<{client?: boolean, date?: boolean, time?: boolean}>({})
 
-    // Initialize form on open
-    useEffect(() => {
-      if (quickTimeEntryOpen) {
-        try {
-          const today = new Date().toISOString().split('T')[0]
-          const now = new Date().toTimeString().slice(0, 5)
-          if (!entryFormStartDate) {
-            setEntryFormStartDate(today)
-            setEntryFormEndDate(today)
-          }
-          if (!entryFormStartTime) {
-            setEntryFormStartTime(now)
-            setEntryFormEndTime(now)
-          }
-        } catch (e) {
-          console.error('Error initializing form:', e)
-        }
-      }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [quickTimeEntryOpen])
 
     // Calculate hours and amount
     let calculatedHours = 0
@@ -4812,31 +4798,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     if (!addTimeEntryOpen) return null
     const [fieldErrors, setFieldErrors] = useState<{client?: boolean, date?: boolean, time?: boolean}>({})
 
-    // Initialize form on open (only when adding new, not editing)
-    useEffect(() => {
-      if (addTimeEntryOpen && !editEntryId) {
-        try {
-          const today = new Date().toISOString().split('T')[0]
-          const now = new Date().toTimeString().slice(0, 5)
-          // Only initialize if dates are empty
-          if (!entryFormStartDate) {
-            setEntryFormStartDate(today)
-            setEntryFormEndDate(today)
-          }
-          if (!entryFormStartTime) {
-            setEntryFormStartTime(now)
-            setEntryFormEndTime(now)
-          }
-          // Initialize clientId from selectedClientId if available and not already set
-          if (selectedClientId && !entryFormClientId) {
-            setEntryFormClientId(selectedClientId)
-          }
-        } catch (e) {
-          console.error('Error initializing add time entry form:', e)
-        }
-      }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [addTimeEntryOpen, editEntryId])
 
     const closeModal = () => {
       setAddTimeEntryOpen(false)
