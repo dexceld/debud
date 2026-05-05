@@ -4238,7 +4238,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                               onClick={() => {
                                 if (isSwiped) { setSwipedEntryId(null); return }
                                 if (longPressFiredRef.current) { longPressFiredRef.current = false; return }
-                                toggleSelect()
+                                openEdit()
                               }}
                               onTouchStart={(e) => {
                                 swipeTouchStartX.current = e.touches[0].clientX
@@ -4270,7 +4270,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                               }}
                             >
                             <div style={{flex: 1, display: 'flex', alignItems: 'center', gap: 10, minWidth: 0}}>
-                              <input type="checkbox" checked={isSelected} onChange={() => {}} style={{width: 18, height: 18, accentColor: '#1d4ed8'}} />
+                              <input type="checkbox" checked={isSelected} onChange={() => {}} onClick={e => { e.stopPropagation(); toggleSelect() }} style={{width: 18, height: 18, accentColor: '#1d4ed8', cursor: 'pointer'}} />
                               <span style={{width: 8, height: 8, borderRadius: '50%', background: statusColor, flexShrink: 0}} />
                               {entry.employeeId && (
                                 <span style={{width: 8, height: 8, borderRadius: '50%', background: entry.employeePaidStatus === 'paid' ? '#8b5cf6' : '#cbd5e1', flexShrink: 0, marginLeft: -2}} title="עובד" />
