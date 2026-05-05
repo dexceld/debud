@@ -4107,7 +4107,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             style={{flex: 1, overflowY: 'auto', padding: '12px 16px', paddingBottom: selectedEntryIds.length > 0 ? 20 : 100}}
           >
             {(() => {
-              const filteredEntries = timeEntries.filter(e => {
+              // Filter time entries
+              const filteredTimeEntries = timeEntries.filter(e => {
                 const entryDate = new Date(e.startDate)
                 const from = summaryFromDate ? new Date(summaryFromDate) : null
                 const to = summaryToDate ? new Date(summaryToDate) : null
@@ -4120,15 +4121,32 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 return true
               })
 
-              const totalHours = filteredEntries.reduce((sum, e) => sum + calculateHours(e), 0)
+              // Filter charge entries by same criteria
+              const filteredChargeEntries = chargeEntries.filter(c => {
+                const chargeDate = new Date(c.date)
+                const from = summaryFromDate ? new Date(summaryFromDate) : null
+                const to = summaryToDate ? new Date(summaryToDate) : null
+                
+                if (from && chargeDate < from) return false
+                if (to && chargeDate > to) return false
+                if (summaryClientFilter !== 'all' && c.clientId !== summaryClientFilter) return false
+                if (summaryStatusFilter !== 'all' && (c.billingStatus || 'pending') !== summaryStatusFilter) return false
+                
+                return true
+              })
+
+              // Calculate totals including charges
+              const totalHours = filteredTimeEntries.reduce((sum, e) => sum + calculateHours(e), 0)
               let totalAmount = 0
-              filteredEntries.forEach(e => {
+              filteredTimeEntries.forEach(e => {
                 const client = clients.find(c => c.id === e.clientId)
                 if (client) totalAmount += calculateHours(e) * client.hourlyRate * (1 + client.vatPercent / 100)
               })
+              // Add charge amounts
+              filteredChargeEntries.forEach(c => { totalAmount += c.amount })
 
-              // Selected entries totals
-              const selectedEntries = selectedEntryIds.length > 0 ? filteredEntries.filter(e => selectedEntryIds.includes(e.id)) : []
+              // Selected entries totals (charges can't be selected, only time entries)
+              const selectedEntries = selectedEntryIds.length > 0 ? filteredTimeEntries.filter(e => selectedEntryIds.includes(e.id)) : []
               const selHours = selectedEntries.reduce((sum, e) => sum + calculateHours(e), 0)
               let selAmount = 0
               selectedEntries.forEach(e => {
@@ -4140,10 +4158,17 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               const cardAmount = selectedEntryIds.length > 0 ? selAmount : totalAmount
               const cardLabel = selectedEntryIds.length > 0 ? `נבחרו ${selectedEntryIds.length}` : 'סה"כ'
 
-              // Find first and last entry dates
-              const sortedByDate = [...filteredEntries].sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
-              const firstDate = sortedByDate[0]?.startDate
-              const lastDate = sortedByDate[sortedByDate.length - 1]?.startDate
+              // Merge time entries and charges chronologically
+              const mergedItems = [
+                ...filteredTimeEntries.map(e => ({ type: 'entry' as const, data: e, sortKey: `${e.startDate}T${e.startTime}` })),
+                ...filteredChargeEntries.map(c => ({ type: 'charge' as const, data: c, sortKey: c.date }))
+              ].sort((a, b) => b.sortKey.localeCompare(a.sortKey))
+
+              // Find first and last dates
+              const allDates = [...filteredTimeEntries.map(e => e.startDate), ...filteredChargeEntries.map(c => c.date)]
+              const sortedDates = allDates.sort()
+              const firstDate = sortedDates[0]
+              const lastDate = sortedDates[sortedDates.length - 1]
 
               return (
                 <>
@@ -4171,50 +4196,48 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
 
                   {/* Select All Button */}
-                  {selectedEntryIds.length === 0 && filteredEntries.length > 0 && (
+                  {selectedEntryIds.length === 0 && filteredTimeEntries.length > 0 && (
                     <button
-                      onClick={() => setSelectedEntryIds(filteredEntries.map(e => e.id))}
+                      onClick={() => setSelectedEntryIds(filteredTimeEntries.map(e => e.id))}
                       style={{
                         width: '100%', padding: '8px', marginBottom: '12px',
                         background: '#EFF6FF', color: '#1d4ed8', border: '1px dashed #93c5fd',
                         borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer'
                       }}
                     >
-                      ☑ בחר את כל {filteredEntries.length} הדיווחים
+                      ☑ בחר את כל {filteredTimeEntries.length} הדיווחים
                     </button>
                   )}
 
                   {/* Compact Entries List */}
-                  {filteredEntries.length > 0 && (
+                  {mergedItems.length > 0 && (
                     <div style={{background: 'white', border: '1px solid #E5E7EB', borderRadius: 12, overflow: 'hidden', marginTop: 8}}>
-                      {[...filteredEntries].sort((a,b) => {
-                        const dA = new Date(`${a.startDate}T${a.startTime}`).getTime()
-                        const dB = new Date(`${b.startDate}T${b.startTime}`).getTime()
-                        return dB - dA
-                      }).map((entry, idx, arr) => {
-                        const client = clients.find(c => c.id === entry.clientId)
-                        if (!client) return null
-                        const hours = calculateHours(entry)
-                        const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100)
-                        const status = entry.billingStatus || 'pending'
-                        const statusColor = status === 'paid' ? '#10b981' : status === 'invoiced' ? '#3b82f6' : '#f59e0b'
-                        const isSelected = selectedEntryIds.includes(entry.id)
-                        const inSelectMode = selectedEntryIds.length > 0
-                        const toggleSelect = () => setSelectedEntryIds(prev => prev.includes(entry.id) ? prev.filter(i => i !== entry.id) : [...prev, entry.id])
-                        const openEdit = () => {
-                          setEntryFormStartDate(entry.startDate)
-                          setEntryFormEndDate(entry.endDate)
-                          setEntryFormStartTime(entry.startTime)
-                          setEntryFormEndTime(entry.endTime)
-                          setEntryFormNotes(entry.notes || '')
-                          setEntryFormEmployeeId(entry.employeeId || 'self')
-                          setEntryFormClientId(entry.clientId)
-                          setEditEntryId(entry.id)
-                          setAddTimeEntryOpen(true)
-                        }
-                        const isSwiped = swipedEntryId === entry.id
-                        return (
-                          <div key={entry.id} style={{position: 'relative', overflow: 'hidden', borderBottom: '1px solid #E5E7EB'}}>
+                      {mergedItems.map((item, idx, arr) => {
+                        if (item.type === 'entry') {
+                          const entry = item.data
+                          const client = clients.find(c => c.id === entry.clientId)
+                          if (!client) return null
+                          const hours = calculateHours(entry)
+                          const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100)
+                          const status = entry.billingStatus || 'pending'
+                          const statusColor = status === 'paid' ? '#10b981' : status === 'invoiced' ? '#3b82f6' : '#f59e0b'
+                          const isSelected = selectedEntryIds.includes(entry.id)
+                          const inSelectMode = selectedEntryIds.length > 0
+                          const toggleSelect = () => setSelectedEntryIds(prev => prev.includes(entry.id) ? prev.filter(i => i !== entry.id) : [...prev, entry.id])
+                          const openEdit = () => {
+                            setEntryFormStartDate(entry.startDate)
+                            setEntryFormEndDate(entry.endDate)
+                            setEntryFormStartTime(entry.startTime)
+                            setEntryFormEndTime(entry.endTime)
+                            setEntryFormNotes(entry.notes || '')
+                            setEntryFormEmployeeId(entry.employeeId || 'self')
+                            setEntryFormClientId(entry.clientId)
+                            setEditEntryId(entry.id)
+                            setAddTimeEntryOpen(true)
+                          }
+                          const isSwiped = swipedEntryId === entry.id
+                          return (
+                            <div key={entry.id} style={{position: 'relative', overflow: 'hidden', borderBottom: '1px solid #E5E7EB'}}>
                             {/* Swipe action backdrop */}
                             <div style={{position: 'absolute', inset: 0, display: 'flex', alignItems: 'stretch', justifyContent: 'flex-start'}}>
                               <button onClick={() => { setTimeEntries(prev => prev.map(e => e.id === entry.id ? {...e, billingStatus: 'pending'} : e)); setSwipedEntryId(null) }}
@@ -4300,7 +4323,62 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                             </div>
                           </div>
                           </div>
-                        )
+                          )
+                        } else {
+                          // Charge entry
+                          const charge = item.data
+                          const client = clients.find(c => c.id === charge.clientId)
+                          if (!client) return null
+                          const tag = chargeTags.find(t => t.id === charge.tagId)
+                          const status = charge.billingStatus || 'pending'
+                          const statusColor = status === 'paid' ? '#10b981' : status === 'invoiced' ? '#3b82f6' : '#f59e0b'
+                          const openChargeEdit = () => {
+                            setChargeFormClientId(charge.clientId)
+                            setChargeFormDate(charge.date)
+                            setChargeFormAmount(String(charge.amount))
+                            setChargeFormTagId(charge.tagId)
+                            setChargeFormNotes(charge.notes || '')
+                            setChargeFormEmployeeId(charge.employeeId || 'self')
+                            setEditChargeId(charge.id)
+                            setAddChargeOpen(true)
+                          }
+                          return (
+                            <div key={charge.id}
+                              onClick={openChargeEdit}
+                              style={{
+                                padding: '14px 16px',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                borderBottom: '1px solid #E5E7EB',
+                                cursor: 'pointer',
+                                background: '#faf5ff'
+                              }}
+                            >
+                              <div style={{flex: 1, display: 'flex', alignItems: 'center', gap: 10, minWidth: 0}}>
+                                <span style={{width: 18, height: 18, flexShrink: 0}} />
+                                <span style={{width: 8, height: 8, borderRadius: '50%', background: statusColor, flexShrink: 0}} />
+                                <div style={{minWidth: 0}}>
+                                  <div style={{fontSize: 14, fontWeight: 600, color: '#7c3aed', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
+                                    {client.name} • {tag?.name || charge.tagId}
+                                  </div>
+                                  <div style={{fontSize: 13, color: '#6B7280', marginTop: 4}}>
+                                    {new Date(charge.date).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit', year: '2-digit'})}
+                                    <span style={{marginRight: 8, padding: '2px 6px', borderRadius: 4, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e', fontSize: 11, fontWeight: 600}}>
+                                      {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div style={{textAlign: 'left', marginLeft: 8}}>
+                                <div style={{fontSize: 15, fontWeight: 700, color: '#7c3aed'}}>
+                                  ₪{charge.amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
+                                </div>
+                                <div style={{fontSize: 11, color: '#9CA3AF'}}>חיוב</div>
+                              </div>
+                            </div>
+                          )
+                        }
                       })}
                     </div>
                   )}
