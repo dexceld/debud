@@ -2960,7 +2960,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </button>
             <h1 className="m-title">{client.name}</h1>
             <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
-              <button className="m-hbtn m-hbtn-plus" onClick={() => {
+              <button className="m-hbtn m-hbtn-clock" onClick={() => {
                 setEditEntryId(null)
                 setEntryFormClientId(selectedClientId || '')
                 const _today = new Date().toISOString().split('T')[0]
@@ -2973,10 +2973,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 setEntryFormEmployeeId('self')
                 setAddTimeEntryOpen(true)
               }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 <span className="m-hbtn-label">שעות</span>
               </button>
-              <button className="m-hbtn" onClick={() => {
+              <button className="m-hbtn m-hbtn-shekel" onClick={() => {
                 setChargeFormClientId(selectedClientId || '')
                 setChargeFormDate(new Date().toISOString().split('T')[0])
                 setChargeFormAmount('')
@@ -2984,8 +2984,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 setChargeFormNotes('')
                 setEditChargeId(null)
                 setAddChargeOpen(true)
-              }} style={{background: '#f3e8ff', color: '#7c3aed', border: 'none', borderRadius: 8, padding: '6px 10px', fontSize: 12, fontWeight: 700, cursor: 'pointer'}}>
-                ₪ חיוב
+              }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <span className="m-hbtn-label">חיוב</span>
               </button>
               <button className="m-add-btn" onClick={openEditClient}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
