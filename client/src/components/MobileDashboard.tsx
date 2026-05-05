@@ -5794,7 +5794,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </button>
           )}
           <button
-            className="m-fab-glass forecast m-fab-with-label"
+            className="m-fab-glass timer m-fab-with-label"
             onTouchEnd={(e) => {
               e.stopPropagation()
               e.preventDefault()

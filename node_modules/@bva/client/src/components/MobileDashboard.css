@@ -701,6 +701,13 @@
   background: rgba(255, 255, 255, 0.18);
 }
 
+.m-fab-glass.timer {
+  border-color: rgba(245, 158, 11, 0.8);
+  color: #d97706;
+  background: rgba(255, 251, 235, 0.25);
+  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.22);
+}
+
 /* Icon colors for forecast view */
 .m-icon-actual {
   background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
