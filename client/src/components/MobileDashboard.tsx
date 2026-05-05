@@ -240,6 +240,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [summaryDatePickerOpen, setSummaryDatePickerOpen] = useState(false)
   const summaryScrollRef = useRef<HTMLDivElement>(null)
   const summaryScrollPos = useRef(0)
+  const employeeListRef = useRef<HTMLDivElement>(null)
+  const employeeListScrollPos = useRef(0)
   const [summaryClientFilter, setSummaryClientFilter] = useState<string>('all')
   const [summaryStatusFilter, setSummaryStatusFilter] = useState<string>('all')
   const [reportsPeriod, setReportsPeriod] = useState<'week' | 'month' | 'year'>('month')
@@ -399,6 +401,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   useEffect(() => { timeSettingsOpenRef.current = timeSettingsOpen }, [timeSettingsOpen])
   useEffect(() => { bulkActionOpenRef.current = bulkActionOpen }, [bulkActionOpen])
   useEffect(() => { selectedEntryIdsRef.current = selectedEntryIds }, [selectedEntryIds])
+  // Restore employee list scroll position after selection changes
+  useEffect(() => {
+    if (employeeListRef.current && employeeListScrollPos.current > 0) {
+      employeeListRef.current.scrollTop = employeeListScrollPos.current
+    }
+  }, [employeeSelectedIds])
   useEffect(() => {
     const pushState = () => window.history.pushState({ page: 'app' }, '')
     pushState()
@@ -3340,7 +3348,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           })()}
 
           {/* Entries List */}
-          <div style={{flex: 1, overflowY: 'auto', paddingBottom: employeeSelectedIds.length > 0 ? 20 : 80}}>
+          <div 
+            ref={employeeListRef} 
+            onScroll={() => { if (employeeListRef.current) employeeListScrollPos.current = employeeListRef.current.scrollTop }}
+            style={{flex: 1, overflowY: 'auto', paddingBottom: employeeSelectedIds.length > 0 ? 20 : 80}}
+          >
             {employeeEntries.length === 0 ? (
               <div className="m-empty-state">
                 <div style={{fontSize: 48, marginBottom: 16}}>📋</div>
