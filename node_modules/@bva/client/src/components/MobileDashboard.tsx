@@ -4458,8 +4458,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1) }
       else setViewMonth(m => m + 1)
     }
-    const prevYear = () => setViewYear(y => y - 1)
-    const nextYear = () => setViewYear(y => y + 1)
 
     // Build calendar grid
     const cells: (number | null)[] = []
@@ -4474,17 +4472,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           background: 'white', borderRadius: '16px 16px 0 0',
           padding: '16px', zIndex: 500, maxHeight: '80vh', overflowY: 'auto'
         }}>
-          {/* Header - Month */}
-          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4}}>
-            <button onClick={prevMonth} style={{border: 'none', background: 'none', fontSize: 22, cursor: 'pointer', padding: '4px 10px', color: '#374151'}}>‹</button>
-            <div style={{fontWeight: 700, fontSize: 16}}>{monthNames[viewMonth]}</div>
-            <button onClick={nextMonth} style={{border: 'none', background: 'none', fontSize: 22, cursor: 'pointer', padding: '4px 10px', color: '#374151'}}>›</button>
-          </div>
-          {/* Header - Year */}
+          {/* Header - Month and Year */}
           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10}}>
-            <button onClick={prevYear} style={{border: 'none', background: 'none', fontSize: 16, cursor: 'pointer', padding: '2px 10px', color: '#6B7280'}}>«</button>
-            <div style={{fontSize: 14, color: '#6B7280', fontWeight: 600}}>{viewYear}</div>
-            <button onClick={nextYear} style={{border: 'none', background: 'none', fontSize: 16, cursor: 'pointer', padding: '2px 10px', color: '#6B7280'}}>»</button>
+            <button onClick={prevMonth} style={{border: 'none', background: 'none', fontSize: 22, cursor: 'pointer', padding: '4px 10px', color: '#374151'}}>‹</button>
+            <div style={{fontWeight: 700, fontSize: 16}}>{monthNames[viewMonth]} {viewYear}</div>
+            <button onClick={nextMonth} style={{border: 'none', background: 'none', fontSize: 22, cursor: 'pointer', padding: '4px 10px', color: '#374151'}}>›</button>
           </div>
 
           {/* Instructions */}
