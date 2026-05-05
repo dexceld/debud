@@ -3022,119 +3022,99 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           )}
 
 
-          {/* Time Entries List - Compact, scrolls with the page */}
+          {/* Entries List - Time entries + Charges merged chronologically */}
           <div style={{flex: 1, overflowY: 'auto', paddingBottom: 100}}>
-            {clientEntries.length === 0 ? (
-              <div className="m-empty-state">אין דיווחי שעות עדיין</div>
-            ) : (
-              <div style={{display: 'flex', flexDirection: 'column', padding: '0 16px', background: 'white', borderRadius: 12, border: '1px solid #E5E7EB', margin: '0 4px'}}>
-                {[...clientEntries].sort((a,b)=>{
-                  const dA = new Date(`${a.startDate}T${a.startTime}`).getTime()
-                  const dB = new Date(`${b.startDate}T${b.startTime}`).getTime()
-                  return dB - dA
-                }).map((entry, idx, arr) => {
-                  const hours = calculateHours(entry)
-                  const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100)
-                  const status = entry.billingStatus || 'pending'
-                  const statusColor = status === 'paid' ? '#10b981' : status === 'invoiced' ? '#3b82f6' : '#f59e0b'
-                  const empStatus = entry.employeePaidStatus || 'pending'
-                  const empStatusColor = empStatus === 'paid' ? '#8b5cf6' : '#cbd5e1'
-                  const hasEmployee = !!entry.employeeId
-                  const openEntryEdit = () => {
-                    setEntryFormStartDate(entry.startDate)
-                    setEntryFormEndDate(entry.endDate)
-                    setEntryFormStartTime(entry.startTime)
-                    setEntryFormEndTime(entry.endTime)
-                    setEntryFormNotes(entry.notes || '')
-                    setEntryFormEmployeeId(entry.employeeId || 'self')
-                    setEntryFormClientId(entry.clientId)
-                    setEditEntryId(entry.id)
-                    setAddTimeEntryOpen(true)
-                  }
-                  return (
-                    <div
-                      key={entry.id}
-                      onTouchStart={() => startLongPress(openEntryEdit)}
-                      onTouchEnd={cancelLongPress}
-                      onTouchMove={cancelLongPress}
-                      onTouchCancel={cancelLongPress}
-                      onContextMenu={(e) => { e.preventDefault(); openEntryEdit() }}
-                      onClick={() => { if (longPressFiredRef.current) { longPressFiredRef.current = false } }}
-                      style={{
-                        padding: '14px 0',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        borderBottom: '1px solid #E5E7EB',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <div style={{flex: 1, display:'flex', alignItems:'center', gap: 8}}>
-                        <div>
-                          <div style={{display:'flex', alignItems:'center', gap: 8, flexWrap:'wrap'}}>
-                            <span style={{fontSize: 18, fontWeight: 800, color: '#111827'}}>
-                              {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit', year: '2-digit'})}
-                            </span>
-                            <span style={{
-                              fontSize: 11, padding: '2px 6px', borderRadius: '4px', fontWeight: 600,
-                              background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7',
-                              color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e'
-                            }}>
-                              {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
-                            </span>
-                            {entry.invoiceNumber && <span style={{fontSize: 11, color: '#3b82f6'}}>#{entry.invoiceNumber}</span>}
+            {(() => {
+              const charges = chargeEntries.filter(c => c.clientId === selectedClientId)
+              const allItems = [
+                ...clientEntries.map(e => ({ type: 'entry' as const, data: e, date: e.startDate, sortKey: `${e.startDate}T${e.startTime}` })),
+                ...charges.map(c => ({ type: 'charge' as const, data: c, date: c.date, sortKey: c.date }))
+              ].sort((a, b) => b.sortKey.localeCompare(a.sortKey))
+
+              if (allItems.length === 0) return <div className="m-empty-state">אין דיווחים עדיין</div>
+
+              return (
+                <div style={{display: 'flex', flexDirection: 'column', padding: '0 16px', background: 'white', borderRadius: 12, border: '1px solid #E5E7EB', margin: '0 4px'}}>
+                  {allItems.map((item, idx) => {
+                    if (item.type === 'entry') {
+                      const entry = item.data
+                      const hours = calculateHours(entry)
+                      const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100)
+                      const status = entry.billingStatus || 'pending'
+                      const openEntryEdit = () => {
+                        setEntryFormStartDate(entry.startDate)
+                        setEntryFormEndDate(entry.endDate)
+                        setEntryFormStartTime(entry.startTime)
+                        setEntryFormEndTime(entry.endTime)
+                        setEntryFormNotes(entry.notes || '')
+                        setEntryFormEmployeeId(entry.employeeId || 'self')
+                        setEntryFormClientId(entry.clientId)
+                        setEditEntryId(entry.id)
+                        setAddTimeEntryOpen(true)
+                      }
+                      return (
+                        <div key={entry.id}
+                          onTouchStart={() => startLongPress(openEntryEdit)}
+                          onTouchEnd={cancelLongPress}
+                          onTouchMove={cancelLongPress}
+                          onTouchCancel={cancelLongPress}
+                          onContextMenu={(e) => { e.preventDefault(); openEntryEdit() }}
+                          onClick={() => { if (longPressFiredRef.current) { longPressFiredRef.current = false } }}
+                          style={{ padding: '14px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E5E7EB', cursor: 'pointer' }}>
+                          <div style={{flex: 1, display:'flex', alignItems:'center', gap: 8}}>
+                            <div>
+                              <div style={{display:'flex', alignItems:'center', gap: 8, flexWrap:'wrap'}}>
+                                <span style={{fontSize: 18, fontWeight: 800, color: '#111827'}}>
+                                  {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit', year: '2-digit'})}
+                                </span>
+                                <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: '4px', fontWeight: 600, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e' }}>
+                                  {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
+                                </span>
+                                {entry.invoiceNumber && <span style={{fontSize: 11, color: '#3b82f6'}}>#{entry.invoiceNumber}</span>}
+                              </div>
+                              {entry.notes && <div style={{fontSize: 12, color: '#9CA3AF', marginTop: 2}}>{entry.notes}</div>}
+                            </div>
                           </div>
-                          {/* שעות מוסתרות - התאריך מספיק */}
-                          {entry.notes && (
-                            <div style={{fontSize: 12, color: '#9CA3AF', marginTop: 2}}>{entry.notes}</div>
-                          )}
+                          <div style={{textAlign: 'left', marginLeft: '12px', flexShrink: 0}}>
+                            <div style={{fontSize: 15, fontWeight: 700, color: '#111827'}}>₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
+                            <div style={{fontSize: 11, color: '#6B7280'}}>{hours.toFixed(1)}h</div>
+                          </div>
                         </div>
-                      </div>
-                      <div style={{textAlign: 'left', marginLeft: '12px', flexShrink: 0}}>
-                        <div style={{fontSize: 15, fontWeight: 700, color: '#111827'}}>
-                          ₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
+                      )
+                    } else {
+                      const charge = item.data
+                      const tag = chargeTags.find(t => t.id === charge.tagId)
+                      const status = charge.billingStatus || 'pending'
+                      const openChargeEdit = () => {
+                        setChargeFormClientId(charge.clientId); setChargeFormDate(charge.date); setChargeFormAmount(String(charge.amount)); setChargeFormTagId(charge.tagId); setChargeFormNotes(charge.notes || ''); setEditChargeId(charge.id); setAddChargeOpen(true)
+                      }
+                      return (
+                        <div key={charge.id}
+                          onTouchStart={() => startLongPress(openChargeEdit)}
+                          onTouchEnd={cancelLongPress} onTouchMove={cancelLongPress} onTouchCancel={cancelLongPress}
+                          onContextMenu={e => { e.preventDefault(); openChargeEdit() }}
+                          onClick={() => { if (longPressFiredRef.current) { longPressFiredRef.current = false; return } }}
+                          style={{ padding: '14px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E5E7EB', cursor: 'pointer', background: '#faf5ff' }}>
+                          <div style={{flex: 1}}>
+                            <div style={{display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap'}}>
+                              <span style={{fontSize: 18, fontWeight: 800, color: '#111827'}}>
+                                {new Date(charge.date).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit', year: '2-digit'})}
+                              </span>
+                              <span style={{fontSize: 11, padding: '1px 6px', borderRadius: 4, background: '#ede9fe', color: '#7c3aed', fontWeight: 600}}>{tag?.name || charge.tagId}</span>
+                              <span style={{fontSize: 11, padding: '2px 6px', borderRadius: '4px', fontWeight: 600, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e' }}>
+                                {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
+                              </span>
+                            </div>
+                            {charge.notes && <div style={{fontSize: 12, color: '#9CA3AF', marginTop: 2}}>{charge.notes}</div>}
+                          </div>
+                          <div style={{fontSize: 15, fontWeight: 700, color: '#7c3aed'}}>₪{charge.amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
                         </div>
-                        <div style={{fontSize: 11, color: '#6B7280'}}>
-                          {hours.toFixed(1)}h
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-            {/* One-time charges for this client */}
-            {chargeEntries.filter(c => c.clientId === selectedClientId).length > 0 && (
-              <div style={{margin: '12px 4px 0', background: 'white', borderRadius: 12, border: '1px solid #E5E7EB', overflow: 'hidden'}}>
-                <div style={{padding: '8px 16px', background: '#faf5ff', borderBottom: '1px solid #ede9fe'}}>
-                  <span style={{fontSize: 13, fontWeight: 700, color: '#7c3aed'}}>חיובים חד-פעמיים</span>
+                      )
+                    }
+                  })}
                 </div>
-                {[...chargeEntries.filter(c => c.clientId === selectedClientId)].sort((a,b) => b.date.localeCompare(a.date)).map(charge => {
-                  const tag = chargeTags.find(t => t.id === charge.tagId)
-                  const status = charge.billingStatus || 'pending'
-                  return (
-                    <div key={charge.id}
-                      onTouchStart={() => startLongPress(() => { setChargeFormClientId(charge.clientId); setChargeFormDate(charge.date); setChargeFormAmount(String(charge.amount)); setChargeFormTagId(charge.tagId); setChargeFormNotes(charge.notes || ''); setEditChargeId(charge.id); setAddChargeOpen(true) })}
-                      onTouchEnd={cancelLongPress} onTouchMove={cancelLongPress} onTouchCancel={cancelLongPress}
-                      onContextMenu={e => { e.preventDefault(); setChargeFormClientId(charge.clientId); setChargeFormDate(charge.date); setChargeFormAmount(String(charge.amount)); setChargeFormTagId(charge.tagId); setChargeFormNotes(charge.notes || ''); setEditChargeId(charge.id); setAddChargeOpen(true) }}
-                      onClick={() => { if (longPressFiredRef.current) { longPressFiredRef.current = false; return } }}
-                      style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', borderBottom: '1px solid #F9FAFB', cursor: 'pointer'}}>
-                      <div>
-                        <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
-                          <span style={{fontSize: 13, fontWeight: 600, color: '#111827'}}>{new Date(charge.date).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit'})}</span>
-                          <span style={{fontSize: 11, padding: '1px 6px', borderRadius: 4, background: '#ede9fe', color: '#7c3aed', fontWeight: 600}}>{tag?.name || charge.tagId}</span>
-                          <span style={{fontSize: 11, padding: '1px 5px', borderRadius: 4, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e', fontWeight: 600}}>
-                            {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
-                          </span>
-                        </div>
-                        {charge.notes && <div style={{fontSize: 12, color: '#9CA3AF', marginTop: 2}}>{charge.notes}</div>}
-                      </div>
-                      <div style={{fontSize: 15, fontWeight: 700, color: '#7c3aed'}}>₪{charge.amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
+              )
+            })()}
           </div>
 
         </div>
@@ -3880,33 +3860,41 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           </div>
                         </div>
 
-                        {/* Entries in this period */}
+                        {/* Entries + Charges merged in this period */}
                         <div style={{background: 'white', marginBottom: 4}}>
-                          {entries.map(entry => {
-                            const client = clients.find(c => c.id === entry.clientId)
-                            if (!client) return null
-                            const hours = calculateHours(entry)
-                            const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100)
-                            const status = entry.billingStatus || 'pending'
-                            return (
-                              <div key={entry.id}
-                                onClick={() => {
-                                  setEntryFormStartDate(entry.startDate)
-                                  setEntryFormEndDate(entry.endDate)
-                                  setEntryFormStartTime(entry.startTime)
-                                  setEntryFormEndTime(entry.endTime)
-                                  setEntryFormNotes(entry.notes || '')
-                                  setEntryFormEmployeeId(entry.employeeId || 'self')
-                                  setEntryFormClientId(entry.clientId)
-                                  setEditEntryId(entry.id)
-                                  setAddTimeEntryOpen(true)
-                                }}
-                                style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderBottom: '1px solid #F9FAFB', cursor: 'pointer'}}
-                              >
-                                <div style={{minWidth: 0}}>
-                                  <div style={{fontSize: 14, fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{client.name}</div>
-                                  <div style={{fontSize: 12, color: '#6B7280', marginTop: 4}}>
-                                    <span style={{fontSize: 16, fontWeight: 700, color: '#374151'}}>{new Date(entry.startDate).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit', year:'2-digit'})}</span>
+                          {(() => {
+                            // Merge and sort chronologically within period
+                            const merged = [
+                              ...entries.map(e => ({ type: 'entry' as const, data: e, sortKey: `${e.startDate}T${e.startTime}` })),
+                              ...charges.map(c => ({ type: 'charge' as const, data: c, sortKey: c.date }))
+                            ].sort((a, b) => b.sortKey.localeCompare(a.sortKey))
+                            return merged.map(item => {
+                              if (item.type === 'entry') {
+                                const entry = item.data
+                                const client = clients.find(c => c.id === entry.clientId)
+                                if (!client) return null
+                                const hours = calculateHours(entry)
+                                const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100)
+                                const status = entry.billingStatus || 'pending'
+                                return (
+                                  <div key={entry.id}
+                                    onClick={() => {
+                                      setEntryFormStartDate(entry.startDate)
+                                      setEntryFormEndDate(entry.endDate)
+                                      setEntryFormStartTime(entry.startTime)
+                                      setEntryFormEndTime(entry.endTime)
+                                      setEntryFormNotes(entry.notes || '')
+                                      setEntryFormEmployeeId(entry.employeeId || 'self')
+                                      setEntryFormClientId(entry.clientId)
+                                      setEditEntryId(entry.id)
+                                      setAddTimeEntryOpen(true)
+                                    }}
+                                    style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderBottom: '1px solid #F9FAFB', cursor: 'pointer'}}
+                                  >
+                                    <div style={{minWidth: 0}}>
+                                      <div style={{fontSize: 14, fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{client.name}</div>
+                                      <div style={{fontSize: 12, color: '#6B7280', marginTop: 4}}>
+                                        <span style={{fontSize: 16, fontWeight: 700, color: '#374151'}}>{new Date(entry.startDate).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit', year:'2-digit'})}</span>
                                     <span style={{marginRight: 6, marginLeft: 8, fontSize: 11, padding: '1px 5px', borderRadius: 4, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e'}}>
                                       {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
                                     </span>
@@ -3918,8 +3906,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                 </div>
                               </div>
                             )
-                          })}
-                          {charges.map(charge => {
+                          } else {
+                            const charge = item.data
                             const client = clients.find(c => c.id === charge.clientId)
                             if (!client) return null
                             const tag = chargeTags.find(t => t.id === charge.tagId)
@@ -3935,19 +3923,19 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                   setEditChargeId(charge.id)
                                   setAddChargeOpen(true)
                                 }}
-                                style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', borderBottom: '1px solid #F9FAFB', cursor: 'pointer', background: '#faf5ff'}}
+                                style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderBottom: '1px solid #F9FAFB', cursor: 'pointer', background: '#faf5ff'}}
                               >
                                 <div style={{minWidth: 0}}>
                                   <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
                                     <span style={{fontSize: 14, fontWeight: 600, color: '#111827'}}>{client.name}</span>
                                     <span style={{fontSize: 11, padding: '1px 6px', borderRadius: 4, background: '#ede9fe', color: '#7c3aed', fontWeight: 600}}>{tag?.name || charge.tagId}</span>
                                   </div>
-                                  <div style={{fontSize: 12, color: '#6B7280'}}>
-                                    {new Date(charge.date).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit'})}
-                                    {charge.notes && ` · ${charge.notes}`}
-                                    <span style={{marginRight: 6, fontSize: 11, padding: '1px 5px', borderRadius: 4, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e'}}>
+                                  <div style={{fontSize: 12, color: '#6B7280', marginTop: 4}}>
+                                    <span style={{fontSize: 16, fontWeight: 700, color: '#374151'}}>{new Date(charge.date).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit', year:'2-digit'})}</span>
+                                    <span style={{marginRight: 6, marginLeft: 8, fontSize: 11, padding: '1px 5px', borderRadius: 4, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e'}}>
                                       {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
                                     </span>
+                                    {charge.notes && <span style={{marginRight: 6, color: '#9CA3AF'}}>· {charge.notes}</span>}
                                   </div>
                                 </div>
                                 <div style={{textAlign: 'left', flexShrink: 0}}>
@@ -3956,16 +3944,17 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                 </div>
                               </div>
                             )
-                          })}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </>
-              )
-            })()}
-          </div>
-        )}
+                          }
+                        })
+                      })()}
+                    </div>
+                  </div>
+                )
+              })}
+            </>
+          )})()}
+        </div>
+      )}
 
         {/* Tab 3: Summary */}
         {timeTrackingTab === 'summary' && (
