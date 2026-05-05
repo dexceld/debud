@@ -3063,17 +3063,14 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           onContextMenu={(e) => { e.preventDefault(); openEntryEdit() }}
                           onClick={() => { if (longPressFiredRef.current) { longPressFiredRef.current = false; return } openEntryEdit() }}
                           style={{ padding: '10px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E5E7EB', cursor: 'pointer' }}>
-                          <div style={{flex: 1, display:'flex', alignItems:'center', gap: 8}}>
-                            <div style={{display:'flex', alignItems:'center', gap: 8, flexWrap:'wrap'}}>
-                              <span style={{fontSize: 18, fontWeight: 800, color: '#111827'}}>
-                                {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit', year: '2-digit'})}
-                              </span>
-                              <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: '4px', fontWeight: 600, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e' }}>
-                                {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
-                              </span>
-                              {entry.invoiceNumber && <span style={{fontSize: 11, color: '#3b82f6'}}>#{entry.invoiceNumber}</span>}
-                            </div>
-                          </div>
+                          <span style={{fontSize: 18, fontWeight: 800, color: '#111827'}}>
+                            {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit', year: '2-digit'})}
+                          </span>
+                          {entry.employeeId && entry.employeeId !== 'self' && (
+                            <span style={{fontSize: 13, color: '#6B7280', fontWeight: 500}}>
+                              {employees.find(e => e.id === entry.employeeId)?.name || 'עובד'}
+                            </span>
+                          )}
                           <div style={{textAlign: 'left', marginLeft: '12px', flexShrink: 0}}>
                             <div style={{fontSize: 15, fontWeight: 700, color: '#111827'}}>₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
                             <div style={{fontSize: 14, color: '#6B7280', fontWeight: 600}}>{hours.toFixed(1)}h</div>
