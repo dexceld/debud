@@ -3383,7 +3383,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                               {empPaid ? '✓ שולם' : '⏳ ממתין'}
                             </span>
                             {entry.employeeInvoiceNumber && <span style={{fontSize: 11, color: '#8b5cf6'}}>#{entry.employeeInvoiceNumber}</span>}
-                            {entry.employeePaymentAmount != null && <span style={{fontSize: 11, color: '#a78bfa', fontWeight: 700}}>₪{entry.employeePaymentAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>}
+                            {entry.employeePaymentAmount != null && <span style={{fontSize: 11, color: '#a78bfa', fontWeight: 700}}>💰 ₪{entry.employeePaymentAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})} סה"כ</span>}
                           </div>
                           <div style={{fontSize: 12, color: '#6B7280', marginTop: 2}}>
                             {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit', year: 'numeric'})} · {entry.startTime}–{entry.endTime}
@@ -3412,7 +3412,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   style={{flex: 1, padding: '10px 4px', fontSize: 13, border: 'none', borderRadius: 8, background: '#fef3c7', color: '#92400e', fontWeight: 700, cursor: 'pointer'}}>⏳ טרם שולם</button>
                 <button onClick={() => {
                   const amt = parseFloat(bulkEmployeePaymentAmount)
-                  setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) ? {...e, employeePaidStatus: 'paid', ...(isNaN(amt) ? {} : {employeePaymentAmount: amt})} : e))
+                  const firstId = employeeSelectedIds[0]
+                  setTimeEntries(prev => prev.map(e => {
+                    if (!employeeSelectedIds.includes(e.id)) return e
+                    // סכום כולל נשמר רק ברשומה הראשונה
+                    if (e.id === firstId) return {...e, employeePaidStatus: 'paid', ...(isNaN(amt) ? {} : {employeePaymentAmount: amt})}
+                    return {...e, employeePaidStatus: 'paid', employeePaymentAmount: undefined}
+                  }))
                   setBulkEmployeePaymentAmount('')
                   setEmployeeSelectedIds([])
                   setEmployeeStatusFilter('all')
