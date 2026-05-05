@@ -3061,7 +3061,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                       onContextMenu={(e) => { e.preventDefault(); openEntryEdit() }}
                       onClick={() => { if (longPressFiredRef.current) { longPressFiredRef.current = false } }}
                       style={{
-                        padding: '10px 0',
+                        padding: '14px 0',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
@@ -3071,9 +3071,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     >
                       <div style={{flex: 1, display:'flex', alignItems:'center', gap: 8}}>
                         <div>
-                          <div style={{display:'flex', alignItems:'center', gap: 6, flexWrap:'wrap'}}>
-                            <span style={{fontSize: 16, fontWeight: 700, color: '#111827'}}>
-                              {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit'})}
+                          <div style={{display:'flex', alignItems:'center', gap: 8, flexWrap:'wrap'}}>
+                            <span style={{fontSize: 18, fontWeight: 800, color: '#111827'}}>
+                              {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit', year: '2-digit'})}
                             </span>
                             <span style={{
                               fontSize: 11, padding: '2px 6px', borderRadius: '4px', fontWeight: 600,
@@ -3084,9 +3084,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                             </span>
                             {entry.invoiceNumber && <span style={{fontSize: 11, color: '#3b82f6'}}>#{entry.invoiceNumber}</span>}
                           </div>
-                          <div style={{fontSize: 12, color: '#6B7280', marginTop: '2px'}}>
-                            {entry.startTime}–{entry.endTime}
-                          </div>
+                          {/* שעות מוסתרות - התאריך מספיק */}
                           {entry.notes && (
                             <div style={{fontSize: 12, color: '#9CA3AF', marginTop: 2}}>{entry.notes}</div>
                           )}
@@ -3408,7 +3406,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                         setAddTimeEntryOpen(true)
                       }}
                       style={{
-                        padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                         borderBottom: '1px solid #E5E7EB', background: isSelected ? '#F5F3FF' : 'white', cursor: 'pointer'
                       }}
                     >
@@ -3427,8 +3425,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                             {entry.employeeInvoiceNumber && <span style={{fontSize: 11, color: '#8b5cf6'}}>#{entry.employeeInvoiceNumber}</span>}
                             {entry.employeePaymentAmount != null && <span style={{fontSize: 11, color: '#a78bfa', fontWeight: 700}}>💰 ₪{entry.employeePaymentAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})} סה"כ</span>}
                           </div>
-                          <div style={{fontSize: 12, color: '#6B7280', marginTop: 2}}>
-                            {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit', year: 'numeric'})} · {entry.startTime}–{entry.endTime}
+                          <div style={{fontSize: 13, color: '#6B7280', marginTop: 4}}>
+                            {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit', year: '2-digit'})}
                           </div>
                         </div>
                       </div>
@@ -3903,14 +3901,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                   setEditEntryId(entry.id)
                                   setAddTimeEntryOpen(true)
                                 }}
-                                style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', borderBottom: '1px solid #F9FAFB', cursor: 'pointer'}}
+                                style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderBottom: '1px solid #F9FAFB', cursor: 'pointer'}}
                               >
                                 <div style={{minWidth: 0}}>
                                   <div style={{fontSize: 14, fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{client.name}</div>
-                                  <div style={{fontSize: 12, color: '#6B7280'}}>
-                                    {new Date(entry.startDate).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit'})}
-                                    {entry.startTime && ` · ${entry.startTime}–${entry.endTime}`}
-                                    <span style={{marginRight: 6, fontSize: 11, padding: '1px 5px', borderRadius: 4, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e'}}>
+                                  <div style={{fontSize: 12, color: '#6B7280', marginTop: 4}}>
+                                    <span style={{fontSize: 16, fontWeight: 700, color: '#374151'}}>{new Date(entry.startDate).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit', year:'2-digit'})}</span>
+                                    <span style={{marginRight: 6, marginLeft: 8, fontSize: 11, padding: '1px 5px', borderRadius: 4, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e'}}>
                                       {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
                                     </span>
                                   </div>
@@ -4270,7 +4267,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                               onTouchCancel={cancelLongPress}
                               onContextMenu={(e) => { e.preventDefault(); toggleSelect() }}
                               style={{
-                                padding: '10px 14px',
+                                padding: '14px 16px',
                                 display: 'flex',
                                 justifyContent: 'space-between',
                                 alignItems: 'center',
@@ -4291,8 +4288,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                 <div style={{fontSize: 14, fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
                                   {client.name}
                                 </div>
-                                <div style={{fontSize: 13, color: '#374151', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap'}}>
-                                  {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit', year: 'numeric'})}
+                                <div style={{fontSize: 13, color: '#374151', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 4}}>
+                                  <span style={{fontSize: 15, fontWeight: 700, color: '#374151'}}>{new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit', year: '2-digit'})}</span>
                                   <span style={{ 
                                     fontSize: 11, 
                                     padding: '2px 6px', 
