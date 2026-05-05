@@ -4703,8 +4703,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <label>שם הלקוח</label>
             <input 
               type="text"
-              value={clientFormName}
-              onChange={e => setClientFormName(e.target.value)}
+              defaultValue={clientFormName}
+              onBlur={e => setClientFormName(e.target.value)}
               placeholder="שם הלקוח"
               autoFocus
             />
@@ -4715,8 +4715,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <input 
               type="number"
               inputMode="numeric"
-              value={clientFormRate}
-              onChange={e => setClientFormRate(e.target.value)}
+              defaultValue={clientFormRate}
+              onBlur={e => setClientFormRate(e.target.value)}
               placeholder="100"
             />
           </div>
@@ -4726,8 +4726,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <input 
               type="number"
               inputMode="decimal"
-              value={clientFormVat}
-              onChange={e => setClientFormVat(e.target.value)}
+              defaultValue={clientFormVat}
+              onBlur={e => setClientFormVat(e.target.value)}
               placeholder="18"
             />
           </div>
@@ -4737,8 +4737,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <input 
               type="number"
               inputMode="decimal"
-              value={clientFormIncomeTax}
-              onChange={e => setClientFormIncomeTax(e.target.value)}
+              defaultValue={clientFormIncomeTax}
+              onBlur={e => setClientFormIncomeTax(e.target.value)}
               placeholder="30"
             />
           </div>
@@ -4859,7 +4859,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           {/* Date */}
           <div style={{marginBottom: 14}}>
             <div style={{fontSize: 11, color: '#9CA3AF', fontWeight: 700, marginBottom: 6}}>תאריך {fieldErrors.date && <span style={{color: '#ef4444'}}>*</span>}</div>
-            <input type="date" value={chargeFormDate} onChange={e => setChargeFormDate(e.target.value)}
+            <input type="date" defaultValue={chargeFormDate} onBlur={e => setChargeFormDate(e.target.value)}
               style={{width: '100%', padding: '10px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 15, outline: 'none'}} />
           </div>
 
