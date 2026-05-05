@@ -2958,7 +2958,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </button>
             <h1 className="m-title">{client.name}</h1>
             <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
-              {/* Add Entry Button - like other screens */}
               <button className="m-hbtn m-hbtn-plus" onClick={() => {
                 setEditEntryId(null)
                 setEntryFormClientId(selectedClientId || '')
@@ -2973,7 +2972,18 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 setAddTimeEntryOpen(true)
               }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                <span className="m-hbtn-label">חדש</span>
+                <span className="m-hbtn-label">שעות</span>
+              </button>
+              <button className="m-hbtn" onClick={() => {
+                setChargeFormClientId(selectedClientId || '')
+                setChargeFormDate(new Date().toISOString().split('T')[0])
+                setChargeFormAmount('')
+                setChargeFormTagId('')
+                setChargeFormNotes('')
+                setEditChargeId(null)
+                setAddChargeOpen(true)
+              }} style={{background: '#f3e8ff', color: '#7c3aed', border: 'none', borderRadius: 8, padding: '6px 10px', fontSize: 12, fontWeight: 700, cursor: 'pointer'}}>
+                ₪ חיוב
               </button>
               <button className="m-add-btn" onClick={openEditClient}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -3090,6 +3100,38 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           {hours.toFixed(1)}h
                         </div>
                       </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+            {/* One-time charges for this client */}
+            {chargeEntries.filter(c => c.clientId === selectedClientId).length > 0 && (
+              <div style={{margin: '12px 4px 0', background: 'white', borderRadius: 12, border: '1px solid #E5E7EB', overflow: 'hidden'}}>
+                <div style={{padding: '8px 16px', background: '#faf5ff', borderBottom: '1px solid #ede9fe'}}>
+                  <span style={{fontSize: 13, fontWeight: 700, color: '#7c3aed'}}>חיובים חד-פעמיים</span>
+                </div>
+                {[...chargeEntries.filter(c => c.clientId === selectedClientId)].sort((a,b) => b.date.localeCompare(a.date)).map(charge => {
+                  const tag = chargeTags.find(t => t.id === charge.tagId)
+                  const status = charge.billingStatus || 'pending'
+                  return (
+                    <div key={charge.id}
+                      onTouchStart={() => startLongPress(() => { setChargeFormClientId(charge.clientId); setChargeFormDate(charge.date); setChargeFormAmount(String(charge.amount)); setChargeFormTagId(charge.tagId); setChargeFormNotes(charge.notes || ''); setEditChargeId(charge.id); setAddChargeOpen(true) })}
+                      onTouchEnd={cancelLongPress} onTouchMove={cancelLongPress} onTouchCancel={cancelLongPress}
+                      onContextMenu={e => { e.preventDefault(); setChargeFormClientId(charge.clientId); setChargeFormDate(charge.date); setChargeFormAmount(String(charge.amount)); setChargeFormTagId(charge.tagId); setChargeFormNotes(charge.notes || ''); setEditChargeId(charge.id); setAddChargeOpen(true) }}
+                      onClick={() => { if (longPressFiredRef.current) { longPressFiredRef.current = false; return } }}
+                      style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', borderBottom: '1px solid #F9FAFB', cursor: 'pointer'}}>
+                      <div>
+                        <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
+                          <span style={{fontSize: 13, fontWeight: 600, color: '#111827'}}>{new Date(charge.date).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit'})}</span>
+                          <span style={{fontSize: 11, padding: '1px 6px', borderRadius: 4, background: '#ede9fe', color: '#7c3aed', fontWeight: 600}}>{tag?.name || charge.tagId}</span>
+                          <span style={{fontSize: 11, padding: '1px 5px', borderRadius: 4, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e', fontWeight: 600}}>
+                            {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
+                          </span>
+                        </div>
+                        {charge.notes && <div style={{fontSize: 12, color: '#9CA3AF', marginTop: 2}}>{charge.notes}</div>}
+                      </div>
+                      <div style={{fontSize: 15, fontWeight: 700, color: '#7c3aed'}}>₪{charge.amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
                     </div>
                   )
                 })}
@@ -4751,6 +4793,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     if (!addChargeOpen) return null
     const [newTagName, setNewTagName] = useState('')
     const [showNewTag, setShowNewTag] = useState(false)
+    const [editingTagId, setEditingTagId] = useState<string | null>(null)
+    const [editingTagName, setEditingTagName] = useState('')
     const [fieldErrors, setFieldErrors] = useState<{client?: boolean, date?: boolean, amount?: boolean, tag?: boolean}>({})
 
     const save = () => {
@@ -4833,12 +4877,29 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </div>
             <div style={{display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6}}>
               {chargeTags.map(tag => (
-                <button key={tag.id} onClick={() => setChargeFormTagId(tag.id)}
-                  style={{padding: '6px 12px', borderRadius: 16, border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                    background: chargeFormTagId === tag.id ? '#7c3aed' : '#F3F4F6',
-                    color: chargeFormTagId === tag.id ? 'white' : '#374151'}}>
-                  {tag.name}
-                </button>
+                editingTagId === tag.id ? (
+                  <div key={tag.id} style={{display: 'flex', gap: 4, alignItems: 'center'}}>
+                    <input value={editingTagName} onChange={e => setEditingTagName(e.target.value)}
+                      style={{padding: '4px 8px', border: '1px solid #c4b5fd', borderRadius: 8, fontSize: 13, outline: 'none', width: 90}} />
+                    <button onClick={() => { if (editingTagName.trim()) { setChargeTags(prev => prev.map(t => t.id === tag.id ? {...t, name: editingTagName.trim()} : t)); setEditingTagId(null) } }}
+                      style={{padding: '4px 8px', background: '#7c3aed', color: 'white', border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer'}}>✓</button>
+                    <button onClick={() => { if (confirm('למחוק תיוג זה?')) { setChargeTags(prev => prev.filter(t => t.id !== tag.id)); if (chargeFormTagId === tag.id) setChargeFormTagId(''); setEditingTagId(null) } }}
+                      style={{padding: '4px 8px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer'}}>✕</button>
+                  </div>
+                ) : (
+                  <div key={tag.id} style={{display: 'flex', alignItems: 'center', gap: 2}}>
+                    <button onClick={() => setChargeFormTagId(tag.id)}
+                      style={{padding: '6px 10px', borderRadius: '16px 0 0 16px', border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                        background: chargeFormTagId === tag.id ? '#7c3aed' : '#F3F4F6',
+                        color: chargeFormTagId === tag.id ? 'white' : '#374151'}}>
+                      {tag.name}
+                    </button>
+                    <button onClick={() => { setEditingTagId(tag.id); setEditingTagName(tag.name) }}
+                      style={{padding: '6px 6px', borderRadius: '0 16px 16px 0', border: 'none', fontSize: 11, cursor: 'pointer',
+                        background: chargeFormTagId === tag.id ? '#6d28d9' : '#e5e7eb',
+                        color: chargeFormTagId === tag.id ? 'white' : '#6B7280'}}>✎</button>
+                  </div>
+                )
               ))}
               <button onClick={() => setShowNewTag(v => !v)}
                 style={{padding: '6px 12px', borderRadius: 16, border: '1px dashed #c4b5fd', fontSize: 13, fontWeight: 600, cursor: 'pointer', background: 'transparent', color: '#7c3aed'}}>
