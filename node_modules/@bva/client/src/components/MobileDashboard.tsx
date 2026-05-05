@@ -3063,19 +3063,16 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           onTouchCancel={cancelLongPress}
                           onContextMenu={(e) => { e.preventDefault(); openEntryEdit() }}
                           onClick={() => { if (longPressFiredRef.current) { longPressFiredRef.current = false } }}
-                          style={{ padding: '14px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E5E7EB', cursor: 'pointer' }}>
+                          style={{ padding: '10px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E5E7EB', cursor: 'pointer' }}>
                           <div style={{flex: 1, display:'flex', alignItems:'center', gap: 8}}>
-                            <div>
-                              <div style={{display:'flex', alignItems:'center', gap: 8, flexWrap:'wrap'}}>
-                                <span style={{fontSize: 18, fontWeight: 800, color: '#111827'}}>
-                                  {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit', year: '2-digit'})}
-                                </span>
-                                <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: '4px', fontWeight: 600, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e' }}>
-                                  {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
-                                </span>
-                                {entry.invoiceNumber && <span style={{fontSize: 11, color: '#3b82f6'}}>#{entry.invoiceNumber}</span>}
-                              </div>
-                              {entry.notes && <div style={{fontSize: 12, color: '#9CA3AF', marginTop: 2}}>{entry.notes}</div>}
+                            <div style={{display:'flex', alignItems:'center', gap: 8, flexWrap:'wrap'}}>
+                              <span style={{fontSize: 18, fontWeight: 800, color: '#111827'}}>
+                                {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit', year: '2-digit'})}
+                              </span>
+                              <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: '4px', fontWeight: 600, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e' }}>
+                                {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
+                              </span>
+                              {entry.invoiceNumber && <span style={{fontSize: 11, color: '#3b82f6'}}>#{entry.invoiceNumber}</span>}
                             </div>
                           </div>
                           <div style={{textAlign: 'left', marginLeft: '12px', flexShrink: 0}}>
@@ -3097,23 +3094,20 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           onTouchEnd={cancelLongPress} onTouchMove={cancelLongPress} onTouchCancel={cancelLongPress}
                           onContextMenu={e => { e.preventDefault(); openChargeEdit() }}
                           onClick={() => { if (longPressFiredRef.current) { longPressFiredRef.current = false; return } }}
-                          style={{ padding: '14px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E5E7EB', cursor: 'pointer', background: '#faf5ff' }}>
-                          <div style={{flex: 1}}>
-                            <div style={{display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap'}}>
-                              <span style={{fontSize: 18, fontWeight: 800, color: '#111827'}}>
-                                {new Date(charge.date).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit', year: '2-digit'})}
+                          style={{ padding: '10px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E5E7EB', cursor: 'pointer', background: '#faf5ff' }}>
+                          <div style={{display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap'}}>
+                            <span style={{fontSize: 18, fontWeight: 800, color: '#111827'}}>
+                              {new Date(charge.date).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit', year: '2-digit'})}
+                            </span>
+                            <span style={{fontSize: 11, padding: '1px 6px', borderRadius: 4, background: '#ede9fe', color: '#7c3aed', fontWeight: 600}}>{tag?.name || charge.tagId}</span>
+                            {charge.employeeId && (
+                              <span style={{fontSize: 11, padding: '1px 6px', borderRadius: 4, background: '#f3e8ff', color: '#6b21a8', fontWeight: 600}}>
+                                {employees.find(e => e.id === charge.employeeId)?.name || 'עובד'}
                               </span>
-                              <span style={{fontSize: 11, padding: '1px 6px', borderRadius: 4, background: '#ede9fe', color: '#7c3aed', fontWeight: 600}}>{tag?.name || charge.tagId}</span>
-                              {charge.employeeId && (
-                                <span style={{fontSize: 11, padding: '1px 6px', borderRadius: 4, background: '#f3e8ff', color: '#6b21a8', fontWeight: 600}}>
-                                  {employees.find(e => e.id === charge.employeeId)?.name || 'עובד'}
-                                </span>
-                              )}
-                              <span style={{fontSize: 11, padding: '2px 6px', borderRadius: '4px', fontWeight: 600, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e' }}>
-                                {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
-                              </span>
-                            </div>
-                            {charge.notes && <div style={{fontSize: 12, color: '#9CA3AF', marginTop: 2}}>{charge.notes}</div>}
+                            )}
+                            <span style={{fontSize: 11, padding: '2px 6px', borderRadius: '4px', fontWeight: 600, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e' }}>
+                              {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
+                            </span>
                           </div>
                           <div style={{fontSize: 15, fontWeight: 700, color: '#7c3aed'}}>₪{charge.amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
                         </div>
