@@ -121,6 +121,7 @@ type ChargeEntry = {
   notes?: string
   billingStatus?: 'pending' | 'invoiced' | 'paid'
   invoiceNumber?: string
+  employeeId?: string // העובד שביצע את ההוצאה
 }
 
 type ChargeTag = {
@@ -197,6 +198,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [chargeFormAmount, setChargeFormAmount] = useState('')
   const [chargeFormTagId, setChargeFormTagId] = useState('')
   const [chargeFormNotes, setChargeFormNotes] = useState('')
+  const [chargeFormEmployeeId, setChargeFormEmployeeId] = useState('self')
   const [chargeFormNewTag, setChargeFormNewTag] = useState('')
   const [clients, setClients] = useState<Client[]>(() => {
     const saved = localStorage.getItem(lsKey('time_clients'))
@@ -3086,7 +3088,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                       const tag = chargeTags.find(t => t.id === charge.tagId)
                       const status = charge.billingStatus || 'pending'
                       const openChargeEdit = () => {
-                        setChargeFormClientId(charge.clientId); setChargeFormDate(charge.date); setChargeFormAmount(String(charge.amount)); setChargeFormTagId(charge.tagId); setChargeFormNotes(charge.notes || ''); setEditChargeId(charge.id); setAddChargeOpen(true)
+                        setChargeFormClientId(charge.clientId); setChargeFormDate(charge.date); setChargeFormAmount(String(charge.amount)); setChargeFormTagId(charge.tagId); setChargeFormNotes(charge.notes || ''); setChargeFormEmployeeId(charge.employeeId || 'self'); setEditChargeId(charge.id); setAddChargeOpen(true)
                       }
                       return (
                         <div key={charge.id}
@@ -3101,6 +3103,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                 {new Date(charge.date).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit', year: '2-digit'})}
                               </span>
                               <span style={{fontSize: 11, padding: '1px 6px', borderRadius: 4, background: '#ede9fe', color: '#7c3aed', fontWeight: 600}}>{tag?.name || charge.tagId}</span>
+                              {charge.employeeId && (
+                                <span style={{fontSize: 11, padding: '1px 6px', borderRadius: 4, background: '#f3e8ff', color: '#6b21a8', fontWeight: 600}}>
+                                  {employees.find(e => e.id === charge.employeeId)?.name || 'עובד'}
+                                </span>
+                              )}
                               <span style={{fontSize: 11, padding: '2px 6px', borderRadius: '4px', fontWeight: 600, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e' }}>
                                 {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
                               </span>
@@ -4799,6 +4806,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         tagId: chargeFormTagId,
         notes: chargeFormNotes || undefined,
         billingStatus: 'pending',
+        employeeId: chargeFormEmployeeId === 'self' ? undefined : chargeFormEmployeeId,
       }
       if (editChargeId) {
         setChargeEntries(prev => prev.map(e => e.id === editChargeId ? entry : e))
@@ -4806,7 +4814,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         setChargeEntries(prev => [...prev, entry])
       }
       setAddChargeOpen(false); setEditChargeId(null)
-      setChargeFormClientId(''); setChargeFormDate(''); setChargeFormAmount(''); setChargeFormTagId(''); setChargeFormNotes('')
+      setChargeFormClientId(''); setChargeFormDate(''); setChargeFormAmount(''); setChargeFormTagId(''); setChargeFormNotes(''); setChargeFormEmployeeId('self')
     }
 
     const addTag = () => {
@@ -4837,6 +4845,27 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     background: chargeFormClientId === c.id ? '#1d4ed8' : '#F3F4F6',
                     color: chargeFormClientId === c.id ? 'white' : '#374151'}}>
                   {c.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Employee who made the expense */}
+          <div style={{marginBottom: 14}}>
+            <div style={{fontSize: 11, color: '#9CA3AF', fontWeight: 700, marginBottom: 6}}>מי ביצע את ההוצאה</div>
+            <div style={{display: 'flex', gap: 6, flexWrap: 'wrap'}}>
+              <button onClick={() => setChargeFormEmployeeId('self')}
+                style={{padding: '6px 12px', borderRadius: 16, border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                  background: chargeFormEmployeeId === 'self' ? '#8b5cf6' : '#F3F4F6',
+                  color: chargeFormEmployeeId === 'self' ? 'white' : '#374151'}}>
+                עצמי (בעלים)
+              </button>
+              {employees.map(emp => (
+                <button key={emp.id} onClick={() => setChargeFormEmployeeId(emp.id)}
+                  style={{padding: '6px 12px', borderRadius: 16, border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                    background: chargeFormEmployeeId === emp.id ? '#8b5cf6' : '#F3F4F6',
+                    color: chargeFormEmployeeId === emp.id ? 'white' : '#374151'}}>
+                  {emp.name}
                 </button>
               ))}
             </div>
