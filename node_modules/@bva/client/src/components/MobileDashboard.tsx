@@ -2988,12 +2988,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                 <span className="m-hbtn-label">חיוב</span>
               </button>
-              <button className="m-add-btn" onClick={openEditClient}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <circle cx="12" cy="12" r="1"/>
-                  <circle cx="12" cy="5" r="1"/>
-                  <circle cx="12" cy="19" r="1"/>
+              <button className="m-hbtn m-hbtn-menu" onClick={openEditClient}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/>
                 </svg>
+                <span className="m-hbtn-label">תפריט</span>
               </button>
             </div>
           </div>
@@ -3062,7 +3061,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           onTouchMove={cancelLongPress}
                           onTouchCancel={cancelLongPress}
                           onContextMenu={(e) => { e.preventDefault(); openEntryEdit() }}
-                          onClick={() => { if (longPressFiredRef.current) { longPressFiredRef.current = false } }}
+                          onClick={() => { if (longPressFiredRef.current) { longPressFiredRef.current = false; return } openEntryEdit() }}
                           style={{ padding: '10px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E5E7EB', cursor: 'pointer' }}>
                           <div style={{flex: 1, display:'flex', alignItems:'center', gap: 8}}>
                             <div style={{display:'flex', alignItems:'center', gap: 8, flexWrap:'wrap'}}>
@@ -3077,7 +3076,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           </div>
                           <div style={{textAlign: 'left', marginLeft: '12px', flexShrink: 0}}>
                             <div style={{fontSize: 15, fontWeight: 700, color: '#111827'}}>₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
-                            <div style={{fontSize: 11, color: '#6B7280'}}>{hours.toFixed(1)}h</div>
+                            <div style={{fontSize: 14, color: '#6B7280', fontWeight: 600}}>{hours.toFixed(1)}h</div>
                           </div>
                         </div>
                       )
@@ -3093,7 +3092,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           onTouchStart={() => startLongPress(openChargeEdit)}
                           onTouchEnd={cancelLongPress} onTouchMove={cancelLongPress} onTouchCancel={cancelLongPress}
                           onContextMenu={e => { e.preventDefault(); openChargeEdit() }}
-                          onClick={() => { if (longPressFiredRef.current) { longPressFiredRef.current = false; return } }}
+                          onClick={() => { if (longPressFiredRef.current) { longPressFiredRef.current = false; return } openChargeEdit() }}
                           style={{ padding: '10px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E5E7EB', cursor: 'pointer', background: '#faf5ff' }}>
                           <div style={{display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap'}}>
                             <span style={{fontSize: 18, fontWeight: 800, color: '#111827'}}>
@@ -3159,8 +3158,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
             <h1 className="m-title">{employee.name}</h1>
-            <div style={{display: 'flex', gap: 8}}>
-              <button className="m-hbtn" onClick={() => {
+            <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+              <button className="m-hbtn m-hbtn-menu" onClick={() => {
                 setEmployeeFormName(employee.name)
                 setEmployeeFormEmail(employee.email)
                 setEmployeeFormClients(employee.clientIds)
@@ -3168,6 +3167,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 setAddEmployeeOpen(true)
               }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                <span className="m-hbtn-label">תפריט</span>
               </button>
             </div>
           </div>
@@ -3414,7 +3414,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                       </div>
                       <div style={{textAlign: 'left', flexShrink: 0}}>
                         <div style={{fontSize: 15, fontWeight: 700, color: '#111827'}}>₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
-                        <div style={{fontSize: 11, color: '#6B7280'}}>{hours.toFixed(1)}h</div>
+                        <div style={{fontSize: 14, color: '#6B7280', fontWeight: 600}}>{hours.toFixed(1)}h</div>
                       </div>
                     </div>
                   )
@@ -4299,7 +4299,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                               <div style={{fontSize: 15, fontWeight: 700, color: '#111827'}}>
                                 ₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
                               </div>
-                              <div style={{fontSize: 11, color: '#6B7280'}}>{hours.toFixed(1)}h</div>
+                              <div style={{fontSize: 14, color: '#6B7280', fontWeight: 600}}>{hours.toFixed(1)}h</div>
                             </div>
                           </div>
                           </div>
