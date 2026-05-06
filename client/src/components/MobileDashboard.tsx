@@ -269,6 +269,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [clientPeriodFilter, setClientPeriodFilter] = useState<'all' | 'week' | 'month' | 'year'>('all')
   const [clientFilterSheetOpen, setClientFilterSheetOpen] = useState(false)
   const [employeeFilterSheetOpen, setEmployeeFilterSheetOpen] = useState(false)
+  const [employeeStatusPickerOpen, setEmployeeStatusPickerOpen] = useState(false)
   const [reportsFilterSheetOpen, setReportsFilterSheetOpen] = useState(false)
   const [summaryFilterSheetOpen, setSummaryFilterSheetOpen] = useState(false)
   const [summaryPeriod, setSummaryPeriod] = useState<'week' | 'month' | 'year' | 'all'>('all')
@@ -3487,9 +3488,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                       }}
                     >
                       <div style={{display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0}}>
-                        {employeeSelectedIds.length > 0 && (
-                          <input type="checkbox" checked={isSelected} onChange={() => {}} style={{width: 18, height: 18, accentColor: '#8b5cf6'}} />
-                        )}
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={toggleSelect}
+                          onClick={(e) => e.stopPropagation()}
+                          style={{width: 18, height: 18, accentColor: '#8b5cf6', cursor: 'pointer'}}
+                        />
                         <div style={{flex: 1}}>
                           <div style={{display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap'}}>
                             <span style={{fontSize: 14, fontWeight: 600, color: '#111827'}}>{client.name}</span>
@@ -3518,46 +3523,71 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           </div>
           {/* Sticky bottom action bar when employee entries selected */}
           {employeeSelectedIds.length > 0 && (
-            <div style={{flexShrink: 0, background: '#1e293b', borderTop: '2px solid #334155', padding: '10px 16px 16px'}}>
+            <div style={{
+              position: 'sticky', bottom: 0, zIndex: 50,
+              background: '#1e293b',
+              borderTop: '2px solid #334155',
+              padding: '10px 16px 16px',
+              flexShrink: 0
+            }}>
               <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8}}>
-                <span style={{fontSize: 13, fontWeight: 700, color: 'white'}}>תשלום לעובד ({employeeSelectedIds.length} נבחרו):</span>
+                <span style={{fontSize: 13, fontWeight: 700, color: 'white'}}>{employeeSelectedIds.length} דיווחים נבחרו</span>
                 <button onClick={() => setEmployeeSelectedIds([])} style={{fontSize: 12, color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer'}}>✕ בטל</button>
               </div>
-              <div style={{display: 'flex', gap: 6, marginBottom: 8}}>
-                <button onClick={() => { setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) ? {...e, employeePaidStatus: 'pending', employeePaymentAmount: undefined} : e)); setEmployeeSelectedIds([]); setEmployeeStatusFilter('all') }}
-                  style={{flex: 1, padding: '10px 4px', fontSize: 13, border: 'none', borderRadius: 8, background: '#fef3c7', color: '#92400e', fontWeight: 700, cursor: 'pointer'}}>⏳ טרם שולם</button>
-                <button onClick={() => {
-                  const amt = parseFloat(bulkEmployeePaymentAmount)
-                  const firstId = employeeSelectedIds[0]
-                  setTimeEntries(prev => prev.map(e => {
-                    if (!employeeSelectedIds.includes(e.id)) return e
-                    // סכום כולל נשמר רק ברשומה הראשונה
-                    if (e.id === firstId) return {...e, employeePaidStatus: 'paid', ...(isNaN(amt) ? {} : {employeePaymentAmount: amt})}
-                    return {...e, employeePaidStatus: 'paid', employeePaymentAmount: undefined}
-                  }))
-                  setBulkEmployeePaymentAmount('')
-                  setEmployeeSelectedIds([])
-                  setEmployeeStatusFilter('all')
-                }} style={{flex: 1, padding: '10px 4px', fontSize: 13, border: 'none', borderRadius: 8, background: '#f3e8ff', color: '#6b21a8', fontWeight: 700, cursor: 'pointer'}}>✅ שולם לעובד</button>
-              </div>
-              <div style={{display: 'flex', gap: 6, marginBottom: 6}}>
-                <input type="number" inputMode="decimal" placeholder="סכום ששולם לעובד ₪"
-                  key="emp-payment-amount" defaultValue={bulkEmployeePaymentAmount} onBlur={e => setBulkEmployeePaymentAmount(e.target.value)}
-                  style={{flex: 1, padding: '8px 10px', fontSize: 13, border: 'none', borderRadius: 8, background: '#334155', color: 'white', outline: 'none'}} />
-              </div>
               <div style={{display: 'flex', gap: 6}}>
-                <input type="text" placeholder="מס' חשבונית עובד"
-                  key="emp-invoice-employee" defaultValue={bulkEmployeeInvoiceNumber} onBlur={e => setBulkEmployeeInvoiceNumber(e.target.value)}
-                  style={{flex: 1, padding: '8px 10px', fontSize: 13, border: 'none', borderRadius: 8, background: '#334155', color: 'white', outline: 'none'}} />
-                <button onClick={() => {
-                  if (!bulkEmployeeInvoiceNumber.trim()) return
-                  setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) ? {...e, employeeInvoiceNumber: bulkEmployeeInvoiceNumber.trim()} : e))
-                  setBulkEmployeeInvoiceNumber('')
-                  setEmployeeSelectedIds([])
-                  setEmployeeStatusFilter('all')
-                }} style={{padding: '8px 14px', fontSize: 13, border: 'none', borderRadius: 8, background: '#8b5cf6', color: 'white', fontWeight: 700, cursor: 'pointer'}}>שמור</button>
+                <button onClick={() => setEmployeeStatusPickerOpen(true)}
+                  style={{flex: 1, padding: '12px 16px', fontSize: 14, border: 'none', borderRadius: 10, background: '#3b82f6', color: 'white', fontWeight: 700, cursor: 'pointer'}}>
+                  שנה סטטוס
+                </button>
               </div>
             </div>
+          )}
+
+          {/* Employee Status Picker Sheet */}
+          {employeeStatusPickerOpen && (
+            <>
+              <div className="m-overlay" onClick={() => setEmployeeStatusPickerOpen(false)} />
+              <div style={{
+                position: 'fixed', bottom: 0, left: 0, right: 0,
+                background: 'white', borderRadius: '16px 16px 0 0',
+                padding: '20px 16px', zIndex: 500
+              }}>
+                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16}}>
+                  <span style={{fontSize: 16, fontWeight: 700, color: '#111827'}}>בחר סטטוס תשלום</span>
+                  <button onClick={() => setEmployeeStatusPickerOpen(false)} style={{fontSize: 20, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer'}}>✕</button>
+                </div>
+                <div style={{display: 'flex', flexDirection: 'column', gap: 10}}>
+                  <button onClick={() => { setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) ? {...e, employeePaidStatus: 'pending', employeePaymentAmount: undefined} : e)); setEmployeeSelectedIds([]); setEmployeeStatusFilter('all'); setEmployeeStatusPickerOpen(false) }}
+                    style={{padding: '14px 16px', fontSize: 15, border: 'none', borderRadius: 12, background: '#fef3c7', color: '#92400e', fontWeight: 700, cursor: 'pointer', textAlign: 'center'}}>
+                    ⏳ ממתין
+                  </button>
+                  <button onClick={() => {
+                    const amt = parseFloat(bulkEmployeePaymentAmount)
+                    const firstId = employeeSelectedIds[0]
+                    setTimeEntries(prev => prev.map(e => {
+                      if (!employeeSelectedIds.includes(e.id)) return e
+                      if (e.id === firstId) return {...e, employeePaidStatus: 'paid', ...(isNaN(amt) ? {} : {employeePaymentAmount: amt})}
+                      return {...e, employeePaidStatus: 'paid', employeePaymentAmount: undefined}
+                    }))
+                    setBulkEmployeePaymentAmount('')
+                    setEmployeeSelectedIds([])
+                    setEmployeeStatusFilter('all')
+                    setEmployeeStatusPickerOpen(false)
+                  }}
+                    style={{padding: '14px 16px', fontSize: 15, border: 'none', borderRadius: 12, background: '#dcfce7', color: '#166534', fontWeight: 700, cursor: 'pointer', textAlign: 'center'}}>
+                    ✅ שולם
+                  </button>
+                </div>
+                <div style={{marginTop: 16, padding: '12px', background: '#f3f4f6', borderRadius: 12}}>
+                  <div style={{fontSize: 13, color: '#6B7280', marginBottom: 8}}>סכום ששולם לעובד:</div>
+                  <div style={{display: 'flex', gap: 8}}>
+                    <input type="number" inputMode="decimal" placeholder="סכום ₪"
+                      key="emp-picker-amount" defaultValue={bulkEmployeePaymentAmount} onBlur={e => setBulkEmployeePaymentAmount(e.target.value)}
+                      style={{flex: 1, padding: '10px 12px', fontSize: 14, border: '1px solid #E5E7EB', borderRadius: 8, background: 'white', outline: 'none'}} />
+                  </div>
+                </div>
+              </div>
+            </>
           )}
 
           {/* Employee Filter Sheet */}
