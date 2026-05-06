@@ -88,9 +88,13 @@ export function useFirebaseSync(uid: string | null, key: string, value: unknown,
     getDoc(doc(db, 'users', uid, 'data', key))
       .then(snap => {
         if (snap.exists()) {
+          const loadedValue = snap.data().value
           console.log('[sync] loaded', key, '- doc exists')
-          onLoad(snap.data().value)
-          firstSaveBlockedRef.current = true // only block echo if we actually loaded data
+          // Only block echo if loaded value differs from current
+          // This prevents blocking legitimate saves after loading empty data
+          const shouldBlock = JSON.stringify(loadedValue) !== JSON.stringify(value)
+          firstSaveBlockedRef.current = shouldBlock
+          onLoad(loadedValue)
         } else {
           console.log('[sync] loaded', key, '- doc does NOT exist, no echo to block')
           firstSaveBlockedRef.current = false
