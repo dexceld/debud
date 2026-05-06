@@ -192,6 +192,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     ]
   })
   const [addChargeOpen, setAddChargeOpen] = useState(false)
+  const [summaryStatusPickerOpen, setSummaryStatusPickerOpen] = useState(false)
   const [editChargeId, setEditChargeId] = useState<string | null>(null)
   const [chargeFormClientId, setChargeFormClientId] = useState('')
   const [chargeFormDate, setChargeFormDate] = useState('')
@@ -4088,30 +4089,59 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               flexShrink: 0
             }}>
               <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8}}>
-                <span style={{fontSize: 13, fontWeight: 700, color: 'white'}}>שנה סטטוס ({selectedEntryIds.length} נבחרו):</span>
+                <span style={{fontSize: 13, fontWeight: 700, color: 'white'}}>{selectedEntryIds.length} דיווחים נבחרו</span>
                 <button onClick={() => setSelectedEntryIds([])} style={{fontSize: 12, color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer'}}>✕ בטל</button>
               </div>
-              <div style={{display: 'flex', gap: 6, marginBottom: 8}}>
-                <button onClick={() => { setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: 'pending'} : e)); setSelectedEntryIds([]); setSummaryStatusFilter('all') }}
-                  style={{flex: 1, padding: '10px 4px', fontSize: 13, border: 'none', borderRadius: 8, background: '#fef3c7', color: '#92400e', fontWeight: 700, cursor: 'pointer'}}>⏳ ממתין</button>
-                <button onClick={() => { setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: 'invoiced'} : e)); setSelectedEntryIds([]); setSummaryStatusFilter('all') }}
-                  style={{flex: 1, padding: '10px 4px', fontSize: 13, border: 'none', borderRadius: 8, background: '#dbeafe', color: '#1e40af', fontWeight: 700, cursor: 'pointer'}}>📄 חויב</button>
-                <button onClick={() => { setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: 'paid'} : e)); setSelectedEntryIds([]); setSummaryStatusFilter('all') }}
-                  style={{flex: 1, padding: '10px 4px', fontSize: 13, border: 'none', borderRadius: 8, background: '#dcfce7', color: '#166534', fontWeight: 700, cursor: 'pointer'}}>✅ שולם</button>
-              </div>
               <div style={{display: 'flex', gap: 6}}>
-                <input type="number" inputMode="numeric" pattern="[0-9]*" placeholder="מס' חשבונית"
-                  key="bulk-invoice" defaultValue={bulkInvoiceNumber} onBlur={e => setBulkInvoiceNumber(e.target.value)}
-                  style={{flex: 1, padding: '8px 10px', fontSize: 13, border: 'none', borderRadius: 8, background: '#334155', color: 'white', outline: 'none'}} />
+                <button onClick={() => setSummaryStatusPickerOpen(true)}
+                  style={{flex: 1, padding: '12px 16px', fontSize: 14, border: 'none', borderRadius: 10, background: '#3b82f6', color: 'white', fontWeight: 700, cursor: 'pointer'}}>
+                  שנה סטטוס
+                </button>
                 <button onClick={() => {
                   if (!bulkInvoiceNumber.trim()) return
                   setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, invoiceNumber: bulkInvoiceNumber.trim(), billingStatus: e.billingStatus === 'paid' ? 'paid' : 'invoiced'} : e))
                   setBulkInvoiceNumber('')
                   setSelectedEntryIds([])
                   setSummaryStatusFilter('all')
-                }} style={{padding: '8px 14px', fontSize: 13, border: 'none', borderRadius: 8, background: '#3b82f6', color: 'white', fontWeight: 700, cursor: 'pointer'}}>שמור</button>
+                }} style={{padding: '8px 14px', fontSize: 13, border: 'none', borderRadius: 8, background: '#8b5cf6', color: 'white', fontWeight: 700, cursor: 'pointer'}}>שמור מס' חשבונית</button>
+              </div>
+              <div style={{marginTop: 8}}>
+                <input type="number" inputMode="numeric" pattern="[0-9]*" placeholder="מספר חשבונית לעדכון מרוכז"
+                  key="bulk-invoice" defaultValue={bulkInvoiceNumber} onBlur={e => setBulkInvoiceNumber(e.target.value)}
+                  style={{width: '100%', padding: '8px 12px', fontSize: 13, border: 'none', borderRadius: 8, background: '#334155', color: 'white', outline: 'none'}} />
               </div>
             </div>
+          )}
+
+          {/* Status Picker Sheet */}
+          {summaryStatusPickerOpen && (
+            <>
+              <div className="m-overlay" onClick={() => setSummaryStatusPickerOpen(false)} />
+              <div style={{
+                position: 'fixed', bottom: 0, left: 0, right: 0,
+                background: 'white', borderRadius: '16px 16px 0 0',
+                padding: '20px 16px', zIndex: 500
+              }}>
+                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16}}>
+                  <span style={{fontSize: 16, fontWeight: 700, color: '#111827'}}>בחר סטטוס</span>
+                  <button onClick={() => setSummaryStatusPickerOpen(false)} style={{fontSize: 20, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer'}}>✕</button>
+                </div>
+                <div style={{display: 'flex', flexDirection: 'column', gap: 10}}>
+                  <button onClick={() => { setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: 'pending'} : e)); setSelectedEntryIds([]); setSummaryStatusFilter('all'); setSummaryStatusPickerOpen(false) }}
+                    style={{padding: '14px 16px', fontSize: 15, border: 'none', borderRadius: 12, background: '#fef3c7', color: '#92400e', fontWeight: 700, cursor: 'pointer', textAlign: 'center'}}>
+                    ⏳ ממתין
+                  </button>
+                  <button onClick={() => { setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: 'invoiced'} : e)); setSelectedEntryIds([]); setSummaryStatusFilter('all'); setSummaryStatusPickerOpen(false) }}
+                    style={{padding: '14px 16px', fontSize: 15, border: 'none', borderRadius: 12, background: '#dbeafe', color: '#1e40af', fontWeight: 700, cursor: 'pointer', textAlign: 'center'}}>
+                    📄 חויב
+                  </button>
+                  <button onClick={() => { setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: 'paid'} : e)); setSelectedEntryIds([]); setSummaryStatusFilter('all'); setSummaryStatusPickerOpen(false) }}
+                    style={{padding: '14px 16px', fontSize: 15, border: 'none', borderRadius: 12, background: '#dcfce7', color: '#166534', fontWeight: 700, cursor: 'pointer', textAlign: 'center'}}>
+                    ✅ שולם
+                  </button>
+                </div>
+              </div>
+            </>
           )}
           <div
             ref={summaryScrollRef}
