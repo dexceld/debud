@@ -280,9 +280,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null)
   const [editEmployeeId, setEditEmployeeId] = useState<string | null>(null)
   const [employeeStatusFilter, setEmployeeStatusFilter] = useState<'all' | 'pending' | 'invoiced' | 'paid'>('all')
-  const [employeePeriodFilter, setEmployeePeriodFilter] = useState<'all' | 'week' | 'month' | 'year'>('all')
   const [clientStatusFilter, setClientStatusFilter] = useState<'all' | 'pending' | 'invoiced' | 'paid'>('all')
-  const [clientPeriodFilter, setClientPeriodFilter] = useState<'all' | 'week' | 'month' | 'year'>('all')
   const [clientFilterSheetOpen, setClientFilterSheetOpen] = useState(false)
   const [employeeFilterSheetOpen, setEmployeeFilterSheetOpen] = useState(false)
   const [employeeStatusPickerOpen, setEmployeeStatusPickerOpen] = useState(false)
@@ -3076,21 +3074,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           {/* Entries List - Time entries + Charges merged chronologically */}
           <div style={{flex: 1, overflowY: 'auto', paddingBottom: 100}}>
             {(() => {
-              // Apply period filter
               let filteredEntries = clientEntries
-              if (clientPeriodFilter !== 'all') {
-                const now = new Date()
-                const startOf = (period: 'week' | 'month' | 'year') => {
-                  const d = new Date(now)
-                  if (period === 'week') { d.setDate(d.getDate() - 7); return d }
-                  if (period === 'month') { d.setMonth(d.getMonth() - 1); return d }
-                  if (period === 'year') { d.setFullYear(d.getFullYear() - 1); return d }
-                  return d
-                }
-                const cutoff = startOf(clientPeriodFilter)
-                filteredEntries = filteredEntries.filter(e => new Date(e.startDate) >= cutoff)
-              }
-              // Apply status filter
               if (clientStatusFilter !== 'all') {
                 filteredEntries = filteredEntries.filter(e => (e.billingStatus || 'pending') === clientStatusFilter)
               }
@@ -3197,31 +3181,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   <button onClick={() => setClientFilterSheetOpen(false)} style={{fontSize: 20, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer'}}>✕</button>
                 </div>
 
-                {/* Period Section */}
-                <div style={{marginBottom: 20}}>
-                  <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>תקופה</div>
-                  <div style={{display: 'flex', gap: 8, flexWrap: 'wrap'}}>
-                    {[
-                      {key: 'all', label: 'הכל'},
-                      {key: 'week', label: 'שבוע אחרון'},
-                      {key: 'month', label: 'חודש אחרון'},
-                      {key: 'year', label: 'שנה אחרונה'}
-                    ].map(p => (
-                      <button key={p.key}
-                        onClick={() => setClientPeriodFilter(p.key as any)}
-                        style={{
-                          padding: '10px 16px', borderRadius: 20, border: 'none',
-                          fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                          background: clientPeriodFilter === p.key ? '#1d4ed8' : '#f3f4f6',
-                          color: clientPeriodFilter === p.key ? 'white' : '#374151'
-                        }}
-                      >
-                        {p.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
                 {/* Status Section */}
                 <div style={{marginBottom: 24}}>
                   <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>סטטוס חיוב</div>
@@ -3247,7 +3206,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   </div>
                 </div>
 
-                <button onClick={() => { setClientPeriodFilter('all'); setClientStatusFilter('all'); }}
+                <button onClick={() => { setClientStatusFilter('all'); }}
                   style={{width: '100%', padding: '14px', borderRadius: 12, border: '1px solid #E5E7EB',
                     background: 'white', fontSize: 14, fontWeight: 600, color: '#6B7280', cursor: 'pointer'}}>
                   איפוס סינון
@@ -3264,21 +3223,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       const employee = employees.find(e => e.id === selectedEmployeeId)
       if (!employee) return null
 
-      // Filter entries for this employee with period filter
       let employeeEntries = timeEntries.filter(e => e.employeeId === selectedEmployeeId)
-      
-      // Apply period filter
-      const now = new Date()
-      if (employeePeriodFilter === 'week') {
-        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-        employeeEntries = employeeEntries.filter(e => new Date(e.startDate) >= weekAgo)
-      } else if (employeePeriodFilter === 'month') {
-        const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate())
-        employeeEntries = employeeEntries.filter(e => new Date(e.startDate) >= monthAgo)
-      } else if (employeePeriodFilter === 'year') {
-        const yearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
-        employeeEntries = employeeEntries.filter(e => new Date(e.startDate) >= yearAgo)
-      }
 
       // Apply status filter
       if (employeeStatusFilter !== 'all') {
@@ -3519,31 +3464,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   <button onClick={() => setEmployeeFilterSheetOpen(false)} style={{fontSize: 20, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer'}}>✕</button>
                 </div>
 
-                {/* Period Section */}
-                <div style={{marginBottom: 20}}>
-                  <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>תקופה</div>
-                  <div style={{display: 'flex', gap: 8, flexWrap: 'wrap'}}>
-                    {[
-                      {key: 'all', label: 'הכל'},
-                      {key: 'week', label: 'שבוע אחרון'},
-                      {key: 'month', label: 'חודש אחרון'},
-                      {key: 'year', label: 'שנה אחרונה'}
-                    ].map(p => (
-                      <button key={p.key}
-                        onClick={() => setEmployeePeriodFilter(p.key as any)}
-                        style={{
-                          padding: '10px 16px', borderRadius: 20, border: 'none',
-                          fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                          background: employeePeriodFilter === p.key ? '#1d4ed8' : '#f3f4f6',
-                          color: employeePeriodFilter === p.key ? 'white' : '#374151'
-                        }}
-                      >
-                        {p.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
                 {/* Status Section */}
                 <div style={{marginBottom: 24}}>
                   <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>סטטוס חיוב</div>
@@ -3569,7 +3489,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   </div>
                 </div>
 
-                <button onClick={() => { setEmployeePeriodFilter('all'); setEmployeeStatusFilter('all'); }}
+                <button onClick={() => { setEmployeeStatusFilter('all'); }}
                   style={{width: '100%', padding: '14px', borderRadius: 12, border: '1px solid #E5E7EB',
                     background: 'white', fontSize: 14, fontWeight: 600, color: '#6B7280', cursor: 'pointer'}}>
                   איפוס סינון
@@ -3771,49 +3691,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     <button onClick={() => setReportsFilterSheetOpen(false)} style={{fontSize: 20, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer'}}>✕</button>
                   </div>
 
-                  {/* Period Section */}
-                  <div style={{marginBottom: 20}}>
-                    <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>תקופה</div>
-                    <button
-                      onClick={() => { setReportsDatePickerOpen(true); }}
-                      style={{
-                        width: '100%', padding: '12px 16px', border: '1px solid #E5E7EB', borderRadius: 12,
-                        background: reportsFromDate ? '#EFF6FF' : 'white',
-                        color: reportsFromDate ? '#1d4ed8' : '#374151',
-                        fontSize: 14, fontWeight: 600, cursor: 'pointer', textAlign: 'center'
-                      }}
-                    >
-                      {reportsFromDate
-                        ? reportsFromDate === reportsToDate
-                          ? `📅 ${new Date(reportsFromDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'})}`
-                          : `📅 ${new Date(reportsFromDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'})} – ${new Date(reportsToDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'})}`
-                        : 'בחר תקופה'
-                      }
-                    </button>
-                    {/* Quick period options */}
-                    <div style={{display: 'flex', gap: 8, marginTop: 12}}>
-                      <button onClick={() => { setReportsPeriod('week'); setReportsFromDate(''); setReportsToDate(''); setReportsFilterSheetOpen(false); }}
-                        style={{flex: 1, padding: '10px', border: '1px solid #E5E7EB', borderRadius: 10, background: reportsPeriod === 'week' ? '#10b981' : 'white', color: reportsPeriod === 'week' ? 'white' : '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer'}}>
-                        שבוע אחרון
-                      </button>
-                      <button onClick={() => { setReportsPeriod('month'); setReportsFromDate(''); setReportsToDate(''); setReportsFilterSheetOpen(false); }}
-                        style={{flex: 1, padding: '10px', border: '1px solid #E5E7EB', borderRadius: 10, background: reportsPeriod === 'month' ? '#10b981' : 'white', color: reportsPeriod === 'month' ? 'white' : '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer'}}>
-                        חודש אחרון
-                      </button>
-                      <button onClick={() => { setReportsPeriod('year'); setReportsFromDate(''); setReportsToDate(''); setReportsFilterSheetOpen(false); }}
-                        style={{flex: 1, padding: '10px', border: '1px solid #E5E7EB', borderRadius: 10, background: reportsPeriod === 'year' ? '#10b981' : 'white', color: reportsPeriod === 'year' ? 'white' : '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer'}}>
-                        שנה אחרונה
-                      </button>
-                    </div>
-                    {reportsFromDate && (
-                      <button onClick={() => { setReportsFromDate(''); setReportsToDate(''); }}
-                        style={{marginTop: 8, width: '100%', padding: '10px', border: '1px solid #E5E7EB', borderRadius: 12,
-                          background: 'white', fontSize: 13, color: '#6B7280', cursor: 'pointer'}}>
-                        איפוס תקופה
-                      </button>
-                    )}
-                  </div>
-
                   {/* Client Section */}
                   <div style={{marginBottom: 20}}>
                     <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>לקוח</div>
@@ -3854,7 +3731,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     </div>
                   </div>
 
-                  <button onClick={() => { setReportsFromDate(''); setReportsToDate(''); setReportsClientFilter('all'); setReportsStatusFilter('all'); setReportsPeriod('month'); }}
+                  <button onClick={() => { setReportsFromDate(''); setReportsToDate(''); setReportsClientFilter('all'); setReportsStatusFilter('all'); }}
                     style={{width: '100%', padding: '14px', borderRadius: 12, border: '1px solid #E5E7EB',
                       background: 'white', fontSize: 14, fontWeight: 600, color: '#6B7280', cursor: 'pointer'}}>
                     איפוס כל הסינונים
@@ -4160,8 +4037,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         </div>
       )}
 
-        {/* Bottom Menu Bar - Always visible on all tabs */}
-        {(
+        {(timeTrackingTab === 'reports' || timeTrackingTab === 'summary') && (
           <div style={{
             position: 'fixed',
             bottom: 0,
@@ -4176,8 +4052,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             padding: '0 16px',
             zIndex: 100
           }}>
-            {/* Calendar Button */}
-            <button onClick={() => setReportsDatePickerOpen(true)} style={{
+            {/* Calendar Button — תאריך דרך כפתור יומן (לא מתוך גיליון סינון) */}
+            <button onClick={() => {
+              if (timeTrackingTab === 'summary') setSummaryDatePickerOpen(true)
+              else setReportsDatePickerOpen(true)
+            }} style={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
@@ -4197,7 +4076,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </button>
 
             {/* Filter Button */}
-            <button onClick={() => setReportsFilterSheetOpen(true)} style={{
+            <button onClick={() => {
+              if (timeTrackingTab === 'summary') setSummaryFilterSheetOpen(true)
+              else setReportsFilterSheetOpen(true)
+            }} style={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
@@ -4213,26 +4095,30 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <span style={{fontSize: '11px', fontWeight: 500}}>סינון</span>
             </button>
 
-            {/* Share Button */}
-            <button onClick={() => setReportsShareOpen(true)} style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '4px',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: '#374151'
-            }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="18" cy="5" r="3"/>
-                <circle cx="6" cy="12" r="3"/>
-                <circle cx="18" cy="19" r="3"/>
-                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-              </svg>
-              <span style={{fontSize: '11px', fontWeight: 500}}>שלח אל</span>
-            </button>
+            {/* Share — רק בלשונית דיווחים */}
+            {timeTrackingTab === 'reports' ? (
+              <button onClick={() => setReportsShareOpen(true)} style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '4px',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: '#374151'
+              }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="18" cy="5" r="3"/>
+                  <circle cx="6" cy="12" r="3"/>
+                  <circle cx="18" cy="19" r="3"/>
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                </svg>
+                <span style={{fontSize: '11px', fontWeight: 500}}>שלח אל</span>
+              </button>
+            ) : (
+              <div style={{width: 56}} aria-hidden />
+            )}
           </div>
         )}
 
@@ -4252,34 +4138,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20}}>
                     <span style={{fontSize: 18, fontWeight: 700, color: '#111827'}}>סינון דיווחים</span>
                     <button onClick={() => setSummaryFilterSheetOpen(false)} style={{fontSize: 20, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer'}}>✕</button>
-                  </div>
-
-                  {/* Period Section */}
-                  <div style={{marginBottom: 20}}>
-                    <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>תקופה</div>
-                    <button
-                      onClick={() => { setSummaryDatePickerOpen(true); }}
-                      style={{
-                        width: '100%', padding: '12px 16px', border: '1px solid #E5E7EB', borderRadius: 12,
-                        background: summaryFromDate ? '#EFF6FF' : 'white',
-                        color: summaryFromDate ? '#1d4ed8' : '#374151',
-                        fontSize: 14, fontWeight: 600, cursor: 'pointer', textAlign: 'center'
-                      }}
-                    >
-                      {summaryFromDate
-                        ? summaryFromDate === summaryToDate
-                          ? `📅 ${new Date(summaryFromDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'})}`
-                          : `📅 ${new Date(summaryFromDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'})} – ${new Date(summaryToDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'})}`
-                        : 'בחר תקופה'
-                      }
-                    </button>
-                    {summaryFromDate && (
-                      <button onClick={() => { setSummaryFromDate(''); setSummaryToDate(''); }}
-                        style={{marginTop: 8, width: '100%', padding: '10px', border: '1px solid #E5E7EB', borderRadius: 12,
-                          background: 'white', fontSize: 13, color: '#6B7280', cursor: 'pointer'}}>
-                        איפוס תקופה
-                      </button>
-                    )}
                   </div>
 
                   {/* Client Section */}
