@@ -3019,13 +3019,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </button>
             <h1 className="m-title">{client.name}</h1>
             <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
-              {/* Filter Button */}
-              <button className="m-hbtn m-hbtn-menu" onClick={() => setClientFilterSheetOpen(true)}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-                </svg>
-                <span className="m-hbtn-label">פילטר</span>
-              </button>
               {/* Add Hour Entry Button */}
               <button className="m-hbtn m-hbtn-clock" onClick={() => {
                 setEditEntryId(null)
@@ -3099,36 +3092,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </div>
           )}
 
-
-          {/* Filter Button Row */}
-          <div style={{display: 'flex', padding: '8px 16px', gap: 8}}>
-            <button
-              onClick={() => setClientFilterSheetOpen(true)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: '8px 14px', background: 'white', border: '1px solid #E5E7EB',
-                borderRadius: 20, fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer'
-              }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-              </svg>
-              פילטר
-              {(clientStatusFilter !== 'all' || clientPeriodFilter !== 'all') && (
-                <span style={{background: '#3b82f6', color: 'white', borderRadius: 10, padding: '2px 6px', fontSize: 11}}>•</span>
-              )}
-            </button>
-            {clientPeriodFilter !== 'all' && (
-              <span style={{fontSize: 12, color: '#6B7280', padding: '8px 0'}}>
-                {clientPeriodFilter === 'week' ? 'שבוע' : clientPeriodFilter === 'month' ? 'חודש' : 'שנה'}
-              </span>
-            )}
-            {clientStatusFilter !== 'all' && (
-              <span style={{fontSize: 12, color: '#6B7280', padding: '8px 0'}}>
-                {clientStatusFilter === 'pending' ? 'ממתין' : clientStatusFilter === 'invoiced' ? 'חויב' : 'שולם'}
-              </span>
-            )}
-          </div>
 
           {/* Entries List - Time entries + Charges merged chronologically */}
           <div style={{flex: 1, overflowY: 'auto', paddingBottom: 100}}>
@@ -3353,13 +3316,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </button>
             <h1 className="m-title">{employee.name}</h1>
             <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
-              {/* Filter Button */}
-              <button className="m-hbtn m-hbtn-menu" onClick={() => setEmployeeFilterSheetOpen(true)}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-                </svg>
-                <span className="m-hbtn-label">פילטר</span>
-              </button>
               <button className="m-hbtn m-hbtn-menu" onClick={() => {
                 setEmployeeFormName(employee.name)
                 setEmployeeFormEmail(employee.email)
@@ -3430,26 +3386,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </div>
           </div>
 
-          {/* Filter Button Row */}
-          <div style={{display: 'flex', padding: '8px 16px', gap: 8}}>
-            <button
-              onClick={() => setEmployeeFilterSheetOpen(true)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: '8px 14px', background: 'white', border: '1px solid #E5E7EB',
-                borderRadius: 20, fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer'
-              }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-              </svg>
-              פילטר
-              {(employeeStatusFilter !== 'all' || employeePeriodFilter !== 'all') && (
-                <span style={{background: '#3b82f6', color: 'white', borderRadius: 10, padding: '2px 6px', fontSize: 11}}>•</span>
-              )}
-            </button>
-            {employeePeriodFilter !== 'all' && (
-              <span style={{fontSize: 12, color: '#6B7280', padding: '8px 0'}}>
                 {employeePeriodFilter === 'week' ? 'שבוע' : employeePeriodFilter === 'month' ? 'חודש' : 'שנה'}
               </span>
             )}
@@ -3750,13 +3686,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <div className="m-header-actions">
             {timeTrackingTab === 'summary' && (
               <>
-                {/* Filter Button */}
-                <button className="m-hbtn m-hbtn-menu" onClick={() => setSummaryFilterSheetOpen(true)}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-                  </svg>
-                  <span className="m-hbtn-label">פילטר</span>
-                </button>
                 {/* Settings Button - only for summary tab */}
                 <button className="m-hbtn m-hbtn-gear" onClick={() => setTimeSettingsOpen(true)}>
                   <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
@@ -4408,8 +4337,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         </div>
       )}
 
-        {/* Bottom Menu Bar for Reports */}
-        {timeTrackingTab === 'reports' && (
+        {/* Bottom Menu Bar - Always visible on all tabs */}
+        {(
           <div style={{
             position: 'fixed',
             bottom: 0,
