@@ -971,21 +971,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
               <span className="m-hbtn-label">הערה</span>
             </button>
-            <button className="m-hbtn" onClick={async () => {
-              if (isLocalMode) {
-                localStorage.removeItem('bva_local_mode')
-              } else {
-                // Flush all pending saves to Firestore before signing out
-                await flushAllSaves()
-                await new Promise(r => setTimeout(r, 800))
-                // Keep localStorage data as backup — don't clear it
-                await signOutUser().catch(() => {})
-              }
-              window.location.reload()
-            }} title={userEmail || 'יציאה מחשבון'} style={{color:'#EF4444'}}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-              <span className="m-hbtn-label">יציאה</span>
-            </button>
           </div>
         </div>
 
@@ -1865,6 +1850,25 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <span className="m-settings-sub">BVA Budget ו-Dexcel</span>
             </div>
             <svg className="m-settings-chevron-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C4C9D4" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <div style={{borderTop: '1px solid #E5E7EB', margin: '8px 0'}} />
+          <button className="m-settings-row" onClick={async () => {
+            if (isLocalMode) {
+              localStorage.removeItem('bva_local_mode')
+            } else {
+              await flushAllSaves()
+              await new Promise(r => setTimeout(r, 800))
+              await signOutUser().catch(() => {})
+            }
+            window.location.reload()
+          }} style={{color: '#DC2626'}}>
+            <span className="m-settings-icon-wrap" style={{background:'#FEF2F2'}}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </span>
+            <div className="m-settings-info">
+              <span className="m-settings-title" style={{color: '#DC2626'}}>{isLocalMode ? 'יציאה ממצב לקוח' : 'התנתקות'}</span>
+              <span className="m-settings-sub">{userEmail || 'יציאה מהמערכת'}</span>
+            </div>
           </button>
         </div>
       </div>
@@ -2964,7 +2968,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       return (
         <div className="m-screen">
           <div className="m-header">
-            <button className="m-back-btn" onClick={() => { setSelectedClientId(null); setTimeTrackingTab('reports') }}>
+            <button className="m-back-btn" onClick={() => { setSelectedClientId(null) }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
             <h1 className="m-title">{client.name}</h1>
@@ -3160,7 +3164,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       return (
         <div className="m-screen">
           <div className="m-header">
-            <button className="m-back-btn" onClick={() => { setSelectedEmployeeId(null); setTimeTrackingTab('reports') }}>
+            <button className="m-back-btn" onClick={() => { setSelectedEmployeeId(null) }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
             <h1 className="m-title">{employee.name}</h1>
