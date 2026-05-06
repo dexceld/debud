@@ -173,6 +173,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [longPressTimer, setLongPressTimer] = useState<ReturnType<typeof setTimeout> | null>(null)
   const [menuCatId, setMenuCatId] = useState<string | null>(null)
   const [quickAddOpen, setQuickAddOpen] = useState(false)
+  const [quickEntryMenuOpen, setQuickEntryMenuOpen] = useState(false)
   const [quickAddGlobalAmount, setQuickAddGlobalAmount] = useState('')
   const [inlineSheetAmount, setInlineSheetAmount] = useState('')
   const [quickSearch, setQuickSearch] = useState('')
@@ -182,6 +183,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const saved = localStorage.getItem(lsKey('charge_entries'))
     return saved ? JSON.parse(saved) : []
   })
+
+  // Firebase sync for charge entries to sync across devices
+  useFirebaseSync(uid, 'charge_entries', chargeEntries, v => setChargeEntries(v as typeof chargeEntries))
+
   const [chargeTags, setChargeTags] = useState<ChargeTag[]>(() => {
     const saved = localStorage.getItem(lsKey('charge_tags'))
     return saved ? JSON.parse(saved) : [
@@ -205,14 +210,25 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const saved = localStorage.getItem(lsKey('time_clients'))
     return saved ? JSON.parse(saved) : []
   })
+
+  // Firebase sync for time clients to sync across devices
+  useFirebaseSync(uid, 'time_clients', clients, v => setClients(v as typeof clients))
+
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>(() => {
     const saved = localStorage.getItem(lsKey('time_entries'))
     return saved ? JSON.parse(saved) : []
   })
+
+  // Firebase sync for time entries to sync across devices
+  useFirebaseSync(uid, 'time_entries', timeEntries, v => setTimeEntries(v as typeof timeEntries))
+
   const [employees, setEmployees] = useState<Employee[]>(() => {
     const saved = localStorage.getItem(lsKey('time_employees'))
     return saved ? JSON.parse(saved) : []
   })
+
+  // Firebase sync for time employees to sync across devices
+  useFirebaseSync(uid, 'time_employees', employees, v => setEmployees(v as typeof employees))
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
   const [timeTrackingTab, setTimeTrackingTab] = useState<'clients' | 'reports' | 'summary' | 'employees'>('reports')
   const [timerRunning, setTimerRunning] = useState(() => localStorage.getItem(lsKey('timer_running')) === '1')
@@ -539,7 +555,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           clientIds: employee.clientIds
         })
         // Switch to time tracking screen and show only assigned clients
-        setScreen('time')
+        setScreen('time-tracking')
         // Filter to show only assigned clients
         if (employee.clientIds.length > 0) {
           setClientFilterSheetOpen(false)
@@ -3020,42 +3036,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <h1 className="m-title">{client.name}</h1>
             <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
               {/* Add Hour Entry Button */}
-              <button className="m-hbtn m-hbtn-clock" onClick={() => {
-                setEditEntryId(null)
-                setEntryFormClientId(selectedClientId || '')
-                const _today = new Date().toISOString().split('T')[0]
-                const _now = new Date().toTimeString().slice(0, 5)
-                setEntryFormStartDate(_today)
-                setEntryFormEndDate(_today)
-                setEntryFormStartTime(_now)
-                setEntryFormEndTime(_now)
-                setEntryFormNotes('')
-                setEntryFormEmployeeId('self')
-                setAddTimeEntryOpen(true)
-              }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10"/>
-                  <polyline points="12 6 12 12 16 14"/>
-                  <text x="18" y="6" fontSize="10" fontWeight="bold" fill="currentColor">+</text>
-                </svg>
-                <span className="m-hbtn-label">שעתי</span>
-              </button>
-              {/* Add Charge Entry Button */}
-              <button className="m-hbtn m-hbtn-shekel" onClick={() => {
-                setChargeFormClientId(selectedClientId || '')
-                setChargeFormDate(new Date().toISOString().split('T')[0])
-                setChargeFormAmount('')
-                setChargeFormTagId('')
-                setChargeFormNotes('')
-                setEditChargeId(null)
-                setAddChargeOpen(true)
-              }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                  <text x="18" y="6" fontSize="10" fontWeight="bold" fill="currentColor">+</text>
-                </svg>
-                <span className="m-hbtn-label">כספי</span>
-              </button>
               <button className="m-hbtn m-hbtn-menu" onClick={openEditClient}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -3330,16 +3310,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 <span className="m-hbtn-label">עריכה</span>
               </button>
             </div>
-          </div>
-
-                {employeePeriodFilter === 'week' ? 'שבוע' : employeePeriodFilter === 'month' ? 'חודש' : 'שנה'}
-              </span>
-            )}
-            {employeeStatusFilter !== 'all' && (
-              <span style={{fontSize: 12, color: '#6B7280', padding: '8px 0'}}>
-                {employeeStatusFilter === 'pending' ? 'ממתין' : employeeStatusFilter === 'invoiced' ? 'חויב' : 'שולם'}
-              </span>
-            )}
           </div>
 
           {/* Summary Card */}
@@ -3630,139 +3600,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           )}
           <h1 className="m-title">{employeeMode ? `שלום ${employeeMode.name}` : 'דיווחי שעות'}</h1>
           <div className="m-header-actions">
-            {timeTrackingTab === 'summary' && (
-              <>
-                {/* Settings Button - only for summary tab */}
-                <button className="m-hbtn m-hbtn-gear" onClick={() => setTimeSettingsOpen(true)}>
-                  <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
-                    <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-                  </svg>
-                  <span className="m-hbtn-label">הגדרות</span>
-                </button>
-                <button className="m-hbtn m-hbtn-menu" onClick={() => {
-                  // Export to Excel - trigger from summary results
-                  const filteredEntries = timeEntries.filter(e => {
-                    const entryDate = new Date(e.startDate)
-                    const from = summaryFromDate ? new Date(summaryFromDate) : null
-                    const to = summaryToDate ? new Date(summaryToDate) : null
-                    if (from && entryDate < from) return false
-                    if (to && entryDate > to) return false
-                    if (summaryClientFilter !== 'all' && e.clientId !== summaryClientFilter) return false
-                    if (summaryStatusFilter !== 'all' && (e.billingStatus || 'pending') !== summaryStatusFilter) return false
-                    return true
-                  })
-                  if (filteredEntries.length === 0) return
-                  import('xlsx').then(XLSX => {
-                    const data = filteredEntries.map(e => {
-                      const client = clients.find(c => c.id === e.clientId)
-                      const hours = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60)
-                      const amount = client ? hours * client.hourlyRate * (1 + client.vatPercent / 100) : 0
-                      return {
-                        תאריך: e.startDate,
-                        לקוח: client?.name || '',
-                        'שעות': hours.toFixed(2),
-                        סכום: amount.toFixed(2),
-                        סטטוס: (e.billingStatus || 'pending') === 'paid' ? 'שולם' : (e.billingStatus || 'pending') === 'invoiced' ? 'חויב' : 'ממתין',
-                        הערות: e.notes || ''
-                      }
-                    })
-                    const ws = XLSX.utils.json_to_sheet(data)
-                    const wb = XLSX.utils.book_new()
-                    XLSX.utils.book_append_sheet(wb, ws, 'דיווחים')
-                    XLSX.writeFile(wb, `דיווחי_שעות_${new Date().toISOString().split('T')[0]}.xlsx`)
-                  })
-                }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  <span className="m-hbtn-label">אקסל</span>
-                </button>
-                <button className="m-hbtn m-hbtn-menu" onClick={() => {
-                  // Send by Email - trigger from summary results
-                  const filteredEntries = timeEntries.filter(e => {
-                    const entryDate = new Date(e.startDate)
-                    const from = summaryFromDate ? new Date(summaryFromDate) : null
-                    const to = summaryToDate ? new Date(summaryToDate) : null
-                    if (from && entryDate < from) return false
-                    if (to && entryDate > to) return false
-                    if (summaryClientFilter !== 'all' && e.clientId !== summaryClientFilter) return false
-                    if (summaryStatusFilter !== 'all' && (e.billingStatus || 'pending') !== summaryStatusFilter) return false
-                    return true
-                  })
-                  if (filteredEntries.length === 0) return
-                  const totalHours = filteredEntries.reduce((sum, e) => sum + (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60), 0)
-                  let totalAmount = 0
-                  filteredEntries.forEach(e => {
-                    const client = clients.find(c => c.id === e.clientId)
-                    if (client) {
-                      const hours = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60)
-                      totalAmount += hours * client.hourlyRate * (1 + client.vatPercent / 100)
-                    }
-                  })
-                  const subject = `דיווח שעות - ${filteredEntries.length} דיווחים`
-                  let body = `דיווח שעות\n\n`
-                  body += `תקופה: ${summaryFromDate || 'התחלה'} עד ${summaryToDate || 'סוף'}\n`
-                  body += `סה"כ שעות: ${totalHours.toFixed(2)}\n`
-                  body += `סה"כ הכנסות: ₪${totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}\n\n`
-                  body += `דיווחים:\n`
-                  filteredEntries.forEach(e => {
-                    const client = clients.find(c => c.id === e.clientId)
-                    const hours = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60)
-                    const amount = client ? hours * client.hourlyRate * (1 + client.vatPercent / 100) : 0
-                    body += `${e.startDate} ${e.startTime}-${e.endTime} | ${client?.name} | ${hours.toFixed(2)} שעות | ₪${amount.toFixed(2)}\n`
-                  })
-                  window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-                }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                  <span className="m-hbtn-label">מייל</span>
-                </button>
-                {/* Add Hour Entry Button */}
-                <button className="m-hbtn m-hbtn-clock" onClick={() => {
-                  setEditEntryId(null)
-                  setEntryFormClientId('')
-                  const _today = new Date().toISOString().split('T')[0]
-                  const _now = new Date().toTimeString().slice(0, 5)
-                  setEntryFormStartDate(_today)
-                  setEntryFormEndDate(_today)
-                  setEntryFormStartTime(_now)
-                  setEntryFormEndTime(_now)
-                  setEntryFormNotes('')
-                  setEntryFormEmployeeId('self')
-                  setAddTimeEntryOpen(true)
-                }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <polyline points="12 6 12 12 16 14"/>
-                    <text x="18" y="6" fontSize="10" fontWeight="bold" fill="currentColor">+</text>
-                  </svg>
-                  <span className="m-hbtn-label">שעתי</span>
-                </button>
-                {/* Add Charge Entry Button */}
-                <button className="m-hbtn m-hbtn-shekel" onClick={() => {
-                  setChargeFormClientId('')
-                  setChargeFormDate(new Date().toISOString().split('T')[0])
-                  setChargeFormAmount('')
-                  setChargeFormTagId('')
-                  setChargeFormNotes('')
-                  setEditChargeId(null)
-                  setAddChargeOpen(true)
-                }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                    <text x="18" y="6" fontSize="10" fontWeight="bold" fill="currentColor">+</text>
-                  </svg>
-                  <span className="m-hbtn-label">כספי</span>
-                </button>
-              </>
-            )}
-            {timeTrackingTab === 'clients' && !employeeMode && (
-              <button className="m-hbtn m-hbtn-plus" onClick={() => {
-                setClientFormVat(defaultVat)
-                setClientFormIncomeTax(defaultIncomeTax)
-                setAddClientOpen(true)
-              }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                <span className="m-hbtn-label">חדש</span>
-              </button>
-            )}
+            {/* Reports period filter - kept in header for reports only */}
             {timeTrackingTab === 'reports' && (
               <>
                 <button className={`m-hbtn ${reportsPeriod === 'week' ? 'active' : ''}`} onClick={() => setReportsPeriod('week')} title="שבועי">
@@ -3775,12 +3613,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   <span className="m-hbtn-label">שנתי</span>
                 </button>
               </>
-            )}
-            {timeTrackingTab === 'employees' && (
-              <button className="m-hbtn m-hbtn-plus" onClick={() => setAddEmployeeOpen(true)}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                <span className="m-hbtn-label">חדש</span>
-              </button>
             )}
           </div>
         </div>
@@ -4036,7 +3868,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <DateRangePicker
                 startDate={reportsFromDate}
                 endDate={reportsToDate}
-                onChange={(s, e) => { setReportsFromDate(s); setReportsToDate(e); }}
+                onChange={(s, e) => { 
+                  setReportsFromDate(s); 
+                  setReportsToDate(e);
+                }}
                 onClose={() => setReportsDatePickerOpen(false)}
               />
             )}
@@ -4050,7 +3885,27 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     <button className="m-sheet-close" onClick={() => setReportsShareOpen(false)}>✕</button>
                   </div>
                   <div className="m-sheet-body" style={{padding: '16px'}}>
-                    <button className="m-settings-row" onClick={() => { exportReportsToExcel(); setReportsShareOpen(false); }}>
+                    <button className="m-settings-row" onClick={() => {
+                      // Export reports to Excel
+                      const filtered = timeEntries.filter(e => {
+                        if (reportsFromDate && reportsToDate) return e.startDate >= reportsFromDate && e.startDate <= reportsToDate
+                        return true
+                      }).filter(e => reportsClientFilter === 'all' || e.clientId === reportsClientFilter)
+                      if (filtered.length === 0) { setReportsShareOpen(false); return }
+                      import('xlsx').then(XLSX => {
+                        const data = filtered.map(e => {
+                          const client = clients.find(c => c.id === e.clientId)
+                          const hours = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60)
+                          const amount = client ? hours * client.hourlyRate * (1 + client.vatPercent / 100) : 0
+                          return { תאריך: e.startDate, לקוח: client?.name || '', שעות: hours.toFixed(2), סכום: amount.toFixed(2), הערות: e.notes || '' }
+                        })
+                        const ws = XLSX.utils.json_to_sheet(data)
+                        const wb = XLSX.utils.book_new()
+                        XLSX.utils.book_append_sheet(wb, ws, 'דיווחים')
+                        XLSX.writeFile(wb, `דיווחי_שעות_${new Date().toISOString().split('T')[0]}.xlsx`)
+                      })
+                      setReportsShareOpen(false)
+                    }}>
                       <span className="m-settings-icon-wrap" style={{background:'#F0FDF4'}}>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                       </span>
@@ -4058,7 +3913,29 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                         <span className="m-settings-title">ייצוא לאקסל</span>
                       </div>
                     </button>
-                    <button className="m-settings-row" onClick={() => { shareReportsViaEmail(); setReportsShareOpen(false); }}>
+                    <button className="m-settings-row" onClick={() => {
+                      // Share reports via email
+                      const filtered = timeEntries.filter(e => {
+                        if (reportsFromDate && reportsToDate) return e.startDate >= reportsFromDate && e.startDate <= reportsToDate
+                        return true
+                      }).filter(e => reportsClientFilter === 'all' || e.clientId === reportsClientFilter)
+                      if (filtered.length === 0) { setReportsShareOpen(false); return }
+                      const totalHours = filtered.reduce((sum, e) => sum + (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60), 0)
+                      let totalAmount = 0
+                      filtered.forEach(e => {
+                        const client = clients.find(c => c.id === e.clientId)
+                        if (client) { const hours = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60); totalAmount += hours * client.hourlyRate * (1 + client.vatPercent / 100) }
+                      })
+                      const subject = `דיווח שעות - ${filtered.length} דיווחים`
+                      let body = `דיווח שעות\n\nסה"כ שעות: ${totalHours.toFixed(2)}\nסה"כ: ₪${totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}\n\n`
+                      filtered.forEach(e => {
+                        const client = clients.find(c => c.id === e.clientId)
+                        const hours = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60)
+                        body += `${e.startDate} ${e.startTime}-${e.endTime} | ${client?.name} | ${hours.toFixed(2)} שעות\n`
+                      })
+                      window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+                      setReportsShareOpen(false)
+                    }}>
                       <span className="m-settings-icon-wrap" style={{background:'#EEF2FF'}}>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366F1" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>
                       </span>
@@ -5039,14 +4916,15 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   }
 
   // Analog Clock Picker - 4 steps: start-hour → start-min → end-hour → end-min
-  const TimeRangePicker = ({ startTime, endTime, onChange, onClose }: {
+  const TimeRangePicker = ({ startTime, endTime, onChange, onClose, initialStep }: {
     startTime: string
     endTime: string
     onChange: (start: string, end: string) => void
     onClose: () => void
+    initialStep?: 'startH' | 'startM' | 'endH' | 'endM'
   }) => {
     // step: 'startH' | 'startM' | 'endH' | 'endM'
-    const [step, setStep] = useState<'startH' | 'startM' | 'endH' | 'endM'>('startH')
+    const [step, setStep] = useState<'startH' | 'startM' | 'endH' | 'endM'>(initialStep || 'startH')
     const [startH, setStartH] = useState<number | null>(null)
     const [startM, setStartM] = useState<number | null>(null)
     const [endH, setEndH] = useState<number | null>(null)
@@ -6350,7 +6228,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     setEntryFormEndTime(now)
     setEntryFormNotes('')
     setEntryFormEmployeeId('self')
-    setEntryFormClientId('')
+    setEntryFormClientId(selectedClientId || '')
+    setQuickTimeClientId(selectedClientId || '')
     setEditEntryId(null)
     setQuickTimeEntryOpen(true)
   }
@@ -6428,11 +6307,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               timeFabDragRef.current = null
               clientFabDragRef.current = null
               localStorage.setItem(lsKey('time_fab_pos'), JSON.stringify(fabPos))
-              if (!wasDrag) openQuickEntry()
+              if (!wasDrag) setQuickEntryMenuOpen(true)
             }}
             onClick={(e) => {
               if (e.detail === 0) return // fired from touch, already handled
-              openQuickEntry()
+              setQuickEntryMenuOpen(true)
             }}
             title="דיווח מהיר"
           >
@@ -6443,6 +6322,45 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       )}
       <TimeSettingsModal />
       <AddEmployeeModal />
+
+      {/* Quick Entry Selection Menu */}
+      {quickEntryMenuOpen && (
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center',padding:24}} onClick={() => setQuickEntryMenuOpen(false)}>
+          <div style={{background:'#fff',borderRadius:20,padding:24,maxWidth:280,width:'100%',textAlign:'center',boxShadow:'0 12px 40px rgba(0,0,0,0.25)'}} onClick={e => e.stopPropagation()}>
+            <div style={{fontSize:20,fontWeight:700,color:'#1F2937',marginBottom:20}}>דיווח מהיר</div>
+            <div style={{display:'flex',flexDirection:'column',gap:12}}>
+              <button onClick={() => {
+                setQuickEntryMenuOpen(false)
+                openQuickEntry()
+              }} style={{padding:16,borderRadius:12,border:'2px solid #3B82F6',background:'#EFF6FF',color:'#3B82F6',fontSize:16,fontWeight:600,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                דיווח שעתי
+              </button>
+              <button onClick={() => {
+                setQuickEntryMenuOpen(false)
+                setChargeFormClientId(selectedClientId || '')
+                setChargeFormDate(new Date().toISOString().split('T')[0])
+                setChargeFormAmount('')
+                setChargeFormTagId('')
+                setChargeFormNotes('')
+                setEditChargeId(null)
+                setAddChargeOpen(true)
+              }} style={{padding:16,borderRadius:12,border:'2px solid #10B981',background:'#ECFDF5',color:'#10B981',fontSize:16,fontWeight:600,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+                דיווח כספי
+              </button>
+              <button onClick={() => setQuickEntryMenuOpen(false)} style={{padding:12,borderRadius:10,border:'none',background:'#F3F4F6',color:'#6B7280',fontSize:14,cursor:'pointer',marginTop:8}}>
+                ביטול
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <BulkActionModal />
       <QuickAddSheet 
         globalAmountValue={quickAddGlobalAmount}
