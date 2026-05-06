@@ -3888,7 +3888,19 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 <span className="m-hbtn-label">חדש</span>
               </button>
             )}
-            {timeTrackingTab === 'reports' && <></>}
+            {timeTrackingTab === 'reports' && (
+              <>
+                <button className={`m-hbtn ${reportsPeriod === 'week' ? 'active' : ''}`} onClick={() => setReportsPeriod('week')} title="שבועי">
+                  <span className="m-hbtn-label">שבועי</span>
+                </button>
+                <button className={`m-hbtn ${reportsPeriod === 'month' ? 'active' : ''}`} onClick={() => setReportsPeriod('month')} title="חודשי">
+                  <span className="m-hbtn-label">חודשי</span>
+                </button>
+                <button className={`m-hbtn ${reportsPeriod === 'year' ? 'active' : ''}`} onClick={() => setReportsPeriod('year')} title="שנתי">
+                  <span className="m-hbtn-label">שנתי</span>
+                </button>
+              </>
+            )}
             {timeTrackingTab === 'employees' && (
               <button className="m-hbtn m-hbtn-plus" onClick={() => setAddEmployeeOpen(true)}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
