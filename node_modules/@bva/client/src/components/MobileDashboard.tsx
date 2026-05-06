@@ -270,7 +270,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [clientFilterSheetOpen, setClientFilterSheetOpen] = useState(false)
   const [employeeFilterSheetOpen, setEmployeeFilterSheetOpen] = useState(false)
   const [employeeStatusPickerOpen, setEmployeeStatusPickerOpen] = useState(false)
-  const [reportsFilterSheetOpen, setReportsFilterSheetOpen] = useState(false)
   const [summaryFilterSheetOpen, setSummaryFilterSheetOpen] = useState(false)
   const [summaryPeriod, setSummaryPeriod] = useState<'week' | 'month' | 'year' | 'all'>('all')
   // Floating action buttons state (moved from IIFE to top-level to fix hooks violation)
@@ -3969,66 +3968,27 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         {/* Tab 3: Reports */}
         {timeTrackingTab === 'reports' && (
           <div className="m-time-summary-tab">
-            {/* Filter Button Row */}
-            <div style={{display: 'flex', padding: '8px 16px', gap: 8}}>
-              <button
-                onClick={() => setReportsFilterSheetOpen(true)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '8px 14px', background: 'white', border: '1px solid #E5E7EB',
-                  borderRadius: 20, fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer'
-                }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-                </svg>
-                פילטר
-                <span style={{fontSize: 12, color: '#6B7280'}}>
-                  {reportsPeriod === 'week' ? 'שבוע' : reportsPeriod === 'month' ? 'חודש' : 'שנה'}
-                </span>
-              </button>
+            {/* Period Selector - Compact */}
+            <div style={{display: 'flex', padding: '6px 12px', gap: 6, borderBottom: '1px solid #E5E7EB', background: 'white'}}>
+              {[
+                {key: 'week', label: 'שבוע'},
+                {key: 'month', label: 'חודש'},
+                {key: 'year', label: 'שנה'}
+              ].map(p => (
+                <button key={p.key}
+                  onClick={() => setReportsPeriod(p.key as any)}
+                  style={{
+                    flex: 1,
+                    padding: '6px 8px', borderRadius: 16, border: 'none',
+                    fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                    background: reportsPeriod === p.key ? '#10b981' : '#f3f4f6',
+                    color: reportsPeriod === p.key ? 'white' : '#374151'
+                  }}
+                >
+                  {p.label}
+                </button>
+              ))}
             </div>
-
-            {/* Reports Filter Sheet */}
-            {reportsFilterSheetOpen && (
-              <>
-                <div className="m-overlay" onClick={() => setReportsFilterSheetOpen(false)} />
-                <div style={{
-                  position: 'fixed', bottom: 0, left: 0, right: 0,
-                  background: 'white', borderRadius: '16px 16px 0 0',
-                  padding: '20px 16px 32px', zIndex: 500, maxHeight: '80vh', overflowY: 'auto'
-                }}>
-                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20}}>
-                    <span style={{fontSize: 18, fontWeight: 700, color: '#111827'}}>סינון דיווחים</span>
-                    <button onClick={() => setReportsFilterSheetOpen(false)} style={{fontSize: 20, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer'}}>✕</button>
-                  </div>
-
-                  {/* Period Section */}
-                  <div style={{marginBottom: 24}}>
-                    <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>תקופה</div>
-                    <div style={{display: 'flex', gap: 8, flexWrap: 'wrap'}}>
-                      {[
-                        {key: 'week', label: 'שבוע אחרון'},
-                        {key: 'month', label: 'חודש אחרון'},
-                        {key: 'year', label: 'שנה אחרונה'}
-                      ].map(p => (
-                        <button key={p.key}
-                          onClick={() => { setReportsPeriod(p.key as any); setReportsFilterSheetOpen(false); }}
-                          style={{
-                            padding: '10px 16px', borderRadius: 20, border: 'none',
-                            fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                            background: reportsPeriod === p.key ? '#10b981' : '#f3f4f6',
-                            color: reportsPeriod === p.key ? 'white' : '#374151'
-                          }}
-                        >
-                          {p.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
 
             {(() => {
               // Group ALL entries by period key
@@ -4107,7 +4067,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                         </div>
 
                         {/* Entries + Charges merged in this period */}
-                        <div style={{background: 'white', marginBottom: 4}}>
+                        <div style={{background: 'white'}}>
                           {(() => {
                             // Merge and sort chronologically within period
                             const merged = [
@@ -4135,11 +4095,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                       setEditEntryId(entry.id)
                                       setAddTimeEntryOpen(true)
                                     }}
-                                    style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', borderBottom: '1px solid #E5E7EB', cursor: 'pointer'}}
+                                    style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 12px', borderBottom: '2px solid #E5E7EB', cursor: 'pointer'}}
                                   >
                                     <div style={{minWidth: 0}}>
                                       <div style={{fontSize: 14, fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{client.name}</div>
-                                      <div style={{fontSize: 12, color: '#6B7280', marginTop: 2}}>
+                                      <div style={{fontSize: 12, color: '#6B7280', marginTop: 1}}>
                                         <span style={{fontSize: 16, fontWeight: 700, color: '#374151'}}>{new Date(entry.startDate).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit', year:'2-digit'})}</span>
                                     <span style={{marginRight: 6, marginLeft: 8, fontSize: 11, padding: '1px 5px', borderRadius: 4, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e'}}>
                                       {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
@@ -4173,7 +4133,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                   setEditChargeId(charge.id)
                                   setAddChargeOpen(true)
                                 }}
-                                style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', borderBottom: '1px solid #E5E7EB', cursor: 'pointer', background: isChargeSelected ? '#F5F3FF' : '#faf5ff'}}
+                                style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 12px', borderBottom: '2px solid #E5E7EB', cursor: 'pointer', background: isChargeSelected ? '#F5F3FF' : '#faf5ff'}}
                               >
                                 <div style={{display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0}}>
                                   <input
@@ -4188,7 +4148,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                       <span style={{fontSize: 14, fontWeight: 600, color: '#111827'}}>{client.name}</span>
                                       <span style={{fontSize: 11, padding: '1px 6px', borderRadius: 4, background: '#ede9fe', color: '#7c3aed', fontWeight: 600}}>{tag?.name || charge.tagId}</span>
                                     </div>
-                                    <div style={{fontSize: 12, color: '#6B7280', marginTop: 2}}>
+                                    <div style={{fontSize: 12, color: '#6B7280', marginTop: 1}}>
                                       <span style={{fontSize: 16, fontWeight: 700, color: '#374151'}}>{new Date(charge.date).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit', year:'2-digit'})}</span>
                                       <span style={{marginRight: 6, marginLeft: 8, fontSize: 11, padding: '1px 5px', borderRadius: 4, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e'}}>
                                         {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
@@ -5150,7 +5110,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <div style={{fontSize: 20, fontWeight: 600, color: '#15803D'}}>
               ₪{netPerHour.toFixed(2)}
             </div>
-            <div style={{fontSize: 12, color: '#6B7280', marginTop: 2}}>
+            <div style={{fontSize: 12, color: '#6B7280', marginTop: 1}}>
               (תעריף {rate.toFixed(0)} + מע"מ {vat}% = ₪{grossPerHour.toFixed(2)} ברוטו, מינוס מס הכנסה {incomeTax}%)
             </div>
           </div>
@@ -5790,7 +5750,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               onChange={e => setTempVat(e.target.value)}
               placeholder="18"
             />
-            <div style={{fontSize: 12, color: '#6B7280', marginTop: 2}}>
+            <div style={{fontSize: 12, color: '#6B7280', marginTop: 1}}>
               ערך זה יוצג אוטומטית בעת הוספת לקוח חדש
             </div>
           </div>
@@ -5804,7 +5764,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               onChange={e => setTempIncomeTax(e.target.value)}
               placeholder="30"
             />
-            <div style={{fontSize: 12, color: '#6B7280', marginTop: 2}}>
+            <div style={{fontSize: 12, color: '#6B7280', marginTop: 1}}>
               ערך זה יוצג אוטומטית בעת הוספת לקוח חדש
             </div>
           </div>
