@@ -4135,11 +4135,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                       setEditEntryId(entry.id)
                                       setAddTimeEntryOpen(true)
                                     }}
-                                    style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', borderBottom: '1px solid #F9FAFB', cursor: 'pointer'}}
+                                    style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', borderBottom: '1px solid #E5E7EB', cursor: 'pointer'}}
                                   >
                                     <div style={{minWidth: 0}}>
                                       <div style={{fontSize: 14, fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{client.name}</div>
-                                      <div style={{fontSize: 12, color: '#6B7280', marginTop: 4}}>
+                                      <div style={{fontSize: 12, color: '#6B7280', marginTop: 2}}>
                                         <span style={{fontSize: 16, fontWeight: 700, color: '#374151'}}>{new Date(entry.startDate).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit', year:'2-digit'})}</span>
                                     <span style={{marginRight: 6, marginLeft: 8, fontSize: 11, padding: '1px 5px', borderRadius: 4, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e'}}>
                                       {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
@@ -4148,7 +4148,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                 </div>
                                 <div style={{textAlign: 'left', flexShrink: 0}}>
                                   <div style={{fontSize: 14, fontWeight: 700, color: '#059669'}}>₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
-                                  <div style={{fontSize: 15, fontWeight: 700, color: '#6B7280'}}>{hours.toFixed(1)}h</div>
+                                  <div style={{fontSize: 17, fontWeight: 700, color: '#6B7280'}}>{hours.toFixed(1)}h</div>
                                 </div>
                               </div>
                             )
@@ -4173,7 +4173,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                   setEditChargeId(charge.id)
                                   setAddChargeOpen(true)
                                 }}
-                                style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', borderBottom: '1px solid #F9FAFB', cursor: 'pointer', background: isChargeSelected ? '#F5F3FF' : '#faf5ff'}}
+                                style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', borderBottom: '1px solid #E5E7EB', cursor: 'pointer', background: isChargeSelected ? '#F5F3FF' : '#faf5ff'}}
                               >
                                 <div style={{display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0}}>
                                   <input
@@ -4188,13 +4188,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                       <span style={{fontSize: 14, fontWeight: 600, color: '#111827'}}>{client.name}</span>
                                       <span style={{fontSize: 11, padding: '1px 6px', borderRadius: 4, background: '#ede9fe', color: '#7c3aed', fontWeight: 600}}>{tag?.name || charge.tagId}</span>
                                     </div>
-                                    <div style={{fontSize: 12, color: '#6B7280', marginTop: 4}}>
+                                    <div style={{fontSize: 12, color: '#6B7280', marginTop: 2}}>
                                       <span style={{fontSize: 16, fontWeight: 700, color: '#374151'}}>{new Date(charge.date).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit', year:'2-digit'})}</span>
                                       <span style={{marginRight: 6, marginLeft: 8, fontSize: 11, padding: '1px 5px', borderRadius: 4, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e'}}>
                                         {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
                                       </span>
-                                      {charge.notes && <span style={{marginRight: 6, color: '#9CA3AF'}}>· {charge.notes}</span>}
-                                    </div>
+                                                                          </div>
                                   </div>
                                 </div>
                                 <div style={{textAlign: 'left', flexShrink: 0}}>
@@ -5151,7 +5150,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <div style={{fontSize: 20, fontWeight: 600, color: '#15803D'}}>
               ₪{netPerHour.toFixed(2)}
             </div>
-            <div style={{fontSize: 12, color: '#6B7280', marginTop: 4}}>
+            <div style={{fontSize: 12, color: '#6B7280', marginTop: 2}}>
               (תעריף {rate.toFixed(0)} + מע"מ {vat}% = ₪{grossPerHour.toFixed(2)} ברוטו, מינוס מס הכנסה {incomeTax}%)
             </div>
           </div>
@@ -5791,7 +5790,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               onChange={e => setTempVat(e.target.value)}
               placeholder="18"
             />
-            <div style={{fontSize: 12, color: '#6B7280', marginTop: 4}}>
+            <div style={{fontSize: 12, color: '#6B7280', marginTop: 2}}>
               ערך זה יוצג אוטומטית בעת הוספת לקוח חדש
             </div>
           </div>
@@ -5805,7 +5804,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               onChange={e => setTempIncomeTax(e.target.value)}
               placeholder="30"
             />
-            <div style={{fontSize: 12, color: '#6B7280', marginTop: 4}}>
+            <div style={{fontSize: 12, color: '#6B7280', marginTop: 2}}>
               ערך זה יוצג אוטומטית בעת הוספת לקוח חדש
             </div>
           </div>
