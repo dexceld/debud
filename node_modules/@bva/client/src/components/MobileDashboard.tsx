@@ -3946,7 +3946,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
         {/* Tab 1: Clients */}
         {timeTrackingTab === 'clients' && (
-          <div className="m-clients-list">
+          <div className="m-clients-list" style={{overflowY: 'auto', maxHeight: 'calc(100vh - 180px)'}}>
           {/* Employee Mode Banner */}
           {employeeMode && (
             <div style={{padding: '12px 16px', background: '#DBEAFE', borderBottom: '1px solid #93C5FD', marginBottom: 8}}>
@@ -5079,6 +5079,14 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <button onClick={nextMonth} style={{border: 'none', background: 'none', fontSize: 22, cursor: 'pointer', padding: '4px 10px', color: '#374151'}}>›</button>
           </div>
 
+          {/* Quick period buttons */}
+          <div style={{display: 'flex', gap: 8, marginBottom: 12, justifyContent: 'center'}}>
+            <button onClick={() => { const today = new Date(); onChange(toDateStr(today.getFullYear(), today.getMonth(), today.getDate()), toDateStr(today.getFullYear(), today.getMonth(), today.getDate())); onClose(); }} style={{padding: '6px 12px', borderRadius: 16, border: '1px solid #D1D5DB', background: '#F3F4F6', fontSize: 13, cursor: 'pointer'}}>היום</button>
+            <button onClick={() => { const today = new Date(); const start = new Date(today); start.setDate(today.getDate() - today.getDay()); const end = new Date(start); end.setDate(start.getDate() + 6); onChange(toDateStr(start.getFullYear(), start.getMonth(), start.getDate()), toDateStr(end.getFullYear(), end.getMonth(), end.getDate())); onClose(); }} style={{padding: '6px 12px', borderRadius: 16, border: '1px solid #D1D5DB', background: '#F3F4F6', fontSize: 13, cursor: 'pointer'}}>השבוע</button>
+            <button onClick={() => { const today = new Date(); onChange(toDateStr(today.getFullYear(), today.getMonth(), 1), toDateStr(today.getFullYear(), today.getMonth() + 1, 0)); onClose(); }} style={{padding: '6px 12px', borderRadius: 16, border: '1px solid #D1D5DB', background: '#F3F4F6', fontSize: 13, cursor: 'pointer'}}>החודש</button>
+            <button onClick={() => { const today = new Date(); onChange(toDateStr(today.getFullYear(), 0, 1), toDateStr(today.getFullYear(), 11, 31)); onClose(); }} style={{padding: '6px 12px', borderRadius: 16, border: '1px solid #D1D5DB', background: '#F3F4F6', fontSize: 13, cursor: 'pointer'}}>השנה</button>
+          </div>
+
           {/* Instructions */}
           <div style={{textAlign: 'center', fontSize: 13, color: '#6B7280', marginBottom: 12}}>
             {picking === 'start'
@@ -5170,6 +5178,19 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const pad = (n: number) => String(n).padStart(2, '0')
     // Fix size once on mount — never recalculate on step change
     const clockSizeRef = useRef(Math.min(window.innerWidth - 32, 340))
+
+    // Initialize from existing values
+    useEffect(() => {
+      if (startTime) {
+        const [h, m] = startTime.split(':').map(Number)
+        setStartH(h)
+        setStartM(m)
+      }
+      if (endTime) {
+        const [h, m] = endTime.split(':').map(Number)
+        setEndH(h)
+      }
+    }, [startTime, endTime])
 
     const isHourStep = step === 'startH' || step === 'endH'
     const clockSize = clockSizeRef.current
