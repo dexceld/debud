@@ -3013,6 +3013,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </button>
             <h1 className="m-title">{client.name}</h1>
             <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+              {/* Add Hour Entry Button */}
               <button className="m-hbtn m-hbtn-clock" onClick={() => {
                 setEditEntryId(null)
                 setEntryFormClientId(selectedClientId || '')
@@ -3026,9 +3027,14 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 setEntryFormEmployeeId('self')
                 setAddTimeEntryOpen(true)
               }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                <span className="m-hbtn-label">שעות</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                  <text x="18" y="6" fontSize="10" fontWeight="bold" fill="currentColor">+</text>
+                </svg>
+                <span className="m-hbtn-label">שעתי</span>
               </button>
+              {/* Add Charge Entry Button */}
               <button className="m-hbtn m-hbtn-shekel" onClick={() => {
                 setChargeFormClientId(selectedClientId || '')
                 setChargeFormDate(new Date().toISOString().split('T')[0])
@@ -3038,8 +3044,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 setEditChargeId(null)
                 setAddChargeOpen(true)
               }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                <span className="m-hbtn-label">חיוב</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                  <text x="18" y="6" fontSize="10" fontWeight="bold" fill="currentColor">+</text>
+                </svg>
+                <span className="m-hbtn-label">כספי</span>
               </button>
               <button className="m-hbtn m-hbtn-menu" onClick={openEditClient}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -3861,9 +3870,31 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   </svg>
                   <span className="m-hbtn-label">פילטר</span>
                 </button>
+                {/* Add Hour Entry Button */}
+                <button className="m-hbtn m-hbtn-clock" onClick={() => {
+                  setQuickTimeClientId('')
+                  setEntryFormStartDate('')
+                  setEntryFormEndDate('')
+                  setEntryFormStartTime('')
+                  setEntryFormEndTime('')
+                  setEntryFormNotes('')
+                  setEntryFormEmployeeId('self')
+                  setQuickTimeEntryOpen(true)
+                }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                    <text x="18" y="6" fontSize="10" fontWeight="bold" fill="currentColor">+</text>
+                  </svg>
+                  <span className="m-hbtn-label">שעתי</span>
+                </button>
+                {/* Add Charge Entry Button */}
                 <button className="m-hbtn m-hbtn-shekel" onClick={() => { setChargeFormClientId(''); setChargeFormDate(new Date().toISOString().split('T')[0]); setChargeFormAmount(''); setChargeFormTagId(''); setChargeFormNotes(''); setEditChargeId(null); setAddChargeOpen(true) }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                  <span className="m-hbtn-label">חיוב</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                    <text x="18" y="6" fontSize="10" fontWeight="bold" fill="currentColor">+</text>
+                  </svg>
+                  <span className="m-hbtn-label">כספי</span>
                 </button>
               </>
             )}
