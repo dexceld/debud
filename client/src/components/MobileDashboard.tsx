@@ -1012,6 +1012,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
               <span className="m-hbtn-label">הערה</span>
             </button>
+            <button className="m-hbtn" onClick={() => setShowExitConfirm(true)} title="יציאה" style={{color: '#DC2626'}}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+              <span className="m-hbtn-label">יציאה</span>
+            </button>
           </div>
         </div>
 
