@@ -20,11 +20,11 @@
 - **Issue:** Same function looks different
 - **Fix:** Unify to one style (suggest pills 20px - more modern)
 
-### 2. Logout Button Too Prominent
+### 2. Logout Button Too Prominent ✅ FIXED
 **Location:** Home screen header
 - Red logout button in main header
 - **Issue:** Scary color, unnecessary prominence
-- **Fix:** Move to settings menu or make it a subtle icon
+- **Fix:** Moved to bottom of settings menu with visual separation
 
 ### 3. Two Different Time Entry Modals
 **Location:** QuickTimeEntryModal vs AddTimeEntryModal
@@ -59,10 +59,10 @@
 - **Issue:** Code duplication, risk of inconsistency
 - **Fix:** Extract to shared utility function
 
-### 8. Back Button in Detail Views
+### 8. Back Button in Detail Views ✅ FIXED
 **Location:** Client/Employee detail headers
 - Still had `setTimeTrackingTab('reports')` in onClick
-- **Fix:** Removed (already fixed)
+- **Fix:** Removed - now stays on current tab when going back
 
 ## Minor Polish Suggestions
 
