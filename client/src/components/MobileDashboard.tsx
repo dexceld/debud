@@ -296,6 +296,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [selectedChargeIds, setSelectedChargeIds] = useState<string[]>([])
   const [employeeSelectedIds, setEmployeeSelectedIds] = useState<string[]>([])
   const [swipedEntryId, setSwipedEntryId] = useState<string | null>(null)
+  // Employee invitation mode - set when accessing via invitation link
+  const [employeeMode, setEmployeeMode] = useState<{email: string, name: string, clientIds: string[]} | null>(null)
   const swipeTouchStartX = useRef(0)
   const swipeTouchStartY = useRef(0)
   const [bulkActionOpen, setBulkActionOpen] = useState(false)
@@ -520,6 +522,29 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       }
     }
   }, [groups])
+
+  // Handle employee invitation link - check URL parameter on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const employeeEmail = params.get('employee')
+    if (employeeEmail) {
+      // Find employee by email
+      const employee = employees.find(e => e.email === employeeEmail)
+      if (employee) {
+        setEmployeeMode({
+          email: employee.email,
+          name: employee.name,
+          clientIds: employee.clientIds
+        })
+        // Switch to time tracking screen and show only assigned clients
+        setScreen('time')
+        // Filter to show only assigned clients
+        if (employee.clientIds.length > 0) {
+          setClientFilterSheetOpen(false)
+        }
+      }
+    }
+  }, [employees])
 
   // Persist timer state to localStorage
   useEffect(() => { localStorage.setItem(lsKey('timer_running'), timerRunning ? '1' : '0') }, [timerRunning])
@@ -3679,10 +3704,20 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     return (
       <div className="m-screen">
         <div className="m-header">
-          <button className="m-back-btn" onClick={() => setScreen('home')}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-          </button>
-          <h1 className="m-title">דיווחי שעות</h1>
+          {!employeeMode ? (
+            <button className="m-back-btn" onClick={() => setScreen('home')}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+          ) : (
+            <button className="m-back-btn" onClick={() => {
+              // Exit employee mode and go to login
+              setEmployeeMode(null)
+              setScreen('home')
+            }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5m0 0-5-5m5 5H9"/></svg>
+            </button>
+          )}
+          <h1 className="m-title">{employeeMode ? `שלום ${employeeMode.name}` : 'דיווחי שעות'}</h1>
           <div className="m-header-actions">
             {timeTrackingTab === 'summary' && (
               <>
@@ -3800,28 +3835,19 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 </button>
               </>
             )}
-            <button className="m-hbtn m-hbtn-gear" onClick={() => setTimeSettingsOpen(true)}>
-              <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
-                <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-              </svg>
-              <span className="m-hbtn-label">הגדרות</span>
-            </button>
-            {(timeTrackingTab === 'clients' || timeTrackingTab === 'reports') && (
+            {!employeeMode && (
+              <button className="m-hbtn m-hbtn-gear" onClick={() => setTimeSettingsOpen(true)}>
+                <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+                  <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                </svg>
+                <span className="m-hbtn-label">הגדרות</span>
+              </button>
+            )}
+            {timeTrackingTab === 'clients' && !employeeMode && (
               <button className="m-hbtn m-hbtn-plus" onClick={() => {
-                if (timeTrackingTab === 'clients') {
-                  setClientFormVat(defaultVat)
-                  setClientFormIncomeTax(defaultIncomeTax)
-                  setAddClientOpen(true)
-                } else {
-                  setQuickTimeClientId('')
-                  setEntryFormStartDate('')
-                  setEntryFormEndDate('')
-                  setEntryFormStartTime('')
-                  setEntryFormEndTime('')
-                  setEntryFormNotes('')
-                  setEntryFormEmployeeId('self')
-                  setQuickTimeEntryOpen(true)
-                }
+                setClientFormVat(defaultVat)
+                setClientFormIncomeTax(defaultIncomeTax)
+                setAddClientOpen(true)
               }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 <span className="m-hbtn-label">חדש</span>
@@ -3860,29 +3886,44 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           >
             לקוחות
           </button>
-          <button
-            className={`m-time-tab ${timeTrackingTab === 'reports' ? 'active' : ''}`}
-            onClick={() => setTimeTrackingTab('reports')}
-          >
-            דיווחים
-          </button>
-          <button
-            className={`m-time-tab ${timeTrackingTab === 'summary' ? 'active' : ''}`}
-            onClick={() => setTimeTrackingTab('summary')}
-          >
-            חיובים
-          </button>
-          <button
-            className={`m-time-tab ${timeTrackingTab === 'employees' ? 'active' : ''}`}
-            onClick={() => setTimeTrackingTab('employees')}
-          >
-            עובדים
-          </button>
+          {!employeeMode && (
+            <>
+              <button
+                className={`m-time-tab ${timeTrackingTab === 'reports' ? 'active' : ''}`}
+                onClick={() => setTimeTrackingTab('reports')}
+              >
+                דיווחים
+              </button>
+              <button
+                className={`m-time-tab ${timeTrackingTab === 'summary' ? 'active' : ''}`}
+                onClick={() => setTimeTrackingTab('summary')}
+              >
+                חיובים
+              </button>
+              <button
+                className={`m-time-tab ${timeTrackingTab === 'employees' ? 'active' : ''}`}
+                onClick={() => setTimeTrackingTab('employees')}
+              >
+                עובדים
+              </button>
+            </>
+          )}
         </div>
 
         {/* Tab 1: Clients */}
         {timeTrackingTab === 'clients' && (
           <div className="m-clients-list">
+          {/* Employee Mode Banner */}
+          {employeeMode && (
+            <div style={{padding: '12px 16px', background: '#DBEAFE', borderBottom: '1px solid #93C5FD', marginBottom: 8}}>
+              <div style={{fontSize: 14, fontWeight: 600, color: '#1E40AF'}}>
+                👋 שלום {employeeMode.name}!
+              </div>
+              <div style={{fontSize: 12, color: '#3B82F6', marginTop: 4}}>
+                הלקוחות המקושרים אליך:
+              </div>
+            </div>
+          )}
           {clients.length === 0 ? (
             <div className="m-empty-state">
               <div style={{fontSize: 48, marginBottom: 16}}>👥</div>
@@ -3891,6 +3932,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </div>
           ) : (
             [...clients]
+              .filter(c => employeeMode ? employeeMode.clientIds.includes(c.id) : true)
               .map(c => ({...c, entryCount: timeEntries.filter(e => e.clientId === c.id).length}))
               .sort((a, b) => b.entryCount - a.entryCount)
               .map(client => {
@@ -6220,6 +6262,36 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               )}
             </div>
           </div>
+
+          {/* Send Invitation Button */}
+          {employeeFormEmail && employeeFormClients.length > 0 && (
+            <button
+              onClick={() => {
+                const assignedClients = clients.filter(c => employeeFormClients.includes(c.id))
+                const clientList = assignedClients.map(c => `• ${c.name} - ₪${c.hourlyRate}/שעה`).join('\n')
+                const subject = `הזמנה לדיווח שעות - ${employeeFormName}`
+                let body = `שלום ${employeeFormName},\n\n`
+                body += `הוזמנת להשתמש באפליקציית דיווחי השעות.\n\n`
+                body += `הלקוחות המקושרים אליך:\n${clientList}\n\n`
+                body += `קישור לאפליקציה:\n`
+                body += `${window.location.origin}${window.location.pathname}?employee=${encodeURIComponent(employeeFormEmail)}\n\n`
+                body += `הוראות:\n`
+                body += `1. לחץ על הקישור או העתק אותו לדפדפן\n`
+                body += `2. הלקוחות שלך יוצגו באפליקציה\n`
+                body += `3. תוכל לדווח שעות ללקוחות אלו\n\n`
+                body += `בהצלחה!`
+                window.location.href = `mailto:${employeeFormEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+              }}
+              style={{
+                width: '100%', padding: '14px', marginBottom: '12px',
+                background: '#3b82f6', color: 'white',
+                border: 'none', borderRadius: '12px',
+                fontSize: '16px', fontWeight: '600', cursor: 'pointer'
+              }}
+            >
+              📧 שלח הזמנה למייל
+            </button>
+          )}
 
           <button className="m-mortgage-calc-btn" onClick={save}>
             {editEmployeeId ? 'עדכן עובד' : 'שמור עובד'}
