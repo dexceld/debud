@@ -3936,13 +3936,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               </div>
             ) : (
               employees.map(employee => {
-                const employeeEntries = timeEntries.filter(e => e.employeeId === employee.id)
-                const totalHours = employeeEntries.reduce((sum, e) => {
-                  const start = new Date(`${e.startDate}T${e.startTime}`)
-                  const end = new Date(`${e.endDate}T${e.endTime}`)
-                  return sum + (end.getTime() - start.getTime()) / (1000 * 60 * 60)
-                }, 0)
-                
                 const openEmployeeEdit = () => {
                   setEmployeeFormName(employee.name)
                   setEmployeeFormEmail(employee.email)
@@ -3950,10 +3943,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   setEditEmployeeId(employee.id)
                   setAddEmployeeOpen(true)
                 }
-                
+
                 return (
-                  <div 
-                    key={employee.id} 
+                  <div
+                    key={employee.id}
                     className="m-client-card"
                     onClick={() => {
                       // Click to view employee entries
@@ -3969,10 +3962,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     onContextMenu={(e) => { e.preventDefault(); openEmployeeEdit() }}
                   >
                     <div className="m-client-name">{employee.name}</div>
-                    <div className="m-client-rate">{employee.email}</div>
-                    <div className="m-client-stats">
-                      {employee.clientIds.length} לקוחות · {totalHours.toFixed(1)} שעות · {employeeEntries.length} דיווחים
-                    </div>
                   </div>
                 )
               })
