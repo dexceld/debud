@@ -446,9 +446,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         } else if (selectedEntryIdsRef.current.length > 0) {
           setSelectedEntryIds([])
         } else if (selectedEmployeeIdRef.current) {
-          setSelectedEmployeeId(null); setTimeTrackingTab('reports')
+          setSelectedEmployeeId(null)
         } else if (selectedClientIdRef.current) {
-          setSelectedClientId(null); setTimeTrackingTab('reports')
+          setSelectedClientId(null)
         } else if (screenRef.current !== 'home') {
           setScreen('home')
         } else {
