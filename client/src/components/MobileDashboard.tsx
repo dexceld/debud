@@ -3722,6 +3722,43 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                   <span className="m-hbtn-label">מייל</span>
                 </button>
+                {/* Add Hour Entry Button */}
+                <button className="m-hbtn m-hbtn-clock" onClick={() => {
+                  setEditEntryId(null)
+                  setEntryFormClientId('')
+                  const _today = new Date().toISOString().split('T')[0]
+                  const _now = new Date().toTimeString().slice(0, 5)
+                  setEntryFormStartDate(_today)
+                  setEntryFormEndDate(_today)
+                  setEntryFormStartTime(_now)
+                  setEntryFormEndTime(_now)
+                  setEntryFormNotes('')
+                  setEntryFormEmployeeId('self')
+                  setAddTimeEntryOpen(true)
+                }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                    <text x="18" y="6" fontSize="10" fontWeight="bold" fill="currentColor">+</text>
+                  </svg>
+                  <span className="m-hbtn-label">שעתי</span>
+                </button>
+                {/* Add Charge Entry Button */}
+                <button className="m-hbtn" onClick={() => {
+                  setChargeFormClientId('')
+                  setChargeFormDate(new Date().toISOString().split('T')[0])
+                  setChargeFormAmount('')
+                  setChargeFormTagId('')
+                  setChargeFormNotes('')
+                  setEditChargeId(null)
+                  setAddChargeOpen(true)
+                }} style={{background: '#f3e8ff', color: '#7c3aed', border: 'none', borderRadius: 8, padding: '6px 10px', fontSize: 12, fontWeight: 700, cursor: 'pointer'}}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                    <text x="18" y="6" fontSize="10" fontWeight="bold" fill="currentColor">+</text>
+                  </svg>
+                  <span className="m-hbtn-label">כספי</span>
+                </button>
               </>
             )}
             <button className="m-hbtn m-hbtn-gear" onClick={() => setTimeSettingsOpen(true)}>
