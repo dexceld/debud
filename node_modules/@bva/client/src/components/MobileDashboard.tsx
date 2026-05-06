@@ -3311,6 +3311,60 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 </svg>
                 <span className="m-hbtn-label">עריכה</span>
               </button>
+              <button className="m-hbtn" onClick={() => {
+                // Export to Excel - employee entries
+                if (employeeEntries.length === 0) return
+                import('xlsx').then(XLSX => {
+                  const data = employeeEntries.map(e => {
+                    const client = clients.find(c => c.id === e.clientId)
+                    const hours = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60)
+                    const amount = client ? hours * client.hourlyRate * (1 + client.vatPercent / 100) : 0
+                    return {
+                      תאריך: e.startDate,
+                      לקוח: client?.name || '',
+                      'שעות': hours.toFixed(2),
+                      סכום: amount.toFixed(2),
+                      סטטוס: (e.billingStatus || 'pending') === 'paid' ? 'שולם' : (e.billingStatus || 'pending') === 'invoiced' ? 'חויב' : 'ממתין',
+                      הערות: e.notes || ''
+                    }
+                  })
+                  const ws = XLSX.utils.json_to_sheet(data)
+                  const wb = XLSX.utils.book_new()
+                  XLSX.utils.book_append_sheet(wb, ws, 'דיווחי עובד')
+                  XLSX.writeFile(wb, `דיווחי_${employee.name}_${new Date().toISOString().split('T')[0]}.xlsx`)
+                })
+              }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span className="m-hbtn-label">אקסל</span>
+              </button>
+              <button className="m-hbtn" onClick={() => {
+                // Send by Email - employee entries
+                if (employeeEntries.length === 0) return
+                const totalHours = employeeEntries.reduce((sum, e) => sum + (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60), 0)
+                let totalAmount = 0
+                employeeEntries.forEach(e => {
+                  const client = clients.find(c => c.id === e.clientId)
+                  if (client) {
+                    const hours = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60)
+                    totalAmount += hours * client.hourlyRate * (1 + client.vatPercent / 100)
+                  }
+                })
+                const subject = `דיווח שעות - ${employee.name} - ${employeeEntries.length} דיווחים`
+                let body = `דיווח שעות - ${employee.name}\n\n`
+                body += `סה"כ שעות: ${totalHours.toFixed(2)}\n`
+                body += `סה"כ הכנסות: ₪${totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}\n\n`
+                body += `דיווחים:\n`
+                employeeEntries.forEach(e => {
+                  const client = clients.find(c => c.id === e.clientId)
+                  const hours = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60)
+                  const amount = client ? hours * client.hourlyRate * (1 + client.vatPercent / 100) : 0
+                  body += `${e.startDate} ${e.startTime}-${e.endTime} | ${client?.name} | ${hours.toFixed(2)} שעות | ₪${amount.toFixed(2)}\n`
+                })
+                window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+              }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <span className="m-hbtn-label">מייל</span>
+              </button>
             </div>
           </div>
 
