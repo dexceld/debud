@@ -3686,7 +3686,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <div className="m-header-actions">
             {timeTrackingTab === 'summary' && (
               <>
-                <button className="m-hbtn" onClick={() => {
+                <button className="m-hbtn m-hbtn-menu" onClick={() => {
                   // Export to Excel - trigger from summary results
                   const filteredEntries = timeEntries.filter(e => {
                     const entryDate = new Date(e.startDate)
@@ -3722,7 +3722,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                   <span className="m-hbtn-label">אקסל</span>
                 </button>
-                <button className="m-hbtn" onClick={() => {
+                <button className="m-hbtn m-hbtn-menu" onClick={() => {
                   // Send by Email - trigger from summary results
                   const filteredEntries = timeEntries.filter(e => {
                     const entryDate = new Date(e.startDate)
@@ -3783,7 +3783,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   <span className="m-hbtn-label">שעתי</span>
                 </button>
                 {/* Add Charge Entry Button */}
-                <button className="m-hbtn" onClick={() => {
+                <button className="m-hbtn m-hbtn-shekel" onClick={() => {
                   setChargeFormClientId('')
                   setChargeFormDate(new Date().toISOString().split('T')[0])
                   setChargeFormAmount('')
@@ -3791,7 +3791,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   setChargeFormNotes('')
                   setEditChargeId(null)
                   setAddChargeOpen(true)
-                }} style={{background: '#f3e8ff', color: '#7c3aed', border: 'none', borderRadius: 8, padding: '6px 10px', fontSize: 12, fontWeight: 700, cursor: 'pointer'}}>
+                }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                     <text x="18" y="6" fontSize="10" fontWeight="bold" fill="currentColor">+</text>
