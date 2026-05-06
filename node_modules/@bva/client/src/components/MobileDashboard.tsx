@@ -272,6 +272,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [employeeStatusPickerOpen, setEmployeeStatusPickerOpen] = useState(false)
   const [summaryFilterSheetOpen, setSummaryFilterSheetOpen] = useState(false)
   const [summaryPeriod, setSummaryPeriod] = useState<'week' | 'month' | 'year' | 'all'>('all')
+  // Reports filter state
+  const [reportsFilterSheetOpen, setReportsFilterSheetOpen] = useState(false)
+  const [reportsClientFilter, setReportsClientFilter] = useState<string>('all')
+  const [reportsStatusFilter, setReportsStatusFilter] = useState<string>('all')
+  const [reportsFromDate, setReportsFromDate] = useState<string>('')
+  const [reportsToDate, setReportsToDate] = useState<string>('')
+  const [reportsDatePickerOpen, setReportsDatePickerOpen] = useState(false)
   // Floating action buttons state (moved from IIFE to top-level to fix hooks violation)
   const [fabPos, setFabPos] = useState(() => {
     const saved = localStorage.getItem(lsKey('time_fab_pos'))
@@ -3819,10 +3826,18 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               </button>
             )}
             {timeTrackingTab === 'reports' && (
-              <button className="m-hbtn" onClick={() => { setChargeFormClientId(''); setChargeFormDate(new Date().toISOString().split('T')[0]); setChargeFormAmount(''); setChargeFormTagId(''); setChargeFormNotes(''); setEditChargeId(null); setAddChargeOpen(true) }}
-                style={{background: '#f3e8ff', color: '#7c3aed', border: 'none', borderRadius: 8, padding: '6px 10px', fontSize: 12, fontWeight: 700, cursor: 'pointer'}}>
-                ₪ חיוב
-              </button>
+              <>
+                <button className="m-hbtn m-hbtn-menu" onClick={() => setReportsFilterSheetOpen(true)}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                  </svg>
+                  <span className="m-hbtn-label">פילטר</span>
+                </button>
+                <button className="m-hbtn m-hbtn-shekel" onClick={() => { setChargeFormClientId(''); setChargeFormDate(new Date().toISOString().split('T')[0]); setChargeFormAmount(''); setChargeFormTagId(''); setChargeFormNotes(''); setEditChargeId(null); setAddChargeOpen(true) }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                  <span className="m-hbtn-label">חיוב</span>
+                </button>
+              </>
             )}
             {timeTrackingTab === 'employees' && (
               <button className="m-hbtn m-hbtn-plus" onClick={() => setAddEmployeeOpen(true)}>
@@ -3968,29 +3983,162 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         {/* Tab 3: Reports */}
         {timeTrackingTab === 'reports' && (
           <div className="m-time-summary-tab">
-            {/* Period Selector - Compact */}
-            <div style={{display: 'flex', padding: '6px 12px', gap: 6, borderBottom: '1px solid #E5E7EB', background: 'white'}}>
-              {[
-                {key: 'week', label: 'שבוע'},
-                {key: 'month', label: 'חודש'},
-                {key: 'year', label: 'שנה'}
-              ].map(p => (
-                <button key={p.key}
-                  onClick={() => setReportsPeriod(p.key as any)}
-                  style={{
-                    flex: 1,
-                    padding: '6px 8px', borderRadius: 16, border: 'none',
-                    fontSize: 12, fontWeight: 600, cursor: 'pointer',
-                    background: reportsPeriod === p.key ? '#10b981' : '#f3f4f6',
-                    color: reportsPeriod === p.key ? 'white' : '#374151'
-                  }}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
+            {/* Reports Filter Sheet */}
+            {reportsFilterSheetOpen && (
+              <>
+                <div className="m-overlay" onClick={() => setReportsFilterSheetOpen(false)} />
+                <div style={{
+                  position: 'fixed', bottom: 0, left: 0, right: 0,
+                  background: 'white', borderRadius: '16px 16px 0 0',
+                  padding: '20px 16px 32px', zIndex: 500, maxHeight: '80vh', overflowY: 'auto'
+                }}>
+                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20}}>
+                    <span style={{fontSize: 18, fontWeight: 700, color: '#111827'}}>סינון דיווחים</span>
+                    <button onClick={() => setReportsFilterSheetOpen(false)} style={{fontSize: 20, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer'}}>✕</button>
+                  </div>
+
+                  {/* Period Section */}
+                  <div style={{marginBottom: 20}}>
+                    <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>תקופה</div>
+                    <button
+                      onClick={() => { setReportsDatePickerOpen(true); }}
+                      style={{
+                        width: '100%', padding: '12px 16px', border: '1px solid #E5E7EB', borderRadius: 12,
+                        background: reportsFromDate ? '#EFF6FF' : 'white',
+                        color: reportsFromDate ? '#1d4ed8' : '#374151',
+                        fontSize: 14, fontWeight: 600, cursor: 'pointer', textAlign: 'center'
+                      }}
+                    >
+                      {reportsFromDate
+                        ? reportsFromDate === reportsToDate
+                          ? `📅 ${new Date(reportsFromDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'})}`
+                          : `📅 ${new Date(reportsFromDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'})} – ${new Date(reportsToDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'})}`
+                        : 'בחר תקופה'
+                      }
+                    </button>
+                    {/* Quick period options */}
+                    <div style={{display: 'flex', gap: 8, marginTop: 12}}>
+                      <button onClick={() => { setReportsPeriod('week'); setReportsFromDate(''); setReportsToDate(''); setReportsFilterSheetOpen(false); }}
+                        style={{flex: 1, padding: '10px', border: '1px solid #E5E7EB', borderRadius: 10, background: reportsPeriod === 'week' ? '#10b981' : 'white', color: reportsPeriod === 'week' ? 'white' : '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer'}}>
+                        שבוע אחרון
+                      </button>
+                      <button onClick={() => { setReportsPeriod('month'); setReportsFromDate(''); setReportsToDate(''); setReportsFilterSheetOpen(false); }}
+                        style={{flex: 1, padding: '10px', border: '1px solid #E5E7EB', borderRadius: 10, background: reportsPeriod === 'month' ? '#10b981' : 'white', color: reportsPeriod === 'month' ? 'white' : '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer'}}>
+                        חודש אחרון
+                      </button>
+                      <button onClick={() => { setReportsPeriod('year'); setReportsFromDate(''); setReportsToDate(''); setReportsFilterSheetOpen(false); }}
+                        style={{flex: 1, padding: '10px', border: '1px solid #E5E7EB', borderRadius: 10, background: reportsPeriod === 'year' ? '#10b981' : 'white', color: reportsPeriod === 'year' ? 'white' : '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer'}}>
+                        שנה אחרונה
+                      </button>
+                    </div>
+                    {reportsFromDate && (
+                      <button onClick={() => { setReportsFromDate(''); setReportsToDate(''); }}
+                        style={{marginTop: 8, width: '100%', padding: '10px', border: '1px solid #E5E7EB', borderRadius: 12,
+                          background: 'white', fontSize: 13, color: '#6B7280', cursor: 'pointer'}}>
+                        איפוס תקופה
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Client Section */}
+                  <div style={{marginBottom: 20}}>
+                    <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>לקוח</div>
+                    <select
+                      value={reportsClientFilter}
+                      onChange={e => setReportsClientFilter(e.target.value)}
+                      style={{width: '100%', padding: '12px 16px', border: '1px solid #E5E7EB', borderRadius: 12, fontSize: 14}}
+                    >
+                      <option value="all">כל הלקוחות</option>
+                      {clients.map(c => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Status Section */}
+                  <div style={{marginBottom: 24}}>
+                    <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>סטטוס</div>
+                    <div style={{display: 'flex', gap: 8, flexWrap: 'wrap'}}>
+                      {[
+                        {key: 'all', label: 'הכל', color: '#374151', bg: '#f3f4f6'},
+                        {key: 'pending', label: '⏳ ממתין', color: '#92400e', bg: '#fef3c7'},
+                        {key: 'invoiced', label: '📄 חויב', color: '#1e40af', bg: '#dbeafe'},
+                        {key: 'paid', label: '✅ שולם', color: '#166534', bg: '#dcfce7'}
+                      ].map(s => (
+                        <button key={s.key}
+                          onClick={() => setReportsStatusFilter(s.key)}
+                          style={{
+                            padding: '10px 16px', borderRadius: 20, border: 'none',
+                            fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                            background: reportsStatusFilter === s.key ? s.bg : '#f3f4f6',
+                            color: reportsStatusFilter === s.key ? s.color : '#374151'
+                          }}
+                        >
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button onClick={() => { setReportsFromDate(''); setReportsToDate(''); setReportsClientFilter('all'); setReportsStatusFilter('all'); setReportsPeriod('month'); }}
+                    style={{width: '100%', padding: '14px', borderRadius: 12, border: '1px solid #E5E7EB',
+                      background: 'white', fontSize: 14, fontWeight: 600, color: '#6B7280', cursor: 'pointer'}}>
+                    איפוס כל הסינונים
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Date Picker for Reports */}
+            {reportsDatePickerOpen && (
+              <DateRangePicker
+                startDate={reportsFromDate}
+                endDate={reportsToDate}
+                onChange={(s, e) => { setReportsFromDate(s); setReportsToDate(e); }}
+                onClose={() => setReportsDatePickerOpen(false)}
+              />
+            )}
 
             {(() => {
+              // Filter entries by date range, client, and status
+              let filteredEntries = [...timeEntries]
+              let filteredCharges = [...chargeEntries]
+
+              // Date range filter (custom date range takes precedence over period)
+              if (reportsFromDate && reportsToDate) {
+                filteredEntries = filteredEntries.filter(e => e.startDate >= reportsFromDate && e.startDate <= reportsToDate)
+                filteredCharges = filteredCharges.filter(c => c.date >= reportsFromDate && c.date <= reportsToDate)
+              } else {
+                // Period filter
+                const now = new Date()
+                const today = now.toISOString().split('T')[0]
+                if (reportsPeriod === 'week') {
+                  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                  filteredEntries = filteredEntries.filter(e => e.startDate >= weekAgo && e.startDate <= today)
+                  filteredCharges = filteredCharges.filter(c => c.date >= weekAgo && c.date <= today)
+                } else if (reportsPeriod === 'month') {
+                  const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                  filteredEntries = filteredEntries.filter(e => e.startDate >= monthAgo && e.startDate <= today)
+                  filteredCharges = filteredCharges.filter(c => c.date >= monthAgo && c.date <= today)
+                } else if (reportsPeriod === 'year') {
+                  const yearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                  filteredEntries = filteredEntries.filter(e => e.startDate >= yearAgo && e.startDate <= today)
+                  filteredCharges = filteredCharges.filter(c => c.date >= yearAgo && c.date <= today)
+                }
+              }
+
+              // Client filter
+              if (reportsClientFilter !== 'all') {
+                filteredEntries = filteredEntries.filter(e => e.clientId === reportsClientFilter)
+                filteredCharges = filteredCharges.filter(c => c.clientId === reportsClientFilter)
+              }
+
+              // Status filter
+              if (reportsStatusFilter !== 'all') {
+                filteredEntries = filteredEntries.filter(e => (e.billingStatus || 'pending') === reportsStatusFilter)
+                filteredCharges = filteredCharges.filter(c => (c.billingStatus || 'pending') === reportsStatusFilter)
+              }
+
               // Group ALL entries by period key
               const getPeriodKey = (dateStr: string) => {
                 const d = new Date(dateStr)
@@ -4020,7 +4168,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               }
 
               // Sort all entries by date desc
-              const sorted = [...timeEntries].sort((a, b) => b.startDate.localeCompare(a.startDate))
+              const sorted = filteredEntries.sort((a, b) => b.startDate.localeCompare(a.startDate))
 
               // Group by period key
               const grouped: Record<string, TimeEntry[]> = {}
@@ -4032,7 +4180,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
               // Also group charge entries by period
               const chargeGrouped: Record<string, ChargeEntry[]> = {}
-              chargeEntries.forEach(e => {
+              filteredCharges.forEach(e => {
                 const key = getPeriodKey(e.date)
                 if (!chargeGrouped[key]) chargeGrouped[key] = []
                 chargeGrouped[key].push(e)
