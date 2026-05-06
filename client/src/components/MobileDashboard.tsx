@@ -6132,20 +6132,25 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
           <div className="m-mortgage-field">
             <label>סטטוס חיוב ללקוח</label>
-            <div style={{display: 'flex', gap: 8, flexWrap: 'wrap'}}>
-              <button onClick={() => { applyStatus('pending'); close() }}
-                style={{flex: 1, minWidth: 90, padding: '12px', background: '#fef3c7', color: '#92400e', border: '2px solid #fde68a', borderRadius: 10, fontWeight: 600, cursor: 'pointer'}}>
-                ⏳ ממתין
-              </button>
-              <button onClick={() => { applyStatus('invoiced'); close() }}
-                style={{flex: 1, minWidth: 90, padding: '12px', background: '#dbeafe', color: '#1e40af', border: '2px solid #93c5fd', borderRadius: 10, fontWeight: 600, cursor: 'pointer'}}>
-                📄 חויב
-              </button>
-              <button onClick={() => { applyStatus('paid'); close() }}
-                style={{flex: 1, minWidth: 90, padding: '12px', background: '#d1fae5', color: '#065f46', border: '2px solid #6ee7b7', borderRadius: 10, fontWeight: 600, cursor: 'pointer'}}>
-                ✓ שולם
-              </button>
-            </div>
+            <select
+              onChange={(e) => { applyStatus(e.target.value as 'pending' | 'invoiced' | 'paid'); close() }}
+              defaultValue="pending"
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                fontSize: '15px',
+                fontWeight: 600,
+                border: '2px solid #E5E7EB',
+                borderRadius: '10px',
+                backgroundColor: 'white',
+                cursor: 'pointer',
+                color: '#374151'
+              }}
+            >
+              <option value="pending">ממתין לחיוב</option>
+              <option value="invoiced">חויב</option>
+              <option value="paid">שולם</option>
+            </select>
           </div>
 
           <div className="m-mortgage-field">
