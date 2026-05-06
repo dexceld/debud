@@ -264,6 +264,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null)
   const [editEmployeeId, setEditEmployeeId] = useState<string | null>(null)
   const [employeeStatusFilter, setEmployeeStatusFilter] = useState<'all' | 'pending' | 'invoiced' | 'paid'>('all')
+  const [employeePeriodFilter, setEmployeePeriodFilter] = useState<'all' | 'week' | 'month' | 'year'>('all')
+  const [clientStatusFilter, setClientStatusFilter] = useState<'all' | 'pending' | 'invoiced' | 'paid'>('all')
+  const [clientPeriodFilter, setClientPeriodFilter] = useState<'all' | 'week' | 'month' | 'year'>('all')
+  const [clientFilterSheetOpen, setClientFilterSheetOpen] = useState(false)
+  const [employeeFilterSheetOpen, setEmployeeFilterSheetOpen] = useState(false)
+  const [reportsFilterSheetOpen, setReportsFilterSheetOpen] = useState(false)
+  const [summaryFilterSheetOpen, setSummaryFilterSheetOpen] = useState(false)
   const [summaryPeriod, setSummaryPeriod] = useState<'week' | 'month' | 'year' | 'all'>('all')
   // Floating action buttons state (moved from IIFE to top-level to fix hooks violation)
   const [fabPos, setFabPos] = useState(() => {
@@ -3003,9 +3010,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               </button>
               <button className="m-hbtn m-hbtn-menu" onClick={openEditClient}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/>
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                 </svg>
-                <span className="m-hbtn-label">תפריט</span>
+                <span className="m-hbtn-label">עריכה</span>
               </button>
             </div>
           </div>
@@ -3037,12 +3045,61 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           )}
 
 
+          {/* Filter Button Row */}
+          <div style={{display: 'flex', padding: '8px 16px', gap: 8}}>
+            <button
+              onClick={() => setClientFilterSheetOpen(true)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '8px 14px', background: 'white', border: '1px solid #E5E7EB',
+                borderRadius: 20, fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer'
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+              </svg>
+              פילטר
+              {(clientStatusFilter !== 'all' || clientPeriodFilter !== 'all') && (
+                <span style={{background: '#3b82f6', color: 'white', borderRadius: 10, padding: '2px 6px', fontSize: 11}}>•</span>
+              )}
+            </button>
+            {clientPeriodFilter !== 'all' && (
+              <span style={{fontSize: 12, color: '#6B7280', padding: '8px 0'}}>
+                {clientPeriodFilter === 'week' ? 'שבוע' : clientPeriodFilter === 'month' ? 'חודש' : 'שנה'}
+              </span>
+            )}
+            {clientStatusFilter !== 'all' && (
+              <span style={{fontSize: 12, color: '#6B7280', padding: '8px 0'}}>
+                {clientStatusFilter === 'pending' ? 'ממתין' : clientStatusFilter === 'invoiced' ? 'חויב' : 'שולם'}
+              </span>
+            )}
+          </div>
+
           {/* Entries List - Time entries + Charges merged chronologically */}
           <div style={{flex: 1, overflowY: 'auto', paddingBottom: 100}}>
             {(() => {
+              // Apply period filter
+              let filteredEntries = clientEntries
+              if (clientPeriodFilter !== 'all') {
+                const now = new Date()
+                const startOf = (period: 'week' | 'month' | 'year') => {
+                  const d = new Date(now)
+                  if (period === 'week') { d.setDate(d.getDate() - 7); return d }
+                  if (period === 'month') { d.setMonth(d.getMonth() - 1); return d }
+                  if (period === 'year') { d.setFullYear(d.getFullYear() - 1); return d }
+                  return d
+                }
+                const cutoff = startOf(clientPeriodFilter)
+                filteredEntries = filteredEntries.filter(e => new Date(e.startDate) >= cutoff)
+              }
+              // Apply status filter
+              if (clientStatusFilter !== 'all') {
+                filteredEntries = filteredEntries.filter(e => (e.billingStatus || 'pending') === clientStatusFilter)
+              }
+
               const charges = chargeEntries.filter(c => c.clientId === selectedClientId)
               const allItems = [
-                ...clientEntries.map(e => ({ type: 'entry' as const, data: e, date: e.startDate, sortKey: `${e.startDate}T${e.startTime}` })),
+                ...filteredEntries.map(e => ({ type: 'entry' as const, data: e, date: e.startDate, sortKey: `${e.startDate}T${e.startTime}` })),
                 ...charges.map(c => ({ type: 'charge' as const, data: c, date: c.date, sortKey: c.date }))
               ].sort((a, b) => b.sortKey.localeCompare(a.sortKey))
 
@@ -3128,6 +3185,78 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             })()}
           </div>
 
+          {/* Client Filter Sheet */}
+          {clientFilterSheetOpen && (
+            <>
+              <div className="m-overlay" onClick={() => setClientFilterSheetOpen(false)} />
+              <div style={{
+                position: 'fixed', bottom: 0, left: 0, right: 0,
+                background: 'white', borderRadius: '16px 16px 0 0',
+                padding: '20px 16px 32px', zIndex: 500, maxHeight: '80vh', overflowY: 'auto'
+              }}>
+                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20}}>
+                  <span style={{fontSize: 18, fontWeight: 700, color: '#111827'}}>סינון דיווחים</span>
+                  <button onClick={() => setClientFilterSheetOpen(false)} style={{fontSize: 20, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer'}}>✕</button>
+                </div>
+
+                {/* Period Section */}
+                <div style={{marginBottom: 20}}>
+                  <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>תקופה</div>
+                  <div style={{display: 'flex', gap: 8, flexWrap: 'wrap'}}>
+                    {[
+                      {key: 'all', label: 'הכל'},
+                      {key: 'week', label: 'שבוע אחרון'},
+                      {key: 'month', label: 'חודש אחרון'},
+                      {key: 'year', label: 'שנה אחרונה'}
+                    ].map(p => (
+                      <button key={p.key}
+                        onClick={() => setClientPeriodFilter(p.key as any)}
+                        style={{
+                          padding: '10px 16px', borderRadius: 20, border: 'none',
+                          fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                          background: clientPeriodFilter === p.key ? '#1d4ed8' : '#f3f4f6',
+                          color: clientPeriodFilter === p.key ? 'white' : '#374151'
+                        }}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Status Section */}
+                <div style={{marginBottom: 24}}>
+                  <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>סטטוס חיוב</div>
+                  <div style={{display: 'flex', gap: 8, flexWrap: 'wrap'}}>
+                    {[
+                      {key: 'all', label: 'הכל', color: '#374151', bg: '#f3f4f6'},
+                      {key: 'pending', label: '⏳ ממתין', color: '#92400e', bg: '#fef3c7'},
+                      {key: 'invoiced', label: '📄 חויב', color: '#1e40af', bg: '#dbeafe'},
+                      {key: 'paid', label: '✅ שולם', color: '#166534', bg: '#dcfce7'}
+                    ].map(s => (
+                      <button key={s.key}
+                        onClick={() => setClientStatusFilter(s.key as any)}
+                        style={{
+                          padding: '10px 16px', borderRadius: 20, border: 'none',
+                          fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                          background: clientStatusFilter === s.key ? s.bg : '#f3f4f6',
+                          color: clientStatusFilter === s.key ? s.color : '#374151'
+                        }}
+                      >
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <button onClick={() => { setClientPeriodFilter('all'); setClientStatusFilter('all'); }}
+                  style={{width: '100%', padding: '14px', borderRadius: 12, border: '1px solid #E5E7EB',
+                    background: 'white', fontSize: 14, fontWeight: 600, color: '#6B7280', cursor: 'pointer'}}>
+                  איפוס סינון
+                </button>
+              </div>
+            </>
+          )}
         </div>
       )
     }
@@ -3142,13 +3271,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       
       // Apply period filter
       const now = new Date()
-      if (summaryPeriod === 'week') {
+      if (employeePeriodFilter === 'week') {
         const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
         employeeEntries = employeeEntries.filter(e => new Date(e.startDate) >= weekAgo)
-      } else if (summaryPeriod === 'month') {
+      } else if (employeePeriodFilter === 'month') {
         const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate())
         employeeEntries = employeeEntries.filter(e => new Date(e.startDate) >= monthAgo)
-      } else if (summaryPeriod === 'year') {
+      } else if (employeePeriodFilter === 'year') {
         const yearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
         employeeEntries = employeeEntries.filter(e => new Date(e.startDate) >= yearAgo)
       }
@@ -3176,146 +3305,43 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 setEditEmployeeId(employee.id)
                 setAddEmployeeOpen(true)
               }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                <span className="m-hbtn-label">תפריט</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+                <span className="m-hbtn-label">עריכה</span>
               </button>
             </div>
           </div>
 
-          {/* Period Filter */}
-          <div style={{display: 'flex', gap: '8px', padding: '0 16px 8px', justifyContent: 'center'}}>
-            <button 
-              onClick={() => setSummaryPeriod('week')}
+          {/* Filter Button Row */}
+          <div style={{display: 'flex', padding: '8px 16px', gap: 8}}>
+            <button
+              onClick={() => setEmployeeFilterSheetOpen(true)}
               style={{
-                flex: 1,
-                padding: '8px 12px',
-                borderRadius: '20px',
-                border: 'none',
-                background: summaryPeriod === 'week' ? '#1d4ed8' : '#e5e7eb',
-                color: summaryPeriod === 'week' ? 'white' : '#374151',
-                fontSize: '13px',
-                fontWeight: 600,
-                cursor: 'pointer'
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '8px 14px', background: 'white', border: '1px solid #E5E7EB',
+                borderRadius: 20, fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer'
               }}
             >
-              שבוע
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+              </svg>
+              פילטר
+              {(employeeStatusFilter !== 'all' || employeePeriodFilter !== 'all') && (
+                <span style={{background: '#3b82f6', color: 'white', borderRadius: 10, padding: '2px 6px', fontSize: 11}}>•</span>
+              )}
             </button>
-            <button 
-              onClick={() => setSummaryPeriod('month')}
-              style={{
-                flex: 1,
-                padding: '8px 12px',
-                borderRadius: '20px',
-                border: 'none',
-                background: summaryPeriod === 'month' ? '#1d4ed8' : '#e5e7eb',
-                color: summaryPeriod === 'month' ? 'white' : '#374151',
-                fontSize: '13px',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              חודש
-            </button>
-            <button 
-              onClick={() => setSummaryPeriod('year')}
-              style={{
-                flex: 1,
-                padding: '8px 12px',
-                borderRadius: '20px',
-                border: 'none',
-                background: summaryPeriod === 'year' ? '#1d4ed8' : '#e5e7eb',
-                color: summaryPeriod === 'year' ? 'white' : '#374151',
-                fontSize: '13px',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              שנה
-            </button>
-            <button 
-              onClick={() => setSummaryPeriod('all')}
-              style={{
-                flex: 1,
-                padding: '8px 12px',
-                borderRadius: '20px',
-                border: 'none',
-                background: summaryPeriod === 'all' ? '#1d4ed8' : '#e5e7eb',
-                color: summaryPeriod === 'all' ? 'white' : '#374151',
-                fontSize: '13px',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              הכל
-            </button>
-          </div>
-
-          {/* Status Filter */}
-          <div style={{display: 'flex', gap: '8px', padding: '0 16px 12px', justifyContent: 'center'}}>
-            <button 
-              onClick={() => setEmployeeStatusFilter('all')}
-              style={{
-                flex: 1,
-                padding: '8px 12px',
-                borderRadius: '20px',
-                border: 'none',
-                background: employeeStatusFilter === 'all' ? '#1d4ed8' : '#e5e7eb',
-                color: employeeStatusFilter === 'all' ? 'white' : '#374151',
-                fontSize: '13px',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              כל הסטטוסים
-            </button>
-            <button 
-              onClick={() => setEmployeeStatusFilter('pending')}
-              style={{
-                flex: 1,
-                padding: '8px 12px',
-                borderRadius: '20px',
-                border: 'none',
-                background: employeeStatusFilter === 'pending' ? '#f59e0b' : '#e5e7eb',
-                color: employeeStatusFilter === 'pending' ? 'white' : '#374151',
-                fontSize: '13px',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              ממתין
-            </button>
-            <button 
-              onClick={() => setEmployeeStatusFilter('invoiced')}
-              style={{
-                flex: 1,
-                padding: '8px 12px',
-                borderRadius: '20px',
-                border: 'none',
-                background: employeeStatusFilter === 'invoiced' ? '#3b82f6' : '#e5e7eb',
-                color: employeeStatusFilter === 'invoiced' ? 'white' : '#374151',
-                fontSize: '13px',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              חויב
-            </button>
-            <button 
-              onClick={() => setEmployeeStatusFilter('paid')}
-              style={{
-                flex: 1,
-                padding: '8px 12px',
-                borderRadius: '20px',
-                border: 'none',
-                background: employeeStatusFilter === 'paid' ? '#10b981' : '#e5e7eb',
-                color: employeeStatusFilter === 'paid' ? 'white' : '#374151',
-                fontSize: '13px',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              שולם
-            </button>
+            {employeePeriodFilter !== 'all' && (
+              <span style={{fontSize: 12, color: '#6B7280', padding: '8px 0'}}>
+                {employeePeriodFilter === 'week' ? 'שבוע' : employeePeriodFilter === 'month' ? 'חודש' : 'שנה'}
+              </span>
+            )}
+            {employeeStatusFilter !== 'all' && (
+              <span style={{fontSize: 12, color: '#6B7280', padding: '8px 0'}}>
+                {employeeStatusFilter === 'pending' ? 'ממתין' : employeeStatusFilter === 'invoiced' ? 'חויב' : 'שולם'}
+              </span>
+            )}
           </div>
 
           {/* Summary Card */}
@@ -3478,6 +3504,79 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 }} style={{padding: '8px 14px', fontSize: 13, border: 'none', borderRadius: 8, background: '#8b5cf6', color: 'white', fontWeight: 700, cursor: 'pointer'}}>שמור</button>
               </div>
             </div>
+          )}
+
+          {/* Employee Filter Sheet */}
+          {employeeFilterSheetOpen && (
+            <>
+              <div className="m-overlay" onClick={() => setEmployeeFilterSheetOpen(false)} />
+              <div style={{
+                position: 'fixed', bottom: 0, left: 0, right: 0,
+                background: 'white', borderRadius: '16px 16px 0 0',
+                padding: '20px 16px 32px', zIndex: 500, maxHeight: '80vh', overflowY: 'auto'
+              }}>
+                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20}}>
+                  <span style={{fontSize: 18, fontWeight: 700, color: '#111827'}}>סינון דיווחים</span>
+                  <button onClick={() => setEmployeeFilterSheetOpen(false)} style={{fontSize: 20, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer'}}>✕</button>
+                </div>
+
+                {/* Period Section */}
+                <div style={{marginBottom: 20}}>
+                  <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>תקופה</div>
+                  <div style={{display: 'flex', gap: 8, flexWrap: 'wrap'}}>
+                    {[
+                      {key: 'all', label: 'הכל'},
+                      {key: 'week', label: 'שבוע אחרון'},
+                      {key: 'month', label: 'חודש אחרון'},
+                      {key: 'year', label: 'שנה אחרונה'}
+                    ].map(p => (
+                      <button key={p.key}
+                        onClick={() => setEmployeePeriodFilter(p.key as any)}
+                        style={{
+                          padding: '10px 16px', borderRadius: 20, border: 'none',
+                          fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                          background: employeePeriodFilter === p.key ? '#1d4ed8' : '#f3f4f6',
+                          color: employeePeriodFilter === p.key ? 'white' : '#374151'
+                        }}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Status Section */}
+                <div style={{marginBottom: 24}}>
+                  <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>סטטוס חיוב</div>
+                  <div style={{display: 'flex', gap: 8, flexWrap: 'wrap'}}>
+                    {[
+                      {key: 'all', label: 'הכל', color: '#374151', bg: '#f3f4f6'},
+                      {key: 'pending', label: '⏳ ממתין', color: '#92400e', bg: '#fef3c7'},
+                      {key: 'invoiced', label: '📄 חויב', color: '#1e40af', bg: '#dbeafe'},
+                      {key: 'paid', label: '✅ שולם', color: '#166534', bg: '#dcfce7'}
+                    ].map(s => (
+                      <button key={s.key}
+                        onClick={() => setEmployeeStatusFilter(s.key as any)}
+                        style={{
+                          padding: '10px 16px', borderRadius: 20, border: 'none',
+                          fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                          background: employeeStatusFilter === s.key ? s.bg : '#f3f4f6',
+                          color: employeeStatusFilter === s.key ? s.color : '#374151'
+                        }}
+                      >
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <button onClick={() => { setEmployeePeriodFilter('all'); setEmployeeStatusFilter('all'); }}
+                  style={{width: '100%', padding: '14px', borderRadius: 12, border: '1px solid #E5E7EB',
+                    background: 'white', fontSize: 14, fontWeight: 600, color: '#6B7280', cursor: 'pointer'}}>
+                  איפוס סינון
+                </button>
+              </div>
+            </>
           )}
         </div>
       )
@@ -3748,57 +3847,66 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         {/* Tab 3: Reports */}
         {timeTrackingTab === 'reports' && (
           <div className="m-time-summary-tab">
-            {/* Period Filter */}
-            <div style={{display: 'flex', gap: '8px', marginBottom: '16px', justifyContent: 'center'}}>
-              <button 
-                onClick={() => setReportsPeriod('week')}
+            {/* Filter Button Row */}
+            <div style={{display: 'flex', padding: '8px 16px', gap: 8}}>
+              <button
+                onClick={() => setReportsFilterSheetOpen(true)}
                 style={{
-                  flex: 1,
-                  padding: '10px',
-                  background: reportsPeriod === 'week' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : '#F3F4F6',
-                  color: reportsPeriod === 'week' ? 'white' : '#6B7280',
-                  border: 'none',
-                  borderRadius: '10px',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  cursor: 'pointer'
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '8px 14px', background: 'white', border: '1px solid #E5E7EB',
+                  borderRadius: 20, fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer'
                 }}
               >
-                שבוע
-              </button>
-              <button 
-                onClick={() => setReportsPeriod('month')}
-                style={{
-                  flex: 1,
-                  padding: '10px',
-                  background: reportsPeriod === 'month' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : '#F3F4F6',
-                  color: reportsPeriod === 'month' ? 'white' : '#6B7280',
-                  border: 'none',
-                  borderRadius: '10px',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  cursor: 'pointer'
-                }}
-              >
-                חודש
-              </button>
-              <button 
-                onClick={() => setReportsPeriod('year')}
-                style={{
-                  flex: 1,
-                  padding: '10px',
-                  background: reportsPeriod === 'year' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : '#F3F4F6',
-                  color: reportsPeriod === 'year' ? 'white' : '#6B7280',
-                  border: 'none',
-                  borderRadius: '10px',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  cursor: 'pointer'
-                }}
-              >
-                שנה
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                </svg>
+                פילטר
+                <span style={{fontSize: 12, color: '#6B7280'}}>
+                  {reportsPeriod === 'week' ? 'שבוע' : reportsPeriod === 'month' ? 'חודש' : 'שנה'}
+                </span>
               </button>
             </div>
+
+            {/* Reports Filter Sheet */}
+            {reportsFilterSheetOpen && (
+              <>
+                <div className="m-overlay" onClick={() => setReportsFilterSheetOpen(false)} />
+                <div style={{
+                  position: 'fixed', bottom: 0, left: 0, right: 0,
+                  background: 'white', borderRadius: '16px 16px 0 0',
+                  padding: '20px 16px 32px', zIndex: 500, maxHeight: '80vh', overflowY: 'auto'
+                }}>
+                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20}}>
+                    <span style={{fontSize: 18, fontWeight: 700, color: '#111827'}}>סינון דיווחים</span>
+                    <button onClick={() => setReportsFilterSheetOpen(false)} style={{fontSize: 20, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer'}}>✕</button>
+                  </div>
+
+                  {/* Period Section */}
+                  <div style={{marginBottom: 24}}>
+                    <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>תקופה</div>
+                    <div style={{display: 'flex', gap: 8, flexWrap: 'wrap'}}>
+                      {[
+                        {key: 'week', label: 'שבוע אחרון'},
+                        {key: 'month', label: 'חודש אחרון'},
+                        {key: 'year', label: 'שנה אחרונה'}
+                      ].map(p => (
+                        <button key={p.key}
+                          onClick={() => { setReportsPeriod(p.key as any); setReportsFilterSheetOpen(false); }}
+                          style={{
+                            padding: '10px 16px', borderRadius: 20, border: 'none',
+                            fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                            background: reportsPeriod === p.key ? '#10b981' : '#f3f4f6',
+                            color: reportsPeriod === p.key ? 'white' : '#374151'
+                          }}
+                        >
+                          {p.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
 
             {(() => {
               // Group ALL entries by period key
@@ -3975,113 +4083,140 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         {/* Tab 3: Summary */}
         {timeTrackingTab === 'summary' && (
           <div style={{display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden'}}>
-          <div style={{flexShrink: 0, padding: '12px 16px 0', background: 'white', borderBottom: '1px solid #E5E7EB'}}>
-            {/* Compact Filters */}
-            <div style={{display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap'}}>
+          <div style={{flexShrink: 0, padding: '8px 16px', background: 'white', borderBottom: '1px solid #E5E7EB'}}>
+            {/* Filter Button Row */}
+            <div style={{display: 'flex', gap: 8}}>
               <button
-                onClick={() => setSummaryDatePickerOpen(true)}
+                onClick={() => setSummaryFilterSheetOpen(true)}
                 style={{
-                  flex: 2, minWidth: '140px', padding: '8px 12px',
-                  border: '1px solid #E5E7EB', borderRadius: '8px', fontSize: '13px',
-                  background: summaryFromDate ? '#EFF6FF' : 'white',
-                  color: summaryFromDate ? '#1d4ed8' : '#9CA3AF',
-                  fontWeight: summaryFromDate ? 600 : 400,
-                  cursor: 'pointer', textAlign: 'right'
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '8px 14px', background: 'white', border: '1px solid #E5E7EB',
+                  borderRadius: 20, fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer'
                 }}
               >
-                {summaryFromDate
-                  ? summaryFromDate === summaryToDate
-                    ? `📅 ${new Date(summaryFromDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'})}`
-                    : `📅 ${new Date(summaryFromDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'})} – ${new Date(summaryToDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'})}`
-                  : 'בחר תקופה'
-                }
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                </svg>
+                פילטר
+                {(summaryFromDate || summaryClientFilter !== 'all' || summaryStatusFilter !== 'all') && (
+                  <span style={{background: '#3b82f6', color: 'white', borderRadius: 10, padding: '2px 6px', fontSize: 11}}>•</span>
+                )}
               </button>
               {summaryFromDate && (
-                <button onClick={() => { setSummaryFromDate(''); setSummaryToDate('') }}
-                  style={{padding: '8px 10px', border: '1px solid #E5E7EB', borderRadius: '8px', fontSize: '13px', background: 'white', color: '#9CA3AF', cursor: 'pointer'}}>
-                  ✕
-                </button>
+                <span style={{fontSize: 12, color: '#6B7280', padding: '8px 0'}}>
+                  {summaryFromDate === summaryToDate
+                    ? new Date(summaryFromDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'})
+                    : `${new Date(summaryFromDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'})} – ${new Date(summaryToDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'})}`
+                  }
+                </span>
               )}
-              <select
-                value={summaryClientFilter}
-                onChange={e => setSummaryClientFilter(e.target.value)}
-                style={{flex: 1, minWidth: '100px', padding: '8px 10px', border: '1px solid #E5E7EB', borderRadius: '8px', fontSize: '13px'}}
-              >
-                <option value="all">כל הלקוחות</option>
-                {clients.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
+              {summaryClientFilter !== 'all' && (
+                <span style={{fontSize: 12, color: '#6B7280', padding: '8px 0'}}>
+                  {clients.find(c => c.id === summaryClientFilter)?.name || 'לקוח'}
+                </span>
+              )}
             </div>
+
+            {/* Summary Filter Sheet */}
+            {summaryFilterSheetOpen && (
+              <>
+                <div className="m-overlay" onClick={() => setSummaryFilterSheetOpen(false)} />
+                <div style={{
+                  position: 'fixed', bottom: 0, left: 0, right: 0,
+                  background: 'white', borderRadius: '16px 16px 0 0',
+                  padding: '20px 16px 32px', zIndex: 500, maxHeight: '80vh', overflowY: 'auto'
+                }}>
+                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20}}>
+                    <span style={{fontSize: 18, fontWeight: 700, color: '#111827'}}>סינון דיווחים</span>
+                    <button onClick={() => setSummaryFilterSheetOpen(false)} style={{fontSize: 20, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer'}}>✕</button>
+                  </div>
+
+                  {/* Period Section */}
+                  <div style={{marginBottom: 20}}>
+                    <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>תקופה</div>
+                    <button
+                      onClick={() => { setSummaryDatePickerOpen(true); }}
+                      style={{
+                        width: '100%', padding: '12px 16px', border: '1px solid #E5E7EB', borderRadius: 12,
+                        background: summaryFromDate ? '#EFF6FF' : 'white',
+                        color: summaryFromDate ? '#1d4ed8' : '#374151',
+                        fontSize: 14, fontWeight: 600, cursor: 'pointer', textAlign: 'center'
+                      }}
+                    >
+                      {summaryFromDate
+                        ? summaryFromDate === summaryToDate
+                          ? `📅 ${new Date(summaryFromDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'})}`
+                          : `📅 ${new Date(summaryFromDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'})} – ${new Date(summaryToDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'})}`
+                        : 'בחר תקופה'
+                      }
+                    </button>
+                    {summaryFromDate && (
+                      <button onClick={() => { setSummaryFromDate(''); setSummaryToDate(''); }}
+                        style={{marginTop: 8, width: '100%', padding: '10px', border: '1px solid #E5E7EB', borderRadius: 12,
+                          background: 'white', fontSize: 13, color: '#6B7280', cursor: 'pointer'}}>
+                        איפוס תקופה
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Client Section */}
+                  <div style={{marginBottom: 20}}>
+                    <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>לקוח</div>
+                    <select
+                      value={summaryClientFilter}
+                      onChange={e => setSummaryClientFilter(e.target.value)}
+                      style={{width: '100%', padding: '12px 16px', border: '1px solid #E5E7EB', borderRadius: 12, fontSize: 14}}
+                    >
+                      <option value="all">כל הלקוחות</option>
+                      {clients.map(c => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Status Section */}
+                  <div style={{marginBottom: 24}}>
+                    <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>סטטוס חיוב</div>
+                    <div style={{display: 'flex', gap: 8, flexWrap: 'wrap'}}>
+                      {[
+                        {key: 'all', label: 'הכל', color: '#374151', bg: '#f3f4f6'},
+                        {key: 'pending', label: '⏳ ממתין', color: '#92400e', bg: '#fef3c7'},
+                        {key: 'invoiced', label: '📄 חויב', color: '#1e40af', bg: '#dbeafe'},
+                        {key: 'paid', label: '✅ שולם', color: '#166534', bg: '#dcfce7'}
+                      ].map(s => (
+                        <button key={s.key}
+                          onClick={() => setSummaryStatusFilter(s.key)}
+                          style={{
+                            padding: '10px 16px', borderRadius: 20, border: 'none',
+                            fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                            background: summaryStatusFilter === s.key ? s.bg : '#f3f4f6',
+                            color: summaryStatusFilter === s.key ? s.color : '#374151'
+                          }}
+                        >
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button onClick={() => { setSummaryFromDate(''); setSummaryToDate(''); setSummaryClientFilter('all'); setSummaryStatusFilter('all'); }}
+                    style={{width: '100%', padding: '14px', borderRadius: 12, border: '1px solid #E5E7EB',
+                      background: 'white', fontSize: 14, fontWeight: 600, color: '#6B7280', cursor: 'pointer'}}>
+                    איפוס כל הסינונים
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Date Picker - renders outside sheet */}
             {summaryDatePickerOpen && (
               <DateRangePicker
                 startDate={summaryFromDate}
                 endDate={summaryToDate}
-                onChange={(s, e) => { setSummaryFromDate(s); setSummaryToDate(e) }}
+                onChange={(s, e) => { setSummaryFromDate(s); setSummaryToDate(e); }}
                 onClose={() => setSummaryDatePickerOpen(false)}
               />
             )}
-
-            {/* Status Filter Slider */}
-            <div style={{display: 'flex', gap: '4px', marginBottom: '12px', background: '#f3f4f6', padding: '4px', borderRadius: '20px'}}>
-              <button 
-                onClick={() => setSummaryStatusFilter('all')}
-                style={{
-                  flex: 1,
-                  padding: '6px 8px',
-                  borderRadius: '16px',
-                  border: 'none',
-                  background: summaryStatusFilter === 'all' ? '#1d4ed8' : 'transparent',
-                  color: summaryStatusFilter === 'all' ? 'white' : '#374151',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >הכל</button>
-              <button 
-                onClick={() => setSummaryStatusFilter('pending')}
-                style={{
-                  flex: 1,
-                  padding: '6px 8px',
-                  borderRadius: '16px',
-                  border: 'none',
-                  background: summaryStatusFilter === 'pending' ? '#f59e0b' : 'transparent',
-                  color: summaryStatusFilter === 'pending' ? 'white' : '#374151',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >ממתין</button>
-              <button 
-                onClick={() => setSummaryStatusFilter('invoiced')}
-                style={{
-                  flex: 1,
-                  padding: '6px 8px',
-                  borderRadius: '16px',
-                  border: 'none',
-                  background: summaryStatusFilter === 'invoiced' ? '#3b82f6' : 'transparent',
-                  color: summaryStatusFilter === 'invoiced' ? 'white' : '#374151',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >חויב</button>
-              <button 
-                onClick={() => setSummaryStatusFilter('paid')}
-                style={{
-                  flex: 1,
-                  padding: '6px 8px',
-                  borderRadius: '16px',
-                  border: 'none',
-                  background: summaryStatusFilter === 'paid' ? '#10b981' : 'transparent',
-                  color: summaryStatusFilter === 'paid' ? 'white' : '#374151',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >שולם</button>
-            </div>
-
           </div>
           {/* Sticky bottom action bar when entries selected */}
           {selectedEntryIds.length > 0 && (
