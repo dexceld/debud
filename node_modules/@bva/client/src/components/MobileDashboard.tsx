@@ -6563,26 +6563,19 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <div style={{fontSize:13,color:'#6B7280',marginBottom:20}}>בטוח/ה שרוצה לצאת?</div>
             <div style={{display:'flex',gap:10}}>
               <button onClick={() => setShowExitConfirm(false)} style={{flex:1,padding:'12px 0',borderRadius:10,border:'1px solid #E5E7EB',background:'#F9FAFB',color:'#374151',fontSize:15,fontWeight:500,cursor:'pointer'}}>להישאר</button>
-              <button onClick={() => {
-                exitingRef.current = true
+              <button onClick={async () => {
                 setShowExitConfirm(false)
                 if (popStateHandlerRef.current) window.removeEventListener('popstate', popStateHandlerRef.current)
-                // Try to minimize/close the app
-                if ((navigator as any).app && (navigator as any).app.exitApp) {
-                  // Cordova/Capacitor - actually exit
-                  (navigator as any).app.exitApp()
+                // Perform logout
+                if (isLocalMode) {
+                  localStorage.removeItem('bva_local_mode')
                 } else {
-                  // PWA/Web - just minimize by moving to background
-                  // Use the Android minimize trick if available
-                  if ((window as any).Android && (window as any).Android.minimizeApp) {
-                    (window as any).Android.minimizeApp()
-                  } else {
-                    // Standard web - just close the dialog and stay in app
-                    // (Can't actually exit a PWA from JavaScript)
-                    // User can manually minimize using Android home button
-                  }
+                  await flushAllSaves()
+                  await new Promise(r => setTimeout(r, 500))
+                  await signOutUser().catch(() => {})
                 }
-              }} style={{flex:1,padding:'12px 0',borderRadius:10,border:'none',background:'#EF4444',color:'#fff',fontSize:15,fontWeight:500,cursor:'pointer'}}>לצאת</button>
+                window.location.reload()
+              }} style={{flex:1,padding:'12px 0',borderRadius:10,border:'none',background:'#DC2626',color:'#fff',fontSize:15,fontWeight:600,cursor:'pointer'}}>לצאת</button>
             </div>
           </div>
         </div>
