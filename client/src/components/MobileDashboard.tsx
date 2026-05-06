@@ -292,6 +292,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [editEntryId, setEditEntryId] = useState<string | null>(null)
   const [datePickerOpen, setDatePickerOpen] = useState(false)
   const [timePickerOpen, setTimePickerOpen] = useState(false)
+  const [timePickerTarget, setTimePickerTarget] = useState<'start' | 'end' | null>(null)
   const [selectedEntryIds, setSelectedEntryIds] = useState<string[]>([])
   const [selectedChargeIds, setSelectedChargeIds] = useState<string[]>([])
   const [employeeSelectedIds, setEmployeeSelectedIds] = useState<string[]>([])
@@ -3012,7 +3013,14 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
             <h1 className="m-title">{client.name}</h1>
-            <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+            <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
+              {/* Filter Button */}
+              <button className="m-hbtn m-hbtn-menu" onClick={() => setClientFilterSheetOpen(true)}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                </svg>
+                <span className="m-hbtn-label">פילטר</span>
+              </button>
               {/* Add Hour Entry Button */}
               <button className="m-hbtn m-hbtn-clock" onClick={() => {
                 setEditEntryId(null)
@@ -3339,7 +3347,14 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
             <h1 className="m-title">{employee.name}</h1>
-            <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+            <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
+              {/* Filter Button */}
+              <button className="m-hbtn m-hbtn-menu" onClick={() => setEmployeeFilterSheetOpen(true)}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                </svg>
+                <span className="m-hbtn-label">פילטר</span>
+              </button>
               <button className="m-hbtn m-hbtn-menu" onClick={() => {
                 setEmployeeFormName(employee.name)
                 setEmployeeFormEmail(employee.email)
@@ -3730,6 +3745,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <div className="m-header-actions">
             {timeTrackingTab === 'summary' && (
               <>
+                {/* Filter Button */}
+                <button className="m-hbtn m-hbtn-menu" onClick={() => setSummaryFilterSheetOpen(true)}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                  </svg>
+                  <span className="m-hbtn-label">פילטר</span>
+                </button>
                 <button className="m-hbtn m-hbtn-menu" onClick={() => {
                   // Export to Excel - trigger from summary results
                   const filteredEntries = timeEntries.filter(e => {
@@ -4389,39 +4411,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         {/* Tab 3: Summary */}
         {timeTrackingTab === 'summary' && (
           <div style={{display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden'}}>
-          <div style={{flexShrink: 0, padding: '8px 16px', background: 'white', borderBottom: '1px solid #E5E7EB'}}>
-            {/* Filter Button Row */}
-            <div style={{display: 'flex', gap: 8}}>
-              <button
-                onClick={() => setSummaryFilterSheetOpen(true)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '8px 14px', background: 'white', border: '1px solid #E5E7EB',
-                  borderRadius: 20, fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer'
-                }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-                </svg>
-                פילטר
-                {(summaryFromDate || summaryClientFilter !== 'all' || summaryStatusFilter !== 'all') && (
-                  <span style={{background: '#3b82f6', color: 'white', borderRadius: 10, padding: '2px 6px', fontSize: 11}}>•</span>
-                )}
-              </button>
-              {summaryFromDate && (
-                <span style={{fontSize: 12, color: '#6B7280', padding: '8px 0'}}>
-                  {summaryFromDate === summaryToDate
-                    ? new Date(summaryFromDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'})
-                    : `${new Date(summaryFromDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'})} – ${new Date(summaryToDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'})}`
-                  }
-                </span>
-              )}
-              {summaryClientFilter !== 'all' && (
-                <span style={{fontSize: 12, color: '#6B7280', padding: '8px 0'}}>
-                  {clients.find(c => c.id === summaryClientFilter)?.name || 'לקוח'}
-                </span>
-              )}
-            </div>
 
             {/* Summary Filter Sheet */}
             {summaryFilterSheetOpen && (
@@ -4523,7 +4512,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 onClose={() => setSummaryDatePickerOpen(false)}
               />
             )}
-          </div>
           {/* Sticky bottom action bar when entries selected */}
           {(selectedEntryIds.length > 0 || selectedChargeIds.length > 0) && (
             <div style={{
@@ -5636,7 +5624,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <button onClick={() => setDatePickerOpen(true)} style={{flex: 1, textAlign: 'right', border: 'none', background: 'none', fontSize: 17, fontWeight: 700, color: entryFormStartDate ? '#111827' : '#9CA3AF', cursor: 'pointer'}}>
               {entryFormStartDate || 'בחר תאריך'}
             </button>
-            <button onClick={() => { setTimePickerOpen(true) }} style={{minWidth: 70, textAlign: 'left', border: 'none', background: 'none', fontSize: 17, fontWeight: 700, color: entryFormStartTime ? '#1d4ed8' : '#9CA3AF', cursor: 'pointer'}}>
+            <button onClick={() => { setTimePickerTarget('start'); setTimePickerOpen(true) }} style={{minWidth: 70, textAlign: 'left', border: 'none', background: 'none', fontSize: 17, fontWeight: 700, color: entryFormStartTime ? '#1d4ed8' : '#9CA3AF', cursor: 'pointer'}}>
               {entryFormStartTime || 'שעה'}
             </button>
           </div>
@@ -5647,7 +5635,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <button onClick={() => setDatePickerOpen(true)} style={{flex: 1, textAlign: 'right', border: 'none', background: 'none', fontSize: 17, fontWeight: 700, color: entryFormEndDate ? '#111827' : '#9CA3AF', cursor: 'pointer'}}>
               {entryFormEndDate || 'בחר תאריך'}
             </button>
-            <button onClick={() => { setTimePickerOpen(true) }} style={{minWidth: 70, textAlign: 'left', border: 'none', background: 'none', fontSize: 17, fontWeight: 700, color: entryFormEndTime ? '#1d4ed8' : '#9CA3AF', cursor: 'pointer'}}>
+            <button onClick={() => { setTimePickerTarget('end'); setTimePickerOpen(true) }} style={{minWidth: 70, textAlign: 'left', border: 'none', background: 'none', fontSize: 17, fontWeight: 700, color: entryFormEndTime ? '#1d4ed8' : '#9CA3AF', cursor: 'pointer'}}>
               {entryFormEndTime || 'שעה'}
             </button>
           </div>
@@ -5664,8 +5652,17 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <TimeRangePicker
               startTime={entryFormStartTime}
               endTime={entryFormEndTime}
-              onChange={(s, e) => { setEntryFormStartTime(s); setEntryFormEndTime(e) }}
-              onClose={() => setTimePickerOpen(false)}
+              onChange={(s, e) => {
+                if (timePickerTarget === 'start') {
+                  setEntryFormStartTime(s)
+                } else if (timePickerTarget === 'end') {
+                  setEntryFormEndTime(e)
+                } else {
+                  setEntryFormStartTime(s)
+                  setEntryFormEndTime(e)
+                }
+              }}
+              onClose={() => { setTimePickerOpen(false); setTimePickerTarget(null) }}
             />
           )}
 
@@ -5823,7 +5820,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 color: fieldErrors.date ? '#DC2626' : entryFormStartDate ? '#111827' : '#9CA3AF', cursor: 'pointer'}}>
               {entryFormStartDate || 'בחר תאריך'}
             </button>
-            <button onClick={() => { setTimePickerOpen(true); setFieldErrors(prev => ({...prev, time: false})) }}
+            <button onClick={() => { setTimePickerTarget('start'); setTimePickerOpen(true); setFieldErrors(prev => ({...prev, time: false})) }}
               style={{minWidth: 70, textAlign: 'left', border: 'none', background: 'none', fontSize: 17, fontWeight: 700,
                 color: fieldErrors.time ? '#DC2626' : entryFormStartTime ? '#1d4ed8' : '#9CA3AF', cursor: 'pointer'}}>
               {entryFormStartTime || 'שעה'}
@@ -5838,7 +5835,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 color: entryFormEndDate ? '#111827' : '#9CA3AF', cursor: 'pointer'}}>
               {entryFormEndDate || 'בחר תאריך'}
             </button>
-            <button onClick={() => { setTimePickerOpen(true); setFieldErrors(prev => ({...prev, time: false})) }}
+            <button onClick={() => { setTimePickerTarget('end'); setTimePickerOpen(true); setFieldErrors(prev => ({...prev, time: false})) }}
               style={{minWidth: 70, textAlign: 'left', border: 'none', background: 'none', fontSize: 17, fontWeight: 700,
                 color: entryFormEndTime ? '#1d4ed8' : '#9CA3AF', cursor: 'pointer'}}>
               {entryFormEndTime || 'שעה'}
@@ -5857,8 +5854,17 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <TimeRangePicker
               startTime={entryFormStartTime}
               endTime={entryFormEndTime}
-              onChange={(s, e) => { setEntryFormStartTime(s); setEntryFormEndTime(e) }}
-              onClose={() => setTimePickerOpen(false)}
+              onChange={(s, e) => {
+                if (timePickerTarget === 'start') {
+                  setEntryFormStartTime(s)
+                } else if (timePickerTarget === 'end') {
+                  setEntryFormEndTime(e)
+                } else {
+                  setEntryFormStartTime(s)
+                  setEntryFormEndTime(e)
+                }
+              }}
+              onClose={() => { setTimePickerOpen(false); setTimePickerTarget(null) }}
             />
           )}
 
