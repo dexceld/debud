@@ -287,6 +287,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [datePickerOpen, setDatePickerOpen] = useState(false)
   const [timePickerOpen, setTimePickerOpen] = useState(false)
   const [selectedEntryIds, setSelectedEntryIds] = useState<string[]>([])
+  const [selectedChargeIds, setSelectedChargeIds] = useState<string[]>([])
   const [employeeSelectedIds, setEmployeeSelectedIds] = useState<string[]>([])
   const [swipedEntryId, setSwipedEntryId] = useState<string | null>(null)
   const swipeTouchStartX = useRef(0)
@@ -4157,9 +4158,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                             if (!client) return null
                             const tag = chargeTags.find(t => t.id === charge.tagId)
                             const status = charge.billingStatus || 'pending'
+                            const isChargeSelected = selectedChargeIds.includes(charge.id)
+                            const inSelectMode = selectedEntryIds.length > 0 || selectedChargeIds.length > 0
+                            const toggleChargeSelect = () => setSelectedChargeIds(prev => prev.includes(charge.id) ? prev.filter(i => i !== charge.id) : [...prev, charge.id])
                             return (
                               <div key={charge.id}
                                 onClick={() => {
+                                  if (inSelectMode) { toggleChargeSelect(); return }
                                   setChargeFormClientId(charge.clientId)
                                   setChargeFormDate(charge.date)
                                   setChargeFormAmount(String(charge.amount))
@@ -4168,19 +4173,28 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                   setEditChargeId(charge.id)
                                   setAddChargeOpen(true)
                                 }}
-                                style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', borderBottom: '1px solid #F9FAFB', cursor: 'pointer', background: '#faf5ff'}}
+                                style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', borderBottom: '1px solid #F9FAFB', cursor: 'pointer', background: isChargeSelected ? '#F5F3FF' : '#faf5ff'}}
                               >
-                                <div style={{minWidth: 0}}>
-                                  <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
-                                    <span style={{fontSize: 14, fontWeight: 600, color: '#111827'}}>{client.name}</span>
-                                    <span style={{fontSize: 11, padding: '1px 6px', borderRadius: 4, background: '#ede9fe', color: '#7c3aed', fontWeight: 600}}>{tag?.name || charge.tagId}</span>
-                                  </div>
-                                  <div style={{fontSize: 12, color: '#6B7280', marginTop: 4}}>
-                                    <span style={{fontSize: 16, fontWeight: 700, color: '#374151'}}>{new Date(charge.date).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit', year:'2-digit'})}</span>
-                                    <span style={{marginRight: 6, marginLeft: 8, fontSize: 11, padding: '1px 5px', borderRadius: 4, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e'}}>
-                                      {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
-                                    </span>
-                                    {charge.notes && <span style={{marginRight: 6, color: '#9CA3AF'}}>· {charge.notes}</span>}
+                                <div style={{display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0}}>
+                                  <input
+                                    type="checkbox"
+                                    checked={isChargeSelected}
+                                    onChange={toggleChargeSelect}
+                                    onClick={(e) => e.stopPropagation()}
+                                    style={{width: 18, height: 18, accentColor: '#8b5cf6', cursor: 'pointer'}}
+                                  />
+                                  <div style={{minWidth: 0}}>
+                                    <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
+                                      <span style={{fontSize: 14, fontWeight: 600, color: '#111827'}}>{client.name}</span>
+                                      <span style={{fontSize: 11, padding: '1px 6px', borderRadius: 4, background: '#ede9fe', color: '#7c3aed', fontWeight: 600}}>{tag?.name || charge.tagId}</span>
+                                    </div>
+                                    <div style={{fontSize: 12, color: '#6B7280', marginTop: 4}}>
+                                      <span style={{fontSize: 16, fontWeight: 700, color: '#374151'}}>{new Date(charge.date).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit', year:'2-digit'})}</span>
+                                      <span style={{marginRight: 6, marginLeft: 8, fontSize: 11, padding: '1px 5px', borderRadius: 4, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e'}}>
+                                        {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
+                                      </span>
+                                      {charge.notes && <span style={{marginRight: 6, color: '#9CA3AF'}}>· {charge.notes}</span>}
+                                    </div>
                                   </div>
                                 </div>
                                 <div style={{textAlign: 'left', flexShrink: 0}}>
@@ -4340,7 +4354,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             )}
           </div>
           {/* Sticky bottom action bar when entries selected */}
-          {selectedEntryIds.length > 0 && (
+          {(selectedEntryIds.length > 0 || selectedChargeIds.length > 0) && (
             <div style={{
               position: 'sticky', bottom: 0, zIndex: 50,
               background: '#1e293b',
@@ -4349,8 +4363,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               flexShrink: 0
             }}>
               <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8}}>
-                <span style={{fontSize: 13, fontWeight: 700, color: 'white'}}>{selectedEntryIds.length} דיווחים נבחרו</span>
-                <button onClick={() => setSelectedEntryIds([])} style={{fontSize: 12, color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer'}}>✕ בטל</button>
+                <span style={{fontSize: 13, fontWeight: 700, color: 'white'}}>
+                  {selectedEntryIds.length + selectedChargeIds.length} דיווחים נבחרו
+                  {selectedChargeIds.length > 0 && ` (${selectedChargeIds.length} חיובים)`}
+                </span>
+                <button onClick={() => { setSelectedEntryIds([]); setSelectedChargeIds([]) }} style={{fontSize: 12, color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer'}}>✕ בטל</button>
               </div>
               <div style={{display: 'flex', gap: 6}}>
                 <button onClick={() => setSummaryStatusPickerOpen(true)}
@@ -4360,8 +4377,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 <button onClick={() => {
                   if (!bulkInvoiceNumber.trim()) return
                   setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, invoiceNumber: bulkInvoiceNumber.trim(), billingStatus: e.billingStatus === 'paid' ? 'paid' : 'invoiced'} : e))
+                  setChargeEntries(prev => prev.map(c => selectedChargeIds.includes(c.id) ? {...c, invoiceNumber: bulkInvoiceNumber.trim(), billingStatus: c.billingStatus === 'paid' ? 'paid' : 'invoiced'} : c))
                   setBulkInvoiceNumber('')
                   setSelectedEntryIds([])
+                  setSelectedChargeIds([])
                   setSummaryStatusFilter('all')
                 }} style={{padding: '8px 14px', fontSize: 13, border: 'none', borderRadius: 8, background: '#8b5cf6', color: 'white', fontWeight: 700, cursor: 'pointer'}}>שמור מס' חשבונית</button>
               </div>
@@ -4387,15 +4406,36 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   <button onClick={() => setSummaryStatusPickerOpen(false)} style={{fontSize: 20, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer'}}>✕</button>
                 </div>
                 <div style={{display: 'flex', flexDirection: 'column', gap: 10}}>
-                  <button onClick={() => { setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: 'pending'} : e)); setSelectedEntryIds([]); setSummaryStatusFilter('all'); setSummaryStatusPickerOpen(false) }}
+                  <button onClick={() => {
+                    setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: 'pending'} : e))
+                    setChargeEntries(prev => prev.map(c => selectedChargeIds.includes(c.id) ? {...c, billingStatus: 'pending'} : c))
+                    setSelectedEntryIds([])
+                    setSelectedChargeIds([])
+                    setSummaryStatusFilter('all')
+                    setSummaryStatusPickerOpen(false)
+                  }}
                     style={{padding: '14px 16px', fontSize: 15, border: 'none', borderRadius: 12, background: '#fef3c7', color: '#92400e', fontWeight: 700, cursor: 'pointer', textAlign: 'center'}}>
                     ⏳ ממתין
                   </button>
-                  <button onClick={() => { setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: 'invoiced'} : e)); setSelectedEntryIds([]); setSummaryStatusFilter('all'); setSummaryStatusPickerOpen(false) }}
+                  <button onClick={() => {
+                    setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: 'invoiced'} : e))
+                    setChargeEntries(prev => prev.map(c => selectedChargeIds.includes(c.id) ? {...c, billingStatus: 'invoiced'} : c))
+                    setSelectedEntryIds([])
+                    setSelectedChargeIds([])
+                    setSummaryStatusFilter('all')
+                    setSummaryStatusPickerOpen(false)
+                  }}
                     style={{padding: '14px 16px', fontSize: 15, border: 'none', borderRadius: 12, background: '#dbeafe', color: '#1e40af', fontWeight: 700, cursor: 'pointer', textAlign: 'center'}}>
                     📄 חויב
                   </button>
-                  <button onClick={() => { setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: 'paid'} : e)); setSelectedEntryIds([]); setSummaryStatusFilter('all'); setSummaryStatusPickerOpen(false) }}
+                  <button onClick={() => {
+                    setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: 'paid'} : e))
+                    setChargeEntries(prev => prev.map(c => selectedChargeIds.includes(c.id) ? {...c, billingStatus: 'paid'} : c))
+                    setSelectedEntryIds([])
+                    setSelectedChargeIds([])
+                    setSummaryStatusFilter('all')
+                    setSummaryStatusPickerOpen(false)
+                  }}
                     style={{padding: '14px 16px', fontSize: 15, border: 'none', borderRadius: 12, background: '#dcfce7', color: '#166534', fontWeight: 700, cursor: 'pointer', textAlign: 'center'}}>
                     ✅ שולם
                   </button>
@@ -4406,7 +4446,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <div
             ref={summaryScrollRef}
             onScroll={() => { if (summaryScrollRef.current) summaryScrollPos.current = summaryScrollRef.current.scrollTop }}
-            style={{flex: 1, overflowY: 'auto', padding: '12px 16px', paddingBottom: selectedEntryIds.length > 0 ? 20 : 100}}
+            style={{flex: 1, overflowY: 'auto', padding: '12px 16px', paddingBottom: (selectedEntryIds.length > 0 || selectedChargeIds.length > 0) ? 20 : 100}}
           >
             {(() => {
               // Filter time entries
@@ -4447,7 +4487,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               // Add charge amounts
               filteredChargeEntries.forEach(c => { totalAmount += c.amount })
 
-              // Selected entries totals (charges can't be selected, only time entries)
+              // Selected entries totals (both time entries and charges can be selected)
               const selectedEntries = selectedEntryIds.length > 0 ? filteredTimeEntries.filter(e => selectedEntryIds.includes(e.id)) : []
               const selHours = selectedEntries.reduce((sum, e) => sum + calculateHours(e), 0)
               let selAmount = 0
@@ -4456,9 +4496,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 if (client) selAmount += calculateHours(e) * client.hourlyRate * (1 + client.vatPercent / 100)
               })
 
-              const cardHours = selectedEntryIds.length > 0 ? selHours : totalHours
-              const cardAmount = selectedEntryIds.length > 0 ? selAmount : totalAmount
-              const cardLabel = selectedEntryIds.length > 0 ? `נבחרו ${selectedEntryIds.length}` : 'סה"כ'
+              const cardHours = (selectedEntryIds.length > 0 || selectedChargeIds.length > 0) ? selHours : totalHours
+              const cardAmount = (selectedEntryIds.length > 0 || selectedChargeIds.length > 0) ? selAmount + selectedChargeIds.reduce((sum, id) => {
+                const charge = filteredChargeEntries.find(c => c.id === id)
+                return sum + (charge?.amount || 0)
+              }, 0) : totalAmount
+              const cardLabel = (selectedEntryIds.length > 0 || selectedChargeIds.length > 0) ? `נבחרו ${selectedEntryIds.length + selectedChargeIds.length}` : 'סה"כ'
 
               // Merge time entries and charges chronologically
               const mergedItems = [
@@ -4498,16 +4541,19 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
 
                   {/* Select All Button */}
-                  {selectedEntryIds.length === 0 && filteredTimeEntries.length > 0 && (
+                  {(selectedEntryIds.length === 0 && selectedChargeIds.length === 0) && (filteredTimeEntries.length > 0 || filteredChargeEntries.length > 0) && (
                     <button
-                      onClick={() => setSelectedEntryIds(filteredTimeEntries.map(e => e.id))}
+                      onClick={() => {
+                        setSelectedEntryIds(filteredTimeEntries.map(e => e.id))
+                        setSelectedChargeIds(filteredChargeEntries.map(c => c.id))
+                      }}
                       style={{
                         width: '100%', padding: '8px', marginBottom: '12px',
                         background: '#EFF6FF', color: '#1d4ed8', border: '1px dashed #93c5fd',
                         borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer'
                       }}
                     >
-                      ☑ בחר את כל {filteredTimeEntries.length} הדיווחים
+                      ☑ בחר הכל ({filteredTimeEntries.length + filteredChargeEntries.length})
                     </button>
                   )}
 
@@ -4524,7 +4570,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           const status = entry.billingStatus || 'pending'
                           const statusColor = status === 'paid' ? '#10b981' : status === 'invoiced' ? '#3b82f6' : '#f59e0b'
                           const isSelected = selectedEntryIds.includes(entry.id)
-                          const inSelectMode = selectedEntryIds.length > 0
+                          const inSelectMode = selectedEntryIds.length > 0 || selectedChargeIds.length > 0
                           const toggleSelect = () => setSelectedEntryIds(prev => prev.includes(entry.id) ? prev.filter(i => i !== entry.id) : [...prev, entry.id])
                           const openEdit = () => {
                             setEntryFormStartDate(entry.startDate)
