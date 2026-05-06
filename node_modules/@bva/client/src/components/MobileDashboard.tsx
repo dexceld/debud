@@ -279,6 +279,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [reportsFromDate, setReportsFromDate] = useState<string>('')
   const [reportsToDate, setReportsToDate] = useState<string>('')
   const [reportsDatePickerOpen, setReportsDatePickerOpen] = useState(false)
+  const [reportsShareOpen, setReportsShareOpen] = useState(false)
   // Floating action buttons state (moved from IIFE to top-level to fix hooks violation)
   const [fabPos, setFabPos] = useState(() => {
     const saved = localStorage.getItem(lsKey('time_fab_pos'))
@@ -3887,42 +3888,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 <span className="m-hbtn-label">חדש</span>
               </button>
             )}
-            {timeTrackingTab === 'reports' && (
-              <>
-                <button className="m-hbtn m-hbtn-menu" onClick={() => setReportsFilterSheetOpen(true)}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-                  </svg>
-                  <span className="m-hbtn-label">פילטר</span>
-                </button>
-                {/* Add Hour Entry Button */}
-                <button className="m-hbtn m-hbtn-clock" onClick={() => {
-                  setQuickTimeClientId('')
-                  setEntryFormStartDate('')
-                  setEntryFormEndDate('')
-                  setEntryFormStartTime('')
-                  setEntryFormEndTime('')
-                  setEntryFormNotes('')
-                  setEntryFormEmployeeId('self')
-                  setQuickTimeEntryOpen(true)
-                }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <polyline points="12 6 12 12 16 14"/>
-                    <text x="18" y="6" fontSize="10" fontWeight="bold" fill="currentColor">+</text>
-                  </svg>
-                  <span className="m-hbtn-label">שעתי</span>
-                </button>
-                {/* Add Charge Entry Button */}
-                <button className="m-hbtn m-hbtn-shekel" onClick={() => { setChargeFormClientId(''); setChargeFormDate(new Date().toISOString().split('T')[0]); setChargeFormAmount(''); setChargeFormTagId(''); setChargeFormNotes(''); setEditChargeId(null); setAddChargeOpen(true) }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                    <text x="18" y="6" fontSize="10" fontWeight="bold" fill="currentColor">+</text>
-                  </svg>
-                  <span className="m-hbtn-label">כספי</span>
-                </button>
-              </>
-            )}
+            {timeTrackingTab === 'reports' && <></>}
             {timeTrackingTab === 'employees' && (
               <button className="m-hbtn m-hbtn-plus" onClick={() => setAddEmployeeOpen(true)}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -4188,6 +4154,36 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               />
             )}
 
+            {/* Share Sheet for Reports */}
+            {reportsShareOpen && (
+              <div className="m-sheet-overlay" onClick={() => setReportsShareOpen(false)}>
+                <div className="m-sheet" onClick={e => e.stopPropagation()} style={{maxHeight: '40vh'}}>
+                  <div className="m-sheet-header">
+                    <div className="m-sheet-title">שלח אל</div>
+                    <button className="m-sheet-close" onClick={() => setReportsShareOpen(false)}>✕</button>
+                  </div>
+                  <div className="m-sheet-body" style={{padding: '16px'}}>
+                    <button className="m-settings-row" onClick={() => { exportReportsToExcel(); setReportsShareOpen(false); }}>
+                      <span className="m-settings-icon-wrap" style={{background:'#F0FDF4'}}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                      </span>
+                      <div className="m-settings-info">
+                        <span className="m-settings-title">ייצוא לאקסל</span>
+                      </div>
+                    </button>
+                    <button className="m-settings-row" onClick={() => { shareReportsViaEmail(); setReportsShareOpen(false); }}>
+                      <span className="m-settings-icon-wrap" style={{background:'#EEF2FF'}}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366F1" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>
+                      </span>
+                      <div className="m-settings-info">
+                        <span className="m-settings-title">שלח במייל</span>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {(() => {
               // Filter entries by date range, client, and status
               let filteredEntries = [...timeEntries]
@@ -4355,13 +4351,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                             if (!client) return null
                             const tag = chargeTags.find(t => t.id === charge.tagId)
                             const status = charge.billingStatus || 'pending'
-                            const isChargeSelected = selectedChargeIds.includes(charge.id)
-                            const inSelectMode = selectedEntryIds.length > 0 || selectedChargeIds.length > 0
-                            const toggleChargeSelect = () => setSelectedChargeIds(prev => prev.includes(charge.id) ? prev.filter(i => i !== charge.id) : [...prev, charge.id])
                             return (
                               <div key={charge.id}
                                 onClick={() => {
-                                  if (inSelectMode) { toggleChargeSelect(); return }
                                   setChargeFormClientId(charge.clientId)
                                   setChargeFormDate(charge.date)
                                   setChargeFormAmount(String(charge.amount))
@@ -4370,16 +4362,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                   setEditChargeId(charge.id)
                                   setAddChargeOpen(true)
                                 }}
-                                style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 12px', borderBottom: '2px solid #E5E7EB', cursor: 'pointer', background: isChargeSelected ? '#F5F3FF' : '#faf5ff'}}
+                                style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 12px', borderBottom: '2px solid #E5E7EB', cursor: 'pointer', background: '#faf5ff'}}
                               >
                                 <div style={{display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0}}>
-                                  <input
-                                    type="checkbox"
-                                    checked={isChargeSelected}
-                                    onChange={toggleChargeSelect}
-                                    onClick={(e) => e.stopPropagation()}
-                                    style={{width: 18, height: 18, accentColor: '#8b5cf6', cursor: 'pointer'}}
-                                  />
                                   <div style={{minWidth: 0}}>
                                     <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
                                       <span style={{fontSize: 14, fontWeight: 600, color: '#111827'}}>{client.name}</span>
@@ -4410,6 +4395,82 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           )})()}
         </div>
       )}
+
+        {/* Bottom Menu Bar for Reports */}
+        {timeTrackingTab === 'reports' && (
+          <div style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: '60px',
+            backgroundColor: 'white',
+            borderTop: '1px solid #E5E7EB',
+            display: 'flex',
+            justifyContent: 'space-around',
+            alignItems: 'center',
+            padding: '0 16px',
+            zIndex: 100
+          }}>
+            {/* Calendar Button */}
+            <button onClick={() => setReportsDatePickerOpen(true)} style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '4px',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#374151'
+            }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              <span style={{fontSize: '11px', fontWeight: 500}}>תאריך</span>
+            </button>
+
+            {/* Filter Button */}
+            <button onClick={() => setReportsFilterSheetOpen(true)} style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '4px',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#374151'
+            }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+              </svg>
+              <span style={{fontSize: '11px', fontWeight: 500}}>סינון</span>
+            </button>
+
+            {/* Share Button */}
+            <button onClick={() => setReportsShareOpen(true)} style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '4px',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#374151'
+            }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="18" cy="5" r="3"/>
+                <circle cx="6" cy="12" r="3"/>
+                <circle cx="18" cy="19" r="3"/>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+              </svg>
+              <span style={{fontSize: '11px', fontWeight: 500}}>שלח אל</span>
+            </button>
+          </div>
+        )}
 
         {/* Tab 3: Summary */}
         {timeTrackingTab === 'summary' && (
@@ -4847,6 +4908,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           const tag = chargeTags.find(t => t.id === charge.tagId)
                           const status = charge.billingStatus || 'pending'
                           const statusColor = status === 'paid' ? '#10b981' : status === 'invoiced' ? '#3b82f6' : '#f59e0b'
+                          const isChargeSelected = selectedChargeIds.includes(charge.id)
+                          const inSelectMode = selectedEntryIds.length > 0 || selectedChargeIds.length > 0
+                          const toggleChargeSelect = () => setSelectedChargeIds(prev => prev.includes(charge.id) ? prev.filter(i => i !== charge.id) : [...prev, charge.id])
                           const openChargeEdit = () => {
                             setChargeFormClientId(charge.clientId)
                             setChargeFormDate(charge.date)
@@ -4859,7 +4923,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           }
                           return (
                             <div key={charge.id}
-                              onClick={openChargeEdit}
+                              onClick={() => {
+                                if (inSelectMode) { toggleChargeSelect(); return }
+                                openChargeEdit()
+                              }}
                               style={{
                                 padding: '14px 16px',
                                 display: 'flex',
@@ -4867,11 +4934,17 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                 alignItems: 'center',
                                 borderBottom: '1px solid #E5E7EB',
                                 cursor: 'pointer',
-                                background: '#faf5ff'
+                                background: isChargeSelected ? '#F5F3FF' : '#faf5ff'
                               }}
                             >
                               <div style={{flex: 1, display: 'flex', alignItems: 'center', gap: 10, minWidth: 0}}>
-                                <span style={{width: 18, height: 18, flexShrink: 0}} />
+                                <input
+                                  type="checkbox"
+                                  checked={isChargeSelected}
+                                  onChange={toggleChargeSelect}
+                                  onClick={(e) => e.stopPropagation()}
+                                  style={{width: 18, height: 18, accentColor: '#8b5cf6', cursor: 'pointer'}}
+                                />
                                 <span style={{width: 8, height: 8, borderRadius: '50%', background: statusColor, flexShrink: 0}} />
                                 <div style={{minWidth: 0}}>
                                   <div style={{fontSize: 14, fontWeight: 600, color: '#7c3aed', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
