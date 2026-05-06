@@ -4134,7 +4134,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                       setEditEntryId(entry.id)
                                       setAddTimeEntryOpen(true)
                                     }}
-                                    style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderBottom: '1px solid #F9FAFB', cursor: 'pointer'}}
+                                    style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', borderBottom: '1px solid #F9FAFB', cursor: 'pointer'}}
                                   >
                                     <div style={{minWidth: 0}}>
                                       <div style={{fontSize: 14, fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{client.name}</div>
@@ -4147,7 +4147,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                 </div>
                                 <div style={{textAlign: 'left', flexShrink: 0}}>
                                   <div style={{fontSize: 14, fontWeight: 700, color: '#059669'}}>₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
-                                  <div style={{fontSize: 12, color: '#6B7280'}}>{hours.toFixed(1)}h</div>
+                                  <div style={{fontSize: 15, fontWeight: 700, color: '#6B7280'}}>{hours.toFixed(1)}h</div>
                                 </div>
                               </div>
                             )
@@ -4168,7 +4168,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                   setEditChargeId(charge.id)
                                   setAddChargeOpen(true)
                                 }}
-                                style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderBottom: '1px solid #F9FAFB', cursor: 'pointer', background: '#faf5ff'}}
+                                style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', borderBottom: '1px solid #F9FAFB', cursor: 'pointer', background: '#faf5ff'}}
                               >
                                 <div style={{minWidth: 0}}>
                                   <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
