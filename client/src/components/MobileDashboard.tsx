@@ -3853,7 +3853,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             className={`m-time-tab ${timeTrackingTab === 'summary' ? 'active' : ''}`}
             onClick={() => setTimeTrackingTab('summary')}
           >
-            ניהול חיובים
+            חיובים
           </button>
           <button
             className={`m-time-tab ${timeTrackingTab === 'employees' ? 'active' : ''}`}
