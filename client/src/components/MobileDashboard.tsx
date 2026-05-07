@@ -4910,15 +4910,16 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   }
 
   // Analog Clock Picker - 4 steps: start-hour → start-min → end-hour → end-min
-  const TimeRangePicker = ({ startTime, endTime, onChange, onClose, initialStep }: {
+  const TimeRangePicker = ({ startTime, endTime, onChange, onClose, initialStep, singleMode }: {
     startTime: string
     endTime: string
     onChange: (start: string, end: string) => void
     onClose: () => void
     initialStep?: 'startH' | 'startM' | 'endH' | 'endM'
+    singleMode?: 'start' | 'end'
   }) => {
     // step: 'startH' | 'startM' | 'endH' | 'endM'
-    const [step, setStep] = useState<'startH' | 'startM' | 'endH' | 'endM'>(initialStep || 'startH')
+    const [step, setStep] = useState<'startH' | 'startM' | 'endH' | 'endM'>(singleMode === 'end' ? 'endH' : (initialStep || 'startH'))
     const [startH, setStartH] = useState<number | null>(null)
     const [startM, setStartM] = useState<number | null>(null)
     const [endH, setEndH] = useState<number | null>(null)
@@ -4967,7 +4968,14 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
     const handleSelect = (val: number) => {
       if (step === 'startH') { setStartH(val); setStep('startM') }
-      else if (step === 'startM') { setStartM(val); setStep('endH') }
+      else if (step === 'startM') {
+        if (singleMode === 'start') {
+          onChange(`${pad(startH!)}:${pad(val)}`, endTime)
+          onClose()
+        } else {
+          setStartM(val); setStep('endH')
+        }
+      }
       else if (step === 'endH') { setEndH(val); setStep('endM') }
       else {
         const s = `${pad(startH!)}:${pad(startM!)}`
@@ -4977,7 +4985,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       }
     }
 
-    const stepLabel = step === 'startH' ? 'שעת התחלה' : step === 'startM' ? `התחלה ${pad(startH!)} — דקות` : step === 'endH' ? `התחלה ${pad(startH!)}:${pad(startM!)} — שעת סיום` : `סיום ${pad(endH!)} — דקות`
+    const stepLabel = step === 'startH' ? 'שעת התחלה' : step === 'startM' ? `התחלה ${pad(startH!)} — דקות` : step === 'endH' ? (singleMode === 'end' ? 'שעת סיום' : `התחלה ${pad(startH!)}:${pad(startM!)} — שעת סיום`) : `סיום ${pad(endH!)} — דקות`
 
     const handPos = selectedVal !== null ? (() => {
       const idx = numbers.indexOf(selectedVal)
@@ -5042,7 +5050,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </svg>
           </div>
 
-          {step !== 'startH' && (
+          {step !== 'startH' && !(singleMode === 'end' && step === 'endH') && (
             <button onClick={() => {
               if (step === 'startM') setStep('startH')
               else if (step === 'endH') setStep('startM')
@@ -5508,6 +5516,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <TimeRangePicker
               startTime={entryFormStartTime}
               endTime={entryFormEndTime}
+              singleMode={timePickerTarget === 'start' ? 'start' : timePickerTarget === 'end' ? 'end' : undefined}
               onChange={(s, e) => {
                 if (timePickerTarget === 'start') {
                   setEntryFormStartTime(s)
@@ -5710,6 +5719,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <TimeRangePicker
               startTime={entryFormStartTime}
               endTime={entryFormEndTime}
+              singleMode={timePickerTarget === 'start' ? 'start' : timePickerTarget === 'end' ? 'end' : undefined}
               onChange={(s, e) => {
                 if (timePickerTarget === 'start') {
                   setEntryFormStartTime(s)
