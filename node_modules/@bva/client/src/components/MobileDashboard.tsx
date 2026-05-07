@@ -3298,7 +3298,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 padding: '20px 16px 32px', zIndex: 500, maxHeight: '80vh', overflowY: 'auto'
               }}>
                 <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20}}>
-                  <span style={{fontSize: 18, fontWeight: 700, color: '#111827'}}>סינון דיווחים</span>
                   <button onClick={() => setClientFilterSheetOpen(false)} style={{fontSize: 20, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer'}}>✕</button>
                 </div>
 
@@ -3596,7 +3595,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 padding: '20px 16px 32px', zIndex: 500, maxHeight: '80vh', overflowY: 'auto'
               }}>
                 <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20}}>
-                  <span style={{fontSize: 18, fontWeight: 700, color: '#111827'}}>סינון דיווחים</span>
                   <button onClick={() => setEmployeeFilterSheetOpen(false)} style={{fontSize: 20, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer'}}>✕</button>
                 </div>
 
@@ -3868,7 +3866,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   padding: '20px 16px 32px', zIndex: 500, maxHeight: '80vh', overflowY: 'auto'
                 }}>
                   <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20}}>
-                    <span style={{fontSize: 18, fontWeight: 700, color: '#111827'}}>סינון דיווחים</span>
                     <button onClick={() => setReportsFilterSheetOpen(false)} style={{fontSize: 20, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer'}}>✕</button>
                   </div>
 
@@ -4332,37 +4329,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   padding: '20px 16px 32px', zIndex: 500, maxHeight: '80vh', overflowY: 'auto'
                 }}>
                   <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20}}>
-                    <span style={{fontSize: 18, fontWeight: 700, color: '#111827'}}>סינון דיווחים</span>
                     <button onClick={() => setSummaryFilterSheetOpen(false)} style={{fontSize: 20, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer'}}>✕</button>
-                  </div>
-
-                  {/* Period Section */}
-                  <div style={{marginBottom: 20}}>
-                    <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>תקופה</div>
-                  <button
-                    type="button"
-                    onClick={() => { setSummaryDatePickerOpen(true); }}
-                    style={{
-                      width: '100%', padding: '12px 16px', border: '1px solid #E5E7EB', borderRadius: 12,
-                      background: summaryFromDate ? '#EFF6FF' : 'white',
-                      color: summaryFromDate ? '#1d4ed8' : '#374151',
-                      fontSize: 14, fontWeight: 600, cursor: 'pointer', textAlign: 'center'
-                    }}
-                  >
-                      {summaryFromDate
-                        ? summaryFromDate === summaryToDate
-                          ? `📅 ${new Date(summaryFromDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'})}`
-                          : `📅 ${new Date(summaryFromDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'})} – ${new Date(summaryToDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'})}`
-                        : 'בחר תקופה'
-                      }
-                    </button>
-                    {summaryFromDate && (
-                      <button onClick={() => { setSummaryFromDate(''); setSummaryToDate(''); }}
-                        style={{marginTop: 8, width: '100%', padding: '10px', border: '1px solid #E5E7EB', borderRadius: 12,
-                          background: 'white', fontSize: 13, color: '#6B7280', cursor: 'pointer'}}>
-                        איפוס תקופה
-                      </button>
-                    )}
                   </div>
 
                   {/* Client Section */}
