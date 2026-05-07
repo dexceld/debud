@@ -3221,59 +3221,41 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             />
           )}
 
-          {/* Client Share Sheet */}
+          {/* Client Share Popover */}
           {clientShareOpen && (
-            <div className="m-sheet-overlay" onClick={() => setClientShareOpen(false)}>
-              <div className="m-sheet" onClick={e => e.stopPropagation()} style={{maxHeight: '40vh'}}>
-                <div className="m-sheet-header">
-                  <div className="m-sheet-title">שלח אל</div>
-                  <button className="m-sheet-close" onClick={() => setClientShareOpen(false)}>✕</button>
-                </div>
-                <div className="m-sheet-body" style={{padding: '16px'}}>
-                  <button className="m-settings-row" onClick={() => {
-                    let entries = clientEntries
-                    if (clientFromDate && clientToDate) entries = entries.filter(e => e.startDate >= clientFromDate && e.startDate <= clientToDate)
-                    if (clientStatusFilter !== 'all') entries = entries.filter(e => (e.billingStatus || 'pending') === clientStatusFilter)
-                    if (entries.length === 0) { setClientShareOpen(false); return }
-                    import('xlsx').then(XLSX => {
-                      const data = entries.map(e => {
-                        const hours = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60)
-                        const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100)
-                        return { תאריך: e.startDate, שעות: hours.toFixed(2), סכום: amount.toFixed(2), הערות: e.notes || '' }
-                      })
-                      const ws = XLSX.utils.json_to_sheet(data)
-                      const wb = XLSX.utils.book_new()
-                      XLSX.utils.book_append_sheet(wb, ws, client.name)
-                      XLSX.writeFile(wb, `${client.name}_${new Date().toISOString().split('T')[0]}.xlsx`)
-                    })
-                    setClientShareOpen(false)
-                  }}>
-                    <span className="m-settings-icon-wrap" style={{background:'#F0FDF4'}}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                    </span>
-                    <div className="m-settings-info"><span className="m-settings-title">ייצוא לאקסל</span></div>
-                  </button>
-                  <button className="m-settings-row" onClick={() => {
-                    let entries = clientEntries
-                    if (clientFromDate && clientToDate) entries = entries.filter(e => e.startDate >= clientFromDate && e.startDate <= clientToDate)
-                    if (clientStatusFilter !== 'all') entries = entries.filter(e => (e.billingStatus || 'pending') === clientStatusFilter)
-                    if (entries.length === 0) { setClientShareOpen(false); return }
-                    const totalHours = entries.reduce((sum, e) => sum + (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60), 0)
-                    const totalAmount = entries.reduce((sum, e) => { const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60); return sum + h * client.hourlyRate * (1 + client.vatPercent / 100) }, 0)
-                    const subject = `דיווח שעות - ${client.name}`
-                    let body = `דיווח שעות - ${client.name}\n\nסה"כ שעות: ${totalHours.toFixed(2)}\nסה"כ: ₪${totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}\n\n`
-                    entries.forEach(e => { const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60); body += `${e.startDate} ${e.startTime}-${e.endTime} | ${h.toFixed(2)} שעות\n` })
-                    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-                    setClientShareOpen(false)
-                  }}>
-                    <span className="m-settings-icon-wrap" style={{background:'#EEF2FF'}}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366F1" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>
-                    </span>
-                    <div className="m-settings-info"><span className="m-settings-title">שלח במייל</span></div>
-                  </button>
-                </div>
+            <>
+              <div style={{position:'fixed',inset:0,zIndex:199}} onClick={() => setClientShareOpen(false)} />
+              <div style={{position:'fixed',bottom:70,right:8,zIndex:200,background:'white',borderRadius:12,boxShadow:'0 4px 20px rgba(0,0,0,0.18)',padding:8,display:'flex',gap:8}}>
+                <button title="ייצוא לאקסל" onClick={() => {
+                  let entries = clientEntries
+                  if (clientFromDate && clientToDate) entries = entries.filter(e => e.startDate >= clientFromDate && e.startDate <= clientToDate)
+                  if (clientStatusFilter !== 'all') entries = entries.filter(e => (e.billingStatus || 'pending') === clientStatusFilter)
+                  if (entries.length === 0) { setClientShareOpen(false); return }
+                  import('xlsx').then(XLSX => {
+                    const data = entries.map(e => { const hours = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60); const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100); return { תאריך: e.startDate, שעות: hours.toFixed(2), סכום: amount.toFixed(2), הערות: e.notes || '' } })
+                    const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, client.name); XLSX.writeFile(wb, `${client.name}_${new Date().toISOString().split('T')[0]}.xlsx`)
+                  })
+                  setClientShareOpen(false)
+                }} style={{width:44,height:44,borderRadius:8,border:'none',cursor:'pointer',background:'#F0FDF4',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                </button>
+                <button title="שלח במייל" onClick={() => {
+                  let entries = clientEntries
+                  if (clientFromDate && clientToDate) entries = entries.filter(e => e.startDate >= clientFromDate && e.startDate <= clientToDate)
+                  if (clientStatusFilter !== 'all') entries = entries.filter(e => (e.billingStatus || 'pending') === clientStatusFilter)
+                  if (entries.length === 0) { setClientShareOpen(false); return }
+                  const totalHours = entries.reduce((sum, e) => sum + (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60), 0)
+                  const totalAmount = entries.reduce((sum, e) => { const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60); return sum + h * client.hourlyRate * (1 + client.vatPercent / 100) }, 0)
+                  const subject = `דיווח שעות - ${client.name}`
+                  let body = `דיווח שעות - ${client.name}\n\nסה"כ שעות: ${totalHours.toFixed(2)}\nסה"כ: ₪${totalAmount.toLocaleString('he-IL', {maximumFractionDigits:0})}\n\n`
+                  entries.forEach(e => { const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60); body += `${e.startDate} ${e.startTime}-${e.endTime} | ${h.toFixed(2)} שעות\n` })
+                  window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+                  setClientShareOpen(false)
+                }} style={{width:44,height:44,borderRadius:8,border:'none',cursor:'pointer',background:'#EEF2FF',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366F1" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>
+                </button>
               </div>
-            </div>
+            </>
           )}
 
           {/* Bottom Menu Bar */}
@@ -3554,61 +3536,41 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             />
           )}
 
-          {/* Employee Share Sheet */}
+          {/* Employee Share Popover */}
           {employeeShareOpen && (
-            <div className="m-sheet-overlay" onClick={() => setEmployeeShareOpen(false)}>
-              <div className="m-sheet" onClick={e => e.stopPropagation()} style={{maxHeight: '40vh'}}>
-                <div className="m-sheet-header">
-                  <div className="m-sheet-title">שלח אל</div>
-                  <button className="m-sheet-close" onClick={() => setEmployeeShareOpen(false)}>✕</button>
-                </div>
-                <div className="m-sheet-body" style={{padding: '16px'}}>
-                  <button className="m-settings-row" onClick={() => {
-                    let entries = timeEntries.filter(e => e.employeeId === selectedEmployeeId)
-                    if (employeeFromDate && employeeToDate) entries = entries.filter(e => e.startDate >= employeeFromDate && e.startDate <= employeeToDate)
-                    if (employeeStatusFilter !== 'all') entries = entries.filter(e => (e.billingStatus || 'pending') === employeeStatusFilter)
-                    if (entries.length === 0) { setEmployeeShareOpen(false); return }
-                    import('xlsx').then(XLSX => {
-                      const data = entries.map(e => {
-                        const client = clients.find(c => c.id === e.clientId)
-                        const hours = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60)
-                        const amount = client ? hours * client.hourlyRate * (1 + client.vatPercent / 100) : 0
-                        return { תאריך: e.startDate, לקוח: client?.name || '', שעות: hours.toFixed(2), סכום: amount.toFixed(2), סטטוס: e.billingStatus || 'pending' }
-                      })
-                      const ws = XLSX.utils.json_to_sheet(data)
-                      const wb = XLSX.utils.book_new()
-                      XLSX.utils.book_append_sheet(wb, ws, employee.name)
-                      XLSX.writeFile(wb, `${employee.name}_${new Date().toISOString().split('T')[0]}.xlsx`)
-                    })
-                    setEmployeeShareOpen(false)
-                  }}>
-                    <span className="m-settings-icon-wrap" style={{background:'#F0FDF4'}}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                    </span>
-                    <div className="m-settings-info"><span className="m-settings-title">ייצוא לאקסל</span></div>
-                  </button>
-                  <button className="m-settings-row" onClick={() => {
-                    let entries = timeEntries.filter(e => e.employeeId === selectedEmployeeId)
-                    if (employeeFromDate && employeeToDate) entries = entries.filter(e => e.startDate >= employeeFromDate && e.startDate <= employeeToDate)
-                    if (employeeStatusFilter !== 'all') entries = entries.filter(e => (e.billingStatus || 'pending') === employeeStatusFilter)
-                    if (entries.length === 0) { setEmployeeShareOpen(false); return }
-                    const totalHours = entries.reduce((sum, e) => sum + (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60), 0)
-                    let totalAmount = 0
-                    entries.forEach(e => { const c = clients.find(cl => cl.id === e.clientId); if (c) { const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60); totalAmount += h * c.hourlyRate * (1 + c.vatPercent / 100) } })
-                    const subject = `דיווח שעות - ${employee.name}`
-                    let body = `דיווח שעות - ${employee.name}\n\nסה"כ שעות: ${totalHours.toFixed(2)}\nסה"כ: ₪${totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}\n\n`
-                    entries.forEach(e => { const c = clients.find(cl => cl.id === e.clientId); const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60); body += `${e.startDate} | ${c?.name || ''} | ${h.toFixed(2)} שעות\n` })
-                    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-                    setEmployeeShareOpen(false)
-                  }}>
-                    <span className="m-settings-icon-wrap" style={{background:'#EEF2FF'}}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366F1" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>
-                    </span>
-                    <div className="m-settings-info"><span className="m-settings-title">שלח במייל</span></div>
-                  </button>
-                </div>
+            <>
+              <div style={{position:'fixed',inset:0,zIndex:199}} onClick={() => setEmployeeShareOpen(false)} />
+              <div style={{position:'fixed',bottom:70,right:8,zIndex:200,background:'white',borderRadius:12,boxShadow:'0 4px 20px rgba(0,0,0,0.18)',padding:8,display:'flex',gap:8}}>
+                <button title="ייצוא לאקסל" onClick={() => {
+                  let entries = timeEntries.filter(e => e.employeeId === selectedEmployeeId)
+                  if (employeeFromDate && employeeToDate) entries = entries.filter(e => e.startDate >= employeeFromDate && e.startDate <= employeeToDate)
+                  if (employeeStatusFilter !== 'all') entries = entries.filter(e => (e.billingStatus || 'pending') === employeeStatusFilter)
+                  if (entries.length === 0) { setEmployeeShareOpen(false); return }
+                  import('xlsx').then(XLSX => {
+                    const data = entries.map(e => { const c = clients.find(cl => cl.id === e.clientId); const hours = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60); const amount = c ? hours * c.hourlyRate * (1 + c.vatPercent/100) : 0; return { תאריך: e.startDate, לקוח: c?.name||'', שעות: hours.toFixed(2), סכום: amount.toFixed(2), סטטוס: e.billingStatus||'pending' } })
+                    const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, employee.name); XLSX.writeFile(wb, `${employee.name}_${new Date().toISOString().split('T')[0]}.xlsx`)
+                  })
+                  setEmployeeShareOpen(false)
+                }} style={{width:44,height:44,borderRadius:8,border:'none',cursor:'pointer',background:'#F0FDF4',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                </button>
+                <button title="שלח במייל" onClick={() => {
+                  let entries = timeEntries.filter(e => e.employeeId === selectedEmployeeId)
+                  if (employeeFromDate && employeeToDate) entries = entries.filter(e => e.startDate >= employeeFromDate && e.startDate <= employeeToDate)
+                  if (employeeStatusFilter !== 'all') entries = entries.filter(e => (e.billingStatus || 'pending') === employeeStatusFilter)
+                  if (entries.length === 0) { setEmployeeShareOpen(false); return }
+                  const totalHours = entries.reduce((sum, e) => sum + (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60), 0)
+                  let totalAmount = 0; entries.forEach(e => { const c = clients.find(cl => cl.id === e.clientId); if (c) { const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60); totalAmount += h * c.hourlyRate * (1 + c.vatPercent/100) } })
+                  const subject = `דיווח שעות - ${employee.name}`
+                  let body = `דיווח שעות - ${employee.name}\n\nסה"כ שעות: ${totalHours.toFixed(2)}\nסה"כ: ₪${totalAmount.toLocaleString('he-IL', {maximumFractionDigits:0})}\n\n`
+                  entries.forEach(e => { const c = clients.find(cl => cl.id === e.clientId); const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60); body += `${e.startDate} | ${c?.name||''} | ${h.toFixed(2)} שעות\n` })
+                  window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+                  setEmployeeShareOpen(false)
+                }} style={{width:44,height:44,borderRadius:8,border:'none',cursor:'pointer',background:'#EEF2FF',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366F1" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>
+                </button>
               </div>
-            </div>
+            </>
           )}
 
           {/* Bottom Menu Bar */}
@@ -3999,76 +3961,37 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               />
             )}
 
-            {/* Share Sheet for Reports */}
+            {/* Reports Share Popover */}
             {reportsShareOpen && (
-              <div className="m-sheet-overlay" onClick={() => setReportsShareOpen(false)}>
-                <div className="m-sheet" onClick={e => e.stopPropagation()} style={{maxHeight: '40vh'}}>
-                  <div className="m-sheet-header">
-                    <div className="m-sheet-title">שלח אל</div>
-                    <button className="m-sheet-close" onClick={() => setReportsShareOpen(false)}>✕</button>
-                  </div>
-                  <div className="m-sheet-body" style={{padding: '16px'}}>
-                    <button className="m-settings-row" onClick={() => {
-                      // Export reports to Excel
-                      const filtered = timeEntries.filter(e => {
-                        if (reportsFromDate && reportsToDate) return e.startDate >= reportsFromDate && e.startDate <= reportsToDate
-                        return true
-                      }).filter(e => reportsClientFilter === 'all' || e.clientId === reportsClientFilter)
-                      if (filtered.length === 0) { setReportsShareOpen(false); return }
-                      import('xlsx').then(XLSX => {
-                        const data = filtered.map(e => {
-                          const client = clients.find(c => c.id === e.clientId)
-                          const hours = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60)
-                          const amount = client ? hours * client.hourlyRate * (1 + client.vatPercent / 100) : 0
-                          return { תאריך: e.startDate, לקוח: client?.name || '', שעות: hours.toFixed(2), סכום: amount.toFixed(2), הערות: e.notes || '' }
-                        })
-                        const ws = XLSX.utils.json_to_sheet(data)
-                        const wb = XLSX.utils.book_new()
-                        XLSX.utils.book_append_sheet(wb, ws, 'דיווחים')
-                        XLSX.writeFile(wb, `דיווחי_שעות_${new Date().toISOString().split('T')[0]}.xlsx`)
-                      })
-                      setReportsShareOpen(false)
-                    }}>
-                      <span className="m-settings-icon-wrap" style={{background:'#F0FDF4'}}>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                      </span>
-                      <div className="m-settings-info">
-                        <span className="m-settings-title">ייצוא לאקסל</span>
-                      </div>
-                    </button>
-                    <button className="m-settings-row" onClick={() => {
-                      // Share reports via email
-                      const filtered = timeEntries.filter(e => {
-                        if (reportsFromDate && reportsToDate) return e.startDate >= reportsFromDate && e.startDate <= reportsToDate
-                        return true
-                      }).filter(e => reportsClientFilter === 'all' || e.clientId === reportsClientFilter)
-                      if (filtered.length === 0) { setReportsShareOpen(false); return }
-                      const totalHours = filtered.reduce((sum, e) => sum + (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60), 0)
-                      let totalAmount = 0
-                      filtered.forEach(e => {
-                        const client = clients.find(c => c.id === e.clientId)
-                        if (client) { const hours = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60); totalAmount += hours * client.hourlyRate * (1 + client.vatPercent / 100) }
-                      })
-                      const subject = `דיווח שעות - ${filtered.length} דיווחים`
-                      let body = `דיווח שעות\n\nסה"כ שעות: ${totalHours.toFixed(2)}\nסה"כ: ₪${totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}\n\n`
-                      filtered.forEach(e => {
-                        const client = clients.find(c => c.id === e.clientId)
-                        const hours = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60)
-                        body += `${e.startDate} ${e.startTime}-${e.endTime} | ${client?.name} | ${hours.toFixed(2)} שעות\n`
-                      })
-                      window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-                      setReportsShareOpen(false)
-                    }}>
-                      <span className="m-settings-icon-wrap" style={{background:'#EEF2FF'}}>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366F1" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>
-                      </span>
-                      <div className="m-settings-info">
-                        <span className="m-settings-title">שלח במייל</span>
-                      </div>
-                    </button>
-                  </div>
+              <>
+                <div style={{position:'fixed',inset:0,zIndex:199}} onClick={() => setReportsShareOpen(false)} />
+                <div style={{position:'fixed',bottom:70,right:8,zIndex:200,background:'white',borderRadius:12,boxShadow:'0 4px 20px rgba(0,0,0,0.18)',padding:8,display:'flex',gap:8}}>
+                  <button title="ייצוא לאקסל" onClick={() => {
+                    const filtered = timeEntries.filter(e => { if (reportsFromDate && reportsToDate) return e.startDate >= reportsFromDate && e.startDate <= reportsToDate; return true }).filter(e => reportsClientFilter === 'all' || e.clientId === reportsClientFilter)
+                    if (filtered.length === 0) { setReportsShareOpen(false); return }
+                    import('xlsx').then(XLSX => {
+                      const data = filtered.map(e => { const client = clients.find(c => c.id === e.clientId); const hours = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60); const amount = client ? hours * client.hourlyRate * (1 + client.vatPercent/100) : 0; return { תאריך: e.startDate, לקוח: client?.name||'', שעות: hours.toFixed(2), סכום: amount.toFixed(2), הערות: e.notes||'' } })
+                      const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'דיווחים'); XLSX.writeFile(wb, `דיווחי_שעות_${new Date().toISOString().split('T')[0]}.xlsx`)
+                    })
+                    setReportsShareOpen(false)
+                  }} style={{width:44,height:44,borderRadius:8,border:'none',cursor:'pointer',background:'#F0FDF4',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                  </button>
+                  <button title="שלח במייל" onClick={() => {
+                    const filtered = timeEntries.filter(e => { if (reportsFromDate && reportsToDate) return e.startDate >= reportsFromDate && e.startDate <= reportsToDate; return true }).filter(e => reportsClientFilter === 'all' || e.clientId === reportsClientFilter)
+                    if (filtered.length === 0) { setReportsShareOpen(false); return }
+                    const totalHours = filtered.reduce((sum, e) => sum + (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60), 0)
+                    let totalAmount = 0; filtered.forEach(e => { const client = clients.find(c => c.id === e.clientId); if (client) { const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60); totalAmount += h * client.hourlyRate * (1 + client.vatPercent/100) } })
+                    const subject = `דיווח שעות - ${filtered.length} דיווחים`
+                    let body = `דיווח שעות\n\nסה"כ שעות: ${totalHours.toFixed(2)}\nסה"כ: ₪${totalAmount.toLocaleString('he-IL', {maximumFractionDigits:0})}\n\n`
+                    filtered.forEach(e => { const client = clients.find(c => c.id === e.clientId); const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60); body += `${e.startDate} ${e.startTime}-${e.endTime} | ${client?.name} | ${h.toFixed(2)} שעות\n` })
+                    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+                    setReportsShareOpen(false)
+                  }} style={{width:44,height:44,borderRadius:8,border:'none',cursor:'pointer',background:'#EEF2FF',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366F1" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>
+                  </button>
                 </div>
-              </div>
+              </>
             )}
 
             {(() => {
@@ -4317,69 +4240,37 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           </button>
         </div>
 
-        {/* Summary Share Sheet */}
+        {/* Summary Share Popover */}
         {summaryShareOpen && (
-          <div className="m-sheet-overlay" onClick={() => setSummaryShareOpen(false)}>
-            <div className="m-sheet" onClick={e => e.stopPropagation()} style={{maxHeight: '40vh'}}>
-              <div className="m-sheet-header">
-                <div className="m-sheet-title">שלח אל</div>
-                <button className="m-sheet-close" onClick={() => setSummaryShareOpen(false)}>✕</button>
-              </div>
-              <div className="m-sheet-body" style={{padding: '16px'}}>
-                <button className="m-settings-row" onClick={() => {
-                  const filtered = timeEntries.filter(e => {
-                    if (summaryFromDate && new Date(e.startDate) < new Date(summaryFromDate)) return false
-                    if (summaryToDate && new Date(e.startDate) > new Date(summaryToDate)) return false
-                    if (summaryClientFilter !== 'all' && e.clientId !== summaryClientFilter) return false
-                    if (summaryStatusFilter !== 'all' && (e.billingStatus || 'pending') !== summaryStatusFilter) return false
-                    return true
-                  })
-                  if (filtered.length === 0) { setSummaryShareOpen(false); return }
-                  import('xlsx').then(XLSX => {
-                    const data = filtered.map(e => {
-                      const client = clients.find(c => c.id === e.clientId)
-                      const hours = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60)
-                      const amount = client ? hours * client.hourlyRate * (1 + client.vatPercent / 100) : 0
-                      return { תאריך: e.startDate, לקוח: client?.name || '', שעות: hours.toFixed(2), סכום: amount.toFixed(2), סטטוס: e.billingStatus || 'pending', הערות: e.notes || '' }
-                    })
-                    const ws = XLSX.utils.json_to_sheet(data)
-                    const wb = XLSX.utils.book_new()
-                    XLSX.utils.book_append_sheet(wb, ws, 'חיובים')
-                    XLSX.writeFile(wb, `חיובים_${new Date().toISOString().split('T')[0]}.xlsx`)
-                  })
-                  setSummaryShareOpen(false)
-                }}>
-                  <span className="m-settings-icon-wrap" style={{background:'#F0FDF4'}}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                  </span>
-                  <div className="m-settings-info"><span className="m-settings-title">ייצוא לאקסל</span></div>
-                </button>
-                <button className="m-settings-row" onClick={() => {
-                  const filtered = timeEntries.filter(e => {
-                    if (summaryFromDate && new Date(e.startDate) < new Date(summaryFromDate)) return false
-                    if (summaryToDate && new Date(e.startDate) > new Date(summaryToDate)) return false
-                    if (summaryClientFilter !== 'all' && e.clientId !== summaryClientFilter) return false
-                    if (summaryStatusFilter !== 'all' && (e.billingStatus || 'pending') !== summaryStatusFilter) return false
-                    return true
-                  })
-                  if (filtered.length === 0) { setSummaryShareOpen(false); return }
-                  const totalHours = filtered.reduce((sum, e) => sum + (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60), 0)
-                  let totalAmount = 0
-                  filtered.forEach(e => { const client = clients.find(c => c.id === e.clientId); if (client) { const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60); totalAmount += h * client.hourlyRate * (1 + client.vatPercent / 100) } })
-                  const subject = `חיובים - ${filtered.length} דיווחים`
-                  let body = `חיובים\n\nסה"כ שעות: ${totalHours.toFixed(2)}\nסה"כ: ₪${totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}\n\n`
-                  filtered.forEach(e => { const client = clients.find(c => c.id === e.clientId); const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60); body += `${e.startDate} | ${client?.name || ''} | ${h.toFixed(2)} שעות\n` })
-                  window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-                  setSummaryShareOpen(false)
-                }}>
-                  <span className="m-settings-icon-wrap" style={{background:'#EEF2FF'}}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366F1" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>
-                  </span>
-                  <div className="m-settings-info"><span className="m-settings-title">שלח במייל</span></div>
-                </button>
-              </div>
+          <>
+            <div style={{position:'fixed',inset:0,zIndex:199}} onClick={() => setSummaryShareOpen(false)} />
+            <div style={{position:'fixed',bottom:70,right:8,zIndex:200,background:'white',borderRadius:12,boxShadow:'0 4px 20px rgba(0,0,0,0.18)',padding:8,display:'flex',gap:8}}>
+              <button title="ייצוא לאקסל" onClick={() => {
+                const filtered = timeEntries.filter(e => { if (summaryFromDate && new Date(e.startDate) < new Date(summaryFromDate)) return false; if (summaryToDate && new Date(e.startDate) > new Date(summaryToDate)) return false; if (summaryClientFilter !== 'all' && e.clientId !== summaryClientFilter) return false; if (summaryStatusFilter !== 'all' && (e.billingStatus||'pending') !== summaryStatusFilter) return false; return true })
+                if (filtered.length === 0) { setSummaryShareOpen(false); return }
+                import('xlsx').then(XLSX => {
+                  const data = filtered.map(e => { const client = clients.find(c => c.id === e.clientId); const hours = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60); const amount = client ? hours * client.hourlyRate * (1 + client.vatPercent/100) : 0; return { תאריך: e.startDate, לקוח: client?.name||'', שעות: hours.toFixed(2), סכום: amount.toFixed(2), סטטוס: e.billingStatus||'pending', הערות: e.notes||'' } })
+                  const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'חיובים'); XLSX.writeFile(wb, `חיובים_${new Date().toISOString().split('T')[0]}.xlsx`)
+                })
+                setSummaryShareOpen(false)
+              }} style={{width:44,height:44,borderRadius:8,border:'none',cursor:'pointer',background:'#F0FDF4',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              </button>
+              <button title="שלח במייל" onClick={() => {
+                const filtered = timeEntries.filter(e => { if (summaryFromDate && new Date(e.startDate) < new Date(summaryFromDate)) return false; if (summaryToDate && new Date(e.startDate) > new Date(summaryToDate)) return false; if (summaryClientFilter !== 'all' && e.clientId !== summaryClientFilter) return false; if (summaryStatusFilter !== 'all' && (e.billingStatus||'pending') !== summaryStatusFilter) return false; return true })
+                if (filtered.length === 0) { setSummaryShareOpen(false); return }
+                const totalHours = filtered.reduce((sum, e) => sum + (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60), 0)
+                let totalAmount = 0; filtered.forEach(e => { const client = clients.find(c => c.id === e.clientId); if (client) { const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60); totalAmount += h * client.hourlyRate * (1 + client.vatPercent/100) } })
+                const subject = `חיובים - ${filtered.length} דיווחים`
+                let body = `חיובים\n\nסה"כ שעות: ${totalHours.toFixed(2)}\nסה"כ: ₪${totalAmount.toLocaleString('he-IL', {maximumFractionDigits:0})}\n\n`
+                filtered.forEach(e => { const client = clients.find(c => c.id === e.clientId); const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60); body += `${e.startDate} | ${client?.name||''} | ${h.toFixed(2)} שעות\n` })
+                window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+                setSummaryShareOpen(false)
+              }} style={{width:44,height:44,borderRadius:8,border:'none',cursor:'pointer',background:'#EEF2FF',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366F1" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>
+              </button>
             </div>
-          </div>
+          </>
         )}
 
         {/* Tab 3: Summary */}
