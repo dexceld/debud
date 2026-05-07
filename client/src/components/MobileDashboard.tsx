@@ -2916,6 +2916,15 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     )
   }
 
+  const openNewClientForm = () => {
+    setClientFormName('')
+    setClientFormRate('')
+    setClientFormVat(defaultVat)
+    setClientFormIncomeTax(defaultIncomeTax)
+    setEditClientId(null)
+    setAddClientOpen(true)
+  }
+
   const openNewEmployeeForm = () => {
     setEmployeeFormName('')
     setEmployeeFormEmail('')
@@ -3593,6 +3602,22 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     }
 
     // Main screen with tabs
+    const renderHeaderNewBtn = (onClick: () => void, title: string) => (
+      <button type="button" className="m-hbtn m-hbtn-menu" onClick={onClick} title={title}>
+        <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2}}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </div>
+        <span className="m-hbtn-label">חדש</span>
+      </button>
+    )
+
     return (
       <div className="m-screen">
         <div className="m-header">
@@ -3625,6 +3650,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 </button>
               </>
             )}
+            {timeTrackingTab === 'clients' && !employeeMode && renderHeaderNewBtn(openNewClientForm, 'לקוח חדש')}
+            {timeTrackingTab === 'employees' && renderHeaderNewBtn(openNewEmployeeForm, 'עובד חדש')}
           </div>
         </div>
 
@@ -3680,7 +3707,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <div className="m-empty-state">
               <div style={{fontSize: 48, marginBottom: 16}}>👥</div>
               <div style={{fontSize: 16, fontWeight: 600, marginBottom: 8}}>אין לקוחות עדיין</div>
-              <div style={{fontSize: 14, color: '#999'}}>לחץ על + כדי להוסיף לקוח ראשון</div>
+              <div style={{fontSize: 14, color: '#999'}}>לחצו על &quot;חדש&quot; בכותרת (אייקון עיפרון ופלוס) כדי להוסיף לקוח ראשון</div>
             </div>
           ) : (
             [...clients]
@@ -3724,36 +3751,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         {/* Tab 2: Employees */}
         {timeTrackingTab === 'employees' && (
           <div className="m-clients-list">
-            <div style={{padding: '8px 16px 12px', flexShrink: 0}}>
-              <button
-                type="button"
-                onClick={openNewEmployeeForm}
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  borderRadius: 12,
-                  border: 'none',
-                  background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                  color: 'white',
-                  fontSize: 15,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
-                  boxShadow: '0 4px 14px rgba(79, 70, 229, 0.35)'
-                }}
-              >
-                <span style={{fontSize: 20, lineHeight: 1}}>＋</span>
-                הוסף עובד
-              </button>
-            </div>
             {employees.length === 0 ? (
               <div className="m-empty-state">
                 <div style={{fontSize: 48, marginBottom: 16}}>👷</div>
                 <div style={{fontSize: 16, fontWeight: 600, marginBottom: 8}}>אין עובדים עדיין</div>
-                <div style={{fontSize: 14, color: '#999'}}>לחץ על &quot;הוסף עובד&quot; למעלה או על כפתור ➕ הצף (בטאב זה נפתח עובד חדש)</div>
+                <div style={{fontSize: 14, color: '#999'}}>לחצו על &quot;חדש&quot; בכותרת (אייקון עיפרון ופלוס) כדי להוסיף עובד</div>
               </div>
             ) : (
               employees.map(employee => {
@@ -6301,50 +6303,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             if (wasDrag) localStorage.setItem(lsKey('time_fab_pos'), JSON.stringify(fabPos))
           }}
         >
-          {screen === 'time-tracking' && (
-            <button
-              className="m-fab-glass m-fab-with-label"
-              onTouchEnd={(e) => {
-                e.stopPropagation()
-                e.preventDefault()
-                const wasDrag = clientFabDragRef.current?.moved
-                clientFabDragRef.current = null
-                timeFabDragRef.current = null
-                localStorage.setItem(lsKey('time_fab_pos'), JSON.stringify(fabPos))
-                if (!wasDrag) {
-                  if (timeTrackingTab === 'employees') openNewEmployeeForm()
-                  else {
-                    setClientFormName(''); setClientFormRate(''); setClientFormVat(defaultVat); setClientFormIncomeTax(defaultIncomeTax); setEditClientId(null); setAddClientOpen(true)
-                  }
-                }
-              }}
-              onClick={(e) => {
-                if (e.detail === 0) return
-                if (timeTrackingTab === 'employees') openNewEmployeeForm()
-                else {
-                  setClientFormName(''); setClientFormRate(''); setClientFormVat(defaultVat); setClientFormIncomeTax(defaultIncomeTax); setEditClientId(null); setAddClientOpen(true)
-                }
-              }}
-              title={timeTrackingTab === 'employees' ? 'הוספת עובד' : 'הוספת לקוח'}
-            >
-              {timeTrackingTab === 'employees' ? (
-                <>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
-                    <line x1="19" y1="8" x2="19" y2="14"/>
-                    <line x1="22" y1="11" x2="16" y2="11"/>
-                  </svg>
-                  <span className="m-fab-inner-label">עובד</span>
-                </>
-              ) : (
-                <>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                  <span className="m-fab-inner-label">לקוח</span>
-                </>
-              )}
-            </button>
-          )}
           <button
             className="m-fab-glass timer m-fab-with-label"
             onTouchEnd={(e) => {
