@@ -283,6 +283,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [clientStatusFilter, setClientStatusFilter] = useState<'all' | 'pending' | 'invoiced' | 'paid'>('all')
   const [clientPeriodFilter, setClientPeriodFilter] = useState<'all' | 'week' | 'month' | 'year'>('all')
   const [clientFilterSheetOpen, setClientFilterSheetOpen] = useState(false)
+  const [clientFromDate, setClientFromDate] = useState('')
+  const [clientToDate, setClientToDate] = useState('')
+  const [clientDatePickerOpen, setClientDatePickerOpen] = useState(false)
+  const [clientShareOpen, setClientShareOpen] = useState(false)
   const [employeeFilterSheetOpen, setEmployeeFilterSheetOpen] = useState(false)
   const [employeeStatusPickerOpen, setEmployeeStatusPickerOpen] = useState(false)
   const [summaryFilterSheetOpen, setSummaryFilterSheetOpen] = useState(false)
@@ -3094,7 +3098,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             {(() => {
               // Apply period filter
               let filteredEntries = clientEntries
-              if (clientPeriodFilter !== 'all') {
+              // Apply date range filter (takes precedence)
+              if (clientFromDate && clientToDate) {
+                filteredEntries = filteredEntries.filter(e => e.startDate >= clientFromDate && e.startDate <= clientToDate)
+              } else if (clientPeriodFilter !== 'all') {
                 const now = new Date()
                 const startOf = (period: 'week' | 'month' | 'year') => {
                   const d = new Date(now)
@@ -3197,6 +3204,87 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 </div>
               )
             })()}
+          </div>
+
+          {/* Client Date Picker */}
+          {clientDatePickerOpen && (
+            <DateRangePicker
+              startDate={clientFromDate}
+              endDate={clientToDate}
+              onChange={(s, e) => { setClientFromDate(s); setClientToDate(e) }}
+              onClose={() => setClientDatePickerOpen(false)}
+            />
+          )}
+
+          {/* Client Share Sheet */}
+          {clientShareOpen && (
+            <div className="m-sheet-overlay" onClick={() => setClientShareOpen(false)}>
+              <div className="m-sheet" onClick={e => e.stopPropagation()} style={{maxHeight: '40vh'}}>
+                <div className="m-sheet-header">
+                  <div className="m-sheet-title">שלח אל</div>
+                  <button className="m-sheet-close" onClick={() => setClientShareOpen(false)}>✕</button>
+                </div>
+                <div className="m-sheet-body" style={{padding: '16px'}}>
+                  <button className="m-settings-row" onClick={() => {
+                    let entries = clientEntries
+                    if (clientFromDate && clientToDate) entries = entries.filter(e => e.startDate >= clientFromDate && e.startDate <= clientToDate)
+                    if (clientStatusFilter !== 'all') entries = entries.filter(e => (e.billingStatus || 'pending') === clientStatusFilter)
+                    if (entries.length === 0) { setClientShareOpen(false); return }
+                    import('xlsx').then(XLSX => {
+                      const data = entries.map(e => {
+                        const hours = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60)
+                        const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100)
+                        return { תאריך: e.startDate, שעות: hours.toFixed(2), סכום: amount.toFixed(2), הערות: e.notes || '' }
+                      })
+                      const ws = XLSX.utils.json_to_sheet(data)
+                      const wb = XLSX.utils.book_new()
+                      XLSX.utils.book_append_sheet(wb, ws, client.name)
+                      XLSX.writeFile(wb, `${client.name}_${new Date().toISOString().split('T')[0]}.xlsx`)
+                    })
+                    setClientShareOpen(false)
+                  }}>
+                    <span className="m-settings-icon-wrap" style={{background:'#F0FDF4'}}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    </span>
+                    <div className="m-settings-info"><span className="m-settings-title">ייצוא לאקסל</span></div>
+                  </button>
+                  <button className="m-settings-row" onClick={() => {
+                    let entries = clientEntries
+                    if (clientFromDate && clientToDate) entries = entries.filter(e => e.startDate >= clientFromDate && e.startDate <= clientToDate)
+                    if (clientStatusFilter !== 'all') entries = entries.filter(e => (e.billingStatus || 'pending') === clientStatusFilter)
+                    if (entries.length === 0) { setClientShareOpen(false); return }
+                    const totalHours = entries.reduce((sum, e) => sum + (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60), 0)
+                    const totalAmount = entries.reduce((sum, e) => { const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60); return sum + h * client.hourlyRate * (1 + client.vatPercent / 100) }, 0)
+                    const subject = `דיווח שעות - ${client.name}`
+                    let body = `דיווח שעות - ${client.name}\n\nסה"כ שעות: ${totalHours.toFixed(2)}\nסה"כ: ₪${totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}\n\n`
+                    entries.forEach(e => { const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60); body += `${e.startDate} ${e.startTime}-${e.endTime} | ${h.toFixed(2)} שעות\n` })
+                    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+                    setClientShareOpen(false)
+                  }}>
+                    <span className="m-settings-icon-wrap" style={{background:'#EEF2FF'}}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366F1" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>
+                    </span>
+                    <div className="m-settings-info"><span className="m-settings-title">שלח במייל</span></div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Bottom Menu Bar */}
+          <div style={{position:'fixed',bottom:0,left:0,right:0,height:'60px',backgroundColor:'white',borderTop:'1px solid #E5E7EB',display:'flex',justifyContent:'space-around',alignItems:'center',padding:'0 16px',zIndex:100}}>
+            <button onClick={() => setClientDatePickerOpen(true)} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',color: clientFromDate ? '#1d4ed8' : '#374151'}}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <span style={{fontSize:'11px',fontWeight:500}}>{clientFromDate ? '📅' : 'תאריך'}</span>
+            </button>
+            <button onClick={() => setClientFilterSheetOpen(true)} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',color: clientStatusFilter !== 'all' ? '#1d4ed8' : '#374151'}}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              <span style={{fontSize:'11px',fontWeight:500}}>סינון</span>
+            </button>
+            <button onClick={() => setClientShareOpen(true)} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',color:'#374151'}}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              <span style={{fontSize:'11px',fontWeight:500}}>שלח אל</span>
+            </button>
           </div>
 
           {/* Client Filter Sheet */}
