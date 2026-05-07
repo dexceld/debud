@@ -3301,32 +3301,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   <button onClick={() => setClientFilterSheetOpen(false)} style={{fontSize: 20, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer'}}>✕</button>
                 </div>
 
-                {/* Period Section — 2-column grid */}
-                <div style={{marginBottom: 20}}>
-                  <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>תקופה</div>
-                  <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8}}>
-                    {[
-                      {key: 'all', label: 'הכל'},
-                      {key: 'week', label: 'שבוע אחרון'},
-                      {key: 'month', label: 'חודש אחרון'},
-                      {key: 'year', label: 'שנה אחרונה'}
-                    ].map(p => (
-                      <button key={p.key}
-                        type="button"
-                        onClick={() => setClientPeriodFilter(p.key as any)}
-                        style={{
-                          width: '100%', padding: '12px 10px', borderRadius: 12, border: 'none',
-                          fontSize: 13, fontWeight: 600, cursor: 'pointer', textAlign: 'center',
-                          background: clientPeriodFilter === p.key ? '#1d4ed8' : '#f3f4f6',
-                          color: clientPeriodFilter === p.key ? 'white' : '#374151'
-                        }}
-                      >
-                        {p.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
                 {/* Status Section — 2-column grid */}
                 <div style={{marginBottom: 24}}>
                   <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>סטטוס חיוב</div>
