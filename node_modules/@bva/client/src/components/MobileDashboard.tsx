@@ -290,6 +290,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [employeeFilterSheetOpen, setEmployeeFilterSheetOpen] = useState(false)
   const [employeeStatusPickerOpen, setEmployeeStatusPickerOpen] = useState(false)
   const [summaryFilterSheetOpen, setSummaryFilterSheetOpen] = useState(false)
+  const [summaryShareOpen, setSummaryShareOpen] = useState(false)
   const [summaryPeriod, setSummaryPeriod] = useState<'week' | 'month' | 'year' | 'all'>('all')
   // Reports filter state
   const [reportsFilterSheetOpen, setReportsFilterSheetOpen] = useState(false)
@@ -4218,79 +4219,102 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         </div>
       )}
 
-        {/* Bottom Menu Bar - Always visible on all tabs */}
-        {(
-          <div style={{
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: '60px',
-            backgroundColor: 'white',
-            borderTop: '1px solid #E5E7EB',
-            display: 'flex',
-            justifyContent: 'space-around',
-            alignItems: 'center',
-            padding: '0 16px',
-            zIndex: 100
-          }}>
-            {/* Calendar Button */}
-            <button onClick={() => setReportsDatePickerOpen(true)} style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '4px',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: '#374151'
-            }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                <line x1="16" y1="2" x2="16" y2="6"/>
-                <line x1="8" y1="2" x2="8" y2="6"/>
-                <line x1="3" y1="10" x2="21" y2="10"/>
-              </svg>
-              <span style={{fontSize: '11px', fontWeight: 500}}>תאריך</span>
-            </button>
+        {/* Bottom Menu Bar - tab-aware */}
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, height: '60px',
+          backgroundColor: 'white', borderTop: '1px solid #E5E7EB',
+          display: 'flex', justifyContent: 'space-around', alignItems: 'center',
+          padding: '0 16px', zIndex: 100
+        }}>
+          <button onClick={() => { if (timeTrackingTab === 'summary') setSummaryDatePickerOpen(true); else setReportsDatePickerOpen(true) }}
+            style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',
+              color: (timeTrackingTab === 'summary' ? summaryFromDate : reportsFromDate) ? '#1d4ed8' : '#374151'}}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            <span style={{fontSize:'11px',fontWeight:500}}>תאריך</span>
+          </button>
+          <button onClick={() => { if (timeTrackingTab === 'summary') setSummaryFilterSheetOpen(true); else setReportsFilterSheetOpen(true) }}
+            style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',
+              color: (timeTrackingTab === 'summary' ? summaryStatusFilter !== 'all' : reportsStatusFilter !== 'all') ? '#1d4ed8' : '#374151'}}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+            </svg>
+            <span style={{fontSize:'11px',fontWeight:500}}>סינון</span>
+          </button>
+          <button onClick={() => { if (timeTrackingTab === 'summary') setSummaryShareOpen(true); else setReportsShareOpen(true) }}
+            style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',color:'#374151'}}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+            </svg>
+            <span style={{fontSize:'11px',fontWeight:500}}>שלח אל</span>
+          </button>
+        </div>
 
-            {/* Filter Button */}
-            <button onClick={() => setReportsFilterSheetOpen(true)} style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '4px',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: '#374151'
-            }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-              </svg>
-              <span style={{fontSize: '11px', fontWeight: 500}}>סינון</span>
-            </button>
-
-            {/* Share Button */}
-            <button onClick={() => setReportsShareOpen(true)} style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '4px',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: '#374151'
-            }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="18" cy="5" r="3"/>
-                <circle cx="6" cy="12" r="3"/>
-                <circle cx="18" cy="19" r="3"/>
-                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-              </svg>
-              <span style={{fontSize: '11px', fontWeight: 500}}>שלח אל</span>
-            </button>
+        {/* Summary Share Sheet */}
+        {summaryShareOpen && (
+          <div className="m-sheet-overlay" onClick={() => setSummaryShareOpen(false)}>
+            <div className="m-sheet" onClick={e => e.stopPropagation()} style={{maxHeight: '40vh'}}>
+              <div className="m-sheet-header">
+                <div className="m-sheet-title">שלח אל</div>
+                <button className="m-sheet-close" onClick={() => setSummaryShareOpen(false)}>✕</button>
+              </div>
+              <div className="m-sheet-body" style={{padding: '16px'}}>
+                <button className="m-settings-row" onClick={() => {
+                  const filtered = timeEntries.filter(e => {
+                    if (summaryFromDate && new Date(e.startDate) < new Date(summaryFromDate)) return false
+                    if (summaryToDate && new Date(e.startDate) > new Date(summaryToDate)) return false
+                    if (summaryClientFilter !== 'all' && e.clientId !== summaryClientFilter) return false
+                    if (summaryStatusFilter !== 'all' && (e.billingStatus || 'pending') !== summaryStatusFilter) return false
+                    return true
+                  })
+                  if (filtered.length === 0) { setSummaryShareOpen(false); return }
+                  import('xlsx').then(XLSX => {
+                    const data = filtered.map(e => {
+                      const client = clients.find(c => c.id === e.clientId)
+                      const hours = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60)
+                      const amount = client ? hours * client.hourlyRate * (1 + client.vatPercent / 100) : 0
+                      return { תאריך: e.startDate, לקוח: client?.name || '', שעות: hours.toFixed(2), סכום: amount.toFixed(2), סטטוס: e.billingStatus || 'pending', הערות: e.notes || '' }
+                    })
+                    const ws = XLSX.utils.json_to_sheet(data)
+                    const wb = XLSX.utils.book_new()
+                    XLSX.utils.book_append_sheet(wb, ws, 'חיובים')
+                    XLSX.writeFile(wb, `חיובים_${new Date().toISOString().split('T')[0]}.xlsx`)
+                  })
+                  setSummaryShareOpen(false)
+                }}>
+                  <span className="m-settings-icon-wrap" style={{background:'#F0FDF4'}}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                  </span>
+                  <div className="m-settings-info"><span className="m-settings-title">ייצוא לאקסל</span></div>
+                </button>
+                <button className="m-settings-row" onClick={() => {
+                  const filtered = timeEntries.filter(e => {
+                    if (summaryFromDate && new Date(e.startDate) < new Date(summaryFromDate)) return false
+                    if (summaryToDate && new Date(e.startDate) > new Date(summaryToDate)) return false
+                    if (summaryClientFilter !== 'all' && e.clientId !== summaryClientFilter) return false
+                    if (summaryStatusFilter !== 'all' && (e.billingStatus || 'pending') !== summaryStatusFilter) return false
+                    return true
+                  })
+                  if (filtered.length === 0) { setSummaryShareOpen(false); return }
+                  const totalHours = filtered.reduce((sum, e) => sum + (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60), 0)
+                  let totalAmount = 0
+                  filtered.forEach(e => { const client = clients.find(c => c.id === e.clientId); if (client) { const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60); totalAmount += h * client.hourlyRate * (1 + client.vatPercent / 100) } })
+                  const subject = `חיובים - ${filtered.length} דיווחים`
+                  let body = `חיובים\n\nסה"כ שעות: ${totalHours.toFixed(2)}\nסה"כ: ₪${totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}\n\n`
+                  filtered.forEach(e => { const client = clients.find(c => c.id === e.clientId); const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000 * 60 * 60); body += `${e.startDate} | ${client?.name || ''} | ${h.toFixed(2)} שעות\n` })
+                  window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+                  setSummaryShareOpen(false)
+                }}>
+                  <span className="m-settings-icon-wrap" style={{background:'#EEF2FF'}}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366F1" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>
+                  </span>
+                  <div className="m-settings-info"><span className="m-settings-title">שלח במייל</span></div>
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
