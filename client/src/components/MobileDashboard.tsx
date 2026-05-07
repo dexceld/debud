@@ -5400,9 +5400,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const QuickTimeEntryModal = () => {
     if (!quickTimeEntryOpen) return null
     const [fieldErrors, setFieldErrors] = useState<{client?: boolean, date?: boolean, time?: boolean}>({})
+    const [chargeErrors, setChargeErrors] = useState<{client?: boolean, date?: boolean, amount?: boolean, tag?: boolean}>({})
+    const [activeTab, setActiveTab] = useState<'hourly' | 'charge'>('hourly')
+    const [localNewTagName, setLocalNewTagName] = useState('')
+    const [localShowNewTag, setLocalShowNewTag] = useState(false)
 
-
-    // Calculate hours and amount
     let calculatedHours = 0
     let calculatedAmount = 0
     try {
@@ -5411,7 +5413,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         const end = new Date(`${entryFormEndDate}T${entryFormEndTime}`)
         if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
           calculatedHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60)
-          
           if (quickTimeClientId && clients && Array.isArray(clients)) {
             const client = clients.find(c => c && c.id === quickTimeClientId)
             if (client && calculatedHours > 0 && client.hourlyRate) {
@@ -5420,163 +5421,182 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           }
         }
       }
-    } catch (e) {
-      console.error('Error calculating hours:', e)
+    } catch (e) {}
+
+    const closeModal = () => {
+      setQuickTimeEntryOpen(false)
+      setEntryFormStartDate(''); setEntryFormEndDate('')
+      setEntryFormStartTime(''); setEntryFormEndTime('')
+      setEntryFormNotes(''); setEntryFormEmployeeId('self')
+      setQuickTimeClientId('')
     }
 
-    const save = () => {
+    const saveHourly = () => {
       const errors: {client?: boolean, date?: boolean, time?: boolean} = {}
       if (!quickTimeClientId) errors.client = true
       if (!entryFormStartDate || !entryFormEndDate) errors.date = true
       if (!entryFormStartTime || !entryFormEndTime) errors.time = true
-
-      if (Object.keys(errors).length > 0) {
-        setFieldErrors(errors)
-        return
-      }
+      if (Object.keys(errors).length > 0) { setFieldErrors(errors); return }
       setFieldErrors({})
       const entry: TimeEntry = {
         id: Date.now().toString(),
         clientId: quickTimeClientId,
         employeeId: entryFormEmployeeId === 'self' ? undefined : entryFormEmployeeId,
-        startDate: entryFormStartDate,
-        endDate: entryFormEndDate,
-        startTime: entryFormStartTime,
-        endTime: entryFormEndTime,
+        startDate: entryFormStartDate, endDate: entryFormEndDate,
+        startTime: entryFormStartTime, endTime: entryFormEndTime,
         notes: entryFormNotes
       }
       setTimeEntries(prev => [...prev, entry])
-      setEntryFormStartDate('')
-      setEntryFormEndDate('')
-      setEntryFormStartTime('')
-      setEntryFormEndTime('')
-      setEntryFormNotes('')
-      setEntryFormEmployeeId('self')
-      setQuickTimeClientId('')
-      setQuickTimeEntryOpen(false)
+      closeModal()
+    }
+
+    const saveCharge = () => {
+      const errors: {client?: boolean, date?: boolean, amount?: boolean, tag?: boolean} = {}
+      if (!chargeFormClientId) errors.client = true
+      if (!chargeFormDate) errors.date = true
+      if (!chargeFormAmount || isNaN(parseFloat(chargeFormAmount))) errors.amount = true
+      if (!chargeFormTagId) errors.tag = true
+      if (Object.keys(errors).length > 0) { setChargeErrors(errors); return }
+      setChargeErrors({})
+      const entry: ChargeEntry = {
+        id: Date.now().toString(),
+        clientId: chargeFormClientId, date: chargeFormDate,
+        amount: parseFloat(chargeFormAmount), tagId: chargeFormTagId,
+        notes: chargeFormNotes || undefined, billingStatus: 'pending',
+        employeeId: chargeFormEmployeeId !== 'self' ? chargeFormEmployeeId : undefined
+      }
+      setChargeEntries(prev => [...prev, entry])
+      setChargeFormClientId(''); setChargeFormDate(''); setChargeFormAmount('')
+      setChargeFormTagId(''); setChargeFormNotes(''); setChargeFormEmployeeId('self')
+      closeModal()
     }
 
     return (
       <>
-        <div className="m-overlay" onClick={() => setQuickTimeEntryOpen(false)} />
+        <div className="m-overlay" onClick={closeModal} />
         <div className="m-top-sheet">
-          <div className="m-sheet-header">
-            <h2>דיווח שעות מהיר</h2>
-            <button className="m-close-btn" onClick={() => setQuickTimeEntryOpen(false)}>✕</button>
+          <div style={{display:'flex', justifyContent:'flex-end', marginBottom:4}}>
+            <button className="m-close-btn" onClick={closeModal}>✕</button>
           </div>
 
-          {/* Client picker */}
-          <div style={{marginBottom: 8}}>
-            <div style={{fontSize: 11, color: '#9CA3AF', fontWeight: 700, marginBottom: 4, letterSpacing: 1}}>לקוח {fieldErrors.client && <span style={{color:'#DC2626'}}>*</span>}</div>
-            <div style={{display: 'flex', flexWrap: 'wrap', gap: 8}}>
-              {Array.isArray(clients) && clients.map(c => c && c.id ? (
-                <button key={c.id} onClick={() => { setQuickTimeClientId(c.id); setFieldErrors(prev => ({...prev, client: false})) }}
-                  style={{padding: '8px 16px', borderRadius: 20, border: 'none', fontSize: 14, fontWeight: 600,
-                    background: quickTimeClientId === c.id ? '#1d4ed8' : '#F3F4F6',
-                    color: quickTimeClientId === c.id ? 'white' : '#374151', cursor: 'pointer'}}
-                >{c.name}</button>
-              ) : null)}
-            </div>
-            {fieldErrors.client && <div style={{fontSize: 12, color: '#DC2626', marginTop: 4}}>נדרש לבחור לקוח</div>}
-          </div>
-
-          <div style={{borderTop: '1px solid #F3F4F6', margin: '12px 0'}} />
-
-          {/* START row */}
-          <div style={{display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F3F4F6'}}>
-            <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>התחלה</div>
-            <button onClick={() => setDatePickerOpen(true)} style={{flex: 1, textAlign: 'right', border: 'none', background: 'none', fontSize: 17, fontWeight: 700, color: entryFormStartDate ? '#111827' : '#9CA3AF', cursor: 'pointer'}}>
-              {entryFormStartDate || 'בחר תאריך'}
+          {/* Tab bar */}
+          <div style={{display:'flex', marginBottom:16, borderBottom:'2px solid #E5E7EB'}}>
+            <button onClick={() => setActiveTab('hourly')} style={{flex:1, padding:'10px 0', border:'none', background:'none', fontSize:15, fontWeight:activeTab==='hourly'?700:500, color:activeTab==='hourly'?'#1d4ed8':'#9CA3AF', borderBottom:activeTab==='hourly'?'3px solid #1d4ed8':'3px solid transparent', marginBottom:-2, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6}}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              שעתי
             </button>
-            <button onClick={() => { setTimePickerTarget('start'); setTimePickerOpen(true) }} style={{minWidth: 70, textAlign: 'left', border: 'none', background: 'none', fontSize: 17, fontWeight: 700, color: entryFormStartTime ? '#1d4ed8' : '#9CA3AF', cursor: 'pointer'}}>
-              {entryFormStartTime || 'שעה'}
+            <button onClick={() => setActiveTab('charge')} style={{flex:1, padding:'10px 0', border:'none', background:'none', fontSize:15, fontWeight:activeTab==='charge'?700:500, color:activeTab==='charge'?'#10b981':'#9CA3AF', borderBottom:activeTab==='charge'?'3px solid #10b981':'3px solid transparent', marginBottom:-2, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6}}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              כספי
             </button>
           </div>
 
-          {/* END row */}
-          <div style={{display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F3F4F6'}}>
-            <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>סיום</div>
-            <button onClick={() => setDatePickerOpen(true)} style={{flex: 1, textAlign: 'right', border: 'none', background: 'none', fontSize: 17, fontWeight: 700, color: entryFormEndDate ? '#111827' : '#9CA3AF', cursor: 'pointer'}}>
-              {entryFormEndDate || 'בחר תאריך'}
-            </button>
-            <button onClick={() => { setTimePickerTarget('end'); setTimePickerOpen(true) }} style={{minWidth: 70, textAlign: 'left', border: 'none', background: 'none', fontSize: 17, fontWeight: 700, color: entryFormEndTime ? '#1d4ed8' : '#9CA3AF', cursor: 'pointer'}}>
-              {entryFormEndTime || 'שעה'}
-            </button>
-          </div>
-
-          {datePickerOpen && (
-            <DateRangePicker
-              startDate={entryFormStartDate}
-              endDate={entryFormEndDate}
-              onChange={(s, e) => { setEntryFormStartDate(s); setEntryFormEndDate(e) }}
-              onClose={() => setDatePickerOpen(false)}
-            />
-          )}
-          {timePickerOpen && (
-            <TimeRangePicker
-              startTime={entryFormStartTime}
-              endTime={entryFormEndTime}
-              singleMode={timePickerTarget === 'start' ? 'start' : timePickerTarget === 'end' ? 'end' : undefined}
-              onChange={(s, e) => {
-                if (timePickerTarget === 'start') {
-                  setEntryFormStartTime(s)
-                } else if (timePickerTarget === 'end') {
-                  setEntryFormEndTime(e)
-                } else {
-                  setEntryFormStartTime(s)
-                  setEntryFormEndTime(e)
-                }
-              }}
-              onClose={() => { setTimePickerOpen(false); setTimePickerTarget(null) }}
-            />
-          )}
-
-          {/* Duration + Amount on one row */}
-          {calculatedHours > 0 && (
-            <div style={{display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F3F4F6'}}>
-              <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>משך</div>
-              <div style={{flex: 1, fontSize: 17, fontWeight: 700, color: '#111827'}}>{calculatedHours.toFixed(1)} שעות</div>
-              {calculatedAmount > 0 && (
-                <div style={{fontSize: 17, fontWeight: 700, color: '#10b981'}}>₪{calculatedAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
-              )}
-            </div>
-          )}
-
-          {/* Employee row */}
-          {Array.isArray(employees) && employees.length > 0 && (
-            <div style={{display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F3F4F6'}}>
-              <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>עובד</div>
-              <div style={{flex: 1, display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end'}}>
-                <button onClick={() => setEntryFormEmployeeId('self')} style={{padding: '6px 12px', borderRadius: 16, border: 'none', fontSize: 13, fontWeight: 600, background: entryFormEmployeeId === 'self' ? '#1d4ed8' : '#F3F4F6', color: entryFormEmployeeId === 'self' ? 'white' : '#374151', cursor: 'pointer'}}>עצמי</button>
-                {employees.map(emp => emp && emp.id ? (
-                  <button key={emp.id} onClick={() => setEntryFormEmployeeId(emp.id)} style={{padding: '6px 12px', borderRadius: 16, border: 'none', fontSize: 13, fontWeight: 600, background: entryFormEmployeeId === emp.id ? '#1d4ed8' : '#F3F4F6', color: entryFormEmployeeId === emp.id ? 'white' : '#374151', cursor: 'pointer'}}>{emp.name}</button>
-                ) : null)}
+          {activeTab === 'hourly' && (
+            <>
+              <div style={{marginBottom: 8}}>
+                <div style={{fontSize: 11, color: '#9CA3AF', fontWeight: 700, marginBottom: 4, letterSpacing: 1}}>לקוח {fieldErrors.client && <span style={{color:'#DC2626'}}>*</span>}</div>
+                <div style={{display: 'flex', flexWrap: 'wrap', gap: 8}}>
+                  {Array.isArray(clients) && clients.map(c => c && c.id ? (
+                    <button key={c.id} onClick={() => { setQuickTimeClientId(c.id); setFieldErrors(prev => ({...prev, client: false})) }}
+                      style={{padding: '8px 16px', borderRadius: 20, border: 'none', fontSize: 14, fontWeight: 600,
+                        background: quickTimeClientId === c.id ? '#1d4ed8' : '#F3F4F6',
+                        color: quickTimeClientId === c.id ? 'white' : '#374151', cursor: 'pointer'}}
+                    >{c.name}</button>
+                  ) : null)}
+                </div>
+                {fieldErrors.client && <div style={{fontSize: 12, color: '#DC2626', marginTop: 4}}>נדרש לבחור לקוח</div>}
               </div>
-            </div>
+              <div style={{borderTop: '1px solid #F3F4F6', margin: '12px 0'}} />
+              <div style={{display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F3F4F6'}}>
+                <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>התחלה</div>
+                <button onClick={() => setDatePickerOpen(true)} style={{flex: 1, textAlign: 'right', border: 'none', background: 'none', fontSize: 17, fontWeight: 700, color: entryFormStartDate ? '#111827' : '#9CA3AF', cursor: 'pointer'}}>{entryFormStartDate || 'בחר תאריך'}</button>
+                <button onClick={() => { setTimePickerTarget('start'); setTimePickerOpen(true) }} style={{minWidth: 70, textAlign: 'left', border: 'none', background: 'none', fontSize: 17, fontWeight: 700, color: entryFormStartTime ? '#1d4ed8' : '#9CA3AF', cursor: 'pointer'}}>{entryFormStartTime || 'שעה'}</button>
+              </div>
+              <div style={{display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F3F4F6'}}>
+                <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>סיום</div>
+                <button onClick={() => setDatePickerOpen(true)} style={{flex: 1, textAlign: 'right', border: 'none', background: 'none', fontSize: 17, fontWeight: 700, color: entryFormEndDate ? '#111827' : '#9CA3AF', cursor: 'pointer'}}>{entryFormEndDate || 'בחר תאריך'}</button>
+                <button onClick={() => { setTimePickerTarget('end'); setTimePickerOpen(true) }} style={{minWidth: 70, textAlign: 'left', border: 'none', background: 'none', fontSize: 17, fontWeight: 700, color: entryFormEndTime ? '#1d4ed8' : '#9CA3AF', cursor: 'pointer'}}>{entryFormEndTime || 'שעה'}</button>
+              </div>
+              {datePickerOpen && <DateRangePicker startDate={entryFormStartDate} endDate={entryFormEndDate} onChange={(s, e) => { setEntryFormStartDate(s); setEntryFormEndDate(e) }} onClose={() => setDatePickerOpen(false)} />}
+              {timePickerOpen && <TimeRangePicker startTime={entryFormStartTime} endTime={entryFormEndTime} singleMode={timePickerTarget === 'start' ? 'start' : timePickerTarget === 'end' ? 'end' : undefined} onChange={(s, e) => { if (timePickerTarget === 'start') { setEntryFormStartTime(s) } else if (timePickerTarget === 'end') { setEntryFormEndTime(e) } else { setEntryFormStartTime(s); setEntryFormEndTime(e) } }} onClose={() => { setTimePickerOpen(false); setTimePickerTarget(null) }} />}
+              {calculatedHours > 0 && (
+                <div style={{display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F3F4F6'}}>
+                  <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>משך</div>
+                  <div style={{flex: 1, fontSize: 17, fontWeight: 700, color: '#111827'}}>{calculatedHours.toFixed(1)} שעות</div>
+                  {calculatedAmount > 0 && <div style={{fontSize: 17, fontWeight: 700, color: '#10b981'}}>₪{calculatedAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>}
+                </div>
+              )}
+              {Array.isArray(employees) && employees.length > 0 && (
+                <div style={{display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F3F4F6'}}>
+                  <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>עובד</div>
+                  <div style={{flex: 1, display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end'}}>
+                    <button onClick={() => setEntryFormEmployeeId('self')} style={{padding: '6px 12px', borderRadius: 16, border: 'none', fontSize: 13, fontWeight: 600, background: entryFormEmployeeId === 'self' ? '#1d4ed8' : '#F3F4F6', color: entryFormEmployeeId === 'self' ? 'white' : '#374151', cursor: 'pointer'}}>עצמי</button>
+                    {employees.map(emp => emp && emp.id ? (<button key={emp.id} onClick={() => setEntryFormEmployeeId(emp.id)} style={{padding: '6px 12px', borderRadius: 16, border: 'none', fontSize: 13, fontWeight: 600, background: entryFormEmployeeId === emp.id ? '#1d4ed8' : '#F3F4F6', color: entryFormEmployeeId === emp.id ? 'white' : '#374151', cursor: 'pointer'}}>{emp.name}</button>) : null)}
+                  </div>
+                </div>
+              )}
+              <div style={{padding: '10px 0'}}>
+                <input key="quick-notes" defaultValue={entryFormNotes} onBlur={e => setEntryFormNotes(e.target.value)} placeholder="הערה (אופציונלי)" style={{width: '100%', border: 'none', borderBottom: '1px solid #E5E7EB', padding: '8px 0', fontSize: 15, background: 'none', outline: 'none'}} />
+              </div>
+              <div style={{display: 'flex', gap: 10, marginTop: 8}}>
+                <button onClick={closeModal} style={{flex: 1, padding: '14px', background: '#F3F4F6', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer', color: '#6B7280'}}>ביטול</button>
+                <button className="m-mortgage-calc-btn" onClick={saveHourly} style={{flex: 2, margin: 0}}>שמור ✓</button>
+              </div>
+            </>
           )}
 
-          {/* Notes */}
-          <div style={{padding: '10px 0'}}>
-            <input key="quick-notes" defaultValue={entryFormNotes} onBlur={e => setEntryFormNotes(e.target.value)} placeholder="הערה (אופציונלי)"
-              style={{width: '100%', border: 'none', borderBottom: '1px solid #E5E7EB', padding: '8px 0', fontSize: 15, background: 'none', outline: 'none'}} />
-          </div>
-
-
-          {calculatedAmount > 0 && (
-            <div style={{textAlign: 'center', padding: '8px 0', fontSize: 18, fontWeight: 800, color: '#10b981'}}>
-              ₪{calculatedAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
-            </div>
+          {activeTab === 'charge' && (
+            <>
+              <div style={{marginBottom: 14}}>
+                <div style={{fontSize: 11, color: '#9CA3AF', fontWeight: 700, marginBottom: 6}}>לקוח {chargeErrors.client && <span style={{color:'#ef4444'}}>*</span>}</div>
+                <div style={{display: 'flex', gap: 6, flexWrap: 'wrap'}}>
+                  {clients.map(c => (
+                    <button key={c.id} onClick={() => { setChargeFormClientId(c.id); setChargeErrors(prev => ({...prev, client: false})) }}
+                      style={{padding: '6px 12px', borderRadius: 16, border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                        background: chargeFormClientId === c.id ? '#1d4ed8' : '#F3F4F6',
+                        color: chargeFormClientId === c.id ? 'white' : '#374151'}}>
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div style={{marginBottom: 14}}>
+                <div style={{fontSize: 11, color: '#9CA3AF', fontWeight: 700, marginBottom: 6}}>תאריך {chargeErrors.date && <span style={{color:'#ef4444'}}>*</span>}</div>
+                <input type="date" defaultValue={chargeFormDate} onBlur={e => setChargeFormDate(e.target.value)} style={{width: '100%', padding: '10px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 15, outline: 'none'}} />
+              </div>
+              <div style={{marginBottom: 14}}>
+                <div style={{fontSize: 11, color: '#9CA3AF', fontWeight: 700, marginBottom: 6}}>סכום ₪ {chargeErrors.amount && <span style={{color:'#ef4444'}}>*</span>}</div>
+                <input type="number" inputMode="decimal" placeholder="0" defaultValue={chargeFormAmount} onBlur={e => setChargeFormAmount(e.target.value)} style={{width: '100%', padding: '10px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 15, outline: 'none'}} />
+              </div>
+              <div style={{marginBottom: 14}}>
+                <div style={{fontSize: 11, color: '#9CA3AF', fontWeight: 700, marginBottom: 6}}>סוג חיוב {chargeErrors.tag && <span style={{color:'#ef4444'}}>*</span>}</div>
+                <div style={{display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6}}>
+                  {chargeTags.map(tag => (
+                    <button key={tag.id} onClick={() => { setChargeFormTagId(tag.id); setChargeErrors(prev => ({...prev, tag: false})) }}
+                      style={{padding: '6px 12px', borderRadius: 16, border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                        background: chargeFormTagId === tag.id ? '#7c3aed' : '#F3F4F6',
+                        color: chargeFormTagId === tag.id ? 'white' : '#374151'}}>
+                      {tag.name}
+                    </button>
+                  ))}
+                  <button onClick={() => setLocalShowNewTag(v => !v)} style={{padding: '6px 12px', borderRadius: 16, border: '1px dashed #c4b5fd', fontSize: 13, fontWeight: 600, cursor: 'pointer', background: 'transparent', color: '#7c3aed'}}>+ חדש</button>
+                </div>
+                {localShowNewTag && (
+                  <div style={{display: 'flex', gap: 6}}>
+                    <input placeholder="שם תיוג חדש" value={localNewTagName} onChange={e => setLocalNewTagName(e.target.value)} style={{flex: 1, padding: '8px 10px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 14, outline: 'none'}} />
+                    <button onClick={() => { if (localNewTagName.trim()) { const t = {id: Date.now().toString(), name: localNewTagName.trim()}; setChargeTags(prev => [...prev, t]); setChargeFormTagId(t.id); setLocalNewTagName(''); setLocalShowNewTag(false) } }} style={{padding: '8px 14px', background: '#7c3aed', color: 'white', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer'}}>הוסף</button>
+                  </div>
+                )}
+              </div>
+              <div style={{marginBottom: 14}}>
+                <input placeholder="הערה (אופציונלי)" defaultValue={chargeFormNotes} onBlur={e => setChargeFormNotes(e.target.value)} style={{width: '100%', border: 'none', borderBottom: '1px solid #E5E7EB', padding: '8px 0', fontSize: 15, background: 'none', outline: 'none'}} />
+              </div>
+              <div style={{display: 'flex', gap: 10, marginTop: 8}}>
+                <button onClick={closeModal} style={{flex: 1, padding: '14px', background: '#F3F4F6', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer', color: '#6B7280'}}>ביטול</button>
+                <button style={{flex: 2, padding: '14px', background: 'linear-gradient(135deg,#10b981,#059669)', color: 'white', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer'}} onClick={saveCharge}>שמור ✓</button>
+              </div>
+            </>
           )}
-
-          <div style={{display: 'flex', gap: 10, marginTop: 8}}>
-            <button onClick={() => setQuickTimeEntryOpen(false)}
-              style={{flex: 1, padding: '14px', background: '#F3F4F6', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer', color: '#6B7280'}}>
-              ביטול
-            </button>
-            <button className="m-mortgage-calc-btn" onClick={save} style={{flex: 2, margin: 0}}>
-              שמור ✓
-            </button>
-          </div>
         </div>
       </>
     )
@@ -6235,6 +6255,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     setEntryFormClientId(selectedClientId || '')
     setQuickTimeClientId(selectedClientId || '')
     setEditEntryId(null)
+    setChargeFormClientId(selectedClientId || '')
+    setChargeFormDate(today)
+    setChargeFormAmount('')
+    setChargeFormTagId('')
+    setChargeFormNotes('')
+    setChargeFormEmployeeId('self')
     setQuickTimeEntryOpen(true)
   }
 
@@ -6289,11 +6315,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               timeFabDragRef.current = null
               clientFabDragRef.current = null
               localStorage.setItem(lsKey('time_fab_pos'), JSON.stringify(fabPos))
-              if (!wasDrag) setQuickEntryMenuOpen(true)
+              if (!wasDrag) openQuickEntry()
             }}
             onClick={(e) => {
               if (e.detail === 0) return // fired from touch, already handled
-              setQuickEntryMenuOpen(true)
+              openQuickEntry()
             }}
             title="דיווח מהיר"
           >
@@ -6305,44 +6331,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       <TimeSettingsModal />
       <AddEmployeeModal />
 
-      {/* Quick Entry Selection Menu */}
-      {quickEntryMenuOpen && (
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center',padding:24}} onClick={() => setQuickEntryMenuOpen(false)}>
-          <div style={{background:'#fff',borderRadius:20,padding:24,maxWidth:280,width:'100%',textAlign:'center',boxShadow:'0 12px 40px rgba(0,0,0,0.25)'}} onClick={e => e.stopPropagation()}>
-            <div style={{fontSize:20,fontWeight:700,color:'#1F2937',marginBottom:20}}>דיווח מהיר</div>
-            <div style={{display:'flex',flexDirection:'column',gap:12}}>
-              <button onClick={() => {
-                setQuickEntryMenuOpen(false)
-                openQuickEntry()
-              }} style={{padding:16,borderRadius:12,border:'2px solid #3B82F6',background:'#EFF6FF',color:'#3B82F6',fontSize:16,fontWeight:600,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10"/>
-                  <polyline points="12 6 12 12 16 14"/>
-                </svg>
-                דיווח שעתי
-              </button>
-              <button onClick={() => {
-                setQuickEntryMenuOpen(false)
-                setChargeFormClientId(selectedClientId || '')
-                setChargeFormDate(new Date().toISOString().split('T')[0])
-                setChargeFormAmount('')
-                setChargeFormTagId('')
-                setChargeFormNotes('')
-                setEditChargeId(null)
-                setAddChargeOpen(true)
-              }} style={{padding:16,borderRadius:12,border:'2px solid #10B981',background:'#ECFDF5',color:'#10B981',fontSize:16,fontWeight:600,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                </svg>
-                דיווח כספי
-              </button>
-              <button onClick={() => setQuickEntryMenuOpen(false)} style={{padding:12,borderRadius:10,border:'none',background:'#F3F4F6',color:'#6B7280',fontSize:14,cursor:'pointer',marginTop:8}}>
-                ביטול
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       <BulkActionModal />
       <QuickAddSheet 
         globalAmountValue={quickAddGlobalAmount}
