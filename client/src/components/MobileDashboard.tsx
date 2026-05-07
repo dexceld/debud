@@ -3225,7 +3225,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           {clientShareOpen && (
             <>
               <div style={{position:'fixed',inset:0,zIndex:199}} onClick={() => setClientShareOpen(false)} />
-              <div style={{position:'fixed',bottom:70,right:8,zIndex:200,background:'white',borderRadius:12,boxShadow:'0 4px 20px rgba(0,0,0,0.18)',padding:8,display:'flex',gap:8}}>
+              <div style={{position:'fixed',bottom:70,left:8,zIndex:200,background:'white',borderRadius:12,boxShadow:'0 4px 20px rgba(0,0,0,0.18)',padding:8,display:'flex',gap:8}}>
                 <button title="ייצוא לאקסל" onClick={() => {
                   let entries = clientEntries
                   if (clientFromDate && clientToDate) entries = entries.filter(e => e.startDate >= clientFromDate && e.startDate <= clientToDate)
@@ -3237,7 +3237,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   })
                   setClientShareOpen(false)
                 }} style={{width:44,height:44,borderRadius:8,border:'none',cursor:'pointer',background:'#F0FDF4',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="11" x2="12" y2="17"/><polyline points="9 14 12 17 15 14"/></svg>
                 </button>
                 <button title="שלח במייל" onClick={() => {
                   let entries = clientEntries
@@ -3540,7 +3540,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           {employeeShareOpen && (
             <>
               <div style={{position:'fixed',inset:0,zIndex:199}} onClick={() => setEmployeeShareOpen(false)} />
-              <div style={{position:'fixed',bottom:70,right:8,zIndex:200,background:'white',borderRadius:12,boxShadow:'0 4px 20px rgba(0,0,0,0.18)',padding:8,display:'flex',gap:8}}>
+              <div style={{position:'fixed',bottom:70,left:8,zIndex:200,background:'white',borderRadius:12,boxShadow:'0 4px 20px rgba(0,0,0,0.18)',padding:8,display:'flex',gap:8}}>
                 <button title="ייצוא לאקסל" onClick={() => {
                   let entries = timeEntries.filter(e => e.employeeId === selectedEmployeeId)
                   if (employeeFromDate && employeeToDate) entries = entries.filter(e => e.startDate >= employeeFromDate && e.startDate <= employeeToDate)
@@ -3552,7 +3552,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   })
                   setEmployeeShareOpen(false)
                 }} style={{width:44,height:44,borderRadius:8,border:'none',cursor:'pointer',background:'#F0FDF4',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="11" x2="12" y2="17"/><polyline points="9 14 12 17 15 14"/></svg>
                 </button>
                 <button title="שלח במייל" onClick={() => {
                   let entries = timeEntries.filter(e => e.employeeId === selectedEmployeeId)
@@ -3965,7 +3965,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             {reportsShareOpen && (
               <>
                 <div style={{position:'fixed',inset:0,zIndex:199}} onClick={() => setReportsShareOpen(false)} />
-                <div style={{position:'fixed',bottom:70,right:8,zIndex:200,background:'white',borderRadius:12,boxShadow:'0 4px 20px rgba(0,0,0,0.18)',padding:8,display:'flex',gap:8}}>
+                <div style={{position:'fixed',bottom:70,left:8,zIndex:200,background:'white',borderRadius:12,boxShadow:'0 4px 20px rgba(0,0,0,0.18)',padding:8,display:'flex',gap:8}}>
                   <button title="ייצוא לאקסל" onClick={() => {
                     const filtered = timeEntries.filter(e => { if (reportsFromDate && reportsToDate) return e.startDate >= reportsFromDate && e.startDate <= reportsToDate; return true }).filter(e => reportsClientFilter === 'all' || e.clientId === reportsClientFilter)
                     if (filtered.length === 0) { setReportsShareOpen(false); return }
@@ -3975,7 +3975,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     })
                     setReportsShareOpen(false)
                   }} style={{width:44,height:44,borderRadius:8,border:'none',cursor:'pointer',background:'#F0FDF4',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="11" x2="12" y2="17"/><polyline points="9 14 12 17 15 14"/></svg>
                   </button>
                   <button title="שלח במייל" onClick={() => {
                     const filtered = timeEntries.filter(e => { if (reportsFromDate && reportsToDate) return e.startDate >= reportsFromDate && e.startDate <= reportsToDate; return true }).filter(e => reportsClientFilter === 'all' || e.clientId === reportsClientFilter)
@@ -4244,7 +4244,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         {summaryShareOpen && (
           <>
             <div style={{position:'fixed',inset:0,zIndex:199}} onClick={() => setSummaryShareOpen(false)} />
-            <div style={{position:'fixed',bottom:70,right:8,zIndex:200,background:'white',borderRadius:12,boxShadow:'0 4px 20px rgba(0,0,0,0.18)',padding:8,display:'flex',gap:8}}>
+            <div style={{position:'fixed',bottom:70,left:8,zIndex:200,background:'white',borderRadius:12,boxShadow:'0 4px 20px rgba(0,0,0,0.18)',padding:8,display:'flex',gap:8}}>
               <button title="ייצוא לאקסל" onClick={() => {
                 const filtered = timeEntries.filter(e => { if (summaryFromDate && new Date(e.startDate) < new Date(summaryFromDate)) return false; if (summaryToDate && new Date(e.startDate) > new Date(summaryToDate)) return false; if (summaryClientFilter !== 'all' && e.clientId !== summaryClientFilter) return false; if (summaryStatusFilter !== 'all' && (e.billingStatus||'pending') !== summaryStatusFilter) return false; return true })
                 if (filtered.length === 0) { setSummaryShareOpen(false); return }
@@ -4254,7 +4254,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 })
                 setSummaryShareOpen(false)
               }} style={{width:44,height:44,borderRadius:8,border:'none',cursor:'pointer',background:'#F0FDF4',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="11" x2="12" y2="17"/><polyline points="9 14 12 17 15 14"/></svg>
               </button>
               <button title="שלח במייל" onClick={() => {
                 const filtered = timeEntries.filter(e => { if (summaryFromDate && new Date(e.startDate) < new Date(summaryFromDate)) return false; if (summaryToDate && new Date(e.startDate) > new Date(summaryToDate)) return false; if (summaryClientFilter !== 'all' && e.clientId !== summaryClientFilter) return false; if (summaryStatusFilter !== 'all' && (e.billingStatus||'pending') !== summaryStatusFilter) return false; return true })
