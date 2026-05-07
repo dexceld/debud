@@ -3809,50 +3809,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     <button onClick={() => setReportsFilterSheetOpen(false)} style={{fontSize: 20, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer'}}>✕</button>
                   </div>
 
-                  {/* Period Section */}
-                  <div style={{marginBottom: 20}}>
-                    <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>תקופה</div>
-                    <button
-                      type="button"
-                      onClick={() => { setReportsDatePickerOpen(true); }}
-                      style={{
-                        width: '100%', padding: '12px 16px', border: '1px solid #E5E7EB', borderRadius: 12,
-                        background: reportsFromDate ? '#EFF6FF' : 'white',
-                        color: reportsFromDate ? '#1d4ed8' : '#374151',
-                        fontSize: 14, fontWeight: 600, cursor: 'pointer', textAlign: 'center'
-                      }}
-                    >
-                      {reportsFromDate
-                        ? reportsFromDate === reportsToDate
-                          ? `📅 ${new Date(reportsFromDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'})}`
-                          : `📅 ${new Date(reportsFromDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'})} – ${new Date(reportsToDate).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'})}`
-                        : 'בחר תקופה'
-                      }
-                    </button>
-                    {/* Quick period — 2-column grid (3rd spans full width) */}
-                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 12}}>
-                      <button type="button" onClick={() => { setReportsPeriod('week'); setReportsFromDate(''); setReportsToDate(''); setReportsFilterSheetOpen(false); }}
-                        style={{width: '100%', padding: '12px 10px', border: '1px solid #E5E7EB', borderRadius: 12, background: reportsPeriod === 'week' ? '#10b981' : 'white', color: reportsPeriod === 'week' ? 'white' : '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer'}}>
-                        שבוע אחרון
-                      </button>
-                      <button type="button" onClick={() => { setReportsPeriod('month'); setReportsFromDate(''); setReportsToDate(''); setReportsFilterSheetOpen(false); }}
-                        style={{width: '100%', padding: '12px 10px', border: '1px solid #E5E7EB', borderRadius: 12, background: reportsPeriod === 'month' ? '#10b981' : 'white', color: reportsPeriod === 'month' ? 'white' : '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer'}}>
-                        חודש אחרון
-                      </button>
-                      <button type="button" onClick={() => { setReportsPeriod('year'); setReportsFromDate(''); setReportsToDate(''); setReportsFilterSheetOpen(false); }}
-                        style={{gridColumn: '1 / -1', width: '100%', padding: '12px 10px', border: '1px solid #E5E7EB', borderRadius: 12, background: reportsPeriod === 'year' ? '#10b981' : 'white', color: reportsPeriod === 'year' ? 'white' : '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer'}}>
-                        שנה אחרונה
-                      </button>
-                    </div>
-                    {reportsFromDate && (
-                      <button onClick={() => { setReportsFromDate(''); setReportsToDate(''); }}
-                        style={{marginTop: 8, width: '100%', padding: '10px', border: '1px solid #E5E7EB', borderRadius: 12,
-                          background: 'white', fontSize: 13, color: '#6B7280', cursor: 'pointer'}}>
-                        איפוס תקופה
-                      </button>
-                    )}
-                  </div>
-
                   {/* Client Section */}
                   <div style={{marginBottom: 20}}>
                     <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>לקוח</div>
