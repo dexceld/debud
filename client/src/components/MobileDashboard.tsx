@@ -174,6 +174,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [menuCatId, setMenuCatId] = useState<string | null>(null)
   const [quickAddOpen, setQuickAddOpen] = useState(false)
   const [quickEntryMenuOpen, setQuickEntryMenuOpen] = useState(false)
+  const [quickEntryActiveTab, setQuickEntryActiveTab] = useState<'hourly' | 'charge'>('hourly')
   const [quickAddGlobalAmount, setQuickAddGlobalAmount] = useState('')
   const [inlineSheetAmount, setInlineSheetAmount] = useState('')
   const [quickSearch, setQuickSearch] = useState('')
@@ -5401,7 +5402,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     if (!quickTimeEntryOpen) return null
     const [fieldErrors, setFieldErrors] = useState<{client?: boolean, date?: boolean, time?: boolean}>({})
     const [chargeErrors, setChargeErrors] = useState<{client?: boolean, date?: boolean, amount?: boolean, tag?: boolean}>({})
-    const [activeTab, setActiveTab] = useState<'hourly' | 'charge'>('hourly')
+    const activeTab = quickEntryActiveTab
+    const setActiveTab = setQuickEntryActiveTab
     const [localNewTagName, setLocalNewTagName] = useState('')
     const [localShowNewTag, setLocalShowNewTag] = useState(false)
 
@@ -6067,6 +6069,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   // Add Employee Modal (handles both new and edit)
   const AddEmployeeModal = () => {
     if (!addEmployeeOpen) return null
+    const nameRef = useRef<HTMLInputElement>(null)
+    const emailRef = useRef<HTMLInputElement>(null)
 
     const closeModal = () => {
       setAddEmployeeOpen(false)
@@ -6077,21 +6081,23 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     }
 
     const save = () => {
-      if (!employeeFormName || !employeeFormEmail) {
+      const name = nameRef.current?.value?.trim() || ''
+      const email = emailRef.current?.value?.trim() || ''
+      if (!name || !email) {
         alert('נא למלא שם ומייל')
         return
       }
       if (editEmployeeId) {
         setEmployees(prev => prev.map(emp =>
           emp.id === editEmployeeId
-            ? { ...emp, name: employeeFormName, email: employeeFormEmail, clientIds: employeeFormClients }
+            ? { ...emp, name, email, clientIds: employeeFormClients }
             : emp
         ))
       } else {
         const employee: Employee = {
           id: Date.now().toString(),
-          name: employeeFormName,
-          email: employeeFormEmail,
+          name,
+          email,
           clientIds: employeeFormClients
         }
         setEmployees(prev => [...prev, employee])
@@ -6126,9 +6132,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <div className="m-mortgage-field">
             <label>שם העובד</label>
             <input 
+              ref={nameRef}
               type="text"
-              value={employeeFormName}
-              onChange={e => setEmployeeFormName(e.target.value)}
+              defaultValue={employeeFormName}
               placeholder="שם העובד"
               autoFocus
             />
@@ -6137,10 +6143,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <div className="m-mortgage-field">
             <label>מייל</label>
             <input 
+              ref={emailRef}
               type="email"
               inputMode="email"
-              value={employeeFormEmail}
-              onChange={e => setEmployeeFormEmail(e.target.value)}
+              defaultValue={employeeFormEmail}
+              onBlur={e => setEmployeeFormEmail(e.target.value)}
               placeholder="email@example.com"
             />
           </div>
@@ -6195,20 +6202,22 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           {employeeFormEmail && employeeFormClients.length > 0 && (
             <button
               onClick={() => {
+                const name = nameRef.current?.value?.trim() || employeeFormName
+                const email = emailRef.current?.value?.trim() || employeeFormEmail
                 const assignedClients = clients.filter(c => employeeFormClients.includes(c.id))
                 const clientList = assignedClients.map(c => `• ${c.name} - ₪${c.hourlyRate}/שעה`).join('\n')
-                const subject = `הזמנה לדיווח שעות - ${employeeFormName}`
-                let body = `שלום ${employeeFormName},\n\n`
+                const subject = `הזמנה לדיווח שעות - ${name}`
+                let body = `שלום ${name},\n\n`
                 body += `הוזמנת להשתמש באפליקציית דיווחי השעות.\n\n`
                 body += `הלקוחות המקושרים אליך:\n${clientList}\n\n`
                 body += `קישור לאפליקציה:\n`
-                body += `${window.location.origin}${window.location.pathname}?employee=${encodeURIComponent(employeeFormEmail)}\n\n`
+                body += `${window.location.origin}${window.location.pathname}?employee=${encodeURIComponent(email)}\n\n`
                 body += `הוראות:\n`
                 body += `1. לחץ על הקישור או העתק אותו לדפדפן\n`
                 body += `2. הלקוחות שלך יוצגו באפליקציה\n`
                 body += `3. תוכל לדווח שעות ללקוחות אלו\n\n`
                 body += `בהצלחה!`
-                window.location.href = `mailto:${employeeFormEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+                window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
               }}
               style={{
                 width: '100%', padding: '14px', marginBottom: '12px',
@@ -6261,6 +6270,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     setChargeFormTagId('')
     setChargeFormNotes('')
     setChargeFormEmployeeId('self')
+    setQuickEntryActiveTab('hourly')
     setQuickTimeEntryOpen(true)
   }
 
