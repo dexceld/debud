@@ -5135,8 +5135,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <label>שם הלקוח</label>
             <input 
               type="text"
-              defaultValue={clientFormName}
-              onBlur={e => setClientFormName(e.target.value)}
+              value={clientFormName}
+              onChange={e => setClientFormName(e.target.value)}
               placeholder="שם הלקוח"
               autoFocus
             />
@@ -5147,8 +5147,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <input 
               type="number"
               inputMode="numeric"
-              defaultValue={clientFormRate}
-              onBlur={e => setClientFormRate(e.target.value)}
+              value={clientFormRate}
+              onChange={e => setClientFormRate(e.target.value)}
               placeholder="100"
             />
           </div>
@@ -5158,8 +5158,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <input 
               type="number"
               inputMode="decimal"
-              defaultValue={clientFormVat}
-              onBlur={e => setClientFormVat(e.target.value)}
+              value={clientFormVat}
+              onChange={e => setClientFormVat(e.target.value)}
               placeholder="18"
             />
           </div>
@@ -5169,8 +5169,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <input 
               type="number"
               inputMode="decimal"
-              defaultValue={clientFormIncomeTax}
-              onBlur={e => setClientFormIncomeTax(e.target.value)}
+              value={clientFormIncomeTax}
+              onChange={e => setClientFormIncomeTax(e.target.value)}
               placeholder="30"
             />
           </div>
