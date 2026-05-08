@@ -5068,34 +5068,40 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   // Add Client Modal
   const AddClientModal = () => {
     if (!addClientOpen) return null
+    const nameRef = useRef<HTMLInputElement>(null)
+    const rateRef = useRef<HTMLInputElement>(null)
+    const vatRef = useRef<HTMLInputElement>(null)
+    const taxRef = useRef<HTMLInputElement>(null)
 
     const save = () => {
-      if (!clientFormName || !clientFormRate) {
+      const name = nameRef.current?.value?.trim() || ''
+      const rate = rateRef.current?.value?.trim() || ''
+      const vat = vatRef.current?.value?.trim() || '18'
+      const tax = taxRef.current?.value?.trim() || '30'
+      if (!name || !rate) {
         alert('נא למלא שם ותעריף')
         return
       }
       
       if (editClientId) {
-        // עריכת לקוח קיים
         setClients(prev => prev.map(c => 
           c.id === editClientId 
             ? {
                 ...c,
-                name: clientFormName,
-                hourlyRate: parseFloat(clientFormRate),
-                vatPercent: parseFloat(clientFormVat),
-                incomeTaxPercent: parseFloat(clientFormIncomeTax)
+                name,
+                hourlyRate: parseFloat(rate),
+                vatPercent: parseFloat(vat),
+                incomeTaxPercent: parseFloat(tax)
               }
             : c
         ))
       } else {
-        // לקוח חדש
         const client: Client = {
           id: Date.now().toString(),
-          name: clientFormName,
-          hourlyRate: parseFloat(clientFormRate),
-          vatPercent: parseFloat(clientFormVat),
-          incomeTaxPercent: parseFloat(clientFormIncomeTax)
+          name,
+          hourlyRate: parseFloat(rate),
+          vatPercent: parseFloat(vat),
+          incomeTaxPercent: parseFloat(tax)
         }
         setClients(prev => [...prev, client])
       }
@@ -5134,9 +5140,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <div className="m-mortgage-field">
             <label>שם הלקוח</label>
             <input 
+              ref={nameRef}
               type="text"
-              value={clientFormName}
-              onChange={e => setClientFormName(e.target.value)}
+              defaultValue={clientFormName}
+              onBlur={e => setClientFormName(e.target.value)}
               placeholder="שם הלקוח"
               autoFocus
             />
@@ -5145,10 +5152,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <div className="m-mortgage-field">
             <label>תעריף לשעה (₪)</label>
             <input 
+              ref={rateRef}
               type="number"
               inputMode="numeric"
-              value={clientFormRate}
-              onChange={e => setClientFormRate(e.target.value)}
+              defaultValue={clientFormRate}
+              onBlur={e => setClientFormRate(e.target.value)}
               placeholder="100"
             />
           </div>
@@ -5156,10 +5164,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <div className="m-mortgage-field">
             <label>אחוז מע"מ (%)</label>
             <input 
+              ref={vatRef}
               type="number"
               inputMode="decimal"
-              value={clientFormVat}
-              onChange={e => setClientFormVat(e.target.value)}
+              defaultValue={clientFormVat}
+              onBlur={e => setClientFormVat(e.target.value)}
               placeholder="18"
             />
           </div>
@@ -5167,10 +5176,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <div className="m-mortgage-field">
             <label>אחוז מס הכנסה (%)</label>
             <input 
+              ref={taxRef}
               type="number"
               inputMode="decimal"
-              value={clientFormIncomeTax}
-              onChange={e => setClientFormIncomeTax(e.target.value)}
+              defaultValue={clientFormIncomeTax}
+              onBlur={e => setClientFormIncomeTax(e.target.value)}
               placeholder="30"
             />
           </div>
@@ -6135,6 +6145,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               ref={nameRef}
               type="text"
               defaultValue={employeeFormName}
+              onBlur={e => setEmployeeFormName(e.target.value)}
               placeholder="שם העובד"
               autoFocus
             />
