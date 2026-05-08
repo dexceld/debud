@@ -3293,7 +3293,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>סטטוס חיוב</div>
                   <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8}}>
                     {[
-                      {key: 'all', label: 'הכל', color: '#374151', bg: '#f3f4f6'},
+                      {key: 'all', label: 'הכל', color: 'white', bg: '#374151'},
                       {key: 'pending', label: '⏳ ממתין', color: '#92400e', bg: '#fef3c7'},
                       {key: 'invoiced', label: '📄 חויב', color: '#1e40af', bg: '#dbeafe'},
                       {key: 'paid', label: '✅ שולם', color: '#166534', bg: '#dcfce7'}
@@ -3656,7 +3656,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>סטטוס חיוב</div>
                   <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8}}>
                     {[
-                      {key: 'all', label: 'הכל', color: '#374151', bg: '#f3f4f6'},
+                      {key: 'all', label: 'הכל', color: 'white', bg: '#374151'},
                       {key: 'pending', label: '⏳ ממתין', color: '#92400e', bg: '#fef3c7'},
                       {key: 'invoiced', label: '📄 חויב', color: '#1e40af', bg: '#dbeafe'},
                       {key: 'paid', label: '✅ שולם', color: '#166534', bg: '#dcfce7'}
@@ -3916,7 +3916,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>סטטוס</div>
                     <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8}}>
                       {[
-                        {key: 'all', label: 'הכל', color: '#374151', bg: '#f3f4f6'},
+                        {key: 'all', label: 'הכל', color: 'white', bg: '#374151'},
                         {key: 'pending', label: '⏳ ממתין', color: '#92400e', bg: '#fef3c7'},
                         {key: 'invoiced', label: '📄 חויב', color: '#1e40af', bg: '#dbeafe'},
                         {key: 'paid', label: '✅ שולם', color: '#166534', bg: '#dcfce7'}
@@ -4306,7 +4306,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>סטטוס חיוב</div>
                     <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8}}>
                       {[
-                        {key: 'all', label: 'הכל', color: '#374151', bg: '#f3f4f6'},
+                        {key: 'all', label: 'הכל', color: 'white', bg: '#374151'},
                         {key: 'pending', label: '⏳ ממתין', color: '#92400e', bg: '#fef3c7'},
                         {key: 'invoiced', label: '📄 חויב', color: '#1e40af', bg: '#dbeafe'},
                         {key: 'paid', label: '✅ שולם', color: '#166534', bg: '#dcfce7'}
