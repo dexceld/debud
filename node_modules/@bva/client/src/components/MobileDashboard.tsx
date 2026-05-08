@@ -6203,7 +6203,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     </div>
                     <div style={{flex: 1}}>
                       <div style={{fontWeight: 600}}>{client.name}</div>
-                      <div style={{fontSize: 13, color: '#6B7280'}}>₪{client.hourlyRate}/שעה</div>
                     </div>
                   </div>
                 ))
@@ -6218,7 +6217,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 const name = nameRef.current?.value?.trim() || employeeFormName
                 const email = emailRef.current?.value?.trim() || employeeFormEmail
                 const assignedClients = clients.filter(c => employeeFormClients.includes(c.id))
-                const clientList = assignedClients.map(c => `• ${c.name} - ₪${c.hourlyRate}/שעה`).join('\n')
+                const clientList = assignedClients.map(c => `• ${c.name}`).join('\n')
                 const subject = `הזמנה לדיווח שעות - ${name}`
                 let body = `שלום ${name},\n\n`
                 body += `הוזמנת להשתמש באפליקציית דיווחי השעות.\n\n`
