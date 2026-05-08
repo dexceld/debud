@@ -305,6 +305,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [reportsToDate, setReportsToDate] = useState<string>('')
   const [reportsDatePickerOpen, setReportsDatePickerOpen] = useState(false)
   const [reportsShareOpen, setReportsShareOpen] = useState(false)
+  const [dateFilterMenuOpen, setDateFilterMenuOpen] = useState(false)
   // Floating action buttons state (moved from IIFE to top-level to fix hooks violation)
   const [fabPos, setFabPos] = useState(() => {
     const saved = localStorage.getItem(lsKey('time_fab_pos'))
@@ -4207,6 +4208,41 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         </div>
       )}
 
+        {/* Date Filter Menu */}
+        {dateFilterMenuOpen && (
+          <>
+            <div className="m-overlay" onClick={() => setDateFilterMenuOpen(false)} />
+            <div style={{position:'fixed',bottom:0,left:0,right:0,background:'white',borderRadius:'16px 16px 0 0',padding:'20px 16px 36px',zIndex:500,boxShadow:'0 -4px 20px rgba(0,0,0,0.12)'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
+                <span style={{fontSize:16,fontWeight:700,color:'#1F2937'}}>סינון לפי תאריך</span>
+                <button onClick={() => setDateFilterMenuOpen(false)} style={{background:'none',border:'none',fontSize:20,cursor:'pointer',color:'#9CA3AF'}}>✕</button>
+              </div>
+              <div style={{display:'flex',flexDirection:'column',gap:10}}>
+                <button
+                  onClick={() => {
+                    setDateFilterMenuOpen(false)
+                    if (timeTrackingTab === 'summary') setSummaryDatePickerOpen(true)
+                    else setReportsDatePickerOpen(true)
+                  }}
+                  style={{padding:'14px 16px',borderRadius:12,border:'2px solid #3B82F6',background:'#EFF6FF',color:'#1d4ed8',fontSize:15,fontWeight:600,cursor:'pointer',textAlign:'right'}}
+                >
+                  📅 בחר טווח תאריכים
+                </button>
+                <button
+                  onClick={() => {
+                    if (timeTrackingTab === 'summary') { setSummaryFromDate(''); setSummaryToDate('') }
+                    else { setReportsFromDate(''); setReportsToDate('') }
+                    setDateFilterMenuOpen(false)
+                  }}
+                  style={{padding:'14px 16px',borderRadius:12,border:'2px solid #10B981',background:'#ECFDF5',color:'#065F46',fontSize:15,fontWeight:600,cursor:'pointer',textAlign:'right'}}
+                >
+                  🔄 הצג הכל (איפוס סינון תאריך)
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+
         {/* Bottom Menu Bar - tab-aware */}
         <div style={{
           position: 'fixed', bottom: 0, left: 0, right: 0, height: '60px',
@@ -4214,7 +4250,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           display: 'flex', justifyContent: 'space-around', alignItems: 'center',
           padding: '0 16px', zIndex: 100
         }}>
-          <button onClick={() => { if (timeTrackingTab === 'summary') setSummaryDatePickerOpen(true); else setReportsDatePickerOpen(true) }}
+          <button onClick={() => setDateFilterMenuOpen(true)}
             style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',
               color: (timeTrackingTab === 'summary' ? summaryFromDate : reportsFromDate) ? '#1d4ed8' : '#374151'}}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
