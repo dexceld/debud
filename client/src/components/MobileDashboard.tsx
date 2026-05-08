@@ -6127,8 +6127,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     }
 
     const toggleClient = (clientId: string) => {
-      if (employeeNameRef.current) setEmployeeFormName(employeeNameRef.current.value)
-      if (employeeEmailRef.current) setEmployeeFormEmail(employeeEmailRef.current.value)
+      if (nameRef.current) setEmployeeFormName(nameRef.current.value)
+      if (emailRef.current) setEmployeeFormEmail(emailRef.current.value)
       if (employeeFormClients.includes(clientId)) {
         setEmployeeFormClients(prev => prev.filter(id => id !== clientId))
       } else {
@@ -6153,7 +6153,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               defaultValue={employeeFormName}
               onBlur={e => setEmployeeFormName(e.target.value)}
               placeholder="שם העובד"
-              autoFocus
             />
           </div>
 
