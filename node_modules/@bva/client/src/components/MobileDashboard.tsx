@@ -5143,7 +5143,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               ref={nameRef}
               type="text"
               defaultValue={clientFormName}
-              onBlur={e => setClientFormName(e.target.value)}
               placeholder="שם הלקוח"
               autoFocus
             />
@@ -5156,7 +5155,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               type="number"
               inputMode="numeric"
               defaultValue={clientFormRate}
-              onBlur={e => setClientFormRate(e.target.value)}
               placeholder="100"
             />
           </div>
@@ -5168,7 +5166,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               type="number"
               inputMode="decimal"
               defaultValue={clientFormVat}
-              onBlur={e => setClientFormVat(e.target.value)}
               placeholder="18"
             />
           </div>
@@ -5180,7 +5177,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               type="number"
               inputMode="decimal"
               defaultValue={clientFormIncomeTax}
-              onBlur={e => setClientFormIncomeTax(e.target.value)}
               placeholder="30"
             />
           </div>
@@ -6145,7 +6141,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               ref={nameRef}
               type="text"
               defaultValue={employeeFormName}
-              onBlur={e => setEmployeeFormName(e.target.value)}
               placeholder="שם העובד"
               autoFocus
             />
@@ -6158,7 +6153,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               type="email"
               inputMode="email"
               defaultValue={employeeFormEmail}
-              onBlur={e => setEmployeeFormEmail(e.target.value)}
               placeholder="email@example.com"
             />
           </div>
