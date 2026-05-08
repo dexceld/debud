@@ -3399,20 +3399,17 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             })
             const label = employeeSelectedIds.length > 0 ? `נבחרו ${employeeSelectedIds.length}` : `סה"כ ${employeeEntries.length}`
             return (
-              <div style={{margin: '0 16px 8px', background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)', borderRadius: 10, padding: '10px 14px', color: 'white'}}>
+              <div style={{margin: '0 16px 8px', background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)', borderRadius: 10, padding: '10px 12px', color: 'white'}}>
                 <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                  <div>
-                    <div style={{fontSize: 11, opacity: 0.8}}>{label} דיווחים</div>
-                    <div style={{fontSize: 20, fontWeight: 800}}>₪{cardAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
-                    <div style={{fontSize: 12, opacity: 0.85}}>{cardHours.toFixed(1)} שעות</div>
+                  <div style={{textAlign: 'center'}}>
+                    <div style={{fontSize: 18, fontWeight: 700}}>{cardHours.toFixed(1)}</div>
+                    <div style={{fontSize: 10, opacity: 0.8}}>שעות</div>
                   </div>
-                  {cardPaid > 0 && (
-                    <div style={{textAlign: 'left', background: 'rgba(255,255,255,0.15)', borderRadius: 8, padding: '6px 10px'}}>
-                      <div style={{fontSize: 10, opacity: 0.8}}>שולם לעובד</div>
-                      <div style={{fontSize: 16, fontWeight: 700}}>₪{cardPaid.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
-                      <div style={{fontSize: 10, opacity: 0.8}}>רווח: ₪{(cardAmount - cardPaid).toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
-                    </div>
-                  )}
+                  <div>
+                    <div style={{fontSize: 11, opacity: 0.9}}>{label} דיווחים</div>
+                    <div style={{fontSize: 20, fontWeight: 700}}>₪{cardAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
+                    {cardPaid > 0 && <div style={{fontSize: 10, opacity: 0.8}}>שולם: ₪{cardPaid.toLocaleString('he-IL', {maximumFractionDigits: 0})} | רווח: ₪{(cardAmount - cardPaid).toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>}
+                  </div>
                 </div>
               </div>
             )
