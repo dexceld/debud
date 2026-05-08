@@ -5185,7 +5185,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </div>
           </div>
 
-          <button className="m-mortgage-calc-btn" onClick={save}>
+          <button type="button" className="m-mortgage-calc-btn" onClick={save}>
             {editClientId ? 'עדכן לקוח' : 'שמור לקוח'}
           </button>
           
@@ -5388,7 +5388,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               style={{flex: 1, padding: '14px', background: '#F3F4F6', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer', color: '#6B7280'}}>
               ביטול
             </button>
-            <button className="m-mortgage-calc-btn" onClick={save} style={{flex: 2, margin: 0}}>
+            <button type="button" className="m-mortgage-calc-btn" onClick={save} style={{flex: 2, margin: 0}}>
               {editChargeId ? 'עדכן' : 'שמור'} ✓
             </button>
           </div>
@@ -5805,7 +5805,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               style={{flex: 1, padding: '14px', background: '#F3F4F6', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer', color: '#6B7280'}}>
               ביטול
             </button>
-            <button className="m-mortgage-calc-btn" onClick={save} style={{flex: 2, margin: 0}}>
+            <button type="button" className="m-mortgage-calc-btn" onClick={save} style={{flex: 2, margin: 0}}>
               {editEntryId ? 'עדכן ✓' : 'שמור ✓'}
             </button>
           </div>
@@ -5904,7 +5904,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </div>
           </div>
 
-          <button className="m-mortgage-calc-btn" onClick={save}>
+          <button type="button" className="m-mortgage-calc-btn" onClick={save}>
             שמור הגדרות
           </button>
 
@@ -6230,7 +6230,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </button>
           )}
 
-          <button className="m-mortgage-calc-btn" onClick={save}>
+          <button type="button" className="m-mortgage-calc-btn" onClick={save}>
             {editEmployeeId ? 'עדכן עובד' : 'שמור עובד'}
           </button>
 
