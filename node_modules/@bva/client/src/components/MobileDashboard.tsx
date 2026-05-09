@@ -302,7 +302,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   // Reports filter state
   const [reportsFilterSheetOpen, setReportsFilterSheetOpen] = useState(false)
   const [reportsClientFilter, setReportsClientFilter] = useState<string>('all')
-  const [reportsStatusFilter, setReportsStatusFilter] = useState<string>('all')
+  const [reportsStatusFilter, setReportsStatusFilter] = useState<string[]>(['all'])
+  const [tempReportsClient, setTempReportsClient] = useState<string>('all')
+  const [tempReportsStatuses, setTempReportsStatuses] = useState<string[]>(['all'])
   const [reportsFromDate, setReportsFromDate] = useState<string>('')
   const [reportsToDate, setReportsToDate] = useState<string>('')
   const [reportsDatePickerOpen, setReportsDatePickerOpen] = useState(false)
@@ -3933,67 +3935,101 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         {timeTrackingTab === 'reports' && (
           <div className="m-time-summary-tab">
             {/* Reports Filter Sheet */}
-            {reportsFilterSheetOpen && (
-              <>
-                <div className="m-overlay" onClick={() => setReportsFilterSheetOpen(false)} />
-                <div style={{
-                  position: 'fixed', bottom: 0, left: 0, right: 0,
-                  background: 'white', borderRadius: '16px 16px 0 0',
-                  padding: '20px 16px 32px', zIndex: 500, maxHeight: '80vh', overflowY: 'auto'
-                }}>
-                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20}}>
-                    <button onClick={() => setReportsFilterSheetOpen(false)} style={{fontSize: 20, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer'}}>✕</button>
-                  </div>
+            {reportsFilterSheetOpen && (() => {
+              const applyAndClose = () => {
+                setReportsClientFilter(tempReportsClient)
+                setReportsStatusFilter(tempReportsStatuses)
+                setReportsFilterSheetOpen(false)
+              }
+              const resetTemp = () => { setTempReportsClient('all'); setTempReportsStatuses(['all']) }
+              const cancelAndClose = () => setReportsFilterSheetOpen(false)
+              const toggleStatus = (key: string) => {
+                if (key === 'all') { setTempReportsStatuses(['all']); return }
+                setTempReportsStatuses(prev => {
+                  const without = prev.filter(s => s !== 'all')
+                  const toggled = without.includes(key) ? without.filter(s => s !== key) : [...without, key]
+                  return toggled.length === 0 ? ['all'] : toggled
+                })
+              }
+              return (
+                <>
+                  <div className="m-overlay" onClick={cancelAndClose} />
+                  <div style={{
+                    position: 'fixed', bottom: 0, left: 0, right: 0,
+                    background: 'white', borderRadius: '16px 16px 0 0',
+                    padding: '20px 16px 28px', zIndex: 500, maxHeight: '80vh', overflowY: 'auto'
+                  }}>
+                    {/* Header */}
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20}}>
+                      <div style={{fontSize: 16, fontWeight: 700, color: '#111827'}}>סינון</div>
+                      <button type="button" onClick={resetTemp}
+                        style={{display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10,
+                          background: '#FEF2F2', border: '1.5px solid #FECACA', color: '#DC2626',
+                          fontSize: 13, fontWeight: 700, cursor: 'pointer'}}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                        איפוס
+                      </button>
+                    </div>
 
-                  {/* Client Section */}
-                  <div style={{marginBottom: 20}}>
-                    <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>לקוח</div>
-                    <select
-                      value={reportsClientFilter}
-                      onChange={e => setReportsClientFilter(e.target.value)}
-                      style={{width: '100%', padding: '12px 16px', border: '1px solid #E5E7EB', borderRadius: 12, fontSize: 14}}
-                    >
-                      <option value="all">כל הלקוחות</option>
-                      {clients.map(c => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                      ))}
-                    </select>
-                  </div>
+                    {/* Client Section */}
+                    <div style={{marginBottom: 20}}>
+                      <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>לקוח</div>
+                      <select
+                        value={tempReportsClient}
+                        onChange={e => setTempReportsClient(e.target.value)}
+                        style={{width: '100%', padding: '12px 16px', border: '1px solid #E5E7EB', borderRadius: 12, fontSize: 14}}
+                      >
+                        <option value="all">כל הלקוחות</option>
+                        {clients.map(c => (
+                          <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                      </select>
+                    </div>
 
-                  {/* Status Section — 2-column grid */}
-                  <div style={{marginBottom: 24}}>
-                    <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>סטטוס</div>
-                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8}}>
-                      {[
-                        {key: 'all', label: 'הכל', color: 'white', bg: '#374151'},
-                        {key: 'pending', label: '⏳ ממתין', color: '#92400e', bg: '#fef3c7'},
-                        {key: 'invoiced', label: '📄 חויב', color: '#1e40af', bg: '#dbeafe'},
-                        {key: 'paid', label: '✅ שולם', color: '#166534', bg: '#dcfce7'}
-                      ].map(s => (
-                        <button key={s.key}
-                          type="button"
-                          onClick={() => setReportsStatusFilter(s.key)}
-                          style={{
-                            width: '100%', padding: '12px 10px', borderRadius: 12, border: 'none',
-                            fontSize: 13, fontWeight: 600, cursor: 'pointer', textAlign: 'center',
-                            background: reportsStatusFilter === s.key ? s.bg : '#f3f4f6',
-                            color: reportsStatusFilter === s.key ? s.color : '#374151'
-                          }}
-                        >
-                          {s.label}
-                        </button>
-                      ))}
+                    {/* Status Section — multi-select */}
+                    <div style={{marginBottom: 24}}>
+                      <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>סטטוס <span style={{fontSize: 11, color: '#9CA3AF', fontWeight: 400}}>(ניתן לבחור כמה)</span></div>
+                      <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8}}>
+                        {([
+                          {key: 'all', label: 'הכל', color: 'white', bg: '#374151'},
+                          {key: 'pending', label: '⏳ ממתין', color: '#92400e', bg: '#fef3c7'},
+                          {key: 'invoiced', label: '📄 חויב', color: '#1e40af', bg: '#dbeafe'},
+                          {key: 'paid', label: '✅ שולם', color: '#166534', bg: '#dcfce7'}
+                        ] as {key:string,label:string,color:string,bg:string}[]).map(s => {
+                          const isSelected = tempReportsStatuses.includes(s.key)
+                          return (
+                            <button key={s.key} type="button" onClick={() => toggleStatus(s.key)}
+                              style={{
+                                width: '100%', padding: '12px 10px', borderRadius: 12,
+                                border: isSelected ? `2px solid ${s.key === 'all' ? '#374151' : s.bg}` : '2px solid transparent',
+                                outline: 'none',
+                                fontSize: 13, fontWeight: 600, cursor: 'pointer', textAlign: 'center',
+                                background: isSelected ? s.bg : '#f3f4f6',
+                                color: isSelected ? s.color : '#374151'
+                              }}
+                            >
+                              {s.label}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Bottom buttons */}
+                    <div style={{display: 'flex', gap: 8, marginTop: 4}}>
+                      <button type="button" onClick={cancelAndClose}
+                        style={{padding: '12px 16px', background: '#F3F4F6', border: 'none', borderRadius: 10, fontSize: 15, cursor: 'pointer', color: '#6B7280'}}>
+                        ביטול
+                      </button>
+                      <button type="button" onClick={applyAndClose}
+                        style={{flex: 1, padding: '12px', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', background: '#1d4ed8', color: 'white'}}>
+                        הגדר
+                      </button>
                     </div>
                   </div>
-
-                  <button onClick={() => { setReportsFromDate(''); setReportsToDate(''); setReportsClientFilter('all'); setReportsStatusFilter('all'); setReportsPeriod(null); }}
-                    style={{width: '100%', padding: '14px', borderRadius: 12, border: '1px solid #E5E7EB',
-                      background: 'white', fontSize: 14, fontWeight: 600, color: '#6B7280', cursor: 'pointer'}}>
-                    איפוס כל הסינונים
-                  </button>
-                </div>
-              </>
-            )}
+                </>
+              )
+            })()}
 
             {/* Date Picker for Reports */}
             {reportsDatePickerOpen && (
@@ -4074,9 +4110,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               }
 
               // Status filter
-              if (reportsStatusFilter !== 'all') {
-                filteredEntries = filteredEntries.filter(e => (e.billingStatus || 'pending') === reportsStatusFilter)
-                filteredCharges = filteredCharges.filter(c => (c.billingStatus || 'pending') === reportsStatusFilter)
+              if (!(reportsStatusFilter.length === 1 && reportsStatusFilter[0] === 'all')) {
+                filteredEntries = filteredEntries.filter(e => reportsStatusFilter.includes(e.billingStatus || 'pending'))
+                filteredCharges = filteredCharges.filter(c => reportsStatusFilter.includes(c.billingStatus || 'pending'))
               }
 
               // Group ALL entries by period key
@@ -4267,9 +4303,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </svg>
             <span style={{fontSize:'11px',fontWeight:500}}>תאריך</span>
           </button>
-          <button onClick={() => { if (timeTrackingTab === 'summary') setSummaryFilterSheetOpen(true); else setReportsFilterSheetOpen(true) }}
+          <button onClick={() => { if (timeTrackingTab === 'summary') setSummaryFilterSheetOpen(true); else { setTempReportsClient(reportsClientFilter); setTempReportsStatuses(reportsStatusFilter); setReportsFilterSheetOpen(true) } }}
             style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',
-              color: (timeTrackingTab === 'summary' ? summaryStatusFilter !== 'all' : reportsStatusFilter !== 'all') ? '#1d4ed8' : '#374151'}}>
+              color: (timeTrackingTab === 'summary' ? summaryStatusFilter !== 'all' : !(reportsStatusFilter.length === 1 && reportsStatusFilter[0] === 'all')) ? '#1d4ed8' : '#374151'}}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
             </svg>
@@ -4875,8 +4911,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <div style={{fontWeight: 700, fontSize: 16}}>{monthNames[viewMonth]} {viewYear}</div>
             <div style={{display: 'flex', alignItems: 'center', gap: 4}}>
               {onReset && (
-                <button onClick={() => { onReset(); onClose() }} title="איפוס סינון תאריך" style={{border: 'none', background: 'none', cursor: 'pointer', padding: '4px 6px', color: '#6B7280', display: 'flex', alignItems: 'center'}}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                <button onClick={() => { onReset(); onClose() }} title="איפוס סינון תאריך"
+                  style={{display: 'flex', alignItems: 'center', gap: 5, padding: '6px 10px', borderRadius: 8,
+                    background: '#FEF2F2', border: '1.5px solid #FECACA', color: '#DC2626',
+                    fontSize: 12, fontWeight: 700, cursor: 'pointer'}}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                  איפוס
                 </button>
               )}
               <button onClick={nextMonth} style={{border: 'none', background: 'none', fontSize: 22, cursor: 'pointer', padding: '4px 10px', color: '#374151'}}>›</button>
