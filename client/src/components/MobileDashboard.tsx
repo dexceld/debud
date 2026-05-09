@@ -3371,29 +3371,99 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
       // Sort by date desc
       employeeEntries.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
+      employeeVisibleIdsRef.current = employeeEntries.map(e => e.id)
+
+      const clearEmpSelection = () => { setEmployeeSelectedIds([]); setEmployeeHeaderStatusOpen(false); setEmployeeHeaderAmountOpen(false); setEmployeeHeaderAmountInput('') }
 
       return (
         <div className="m-screen">
           <div className="m-header">
-            <button className="m-back-btn" onClick={() => { setSelectedEmployeeId(null) }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-            </button>
-            <h1 className="m-title">{employee.name}</h1>
-            <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
-              <button className="m-hbtn m-hbtn-menu" onClick={() => {
-                setEmployeeFormName(employee.name)
-                setEmployeeFormEmail(employee.email)
-                setEmployeeFormClients(employee.clientIds)
-                setEditEmployeeId(employee.id)
-                setAddEmployeeOpen(true)
-              }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                </svg>
-                <span className="m-hbtn-label">עריכה</span>
-              </button>
-            </div>
+            {employeeSelectedIds.length > 0 ? (
+              <>
+                <button className="m-back-btn" onClick={clearEmpSelection}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+                {employeeHeaderStatusOpen ? (
+                  <div style={{flex: 1, display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden', justifyContent: 'flex-end'}}>
+                    {([{s:'pending',label:'⏳ ממתין',bg:'#fef3c7',color:'#92400e'},{s:'paid',label:'✅ שולם',bg:'#dcfce7',color:'#166634'}] as {s:string,label:string,bg:string,color:string}[]).map(({s,label,bg,color}) => (
+                      <button key={s} onClick={() => {
+                        setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) && e.employeeId ? {...e, employeePaidStatus: s as any} : e))
+                        setEmployeeSelectedIds([]); setEmployeeHeaderStatusOpen(false)
+                        setSuccessToast(`סטטוס: ${label.replace(/[⏳✅] /,'')}`); setTimeout(() => setSuccessToast(null), 2000)
+                      }} style={{padding: '5px 8px', fontSize: 12, border: 'none', borderRadius: 8, background: bg, color, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap'}}>{label}</button>
+                    ))}
+                  </div>
+                ) : employeeHeaderAmountOpen ? (
+                  <div style={{flex: 1, display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden'}}>
+                    <input autoFocus type="text" inputMode="decimal" placeholder="סכום ששולם..."
+                      value={employeeHeaderAmountInput} onChange={e => setEmployeeHeaderAmountInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') {
+                        const amt = parseFloat(employeeHeaderAmountInput)
+                        if (isNaN(amt)) return
+                        setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) && e.employeeId ? {...e, employeePaymentAmount: amt, employeePaidStatus: 'paid'} : e))
+                        clearEmpSelection()
+                        setSuccessToast(`₪${amt.toLocaleString('he-IL')} נשמר`); setTimeout(() => setSuccessToast(null), 2000)
+                      }}}
+                      style={{flex: 1, padding: '6px 10px', border: '1.5px solid rgba(255,255,255,0.5)', borderRadius: 8, fontSize: 14, background: 'rgba(255,255,255,0.2)', color: 'white', outline: 'none'}}
+                    />
+                    <button onClick={() => {
+                      const amt = parseFloat(employeeHeaderAmountInput)
+                      if (isNaN(amt)) return
+                      setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) && e.employeeId ? {...e, employeePaymentAmount: amt, employeePaidStatus: 'paid'} : e))
+                      clearEmpSelection()
+                      setSuccessToast(`₪${amt.toLocaleString('he-IL')} נשמר`); setTimeout(() => setSuccessToast(null), 2000)
+                    }} style={{padding: '6px 10px', border: 'none', borderRadius: 8, background: 'white', color: '#7c3aed', fontWeight: 700, fontSize: 14, cursor: 'pointer'}}>✓</button>
+                  </div>
+                ) : (
+                  <h1 className="m-title" style={{fontSize: 16}}>{employeeSelectedIds.length} נבחרו</h1>
+                )}
+                <div className="m-header-actions">
+                  <button type="button" className="m-hbtn" title="בחר הכל"
+                    onClick={() => setEmployeeSelectedIds(employeeVisibleIdsRef.current)}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="9 12 11 14 15 10"/></svg>
+                    <span className="m-hbtn-label">בחר הכל</span>
+                  </button>
+                  <button type="button" className="m-hbtn" title="איפוס בחירה" onClick={clearEmpSelection}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
+                    <span className="m-hbtn-label">איפוס</span>
+                  </button>
+                  <button className={`m-hbtn${employeeHeaderStatusOpen ? ' active' : ''}`} title="שנה סטטוס"
+                    onClick={() => { setEmployeeHeaderStatusOpen(v => !v); setEmployeeHeaderAmountOpen(false) }}>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{transform:'rotate(-20deg)'}}>
+                      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>
+                    </svg>
+                    <span className="m-hbtn-label">סטטוס</span>
+                  </button>
+                  <button className={`m-hbtn${employeeHeaderAmountOpen ? ' active' : ''}`} title="סכום ששולם"
+                    onClick={() => { setEmployeeHeaderAmountOpen(v => !v); setEmployeeHeaderAmountInput(''); setEmployeeHeaderStatusOpen(false) }}>
+                    <span style={{fontSize: 18, fontWeight: 900, lineHeight: 1}}>₪</span>
+                    <span className="m-hbtn-label">תשלום</span>
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <button className="m-back-btn" onClick={() => { setSelectedEmployeeId(null) }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
+                <h1 className="m-title">{employee.name}</h1>
+                <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
+                  <button className="m-hbtn m-hbtn-menu" onClick={() => {
+                    setEmployeeFormName(employee.name)
+                    setEmployeeFormEmail(employee.email)
+                    setEmployeeFormClients(employee.clientIds)
+                    setEditEmployeeId(employee.id)
+                    setAddEmployeeOpen(true)
+                  }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                    <span className="m-hbtn-label">עריכה</span>
+                  </button>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Summary Card */}
@@ -3431,7 +3501,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <div 
             ref={employeeListRef} 
             onScroll={() => { if (employeeListRef.current) employeeListScrollPos.current = employeeListRef.current.scrollTop }}
-            style={{flex: 1, overflowY: 'auto', paddingBottom: employeeSelectedIds.length > 0 ? 20 : 80}}
+            style={{flex: 1, overflowY: 'auto', paddingBottom: 80}}
           >
             {employeeEntries.length === 0 ? (
               <div className="m-empty-state">
@@ -3440,12 +3510,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               </div>
             ) : (
               <>
-                {employeeSelectedIds.length === 0 && (
-                  <button onClick={() => setEmployeeSelectedIds(employeeEntries.map(e => e.id))}
-                    style={{width: '100%', padding: '8px 16px', margin: '4px 0', background: '#F5F3FF', color: '#6b21a8', border: '1px dashed #c4b5fd', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer'}}>
-                    ✓ בחר הכל
-                  </button>
-                )}
                 {employeeEntries.map(entry => {
                   const client = clients.find(c => c.id === entry.clientId)
                   if (!client) return null
@@ -3482,13 +3546,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                       }}
                     >
                       <div style={{display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0}}>
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={toggleSelect}
-                          onClick={(e) => e.stopPropagation()}
-                          style={{width: 18, height: 18, accentColor: '#8b5cf6', cursor: 'pointer'}}
-                        />
+                        <div onClick={(e) => { e.stopPropagation(); toggleSelect() }}
+                          style={{width: 20, height: 20, borderRadius: '50%', flexShrink: 0, cursor: 'pointer',
+                            border: `2px solid ${isSelected ? '#8b5cf6' : '#D1D5DB'}`,
+                            background: isSelected ? '#8b5cf6' : 'transparent',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                          {isSelected && <div style={{width: 8, height: 8, borderRadius: '50%', background: 'white'}}/>}
+                        </div>
                         <div style={{flex: 1}}>
                           <div style={{display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap'}}>
                             <span style={{fontSize: 14, fontWeight: 600, color: '#111827'}}>{client.name}</span>
@@ -3515,27 +3579,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               </>
             )}
           </div>
-          {/* Sticky bottom action bar when employee entries selected */}
-          {employeeSelectedIds.length > 0 && (
-            <div style={{
-              position: 'sticky', bottom: 0, zIndex: 50,
-              background: '#1e293b',
-              borderTop: '2px solid #334155',
-              padding: '10px 16px 16px',
-              flexShrink: 0
-            }}>
-              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8}}>
-                <span style={{fontSize: 13, fontWeight: 700, color: 'white'}}>{employeeSelectedIds.length} דיווחים נבחרו</span>
-                <button onClick={() => setEmployeeSelectedIds([])} style={{fontSize: 12, color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer'}}>✕ בטל</button>
-              </div>
-              <div style={{display: 'flex', gap: 6}}>
-                <button onClick={() => setEmployeeStatusPickerOpen(true)}
-                  style={{flex: 1, padding: '12px 16px', fontSize: 14, border: 'none', borderRadius: 10, background: '#3b82f6', color: 'white', fontWeight: 700, cursor: 'pointer'}}>
-                  שנה סטטוס
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* Employee Date Picker */}
           {employeeDatePickerOpen && (
@@ -3724,8 +3767,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         <div className="m-header">
           {timeTrackingTab === 'summary' && (selectedEntryIds.length > 0 || selectedChargeIds.length > 0) ? (
             <>
-              {/* Selection-mode header: ✕ | count | label-icon */}
-              <button className="m-back-btn" onClick={() => { setSelectedEntryIds([]); setSelectedChargeIds([]); setStatusLabelOpen(false) }}>
+              {/* Selection-mode header: ✕ | count/status/invoice | select-all | clear | status | # */}
+              <button className="m-back-btn" onClick={() => { setSelectedEntryIds([]); setSelectedChargeIds([]); setStatusLabelOpen(false); setSummaryInvoiceOpen(false); setSummaryInvoiceInput('') }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
               {statusLabelOpen ? (
@@ -3741,6 +3784,35 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     }} style={{padding: '5px 8px', fontSize: 12, border: 'none', borderRadius: 8, background: bg, color, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap'}}>{label}</button>
                   ))}
                 </div>
+              ) : summaryInvoiceOpen ? (
+                <div style={{flex: 1, display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden'}}>
+                  <input
+                    autoFocus
+                    type="text" inputMode="numeric"
+                    placeholder="מספר חשבונית..."
+                    value={summaryInvoiceInput}
+                    onChange={e => setSummaryInvoiceInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') {
+                      const num = summaryInvoiceInput.trim()
+                      if (!num) return
+                      setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, invoiceNumber: num, billingStatus: e.billingStatus === 'paid' ? 'paid' : 'invoiced'} : e))
+                      setChargeEntries(prev => prev.map(c => selectedChargeIds.includes(c.id) ? {...c, invoiceNumber: num} : c))
+                      setSelectedEntryIds([]); setSelectedChargeIds([])
+                      setSummaryInvoiceOpen(false); setSummaryInvoiceInput('')
+                      setSuccessToast(`חשבונית ${num} נשמרה`); setTimeout(() => setSuccessToast(null), 2000)
+                    }}}
+                    style={{flex: 1, padding: '6px 10px', border: '1.5px solid rgba(255,255,255,0.5)', borderRadius: 8, fontSize: 14, background: 'rgba(255,255,255,0.2)', color: 'white', outline: 'none'}}
+                  />
+                  <button onClick={() => {
+                    const num = summaryInvoiceInput.trim()
+                    if (!num) return
+                    setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, invoiceNumber: num, billingStatus: e.billingStatus === 'paid' ? 'paid' : 'invoiced'} : e))
+                    setChargeEntries(prev => prev.map(c => selectedChargeIds.includes(c.id) ? {...c, invoiceNumber: num} : c))
+                    setSelectedEntryIds([]); setSelectedChargeIds([])
+                    setSummaryInvoiceOpen(false); setSummaryInvoiceInput('')
+                    setSuccessToast(`חשבונית ${num} נשמרה`); setTimeout(() => setSuccessToast(null), 2000)
+                  }} style={{padding: '6px 10px', border: 'none', borderRadius: 8, background: 'white', color: '#1d4ed8', fontWeight: 700, fontSize: 14, cursor: 'pointer'}}>✓</button>
+                </div>
               ) : (
                 <h1 className="m-title" style={{fontSize: 16}}>{selectedEntryIds.length + selectedChargeIds.length} נבחרו</h1>
               )}
@@ -3751,16 +3823,30 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="9 12 11 14 15 10"/></svg>
                   <span className="m-hbtn-label">בחר הכל</span>
                 </button>
+                <button type="button" className="m-hbtn" title="איפוס בחירה"
+                  onClick={() => { setSelectedEntryIds([]); setSelectedChargeIds([]); setStatusLabelOpen(false); setSummaryInvoiceOpen(false); setSummaryInvoiceInput('') }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
+                  <span className="m-hbtn-label">איפוס</span>
+                </button>
                 <button
-                  onClick={() => setStatusLabelOpen(v => !v)}
-                  className={`m-hbtn${statusLabelOpen ? ' active' : ' selection-label-enter'}`}
+                  onClick={() => { setStatusLabelOpen(v => !v); setSummaryInvoiceOpen(false) }}
+                  className={`m-hbtn${statusLabelOpen ? ' active' : ''}`}
                   title="שנה סטטוס"
                 >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{transform: 'rotate(-20deg)'}}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{transform: 'rotate(-20deg)'}}>
                     <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
                     <line x1="7" y1="7" x2="7.01" y2="7"/>
                   </svg>
                   <span className="m-hbtn-label">סטטוס</span>
+                </button>
+                <button
+                  onClick={() => { setSummaryInvoiceOpen(v => !v); setSummaryInvoiceInput(''); setStatusLabelOpen(false) }}
+                  className={`m-hbtn${summaryInvoiceOpen ? ' active' : ''}`}
+                  title="מספר חשבונית"
+                >
+                  <span style={{fontSize: 20, fontWeight: 900, lineHeight: 1}}>#</span>
+                  <span className="m-hbtn-label">חשבונית</span>
                 </button>
               </div>
             </>
