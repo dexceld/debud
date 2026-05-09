@@ -3383,17 +3383,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 <button className="m-back-btn" onClick={clearEmpSelection}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
-                {employeeHeaderStatusOpen ? (
-                  <div style={{flex: 1, display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden', justifyContent: 'flex-end'}}>
-                    {([{s:'pending',label:'⏳ ממתין',bg:'#fef3c7',color:'#92400e'},{s:'paid',label:'✅ שולם',bg:'#dcfce7',color:'#166634'}] as {s:string,label:string,bg:string,color:string}[]).map(({s,label,bg,color}) => (
-                      <button key={s} onClick={() => {
-                        setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) && e.employeeId ? {...e, employeePaidStatus: s as any} : e))
-                        setEmployeeSelectedIds([]); setEmployeeHeaderStatusOpen(false)
-                        setSuccessToast(`סטטוס: ${label.replace(/[⏳✅] /,'')}`); setTimeout(() => setSuccessToast(null), 2000)
-                      }} style={{padding: '5px 8px', fontSize: 12, border: 'none', borderRadius: 8, background: bg, color, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap'}}>{label}</button>
-                    ))}
-                  </div>
-                ) : employeeHeaderAmountOpen ? (
+                {employeeHeaderAmountOpen ? (
                   <div style={{flex: 1, display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden'}}>
                     <input autoFocus type="text" inputMode="decimal" placeholder="סכום ששולם..."
                       value={employeeHeaderAmountInput} onChange={e => setEmployeeHeaderAmountInput(e.target.value)}
@@ -3465,6 +3455,19 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               </>
             )}
           </div>
+
+          {/* Employee status dropdown — vertical, below header */}
+          {employeeHeaderStatusOpen && (
+            <div style={{background: 'linear-gradient(135deg,#5b21b6,#7c3aed)', padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 6}}>
+              {([{s:'pending',label:'⏳ ממתין',bg:'#fef3c7',color:'#92400e'},{s:'paid',label:'✅ שולם',bg:'#dcfce7',color:'#166634'}] as {s:string,label:string,bg:string,color:string}[]).map(({s,label,bg,color}) => (
+                <button key={s} onClick={() => {
+                  setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) && e.employeeId ? {...e, employeePaidStatus: s as any} : e))
+                  setEmployeeSelectedIds([]); setEmployeeHeaderStatusOpen(false)
+                  setSuccessToast(`סטטוס: ${label.replace(/[⏳✅] /,'')}`); setTimeout(() => setSuccessToast(null), 2000)
+                }} style={{width: '100%', padding: '10px 14px', fontSize: 14, border: 'none', borderRadius: 10, background: bg, color, fontWeight: 700, cursor: 'pointer', textAlign: 'center'}}>{label}</button>
+              ))}
+            </div>
+          )}
 
           {/* Summary Card */}
           {employeeEntries.length > 0 && (() => {
@@ -3771,20 +3774,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <button className="m-back-btn" onClick={() => { setSelectedEntryIds([]); setSelectedChargeIds([]); setStatusLabelOpen(false); setSummaryInvoiceOpen(false); setSummaryInvoiceInput('') }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
-              {statusLabelOpen ? (
-                <div style={{flex: 1, display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden', justifyContent: 'flex-end'}}>
-                  {([{s:'pending',label:'⏳ ממתין',bg:'#fef3c7',color:'#92400e'},{s:'invoiced',label:'📄 חויב',bg:'#dbeafe',color:'#1e40af'},{s:'paid',label:'✅ שולם',bg:'#dcfce7',color:'#166534'}] as {s:string,label:string,bg:string,color:string}[]).map(({s,label,bg,color}) => (
-                    <button key={s} onClick={() => {
-                      setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: s as any} : e))
-                      setChargeEntries(prev => prev.map(c => selectedChargeIds.includes(c.id) ? {...c, billingStatus: s as any} : c))
-                      setSelectedEntryIds([]); setSelectedChargeIds([])
-                      setStatusLabelOpen(false)
-                      setSuccessToast(`סטטוס: ${label.replace(/[⏳📄✅] /,'')}`)
-                      setTimeout(() => setSuccessToast(null), 2000)
-                    }} style={{padding: '5px 8px', fontSize: 12, border: 'none', borderRadius: 8, background: bg, color, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap'}}>{label}</button>
-                  ))}
-                </div>
-              ) : summaryInvoiceOpen ? (
+              {summaryInvoiceOpen ? (
                 <div style={{flex: 1, display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden'}}>
                   <input
                     autoFocus
@@ -3893,6 +3883,21 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </>
           )}
         </div>
+
+        {/* Status dropdown — below header, vertical */}
+        {timeTrackingTab === 'summary' && statusLabelOpen && (
+          <div style={{background: 'linear-gradient(135deg,#1e40af,#1d4ed8)', padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 6, zIndex: 10}}>
+            {([{s:'pending',label:'⏳ ממתין',bg:'#fef3c7',color:'#92400e'},{s:'invoiced',label:'📄 חויב',bg:'#dbeafe',color:'#1e40af'},{s:'paid',label:'✅ שולם',bg:'#dcfce7',color:'#166534'}] as {s:string,label:string,bg:string,color:string}[]).map(({s,label,bg,color}) => (
+              <button key={s} onClick={() => {
+                setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: s as any} : e))
+                setChargeEntries(prev => prev.map(c => selectedChargeIds.includes(c.id) ? {...c, billingStatus: s as any} : c))
+                setSelectedEntryIds([]); setSelectedChargeIds([])
+                setStatusLabelOpen(false)
+                setSuccessToast(`סטטוס: ${label.replace(/[⏳📄✅] /,'')}`); setTimeout(() => setSuccessToast(null), 2000)
+              }} style={{width: '100%', padding: '10px 14px', fontSize: 14, border: 'none', borderRadius: 10, background: bg, color, fontWeight: 700, cursor: 'pointer', textAlign: 'center'}}>{label}</button>
+            ))}
+          </div>
+        )}
 
         <TimerBanner />
 
