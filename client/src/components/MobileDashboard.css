@@ -112,6 +112,13 @@
   transform: translateY(0);
   filter: brightness(0.95); 
 }
+@keyframes slideInFromLeft {
+  from { opacity: 0; transform: translateX(-18px) scale(0.85); }
+  to   { opacity: 1; transform: translateX(0)     scale(1);    }
+}
+.selection-label-enter {
+  animation: slideInFromLeft 0.28s cubic-bezier(0.34,1.56,0.64,1) forwards;
+}
 .m-hbtn.active {
   background: #ffffff;
   border-color: #ffffff;

@@ -257,6 +257,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [summaryDatePickerOpen, setSummaryDatePickerOpen] = useState(false)
   const summaryScrollRef = useRef<HTMLDivElement>(null)
   const summaryScrollPos = useRef(0)
+  const summaryVisibleEntryIds = useRef<string[]>([])
+  const summaryVisibleChargeIds = useRef<string[]>([])
   const employeeListRef = useRef<HTMLDivElement>(null)
   const employeeListScrollPos = useRef(0)
   const [summaryClientFilter, setSummaryClientFilter] = useState<string>('all')
@@ -3735,13 +3737,14 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <div className="m-header-actions">
                 <button
                   onClick={() => setStatusLabelOpen(v => !v)}
-                  style={{background: statusLabelOpen ? '#dbeafe' : 'none', border: 'none', borderRadius: 8, padding: '5px 6px', cursor: 'pointer', display: 'flex', alignItems: 'center', color: statusLabelOpen ? '#1d4ed8' : '#374151'}}
+                  className={`m-hbtn${statusLabelOpen ? ' active' : ' selection-label-enter'}`}
                   title="שנה סטטוס"
                 >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{transform: 'rotate(-20deg)'}}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{transform: 'rotate(-20deg)'}}>
                     <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
                     <line x1="7" y1="7" x2="7.01" y2="7"/>
                   </svg>
+                  <span className="m-hbtn-label">לייבל</span>
                 </button>
               </div>
             </>
@@ -3776,6 +3779,14 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 )}
                 {timeTrackingTab === 'clients' && !employeeMode && renderHeaderNewBtn(openNewClientForm, 'לקוח חדש')}
                 {timeTrackingTab === 'employees' && renderHeaderNewBtn(openNewEmployeeForm, 'עובד חדש')}
+                {timeTrackingTab === 'summary' && !employeeMode && (
+                  <button type="button" className="m-hbtn" title="בחר הכל"
+                    onClick={() => { setSelectedEntryIds(summaryVisibleEntryIds.current); setSelectedChargeIds(summaryVisibleChargeIds.current) }}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="9 12 11 14 15 10"/></svg>
+                    <span className="m-hbtn-label">בחר הכל</span>
+                  </button>
+                )}
               </div>
             </>
           )}
@@ -4535,6 +4546,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               const sortedDates = allDates.sort()
               const firstDate = sortedDates[0]
               const lastDate = sortedDates[sortedDates.length - 1]
+
+              // Keep refs updated for header select-all
+              summaryVisibleEntryIds.current = filteredTimeEntries.map(e => e.id)
+              summaryVisibleChargeIds.current = filteredChargeEntries.map(c => c.id)
 
               return (
                 <>
