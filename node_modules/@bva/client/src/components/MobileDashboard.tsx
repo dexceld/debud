@@ -328,6 +328,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const swipeTouchStartX = useRef(0)
   const swipeTouchStartY = useRef(0)
   const [bulkActionOpen, setBulkActionOpen] = useState(false)
+  const [statusLabelOpen, setStatusLabelOpen] = useState(false)
   const [bulkInvoiceNumber, setBulkInvoiceNumber] = useState('')
   const [bulkEmployeeInvoiceNumber, setBulkEmployeeInvoiceNumber] = useState('')
   const [bulkEmployeePaymentAmount, setBulkEmployeePaymentAmount] = useState('')
@@ -4346,8 +4347,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 onReset={() => { setSummaryFromDate(''); setSummaryToDate('') }}
               />
             )}
-          {/* Sticky bottom action bar when entries selected */}
-          {(selectedEntryIds.length > 0 || selectedChargeIds.length > 0) && (
+          {/* Bulk status bar - hidden, handled via label icon */}
+          {false && (
             <div style={{
               position: 'sticky', bottom: 0, zIndex: 50,
               background: '#1e293b',
@@ -4506,7 +4507,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     borderRadius: '10px',
                     padding: '10px 12px',
                     color: 'white',
-                    marginBottom: '12px'
+                    marginBottom: '12px',
+                    position: 'relative'
                   }}>
                     <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                       <div>
@@ -4515,9 +4517,43 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           ₪{cardAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
                         </div>
                       </div>
-                      <div style={{textAlign: 'center'}}>
-                        <div style={{fontSize: '18px', fontWeight: 700}}>{cardHours.toFixed(1)}</div>
-                        <div style={{fontSize: '10px', opacity: 0.8}}>שעות</div>
+                      <div style={{display: 'flex', alignItems: 'center', gap: 10}}>
+                        {(selectedEntryIds.length > 0 || selectedChargeIds.length > 0) && (
+                          <div style={{position: 'relative'}}>
+                            <button
+                              onClick={() => setStatusLabelOpen(prev => !prev)}
+                              title={`${selectedEntryIds.length + selectedChargeIds.length} נבחרו – שנה סטטוס`}
+                              style={{background: statusLabelOpen ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 8, padding: '5px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'white'}}
+                            >
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{transform: 'rotate(-20deg)'}}>
+                                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                                <line x1="7" y1="7" x2="7.01" y2="7"/>
+                              </svg>
+                              <span style={{fontSize: 11, fontWeight: 700}}>{selectedEntryIds.length + selectedChargeIds.length}</span>
+                            </button>
+                            {statusLabelOpen && (
+                              <>
+                                <div style={{position: 'fixed', inset: 0, zIndex: 199}} onClick={() => setStatusLabelOpen(false)} />
+                                <div style={{position: 'absolute', top: '110%', right: 0, zIndex: 200, background: 'white', borderRadius: 10, padding: '6px', boxShadow: '0 4px 16px rgba(0,0,0,0.22)', display: 'flex', gap: 4}}>
+                                  {[{s:'pending',label:'⏳ ממתין',bg:'#fef3c7',color:'#92400e'},{s:'invoiced',label:'📄 חויב',bg:'#dbeafe',color:'#1e40af'},{s:'paid',label:'✅ שולם',bg:'#dcfce7',color:'#166534'}].map(({s,label,bg,color}) => (
+                                    <button key={s} onClick={() => {
+                                      setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: s as any} : e))
+                                      setChargeEntries(prev => prev.map(c => selectedChargeIds.includes(c.id) ? {...c, billingStatus: s as any} : c))
+                                      setSelectedEntryIds([]); setSelectedChargeIds([])
+                                      setStatusLabelOpen(false)
+                                      setSuccessToast(`סטטוס: ${label.replace(/[⏳📄✅] /,'')}`)
+                                      setTimeout(() => setSuccessToast(null), 2000)
+                                    }} style={{padding: '8px 10px', fontSize: 12, border: 'none', borderRadius: 8, background: bg, color, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap'}}>{label}</button>
+                                  ))}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        )}
+                        <div style={{textAlign: 'center'}}>
+                          <div style={{fontSize: '18px', fontWeight: 700}}>{cardHours.toFixed(1)}</div>
+                          <div style={{fontSize: '10px', opacity: 0.8}}>שעות</div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -4621,7 +4657,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                               }}
                             >
                             <div style={{flex: 1, display: 'flex', alignItems: 'center', gap: 10, minWidth: 0}}>
-                              <input type="checkbox" checked={isSelected} onChange={() => {}} onClick={e => { e.stopPropagation(); toggleSelect() }} style={{width: 18, height: 18, accentColor: '#1d4ed8', cursor: 'pointer'}} />
+                              <div onClick={e => { e.stopPropagation(); toggleSelect() }} style={{width: 22, height: 22, borderRadius: '50%', border: isSelected ? 'none' : '2px solid #D1D5DB', background: isSelected ? '#1d4ed8' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0}}>{isSelected && <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5"><polyline points="20 6 9 17 4 12"/></svg>}</div>
                               <span style={{width: 8, height: 8, borderRadius: '50%', background: statusColor, flexShrink: 0}} />
                               {entry.employeeId && (
                                 <span style={{width: 8, height: 8, borderRadius: '50%', background: entry.employeePaidStatus === 'paid' ? '#8b5cf6' : '#cbd5e1', flexShrink: 0, marginLeft: -2}} title="עובד" />
@@ -4693,13 +4729,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                               }}
                             >
                               <div style={{flex: 1, display: 'flex', alignItems: 'center', gap: 10, minWidth: 0}}>
-                                <input
-                                  type="checkbox"
-                                  checked={isChargeSelected}
-                                  onChange={toggleChargeSelect}
-                                  onClick={(e) => e.stopPropagation()}
-                                  style={{width: 18, height: 18, accentColor: '#8b5cf6', cursor: 'pointer'}}
-                                />
+                                <div onClick={e => { e.stopPropagation(); toggleChargeSelect() }} style={{width: 22, height: 22, borderRadius: '50%', border: isChargeSelected ? 'none' : '2px solid #D1D5DB', background: isChargeSelected ? '#8b5cf6' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0}}>{isChargeSelected && <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5"><polyline points="20 6 9 17 4 12"/></svg>}</div>
                                 <span style={{width: 8, height: 8, borderRadius: '50%', background: statusColor, flexShrink: 0}} />
                                 <div style={{minWidth: 0}}>
                                   <div style={{fontSize: 14, fontWeight: 600, color: '#7c3aed', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
