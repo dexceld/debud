@@ -4612,31 +4612,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   </div>
 
 
-                  {/* Select All / Deselect All Button - always visible to prevent list shift */}
-                  {(filteredTimeEntries.length > 0 || filteredChargeEntries.length > 0) && (
-                    <button
-                      onClick={() => {
-                        const allSelected = selectedEntryIds.length === filteredTimeEntries.length && selectedChargeIds.length === filteredChargeEntries.length
-                        if (allSelected) {
-                          setSelectedEntryIds([])
-                          setSelectedChargeIds([])
-                        } else {
-                          setSelectedEntryIds(filteredTimeEntries.map(e => e.id))
-                          setSelectedChargeIds(filteredChargeEntries.map(c => c.id))
-                        }
-                      }}
-                      style={{
-                        width: '100%', padding: '8px', marginBottom: '12px',
-                        background: '#EFF6FF', color: '#1d4ed8', border: '1px dashed #93c5fd',
-                        borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer'
-                      }}
-                    >
-                      {selectedEntryIds.length === filteredTimeEntries.length && selectedChargeIds.length === filteredChargeEntries.length
-                        ? '☐ בטל בחירת הכל'
-                        : `☑ בחר הכל (${filteredTimeEntries.length + filteredChargeEntries.length})`}
-                    </button>
-                  )}
-
                   {/* Compact Entries List */}
                   {mergedItems.length > 0 && (
                     <div style={{background: 'white', border: '1px solid #E5E7EB', borderRadius: 12, overflow: 'hidden', marginTop: 8}}>
