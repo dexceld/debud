@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { onAuthStateChanged, User } from 'firebase/auth'
-import { auth, getRedirectResult } from './firebase'
+import { auth } from './firebase'
 import MobileDashboard from './components/MobileDashboard'
 import { LoginScreen } from './components/LoginScreen'
 import './App.css'
@@ -12,7 +12,6 @@ function App() {
   useEffect(() => {
     const saved = localStorage.getItem('bva_local_mode')
     if (saved === 'true') setLocalMode(true)
-    getRedirectResult(auth).catch(() => {})
     return onAuthStateChanged(auth, u => setUser(u))
   }, [])
 
