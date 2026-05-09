@@ -5544,19 +5544,21 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
           {activeTab === 'hourly' && (
             <>
-              <div style={{marginBottom: 8}}>
-                <div style={{fontSize: 11, color: '#9CA3AF', fontWeight: 700, marginBottom: 4, letterSpacing: 1}}>לקוח {fieldErrors.client && <span style={{color:'#DC2626'}}>*</span>}</div>
-                <div style={{display: 'flex', flexWrap: 'wrap', gap: 8}}>
-                  {Array.isArray(clients) && clients.map(c => c && c.id ? (
-                    <button key={c.id} onClick={() => { setQuickTimeClientId(c.id); setFieldErrors(prev => ({...prev, client: false})) }}
-                      style={{padding: '8px 16px', borderRadius: 20, border: 'none', fontSize: 14, fontWeight: 600,
-                        background: quickTimeClientId === c.id ? '#1d4ed8' : '#F3F4F6',
-                        color: quickTimeClientId === c.id ? 'white' : '#374151', cursor: 'pointer'}}
-                    >{c.name}</button>
-                  ) : null)}
+              {!selectedClientId && (
+                <div style={{marginBottom: 8}}>
+                  <div style={{fontSize: 11, color: '#9CA3AF', fontWeight: 700, marginBottom: 4, letterSpacing: 1}}>לקוח {fieldErrors.client && <span style={{color:'#DC2626'}}>*</span>}</div>
+                  <div style={{display: 'flex', flexWrap: 'wrap', gap: 8}}>
+                    {Array.isArray(clients) && clients.map(c => c && c.id ? (
+                      <button key={c.id} onClick={() => { setQuickTimeClientId(c.id); setFieldErrors(prev => ({...prev, client: false})) }}
+                        style={{padding: '8px 16px', borderRadius: 20, border: 'none', fontSize: 14, fontWeight: 600,
+                          background: quickTimeClientId === c.id ? '#1d4ed8' : '#F3F4F6',
+                          color: quickTimeClientId === c.id ? 'white' : '#374151', cursor: 'pointer'}}
+                      >{c.name}</button>
+                    ) : null)}
+                  </div>
+                  {fieldErrors.client && <div style={{fontSize: 12, color: '#DC2626', marginTop: 4}}>נדרש לבחור לקוח</div>}
                 </div>
-                {fieldErrors.client && <div style={{fontSize: 12, color: '#DC2626', marginTop: 4}}>נדרש לבחור לקוח</div>}
-              </div>
+              )}
               <div style={{borderTop: '1px solid #F3F4F6', margin: '12px 0'}} />
               <div style={{display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F3F4F6'}}>
                 <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>התחלה</div>
@@ -5598,19 +5600,21 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
           {activeTab === 'charge' && (
             <>
-              <div style={{marginBottom: 14}}>
-                <div style={{fontSize: 11, color: '#9CA3AF', fontWeight: 700, marginBottom: 6}}>לקוח {chargeErrors.client && <span style={{color:'#ef4444'}}>*</span>}</div>
-                <div style={{display: 'flex', gap: 6, flexWrap: 'wrap'}}>
-                  {clients.map(c => (
-                    <button key={c.id} onClick={() => { setChargeFormClientId(c.id); setChargeErrors(prev => ({...prev, client: false})) }}
-                      style={{padding: '6px 12px', borderRadius: 16, border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                        background: chargeFormClientId === c.id ? '#1d4ed8' : '#F3F4F6',
-                        color: chargeFormClientId === c.id ? 'white' : '#374151'}}>
-                      {c.name}
-                    </button>
-                  ))}
+              {!selectedClientId && (
+                <div style={{marginBottom: 14}}>
+                  <div style={{fontSize: 11, color: '#9CA3AF', fontWeight: 700, marginBottom: 6}}>לקוח {chargeErrors.client && <span style={{color:'#ef4444'}}>*</span>}</div>
+                  <div style={{display: 'flex', gap: 6, flexWrap: 'wrap'}}>
+                    {clients.map(c => (
+                      <button key={c.id} onClick={() => { setChargeFormClientId(c.id); setChargeErrors(prev => ({...prev, client: false})) }}
+                        style={{padding: '6px 12px', borderRadius: 16, border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                          background: chargeFormClientId === c.id ? '#1d4ed8' : '#F3F4F6',
+                          color: chargeFormClientId === c.id ? 'white' : '#374151'}}>
+                        {c.name}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
               <div style={{marginBottom: 14}}>
                 <div style={{fontSize: 11, color: '#9CA3AF', fontWeight: 700, marginBottom: 6}}>תאריך {chargeErrors.date && <span style={{color:'#ef4444'}}>*</span>}</div>
                 <input type="date" defaultValue={chargeFormDate} onBlur={e => setChargeFormDate(e.target.value)} style={{width: '100%', padding: '10px', border: '1px solid #E5E7EB', borderRadius: 8, fontSize: 15, outline: 'none'}} />
