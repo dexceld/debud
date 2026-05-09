@@ -4185,27 +4185,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               let filteredEntries = [...timeEntries]
               let filteredCharges = [...chargeEntries]
 
-              // Date range filter (custom date range takes precedence over period)
+              // Date range filter (custom date picker only — period buttons only control grouping)
               if (reportsFromDate && reportsToDate) {
                 filteredEntries = filteredEntries.filter(e => e.startDate >= reportsFromDate && e.startDate <= reportsToDate)
                 filteredCharges = filteredCharges.filter(c => c.date >= reportsFromDate && c.date <= reportsToDate)
-              } else if (reportsPeriod) {
-                // Period filter (only when explicitly selected)
-                const now = new Date()
-                const today = now.toISOString().split('T')[0]
-                if (reportsPeriod === 'week') {
-                  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-                  filteredEntries = filteredEntries.filter(e => e.startDate >= weekAgo && e.startDate <= today)
-                  filteredCharges = filteredCharges.filter(c => c.date >= weekAgo && c.date <= today)
-                } else if (reportsPeriod === 'month') {
-                  const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-                  filteredEntries = filteredEntries.filter(e => e.startDate >= monthAgo && e.startDate <= today)
-                  filteredCharges = filteredCharges.filter(c => c.date >= monthAgo && c.date <= today)
-                } else if (reportsPeriod === 'year') {
-                  const yearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-                  filteredEntries = filteredEntries.filter(e => e.startDate >= yearAgo && e.startDate <= today)
-                  filteredCharges = filteredCharges.filter(c => c.date >= yearAgo && c.date <= today)
-                }
               }
 
               // Client filter
