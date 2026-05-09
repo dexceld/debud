@@ -4838,10 +4838,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       else setViewMonth(m => m + 1)
     }
 
-    // Build calendar grid
+    // Build calendar grid – always 42 cells (6 rows × 7 cols) so height is fixed
     const cells: (number | null)[] = []
     for (let i = 0; i < firstDayOfWeek; i++) cells.push(null)
     for (let d = 1; d <= daysInMonth; d++) cells.push(d)
+    while (cells.length < 42) cells.push(null)
 
     return (
       <>
@@ -5111,6 +5112,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const rateRef = useRef<HTMLInputElement>(null)
     const vatRef = useRef<HTMLInputElement>(null)
     const taxRef = useRef<HTMLInputElement>(null)
+    const [liveRate, setLiveRate] = useState(parseFloat(clientFormRate) || 0)
+    const [liveVat, setLiveVat] = useState(parseFloat(clientFormVat) || 18)
+    const [liveTax, setLiveTax] = useState(parseFloat(clientFormIncomeTax) || 30)
 
     const save = () => {
       const name = nameRef.current?.value?.trim() || ''
