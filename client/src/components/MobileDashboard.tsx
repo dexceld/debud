@@ -4501,14 +4501,56 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
               return (
                 <>
+                  {/* Floating selection header */}
+                  {(selectedEntryIds.length > 0 || selectedChargeIds.length > 0) && (
+                    <div style={{
+                      position: 'sticky', top: 0, zIndex: 50,
+                      background: '#1d4ed8', borderRadius: 10,
+                      padding: '8px 12px', marginBottom: 8,
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                    }}>
+                      <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
+                        {statusLabelOpen ? (
+                          <>
+                            <button onClick={() => setStatusLabelOpen(false)} style={{background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', fontSize: 16, padding: '0 4px'}}>✕</button>
+                            {[{s:'pending',label:'⏳ ממתין',bg:'#fef3c7',color:'#92400e'},{s:'invoiced',label:'📄 חויב',bg:'#dbeafe',color:'#1e40af'},{s:'paid',label:'✅ שולם',bg:'#dcfce7',color:'#166534'}].map(({s,label,bg,color}) => (
+                              <button key={s} onClick={() => {
+                                setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: s as any} : e))
+                                setChargeEntries(prev => prev.map(c => selectedChargeIds.includes(c.id) ? {...c, billingStatus: s as any} : c))
+                                setSelectedEntryIds([]); setSelectedChargeIds([])
+                                setStatusLabelOpen(false)
+                                setSuccessToast(`סטטוס: ${label.replace(/[⏳📄✅] /,'')}`)
+                                setTimeout(() => setSuccessToast(null), 2000)
+                              }} style={{padding: '6px 10px', fontSize: 12, border: 'none', borderRadius: 8, background: bg, color, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap'}}>{label}</button>
+                            ))}
+                          </>
+                        ) : (
+                          <button
+                            onClick={() => setStatusLabelOpen(true)}
+                            style={{background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 8, padding: '5px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'white', fontWeight: 700}}
+                          >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{transform: 'rotate(-20deg)'}}>
+                              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                              <line x1="7" y1="7" x2="7.01" y2="7"/>
+                            </svg>
+                            <span style={{fontSize: 12}}>{selectedEntryIds.length + selectedChargeIds.length}</span>
+                          </button>
+                        )}
+                      </div>
+                      <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+                        <span style={{color: 'white', fontWeight: 700, fontSize: 13}}>{selectedEntryIds.length + selectedChargeIds.length} נבחרו</span>
+                        <button onClick={() => { setSelectedEntryIds([]); setSelectedChargeIds([]); setStatusLabelOpen(false) }} style={{background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', fontSize: 18, padding: '0 2px'}}>✕</button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Compact Summary Card */}
                   <div style={{
                     background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                     borderRadius: '10px',
                     padding: '10px 12px',
                     color: 'white',
-                    marginBottom: '12px',
-                    position: 'relative'
+                    marginBottom: '12px'
                   }}>
                     <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                       <div>
@@ -4517,43 +4559,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           ₪{cardAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
                         </div>
                       </div>
-                      <div style={{display: 'flex', alignItems: 'center', gap: 10}}>
-                        {(selectedEntryIds.length > 0 || selectedChargeIds.length > 0) && (
-                          <div style={{position: 'relative'}}>
-                            <button
-                              onClick={() => setStatusLabelOpen(prev => !prev)}
-                              title={`${selectedEntryIds.length + selectedChargeIds.length} נבחרו – שנה סטטוס`}
-                              style={{background: statusLabelOpen ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 8, padding: '5px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'white'}}
-                            >
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{transform: 'rotate(-20deg)'}}>
-                                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
-                                <line x1="7" y1="7" x2="7.01" y2="7"/>
-                              </svg>
-                              <span style={{fontSize: 11, fontWeight: 700}}>{selectedEntryIds.length + selectedChargeIds.length}</span>
-                            </button>
-                            {statusLabelOpen && (
-                              <>
-                                <div style={{position: 'fixed', inset: 0, zIndex: 199}} onClick={() => setStatusLabelOpen(false)} />
-                                <div style={{position: 'absolute', top: '110%', right: 0, zIndex: 200, background: 'white', borderRadius: 10, padding: '6px', boxShadow: '0 4px 16px rgba(0,0,0,0.22)', display: 'flex', gap: 4}}>
-                                  {[{s:'pending',label:'⏳ ממתין',bg:'#fef3c7',color:'#92400e'},{s:'invoiced',label:'📄 חויב',bg:'#dbeafe',color:'#1e40af'},{s:'paid',label:'✅ שולם',bg:'#dcfce7',color:'#166534'}].map(({s,label,bg,color}) => (
-                                    <button key={s} onClick={() => {
-                                      setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: s as any} : e))
-                                      setChargeEntries(prev => prev.map(c => selectedChargeIds.includes(c.id) ? {...c, billingStatus: s as any} : c))
-                                      setSelectedEntryIds([]); setSelectedChargeIds([])
-                                      setStatusLabelOpen(false)
-                                      setSuccessToast(`סטטוס: ${label.replace(/[⏳📄✅] /,'')}`)
-                                      setTimeout(() => setSuccessToast(null), 2000)
-                                    }} style={{padding: '8px 10px', fontSize: 12, border: 'none', borderRadius: 8, background: bg, color, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap'}}>{label}</button>
-                                  ))}
-                                </div>
-                              </>
-                            )}
-                          </div>
-                        )}
-                        <div style={{textAlign: 'center'}}>
-                          <div style={{fontSize: '18px', fontWeight: 700}}>{cardHours.toFixed(1)}</div>
-                          <div style={{fontSize: '10px', opacity: 0.8}}>שעות</div>
-                        </div>
+                      <div style={{textAlign: 'center'}}>
+                        <div style={{fontSize: '18px', fontWeight: 700}}>{cardHours.toFixed(1)}</div>
+                        <div style={{fontSize: '10px', opacity: 0.8}}>שעות</div>
                       </div>
                     </div>
                   </div>
@@ -4625,12 +4633,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                               onClick={() => {
                                 if (isSwiped) { setSwipedEntryId(null); return }
                                 if (longPressFiredRef.current) { longPressFiredRef.current = false; return }
-                                openEdit()
+                                toggleSelect()
                               }}
                               onTouchStart={(e) => {
                                 swipeTouchStartX.current = e.touches[0].clientX
                                 swipeTouchStartY.current = e.touches[0].clientY
-                                if (!isSwiped) startLongPress(openEdit)
+                                if (!isSwiped) startLongPress(toggleSelect)
                               }}
                               onTouchMove={(e) => {
                                 const dx = e.touches[0].clientX - swipeTouchStartX.current
@@ -4714,10 +4722,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           }
                           return (
                             <div key={charge.id}
-                              onClick={() => {
-                                if (inSelectMode) { toggleChargeSelect(); return }
-                                openChargeEdit()
-                              }}
+                              onClick={() => { toggleChargeSelect() }}
                               style={{
                                 padding: '14px 16px',
                                 display: 'flex',
