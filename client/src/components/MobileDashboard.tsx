@@ -3456,16 +3456,16 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             )}
           </div>
 
-          {/* Employee status dropdown — floats over content, no layout shift */}
+          {/* Employee status dropdown — compact, floats below header, anchored left */}
           {employeeHeaderStatusOpen && (
             <div style={{position: 'relative', height: 0, zIndex: 200}}>
-              <div style={{position: 'absolute', top: 0, left: 0, right: 0, background: '#5b21b6', padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 6, boxShadow: '0 4px 16px rgba(0,0,0,0.25)'}}>
+              <div style={{position: 'absolute', top: 4, left: 8, background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 12, padding: '6px', display: 'flex', flexDirection: 'column', gap: 4, boxShadow: '0 4px 16px rgba(0,0,0,0.15)', minWidth: 130}}>
                 {([{s:'pending',label:'⏳ ממתין',bg:'#fef3c7',color:'#92400e'},{s:'paid',label:'✅ שולם',bg:'#dcfce7',color:'#166634'}] as {s:string,label:string,bg:string,color:string}[]).map(({s,label,bg,color}) => (
                   <button key={s} onClick={() => {
                     setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) && e.employeeId ? {...e, employeePaidStatus: s as any} : e))
                     setEmployeeSelectedIds([]); setEmployeeHeaderStatusOpen(false)
                     setSuccessToast(`סטטוס: ${label.replace(/[⏳✅] /,'')}`); setTimeout(() => setSuccessToast(null), 2000)
-                  }} style={{width: '100%', padding: '10px 14px', fontSize: 14, border: 'none', borderRadius: 10, background: bg, color, fontWeight: 700, cursor: 'pointer', textAlign: 'center'}}>{label}</button>
+                  }} style={{width: '100%', padding: '7px 12px', fontSize: 13, border: 'none', borderRadius: 8, background: bg, color, fontWeight: 700, cursor: 'pointer', textAlign: 'center', whiteSpace: 'nowrap'}}>{label}</button>
                 ))}
               </div>
             </div>
@@ -3886,10 +3886,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           )}
         </div>
 
-        {/* Status dropdown — floats over content, no layout shift */}
+        {/* Status dropdown — compact, floats below header, anchored left */}
         {timeTrackingTab === 'summary' && statusLabelOpen && (
           <div style={{position: 'relative', height: 0, zIndex: 200}}>
-            <div style={{position: 'absolute', top: 0, left: 0, right: 0, background: '#1e40af', padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 6, boxShadow: '0 4px 16px rgba(0,0,0,0.25)'}}>
+            <div style={{position: 'absolute', top: 4, left: 8, background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 12, padding: '6px', display: 'flex', flexDirection: 'column', gap: 4, boxShadow: '0 4px 16px rgba(0,0,0,0.15)', minWidth: 130}}>
               {([{s:'pending',label:'⏳ ממתין',bg:'#fef3c7',color:'#92400e'},{s:'invoiced',label:'📄 חויב',bg:'#dbeafe',color:'#1e40af'},{s:'paid',label:'✅ שולם',bg:'#dcfce7',color:'#166534'}] as {s:string,label:string,bg:string,color:string}[]).map(({s,label,bg,color}) => (
                 <button key={s} onClick={() => {
                   setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: s as any} : e))
@@ -3897,7 +3897,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   setSelectedEntryIds([]); setSelectedChargeIds([])
                   setStatusLabelOpen(false)
                   setSuccessToast(`סטטוס: ${label.replace(/[⏳📄✅] /,'')}`); setTimeout(() => setSuccessToast(null), 2000)
-                }} style={{width: '100%', padding: '10px 14px', fontSize: 14, border: 'none', borderRadius: 10, background: bg, color, fontWeight: 700, cursor: 'pointer', textAlign: 'center'}}>{label}</button>
+                }} style={{width: '100%', padding: '7px 12px', fontSize: 13, border: 'none', borderRadius: 8, background: bg, color, fontWeight: 700, cursor: 'pointer', textAlign: 'center', whiteSpace: 'nowrap'}}>{label}</button>
               ))}
             </div>
           </div>
