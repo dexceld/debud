@@ -3737,6 +3737,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 <h1 className="m-title" style={{fontSize: 16}}>{selectedEntryIds.length + selectedChargeIds.length} נבחרו</h1>
               )}
               <div className="m-header-actions">
+                <button type="button" className="m-hbtn" title="בחר הכל"
+                  onClick={() => { setSelectedEntryIds(summaryVisibleEntryIds.current); setSelectedChargeIds(summaryVisibleChargeIds.current) }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="9 12 11 14 15 10"/></svg>
+                  <span className="m-hbtn-label">בחר הכל</span>
+                </button>
                 <button
                   onClick={() => setStatusLabelOpen(v => !v)}
                   className={`m-hbtn${statusLabelOpen ? ' active' : ' selection-label-enter'}`}
@@ -3746,7 +3752,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
                     <line x1="7" y1="7" x2="7.01" y2="7"/>
                   </svg>
-                  <span className="m-hbtn-label">לייבל</span>
+                  <span className="m-hbtn-label">סטטוס</span>
                 </button>
               </div>
             </>
