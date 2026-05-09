@@ -261,7 +261,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const employeeListScrollPos = useRef(0)
   const [summaryClientFilter, setSummaryClientFilter] = useState<string>('all')
   const [summaryStatusFilter, setSummaryStatusFilter] = useState<string>('all')
-  const [reportsPeriod, setReportsPeriod] = useState<'week' | 'month' | 'year' | null>(null)
+  const [reportsPeriod, setReportsPeriod] = useState<'week' | 'month' | 'year' | null>('month')
   const [clientFormName, setClientFormName] = useState('')
   const [clientFormRate, setClientFormRate] = useState('')
   const [clientFormVat, setClientFormVat] = useState('18')

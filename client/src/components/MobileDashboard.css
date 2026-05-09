@@ -112,6 +112,19 @@
   transform: translateY(0);
   filter: brightness(0.95); 
 }
+.m-hbtn.active {
+  background: #ffffff;
+  border-color: #ffffff;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+  transform: translateY(-1px);
+}
+.m-hbtn.active .m-hbtn-label {
+  color: #1d4ed8;
+  font-weight: 800;
+}
+.m-hbtn.active svg {
+  stroke: #1d4ed8;
+}
 
 .m-hbtn-gear   { color: #FFFFFF; font-size: 18px; }
 .m-hbtn-shekel { color: #FFFFFF; font-size: 18px; }
