@@ -4894,7 +4894,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           </div>
 
           {/* Days */}
-          <div style={{display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2}}>
+          <div style={{display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gridAutoRows: '40px', gap: 2}}>
             {cells.map((d, i) => {
               if (!d) return <div key={i} />
               const start = isStart(d)
@@ -4905,7 +4905,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   key={i}
                   onClick={() => handleDayClick(d)}
                   style={{
-                    padding: '10px 4px',
+                    padding: '0 4px',
                     border: start || end ? 'none' : toDateStr(viewYear, viewMonth, d) === todayStr ? '2px solid #9CA3AF' : 'none',
                     borderRadius: start || end ? '50%' : inRange ? '0' : '50%',
                     background: start || end ? '#1d4ed8' : inRange ? '#dbeafe' : 'transparent',
@@ -4913,7 +4913,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     fontWeight: start || end ? 700 : toDateStr(viewYear, viewMonth, d) === todayStr ? 600 : 400,
                     fontSize: 15,
                     cursor: 'pointer',
-                    width: '100%'
+                    width: '100%',
+                    height: '100%'
                   }}
                 >
                   {d}
