@@ -261,7 +261,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const employeeListScrollPos = useRef(0)
   const [summaryClientFilter, setSummaryClientFilter] = useState<string>('all')
   const [summaryStatusFilter, setSummaryStatusFilter] = useState<string>('all')
-  const [reportsPeriod, setReportsPeriod] = useState<'week' | 'month' | 'year'>('month')
+  const [reportsPeriod, setReportsPeriod] = useState<'week' | 'month' | 'year' | null>(null)
   const [clientFormName, setClientFormName] = useState('')
   const [clientFormRate, setClientFormRate] = useState('')
   const [clientFormVat, setClientFormVat] = useState('18')
@@ -3763,13 +3763,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <div className="m-header-actions">
                 {timeTrackingTab === 'reports' && (
                   <>
-                    <button className={`m-hbtn ${reportsPeriod === 'week' ? 'active' : ''}`} onClick={() => setReportsPeriod('week')} title="שבועי">
+                    <button className={`m-hbtn ${reportsPeriod === 'week' ? 'active' : ''}`} onClick={() => setReportsPeriod(p => p === 'week' ? null : 'week')} title="שבועי">
                       <span className="m-hbtn-label">שבועי</span>
                     </button>
-                    <button className={`m-hbtn ${reportsPeriod === 'month' ? 'active' : ''}`} onClick={() => setReportsPeriod('month')} title="חודשי">
+                    <button className={`m-hbtn ${reportsPeriod === 'month' ? 'active' : ''}`} onClick={() => setReportsPeriod(p => p === 'month' ? null : 'month')} title="חודשי">
                       <span className="m-hbtn-label">חודשי</span>
                     </button>
-                    <button className={`m-hbtn ${reportsPeriod === 'year' ? 'active' : ''}`} onClick={() => setReportsPeriod('year')} title="שנתי">
+                    <button className={`m-hbtn ${reportsPeriod === 'year' ? 'active' : ''}`} onClick={() => setReportsPeriod(p => p === 'year' ? null : 'year')} title="שנתי">
                       <span className="m-hbtn-label">שנתי</span>
                     </button>
                   </>
@@ -3975,7 +3975,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     </div>
                   </div>
 
-                  <button onClick={() => { setReportsFromDate(''); setReportsToDate(''); setReportsClientFilter('all'); setReportsStatusFilter('all'); setReportsPeriod('month'); }}
+                  <button onClick={() => { setReportsFromDate(''); setReportsToDate(''); setReportsClientFilter('all'); setReportsStatusFilter('all'); setReportsPeriod(null); }}
                     style={{width: '100%', padding: '14px', borderRadius: 12, border: '1px solid #E5E7EB',
                       background: 'white', fontSize: 14, fontWeight: 600, color: '#6B7280', cursor: 'pointer'}}>
                     איפוס כל הסינונים
@@ -4037,8 +4037,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               if (reportsFromDate && reportsToDate) {
                 filteredEntries = filteredEntries.filter(e => e.startDate >= reportsFromDate && e.startDate <= reportsToDate)
                 filteredCharges = filteredCharges.filter(c => c.date >= reportsFromDate && c.date <= reportsToDate)
-              } else {
-                // Period filter
+              } else if (reportsPeriod) {
+                // Period filter (only when explicitly selected)
                 const now = new Date()
                 const today = now.toISOString().split('T')[0]
                 if (reportsPeriod === 'week') {
