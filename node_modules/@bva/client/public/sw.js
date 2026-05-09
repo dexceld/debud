@@ -1,4 +1,4 @@
-const CACHE_NAME = 'beshlita-v50-header-chadash'
+const CACHE_NAME = 'beshlita-v52'
 const ASSETS = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
@@ -12,14 +12,27 @@ self.addEventListener('activate', (e) => {
 })
 
 self.addEventListener('fetch', (e) => {
+  // Only handle GET requests for http/https — skip chrome-extension:// and others
   if (e.request.method !== 'GET') return
+  if (!e.request.url.startsWith('http')) return
+  // Skip Firebase Auth popup handler — must not be intercepted
+  if (e.request.url.includes('/__/auth/')) return
+  // Skip analytics / third-party
+  if (!e.request.url.startsWith(self.location.origin)) return
+
   e.respondWith(
     fetch(e.request)
       .then((res) => {
-        const clone = res.clone()
-        caches.open(CACHE_NAME).then((c) => c.put(e.request, clone))
+        if (res && res.status === 200) {
+          const clone = res.clone()
+          caches.open(CACHE_NAME).then((c) => c.put(e.request, clone)).catch(() => {})
+        }
         return res
       })
-      .catch(() => caches.match(e.request))
+      .catch(() =>
+        caches.match(e.request).then((cached) =>
+          cached || new Response('', { status: 503, statusText: 'Offline' })
+        )
+      )
   )
 })
