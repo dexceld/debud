@@ -3710,38 +3710,75 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     return (
       <div className="m-screen">
         <div className="m-header">
-          {!employeeMode ? (
-            <button className="m-back-btn" onClick={() => setScreen('home')}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-            </button>
+          {timeTrackingTab === 'summary' && (selectedEntryIds.length > 0 || selectedChargeIds.length > 0) ? (
+            <>
+              {/* Selection-mode header: ✕ | count | label-icon */}
+              <button className="m-back-btn" onClick={() => { setSelectedEntryIds([]); setSelectedChargeIds([]); setStatusLabelOpen(false) }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+              {statusLabelOpen ? (
+                <div style={{flex: 1, display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden', justifyContent: 'flex-end'}}>
+                  {([{s:'pending',label:'⏳ ממתין',bg:'#fef3c7',color:'#92400e'},{s:'invoiced',label:'📄 חויב',bg:'#dbeafe',color:'#1e40af'},{s:'paid',label:'✅ שולם',bg:'#dcfce7',color:'#166534'}] as {s:string,label:string,bg:string,color:string}[]).map(({s,label,bg,color}) => (
+                    <button key={s} onClick={() => {
+                      setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: s as any} : e))
+                      setChargeEntries(prev => prev.map(c => selectedChargeIds.includes(c.id) ? {...c, billingStatus: s as any} : c))
+                      setSelectedEntryIds([]); setSelectedChargeIds([])
+                      setStatusLabelOpen(false)
+                      setSuccessToast(`סטטוס: ${label.replace(/[⏳📄✅] /,'')}`)
+                      setTimeout(() => setSuccessToast(null), 2000)
+                    }} style={{padding: '5px 8px', fontSize: 12, border: 'none', borderRadius: 8, background: bg, color, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap'}}>{label}</button>
+                  ))}
+                </div>
+              ) : (
+                <h1 className="m-title" style={{fontSize: 16}}>{selectedEntryIds.length + selectedChargeIds.length} נבחרו</h1>
+              )}
+              <div className="m-header-actions">
+                <button
+                  onClick={() => setStatusLabelOpen(v => !v)}
+                  style={{background: statusLabelOpen ? '#dbeafe' : 'none', border: 'none', borderRadius: 8, padding: '5px 6px', cursor: 'pointer', display: 'flex', alignItems: 'center', color: statusLabelOpen ? '#1d4ed8' : '#374151'}}
+                  title="שנה סטטוס"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{transform: 'rotate(-20deg)'}}>
+                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                    <line x1="7" y1="7" x2="7.01" y2="7"/>
+                  </svg>
+                </button>
+              </div>
+            </>
           ) : (
-            <button className="m-back-btn" onClick={() => {
-              // Exit employee mode and go to login
-              setEmployeeMode(null)
-              setScreen('home')
-            }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5m0 0-5-5m5 5H9"/></svg>
-            </button>
+            <>
+              {!employeeMode ? (
+                <button className="m-back-btn" onClick={() => setScreen('home')}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
+              ) : (
+                <button className="m-back-btn" onClick={() => {
+                  setEmployeeMode(null)
+                  setScreen('home')
+                }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5m0 0-5-5m5 5H9"/></svg>
+                </button>
+              )}
+              <h1 className="m-title">{employeeMode ? `שלום ${employeeMode.name}` : 'דיווחי שעות'}</h1>
+              <div className="m-header-actions">
+                {timeTrackingTab === 'reports' && (
+                  <>
+                    <button className={`m-hbtn ${reportsPeriod === 'week' ? 'active' : ''}`} onClick={() => setReportsPeriod('week')} title="שבועי">
+                      <span className="m-hbtn-label">שבועי</span>
+                    </button>
+                    <button className={`m-hbtn ${reportsPeriod === 'month' ? 'active' : ''}`} onClick={() => setReportsPeriod('month')} title="חודשי">
+                      <span className="m-hbtn-label">חודשי</span>
+                    </button>
+                    <button className={`m-hbtn ${reportsPeriod === 'year' ? 'active' : ''}`} onClick={() => setReportsPeriod('year')} title="שנתי">
+                      <span className="m-hbtn-label">שנתי</span>
+                    </button>
+                  </>
+                )}
+                {timeTrackingTab === 'clients' && !employeeMode && renderHeaderNewBtn(openNewClientForm, 'לקוח חדש')}
+                {timeTrackingTab === 'employees' && renderHeaderNewBtn(openNewEmployeeForm, 'עובד חדש')}
+              </div>
+            </>
           )}
-          <h1 className="m-title">{employeeMode ? `שלום ${employeeMode.name}` : 'דיווחי שעות'}</h1>
-          <div className="m-header-actions">
-            {/* Reports period filter - kept in header for reports only */}
-            {timeTrackingTab === 'reports' && (
-              <>
-                <button className={`m-hbtn ${reportsPeriod === 'week' ? 'active' : ''}`} onClick={() => setReportsPeriod('week')} title="שבועי">
-                  <span className="m-hbtn-label">שבועי</span>
-                </button>
-                <button className={`m-hbtn ${reportsPeriod === 'month' ? 'active' : ''}`} onClick={() => setReportsPeriod('month')} title="חודשי">
-                  <span className="m-hbtn-label">חודשי</span>
-                </button>
-                <button className={`m-hbtn ${reportsPeriod === 'year' ? 'active' : ''}`} onClick={() => setReportsPeriod('year')} title="שנתי">
-                  <span className="m-hbtn-label">שנתי</span>
-                </button>
-              </>
-            )}
-            {timeTrackingTab === 'clients' && !employeeMode && renderHeaderNewBtn(openNewClientForm, 'לקוח חדש')}
-            {timeTrackingTab === 'employees' && renderHeaderNewBtn(openNewEmployeeForm, 'עובד חדש')}
-          </div>
         </div>
 
         <TimerBanner />
@@ -4430,7 +4467,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <div
             ref={summaryScrollRef}
             onScroll={() => { if (summaryScrollRef.current) summaryScrollPos.current = summaryScrollRef.current.scrollTop }}
-            style={{flex: 1, overflowY: 'auto', padding: '12px 16px', paddingBottom: (selectedEntryIds.length > 0 || selectedChargeIds.length > 0) ? 20 : 100}}
+            style={{flex: 1, overflowY: 'auto', padding: '12px 16px', paddingBottom: 100}}
           >
             {(() => {
               // Filter time entries
@@ -4501,49 +4538,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
               return (
                 <>
-                  {/* Floating selection header */}
-                  {(selectedEntryIds.length > 0 || selectedChargeIds.length > 0) && (
-                    <div style={{
-                      position: 'sticky', top: 0, zIndex: 50,
-                      background: '#1d4ed8', borderRadius: 10,
-                      padding: '8px 12px', marginBottom: 8,
-                      display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                    }}>
-                      <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
-                        {statusLabelOpen ? (
-                          <>
-                            <button onClick={() => setStatusLabelOpen(false)} style={{background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', fontSize: 16, padding: '0 4px'}}>✕</button>
-                            {[{s:'pending',label:'⏳ ממתין',bg:'#fef3c7',color:'#92400e'},{s:'invoiced',label:'📄 חויב',bg:'#dbeafe',color:'#1e40af'},{s:'paid',label:'✅ שולם',bg:'#dcfce7',color:'#166534'}].map(({s,label,bg,color}) => (
-                              <button key={s} onClick={() => {
-                                setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, billingStatus: s as any} : e))
-                                setChargeEntries(prev => prev.map(c => selectedChargeIds.includes(c.id) ? {...c, billingStatus: s as any} : c))
-                                setSelectedEntryIds([]); setSelectedChargeIds([])
-                                setStatusLabelOpen(false)
-                                setSuccessToast(`סטטוס: ${label.replace(/[⏳📄✅] /,'')}`)
-                                setTimeout(() => setSuccessToast(null), 2000)
-                              }} style={{padding: '6px 10px', fontSize: 12, border: 'none', borderRadius: 8, background: bg, color, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap'}}>{label}</button>
-                            ))}
-                          </>
-                        ) : (
-                          <button
-                            onClick={() => setStatusLabelOpen(true)}
-                            style={{background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 8, padding: '5px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'white', fontWeight: 700}}
-                          >
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{transform: 'rotate(-20deg)'}}>
-                              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
-                              <line x1="7" y1="7" x2="7.01" y2="7"/>
-                            </svg>
-                            <span style={{fontSize: 12}}>{selectedEntryIds.length + selectedChargeIds.length}</span>
-                          </button>
-                        )}
-                      </div>
-                      <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
-                        <span style={{color: 'white', fontWeight: 700, fontSize: 13}}>{selectedEntryIds.length + selectedChargeIds.length} נבחרו</span>
-                        <button onClick={() => { setSelectedEntryIds([]); setSelectedChargeIds([]); setStatusLabelOpen(false) }} style={{background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', fontSize: 18, padding: '0 2px'}}>✕</button>
-                      </div>
-                    </div>
-                  )}
-
                   {/* Compact Summary Card */}
                   <div style={{
                     background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
@@ -4567,12 +4561,18 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   </div>
 
 
-                  {/* Select All Button */}
-                  {(selectedEntryIds.length === 0 && selectedChargeIds.length === 0) && (filteredTimeEntries.length > 0 || filteredChargeEntries.length > 0) && (
+                  {/* Select All / Deselect All Button - always visible to prevent list shift */}
+                  {(filteredTimeEntries.length > 0 || filteredChargeEntries.length > 0) && (
                     <button
                       onClick={() => {
-                        setSelectedEntryIds(filteredTimeEntries.map(e => e.id))
-                        setSelectedChargeIds(filteredChargeEntries.map(c => c.id))
+                        const allSelected = selectedEntryIds.length === filteredTimeEntries.length && selectedChargeIds.length === filteredChargeEntries.length
+                        if (allSelected) {
+                          setSelectedEntryIds([])
+                          setSelectedChargeIds([])
+                        } else {
+                          setSelectedEntryIds(filteredTimeEntries.map(e => e.id))
+                          setSelectedChargeIds(filteredChargeEntries.map(c => c.id))
+                        }
                       }}
                       style={{
                         width: '100%', padding: '8px', marginBottom: '12px',
@@ -4580,7 +4580,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                         borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer'
                       }}
                     >
-                      ☑ בחר הכל ({filteredTimeEntries.length + filteredChargeEntries.length})
+                      {selectedEntryIds.length === filteredTimeEntries.length && selectedChargeIds.length === filteredChargeEntries.length
+                        ? '☐ בטל בחירת הכל'
+                        : `☑ בחר הכל (${filteredTimeEntries.length + filteredChargeEntries.length})`}
                     </button>
                   )}
 
