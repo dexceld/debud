@@ -259,6 +259,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const summaryScrollPos = useRef(0)
   const summaryVisibleEntryIds = useRef<string[]>([])
   const summaryVisibleChargeIds = useRef<string[]>([])
+  const employeeVisibleIdsRef = useRef<string[]>([])
   const employeeListRef = useRef<HTMLDivElement>(null)
   const employeeListScrollPos = useRef(0)
   const [summaryClientFilter, setSummaryClientFilter] = useState<string>('all')
@@ -298,6 +299,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [employeeStatusPickerOpen, setEmployeeStatusPickerOpen] = useState(false)
   const [summaryFilterSheetOpen, setSummaryFilterSheetOpen] = useState(false)
   const [summaryShareOpen, setSummaryShareOpen] = useState(false)
+  const [tempSummaryClient, setTempSummaryClient] = useState<string>('all')
+  const [tempSummaryStatus, setTempSummaryStatus] = useState<string>('all')
   const [summaryPeriod, setSummaryPeriod] = useState<'week' | 'month' | 'year' | 'all'>('all')
   // Reports filter state
   const [reportsFilterSheetOpen, setReportsFilterSheetOpen] = useState(false)
@@ -333,6 +336,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const swipeTouchStartY = useRef(0)
   const [bulkActionOpen, setBulkActionOpen] = useState(false)
   const [statusLabelOpen, setStatusLabelOpen] = useState(false)
+  const [summaryInvoiceOpen, setSummaryInvoiceOpen] = useState(false)
+  const [summaryInvoiceInput, setSummaryInvoiceInput] = useState('')
+  const [employeeHeaderStatusOpen, setEmployeeHeaderStatusOpen] = useState(false)
+  const [employeeHeaderAmountOpen, setEmployeeHeaderAmountOpen] = useState(false)
+  const [employeeHeaderAmountInput, setEmployeeHeaderAmountInput] = useState('')
   const [bulkInvoiceNumber, setBulkInvoiceNumber] = useState('')
   const [bulkEmployeeInvoiceNumber, setBulkEmployeeInvoiceNumber] = useState('')
   const [bulkEmployeePaymentAmount, setBulkEmployeePaymentAmount] = useState('')
@@ -4309,7 +4317,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </svg>
             <span style={{fontSize:'11px',fontWeight:500}}>תאריך</span>
           </button>
-          <button onClick={() => { if (timeTrackingTab === 'summary') setSummaryFilterSheetOpen(true); else { setTempReportsClient(reportsClientFilter); setTempReportsStatuses(reportsStatusFilter); setReportsFilterSheetOpen(true) } }}
+          <button onClick={() => { if (timeTrackingTab === 'summary') { setTempSummaryClient(summaryClientFilter); setTempSummaryStatus(summaryStatusFilter); setSummaryFilterSheetOpen(true) } else { setTempReportsClient(reportsClientFilter); setTempReportsStatuses(reportsStatusFilter); setReportsFilterSheetOpen(true) } }}
             style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',
               color: (timeTrackingTab === 'summary' ? summaryStatusFilter !== 'all' : !(reportsStatusFilter.length === 1 && reportsStatusFilter[0] === 'all')) ? '#1d4ed8' : '#374151'}}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -4371,18 +4379,27 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 <div style={{
                   position: 'fixed', bottom: 0, left: 0, right: 0,
                   background: 'white', borderRadius: '16px 16px 0 0',
-                  padding: '20px 16px 32px', zIndex: 500, maxHeight: '80vh', overflowY: 'auto'
+                  padding: '20px 16px 28px', zIndex: 500, maxHeight: '80vh', overflowY: 'auto'
                 }}>
+                  {/* Header */}
                   <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20}}>
-                    <button onClick={() => setSummaryFilterSheetOpen(false)} style={{fontSize: 20, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer'}}>✕</button>
+                    <div style={{fontSize: 16, fontWeight: 700, color: '#111827'}}>סינון</div>
+                    <button type="button"
+                      onClick={() => { setTempSummaryClient('all'); setTempSummaryStatus('all') }}
+                      style={{display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10,
+                        background: '#FEF2F2', border: '1.5px solid #FECACA', color: '#DC2626',
+                        fontSize: 13, fontWeight: 700, cursor: 'pointer'}}>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                      איפוס
+                    </button>
                   </div>
 
                   {/* Client Section */}
                   <div style={{marginBottom: 20}}>
                     <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>לקוח</div>
                     <select
-                      value={summaryClientFilter}
-                      onChange={e => setSummaryClientFilter(e.target.value)}
+                      value={tempSummaryClient}
+                      onChange={e => setTempSummaryClient(e.target.value)}
                       style={{width: '100%', padding: '12px 16px', border: '1px solid #E5E7EB', borderRadius: 12, fontSize: 14}}
                     >
                       <option value="all">כל הלקוחות</option>
@@ -4392,24 +4409,24 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     </select>
                   </div>
 
-                  {/* Status Section — 2-column grid */}
+                  {/* Status Section */}
                   <div style={{marginBottom: 24}}>
                     <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>סטטוס חיוב</div>
                     <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8}}>
-                      {[
+                      {([
                         {key: 'all', label: 'הכל', color: 'white', bg: '#374151'},
                         {key: 'pending', label: '⏳ ממתין', color: '#92400e', bg: '#fef3c7'},
                         {key: 'invoiced', label: '📄 חויב', color: '#1e40af', bg: '#dbeafe'},
                         {key: 'paid', label: '✅ שולם', color: '#166534', bg: '#dcfce7'}
-                      ].map(s => (
-                        <button key={s.key}
-                          type="button"
-                          onClick={() => setSummaryStatusFilter(s.key)}
+                      ] as {key:string,label:string,color:string,bg:string}[]).map(s => (
+                        <button key={s.key} type="button"
+                          onClick={() => setTempSummaryStatus(s.key)}
                           style={{
-                            width: '100%', padding: '12px 10px', borderRadius: 12, border: 'none',
+                            width: '100%', padding: '12px 10px', borderRadius: 12,
+                            border: tempSummaryStatus === s.key ? `2px solid ${s.key === 'all' ? '#374151' : s.bg}` : '2px solid transparent',
                             fontSize: 13, fontWeight: 600, cursor: 'pointer', textAlign: 'center',
-                            background: summaryStatusFilter === s.key ? s.bg : '#f3f4f6',
-                            color: summaryStatusFilter === s.key ? s.color : '#374151'
+                            background: tempSummaryStatus === s.key ? s.bg : '#f3f4f6',
+                            color: tempSummaryStatus === s.key ? s.color : '#374151'
                           }}
                         >
                           {s.label}
@@ -4418,11 +4435,17 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     </div>
                   </div>
 
-                  <button onClick={() => { setSummaryFromDate(''); setSummaryToDate(''); setSummaryClientFilter('all'); setSummaryStatusFilter('all'); }}
-                    style={{width: '100%', padding: '14px', borderRadius: 12, border: '1px solid #E5E7EB',
-                      background: 'white', fontSize: 14, fontWeight: 600, color: '#6B7280', cursor: 'pointer'}}>
-                    איפוס כל הסינונים
-                  </button>
+                  {/* Bottom buttons */}
+                  <div style={{display: 'flex', gap: 8}}>
+                    <button type="button" onClick={() => setSummaryFilterSheetOpen(false)}
+                      style={{padding: '12px 16px', background: '#F3F4F6', border: 'none', borderRadius: 10, fontSize: 15, cursor: 'pointer', color: '#6B7280'}}>
+                      ביטול
+                    </button>
+                    <button type="button" onClick={() => { setSummaryClientFilter(tempSummaryClient); setSummaryStatusFilter(tempSummaryStatus); setSummaryFilterSheetOpen(false) }}
+                      style={{flex: 1, padding: '12px', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', background: '#1d4ed8', color: 'white'}}>
+                      הגדר
+                    </button>
+                  </div>
                 </div>
               </>
             )}
