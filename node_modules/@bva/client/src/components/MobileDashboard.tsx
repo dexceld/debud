@@ -230,7 +230,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   // Firebase sync for time employees to sync across devices
   useFirebaseSync(uid, 'time_employees', employees, v => setEmployees(v as typeof employees))
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
-  const [timeTrackingTab, setTimeTrackingTab] = useState<'clients' | 'reports' | 'summary' | 'employees'>('reports')
+  const [timeTrackingTab, setTimeTrackingTab] = useState<'clients' | 'reports' | 'summary' | 'employees'>('clients')
   const [timerRunning, setTimerRunning] = useState(() => localStorage.getItem(lsKey('timer_running')) === '1')
   const [timerStart, setTimerStart] = useState<Date | null>(() => {
     const v = localStorage.getItem(lsKey('timer_start'))
@@ -3760,7 +3760,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 className={`m-time-tab ${timeTrackingTab === 'reports' ? 'active' : ''}`}
                 onClick={() => setTimeTrackingTab('reports')}
               >
-                דיווחים
+                תקופתי
               </button>
               <button
                 className={`m-time-tab ${timeTrackingTab === 'summary' ? 'active' : ''}`}
