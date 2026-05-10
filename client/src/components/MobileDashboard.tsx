@@ -3459,7 +3459,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   onKeyDown={e => { if (e.key === 'Enter') {
                     const amt = parseFloat(employeeHeaderAmountInput)
                     if (isNaN(amt)) return
-                    setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) && e.employeeId ? {...e, employeePaymentAmount: amt, employeePaidStatus: 'paid'} : e))
+                    const firstId = employeeSelectedIds[0]
+                    setTimeEntries(prev => prev.map(e => {
+                      if (!employeeSelectedIds.includes(e.id) || !e.employeeId) return e
+                      if (e.id === firstId) return {...e, employeePaidStatus: 'paid', employeePaymentAmount: amt}
+                      return {...e, employeePaidStatus: 'paid', employeePaymentAmount: undefined}
+                    }))
                     clearEmpSelection()
                     setSuccessToast(`₪${amt.toLocaleString('he-IL')} נשמר`); setTimeout(() => setSuccessToast(null), 2000)
                   }}}
@@ -3468,7 +3473,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 <button onClick={() => {
                   const amt = parseFloat(employeeHeaderAmountInput)
                   if (isNaN(amt)) return
-                  setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) && e.employeeId ? {...e, employeePaymentAmount: amt, employeePaidStatus: 'paid'} : e))
+                  const firstId = employeeSelectedIds[0]
+                  setTimeEntries(prev => prev.map(e => {
+                    if (!employeeSelectedIds.includes(e.id) || !e.employeeId) return e
+                    if (e.id === firstId) return {...e, employeePaidStatus: 'paid', employeePaymentAmount: amt}
+                    return {...e, employeePaidStatus: 'paid', employeePaymentAmount: undefined}
+                  }))
                   clearEmpSelection()
                   setSuccessToast(`₪${amt.toLocaleString('he-IL')} נשמר`); setTimeout(() => setSuccessToast(null), 2000)
                 }} style={{padding: '9px', border: 'none', borderRadius: 8, background: '#7c3aed', color: 'white', fontWeight: 700, fontSize: 15, cursor: 'pointer'}}>✓ שמור</button>
@@ -3572,11 +3582,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     >
                       <div style={{display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0}}>
                         <div onClick={(e) => { e.stopPropagation(); toggleSelect() }}
-                          style={{width: 20, height: 20, borderRadius: '50%', flexShrink: 0, cursor: 'pointer',
-                            border: `2px solid ${isSelected ? '#8b5cf6' : '#D1D5DB'}`,
+                          style={{width: 22, height: 22, borderRadius: '50%', flexShrink: 0, cursor: 'pointer',
+                            border: isSelected ? 'none' : '2px solid #D1D5DB',
                             background: isSelected ? '#8b5cf6' : 'transparent',
                             display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                          {isSelected && <div style={{width: 8, height: 8, borderRadius: '50%', background: 'white'}}/>}
+                          {isSelected && <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5"><polyline points="20 6 9 17 4 12"/></svg>}
                         </div>
                         <div style={{flex: 1}}>
                           <div style={{display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap'}}>
