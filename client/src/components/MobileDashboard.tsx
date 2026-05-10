@@ -283,6 +283,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null)
   const [editEmployeeId, setEditEmployeeId] = useState<string | null>(null)
   const [employeeStatusFilter, setEmployeeStatusFilter] = useState<'all' | 'pending' | 'invoiced' | 'paid'>('all')
+  const [employeePaymentStatusFilter, setEmployeePaymentStatusFilter] = useState<'all' | 'pending' | 'paid'>('all')
   const [employeePeriodFilter, setEmployeePeriodFilter] = useState<'all' | 'week' | 'month' | 'year'>('all')
   const [employeeFromDate, setEmployeeFromDate] = useState('')
   const [employeeToDate, setEmployeeToDate] = useState('')
@@ -3364,9 +3365,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         }
       }
 
-      // Apply status filter
+      // Apply billing status filter
       if (employeeStatusFilter !== 'all') {
         employeeEntries = employeeEntries.filter(e => (e.billingStatus || 'pending') === employeeStatusFilter)
+      }
+      // Apply payment status filter
+      if (employeePaymentStatusFilter !== 'all') {
+        employeeEntries = employeeEntries.filter(e => (e.employeePaidStatus || 'pending') === employeePaymentStatusFilter)
       }
 
       // Sort by date desc
@@ -3383,30 +3388,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 <button className="m-back-btn" onClick={clearEmpSelection}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
-                {employeeHeaderAmountOpen ? (
-                  <div style={{flex: 1, display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden'}}>
-                    <input autoFocus type="text" inputMode="decimal" placeholder="סכום ששולם..."
-                      value={employeeHeaderAmountInput} onChange={e => setEmployeeHeaderAmountInput(e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter') {
-                        const amt = parseFloat(employeeHeaderAmountInput)
-                        if (isNaN(amt)) return
-                        setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) && e.employeeId ? {...e, employeePaymentAmount: amt, employeePaidStatus: 'paid'} : e))
-                        clearEmpSelection()
-                        setSuccessToast(`₪${amt.toLocaleString('he-IL')} נשמר`); setTimeout(() => setSuccessToast(null), 2000)
-                      }}}
-                      style={{flex: 1, padding: '6px 10px', border: '1.5px solid rgba(255,255,255,0.5)', borderRadius: 8, fontSize: 14, background: 'rgba(255,255,255,0.2)', color: 'white', outline: 'none'}}
-                    />
-                    <button onClick={() => {
-                      const amt = parseFloat(employeeHeaderAmountInput)
-                      if (isNaN(amt)) return
-                      setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) && e.employeeId ? {...e, employeePaymentAmount: amt, employeePaidStatus: 'paid'} : e))
-                      clearEmpSelection()
-                      setSuccessToast(`₪${amt.toLocaleString('he-IL')} נשמר`); setTimeout(() => setSuccessToast(null), 2000)
-                    }} style={{padding: '6px 10px', border: 'none', borderRadius: 8, background: 'white', color: '#7c3aed', fontWeight: 700, fontSize: 14, cursor: 'pointer'}}>✓</button>
-                  </div>
-                ) : (
-                  <h1 className="m-title" style={{fontSize: 16}}>{employeeSelectedIds.length} נבחרו</h1>
-                )}
+                <h1 className="m-title" style={{fontSize: 16}}>{employeeSelectedIds.length} נבחרו</h1>
                 <div className="m-header-actions">
                   <button type="button" className="m-hbtn" title="בחר הכל"
                     onClick={() => setEmployeeSelectedIds(employeeVisibleIdsRef.current)}>
@@ -3455,6 +3437,33 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               </>
             )}
           </div>
+
+          {/* Employee amount input — floats below header */}
+          {employeeHeaderAmountOpen && (
+            <div style={{position: 'relative', height: 0, zIndex: 200}}>
+              <div style={{position: 'absolute', top: 4, left: 8, background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 12, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.15)', minWidth: 200}}>
+                <input autoFocus type="text" inputMode="decimal" placeholder="סכום ששולם (₪)..."
+                  value={employeeHeaderAmountInput}
+                  onChange={e => setEmployeeHeaderAmountInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') {
+                    const amt = parseFloat(employeeHeaderAmountInput)
+                    if (isNaN(amt)) return
+                    setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) && e.employeeId ? {...e, employeePaymentAmount: amt, employeePaidStatus: 'paid'} : e))
+                    clearEmpSelection()
+                    setSuccessToast(`₪${amt.toLocaleString('he-IL')} נשמר`); setTimeout(() => setSuccessToast(null), 2000)
+                  }}}
+                  style={{padding: '8px 12px', border: '1.5px solid #e5e7eb', borderRadius: 8, fontSize: 14, outline: 'none', direction: 'ltr'}}
+                />
+                <button onClick={() => {
+                  const amt = parseFloat(employeeHeaderAmountInput)
+                  if (isNaN(amt)) return
+                  setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) && e.employeeId ? {...e, employeePaymentAmount: amt, employeePaidStatus: 'paid'} : e))
+                  clearEmpSelection()
+                  setSuccessToast(`₪${amt.toLocaleString('he-IL')} נשמר`); setTimeout(() => setSuccessToast(null), 2000)
+                }} style={{padding: '9px', border: 'none', borderRadius: 8, background: '#7c3aed', color: 'white', fontWeight: 700, fontSize: 15, cursor: 'pointer'}}>✓ שמור</button>
+              </div>
+            </div>
+          )}
 
           {/* Employee status dropdown — compact, floats below header, anchored left */}
           {employeeHeaderStatusOpen && (
@@ -3639,7 +3648,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                 <span style={{fontSize:'11px',fontWeight:500}}>{employeeFromDate ? '📅' : 'תאריך'}</span>
               </button>
-              <button onClick={() => setEmployeeFilterSheetOpen(true)} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',color: employeeStatusFilter !== 'all' ? '#1d4ed8' : '#374151'}}>
+              <button onClick={() => setEmployeeFilterSheetOpen(true)} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',color: (employeeStatusFilter !== 'all' || employeePaymentStatusFilter !== 'all') ? '#1d4ed8' : '#374151'}}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
                 <span style={{fontSize:'11px',fontWeight:500}}>סינון</span>
               </button>
@@ -3712,9 +3721,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   <button onClick={() => setEmployeeFilterSheetOpen(false)} style={{fontSize: 20, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer'}}>✕</button>
                 </div>
 
-                {/* Status Section — 2-column grid */}
-                <div style={{marginBottom: 24}}>
-                  <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>סטטוס חיוב</div>
+                {/* סטטוס גביה — 2-column grid */}
+                <div style={{marginBottom: 20}}>
+                  <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 10}}>סטטוס גביה</div>
                   <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8}}>
                     {[
                       {key: 'all', label: 'הכל', color: 'white', bg: '#374151'},
@@ -3722,8 +3731,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                       {key: 'invoiced', label: '📄 חויב', color: '#1e40af', bg: '#dbeafe'},
                       {key: 'paid', label: '✅ שולם', color: '#166534', bg: '#dcfce7'}
                     ].map(s => (
-                      <button key={s.key}
-                        type="button"
+                      <button key={s.key} type="button"
                         onClick={() => setEmployeeStatusFilter(s.key as any)}
                         style={{
                           width: '100%', padding: '12px 10px', borderRadius: 12, border: 'none',
@@ -3731,14 +3739,34 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           background: employeeStatusFilter === s.key ? s.bg : '#f3f4f6',
                           color: employeeStatusFilter === s.key ? s.color : '#374151'
                         }}
-                      >
-                        {s.label}
-                      </button>
+                      >{s.label}</button>
                     ))}
                   </div>
                 </div>
 
-                <button onClick={() => { setEmployeeStatusFilter('all'); setEmployeeFromDate(''); setEmployeeToDate(''); }}
+                {/* סטטוס תשלום */}
+                <div style={{marginBottom: 24}}>
+                  <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 10}}>סטטוס תשלום</div>
+                  <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8}}>
+                    {[
+                      {key: 'all', label: 'הכל', color: 'white', bg: '#374151'},
+                      {key: 'pending', label: '⏳ ממתין', color: '#92400e', bg: '#fef3c7'},
+                      {key: 'paid', label: '✅ שולם', color: '#166534', bg: '#dcfce7'}
+                    ].map(s => (
+                      <button key={s.key} type="button"
+                        onClick={() => setEmployeePaymentStatusFilter(s.key as any)}
+                        style={{
+                          width: '100%', padding: '12px 10px', borderRadius: 12, border: 'none',
+                          fontSize: 13, fontWeight: 600, cursor: 'pointer', textAlign: 'center',
+                          background: employeePaymentStatusFilter === s.key ? s.bg : '#f3f4f6',
+                          color: employeePaymentStatusFilter === s.key ? s.color : '#374151'
+                        }}
+                      >{s.label}</button>
+                    ))}
+                  </div>
+                </div>
+
+                <button onClick={() => { setEmployeeStatusFilter('all'); setEmployeePaymentStatusFilter('all'); setEmployeeFromDate(''); setEmployeeToDate(''); }}
                   style={{width: '100%', padding: '14px', borderRadius: 12, border: '1px solid #E5E7EB',
                     background: 'white', fontSize: 14, fontWeight: 600, color: '#6B7280', cursor: 'pointer'}}>
                   איפוס סינון
@@ -3776,38 +3804,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <button className="m-back-btn" onClick={() => { setSelectedEntryIds([]); setSelectedChargeIds([]); setStatusLabelOpen(false); setSummaryInvoiceOpen(false); setSummaryInvoiceInput('') }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
-              {summaryInvoiceOpen ? (
-                <div style={{flex: 1, display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden'}}>
-                  <input
-                    autoFocus
-                    type="text" inputMode="numeric"
-                    placeholder="מספר חשבונית..."
-                    value={summaryInvoiceInput}
-                    onChange={e => setSummaryInvoiceInput(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') {
-                      const num = summaryInvoiceInput.trim()
-                      if (!num) return
-                      setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, invoiceNumber: num, billingStatus: e.billingStatus === 'paid' ? 'paid' : 'invoiced'} : e))
-                      setChargeEntries(prev => prev.map(c => selectedChargeIds.includes(c.id) ? {...c, invoiceNumber: num} : c))
-                      setSelectedEntryIds([]); setSelectedChargeIds([])
-                      setSummaryInvoiceOpen(false); setSummaryInvoiceInput('')
-                      setSuccessToast(`חשבונית ${num} נשמרה`); setTimeout(() => setSuccessToast(null), 2000)
-                    }}}
-                    style={{flex: 1, padding: '6px 10px', border: '1.5px solid rgba(255,255,255,0.5)', borderRadius: 8, fontSize: 14, background: 'rgba(255,255,255,0.2)', color: 'white', outline: 'none'}}
-                  />
-                  <button onClick={() => {
-                    const num = summaryInvoiceInput.trim()
-                    if (!num) return
-                    setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, invoiceNumber: num, billingStatus: e.billingStatus === 'paid' ? 'paid' : 'invoiced'} : e))
-                    setChargeEntries(prev => prev.map(c => selectedChargeIds.includes(c.id) ? {...c, invoiceNumber: num} : c))
-                    setSelectedEntryIds([]); setSelectedChargeIds([])
-                    setSummaryInvoiceOpen(false); setSummaryInvoiceInput('')
-                    setSuccessToast(`חשבונית ${num} נשמרה`); setTimeout(() => setSuccessToast(null), 2000)
-                  }} style={{padding: '6px 10px', border: 'none', borderRadius: 8, background: 'white', color: '#1d4ed8', fontWeight: 700, fontSize: 14, cursor: 'pointer'}}>✓</button>
-                </div>
-              ) : (
-                <h1 className="m-title" style={{fontSize: 16}}>{selectedEntryIds.length + selectedChargeIds.length} נבחרו</h1>
-              )}
+              <h1 className="m-title" style={{fontSize: 16}}>{selectedEntryIds.length + selectedChargeIds.length} נבחרו</h1>
               <div className="m-header-actions">
                 <button type="button" className="m-hbtn" title="בחר הכל"
                   onClick={() => { setSelectedEntryIds(summaryVisibleEntryIds.current); setSelectedChargeIds(summaryVisibleChargeIds.current) }}
@@ -3885,6 +3882,37 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </>
           )}
         </div>
+
+        {/* Invoice input — floats below header */}
+        {timeTrackingTab === 'summary' && summaryInvoiceOpen && (
+          <div style={{position: 'relative', height: 0, zIndex: 200}}>
+            <div style={{position: 'absolute', top: 4, left: 8, background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 12, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.15)', minWidth: 200}}>
+              <input autoFocus type="text" inputMode="numeric" placeholder="מספר חשבונית..."
+                value={summaryInvoiceInput}
+                onChange={e => setSummaryInvoiceInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') {
+                  const num = summaryInvoiceInput.trim()
+                  if (!num) return
+                  setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, invoiceNumber: num, billingStatus: e.billingStatus === 'paid' ? 'paid' : 'invoiced'} : e))
+                  setChargeEntries(prev => prev.map(c => selectedChargeIds.includes(c.id) ? {...c, invoiceNumber: num} : c))
+                  setSelectedEntryIds([]); setSelectedChargeIds([])
+                  setSummaryInvoiceOpen(false); setSummaryInvoiceInput('')
+                  setSuccessToast(`חשבונית ${num} נשמרה`); setTimeout(() => setSuccessToast(null), 2000)
+                }}}
+                style={{padding: '8px 12px', border: '1.5px solid #e5e7eb', borderRadius: 8, fontSize: 14, outline: 'none', direction: 'ltr'}}
+              />
+              <button onClick={() => {
+                const num = summaryInvoiceInput.trim()
+                if (!num) return
+                setTimeEntries(prev => prev.map(e => selectedEntryIds.includes(e.id) ? {...e, invoiceNumber: num, billingStatus: e.billingStatus === 'paid' ? 'paid' : 'invoiced'} : e))
+                setChargeEntries(prev => prev.map(c => selectedChargeIds.includes(c.id) ? {...c, invoiceNumber: num} : c))
+                setSelectedEntryIds([]); setSelectedChargeIds([])
+                setSummaryInvoiceOpen(false); setSummaryInvoiceInput('')
+                setSuccessToast(`חשבונית ${num} נשמרה`); setTimeout(() => setSuccessToast(null), 2000)
+              }} style={{padding: '9px', border: 'none', borderRadius: 8, background: '#1d4ed8', color: 'white', fontWeight: 700, fontSize: 15, cursor: 'pointer'}}>✓ שמור</button>
+            </div>
+          </div>
+        )}
 
         {/* Status dropdown — compact, floats below header, anchored left */}
         {timeTrackingTab === 'summary' && statusLabelOpen && (
