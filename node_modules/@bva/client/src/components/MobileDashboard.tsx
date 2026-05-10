@@ -290,12 +290,15 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [employeeDatePickerOpen, setEmployeeDatePickerOpen] = useState(false)
   const [employeeShareOpen, setEmployeeShareOpen] = useState(false)
   const [clientStatusFilter, setClientStatusFilter] = useState<'all' | 'pending' | 'invoiced' | 'paid'>('all')
+  const [tempClientStatus, setTempClientStatus] = useState<'all' | 'pending' | 'invoiced' | 'paid'>('all')
   const [clientPeriodFilter, setClientPeriodFilter] = useState<'all' | 'week' | 'month' | 'year'>('all')
   const [clientFilterSheetOpen, setClientFilterSheetOpen] = useState(false)
   const [clientFromDate, setClientFromDate] = useState('')
   const [clientToDate, setClientToDate] = useState('')
   const [clientDatePickerOpen, setClientDatePickerOpen] = useState(false)
   const [clientShareOpen, setClientShareOpen] = useState(false)
+  const [tempEmployeeStatus, setTempEmployeeStatus] = useState<'all' | 'pending' | 'invoiced' | 'paid'>('all')
+  const [tempEmployeePaymentStatus, setTempEmployeePaymentStatus] = useState<'all' | 'pending' | 'paid'>('all')
   const [employeeFilterSheetOpen, setEmployeeFilterSheetOpen] = useState(false)
   const [employeeStatusPickerOpen, setEmployeeStatusPickerOpen] = useState(false)
   const [summaryFilterSheetOpen, setSummaryFilterSheetOpen] = useState(false)
@@ -3279,7 +3282,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
               <span style={{fontSize:'11px',fontWeight:500}}>{clientFromDate ? '📅' : 'תאריך'}</span>
             </button>
-            <button onClick={() => setClientFilterSheetOpen(true)} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',color: clientStatusFilter !== 'all' ? '#1d4ed8' : '#374151'}}>
+            <button onClick={() => { setTempClientStatus(clientStatusFilter); setClientFilterSheetOpen(true) }} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',color: clientStatusFilter !== 'all' ? '#1d4ed8' : '#374151'}}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
               <span style={{fontSize:'11px',fontWeight:500}}>סינון</span>
             </button>
@@ -3296,15 +3299,21 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <div style={{
                 position: 'fixed', bottom: 0, left: 0, right: 0,
                 background: 'white', borderRadius: '16px 16px 0 0',
-                padding: '20px 16px 32px', zIndex: 500, maxHeight: '80vh', overflowY: 'auto'
+                padding: '20px 16px 28px', zIndex: 500, maxHeight: '80vh', overflowY: 'auto'
               }}>
                 <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20}}>
-                  <button onClick={() => setClientFilterSheetOpen(false)} style={{fontSize: 20, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer'}}>✕</button>
+                  <div style={{fontSize: 16, fontWeight: 700, color: '#111827'}}>סינון</div>
+                  <button type="button" onClick={() => setTempClientStatus('all')}
+                    style={{display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10,
+                      background: '#FEF2F2', border: '1.5px solid #FECACA', color: '#DC2626',
+                      fontSize: 13, fontWeight: 700, cursor: 'pointer'}}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    איפוס
+                  </button>
                 </div>
 
-                {/* Status Section — 2-column grid */}
                 <div style={{marginBottom: 24}}>
-                  <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>סטטוס חיוב</div>
+                  <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>סטטוס גביה</div>
                   <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8}}>
                     {[
                       {key: 'all', label: 'הכל', color: 'white', bg: '#374151'},
@@ -3312,27 +3321,29 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                       {key: 'invoiced', label: '📄 חויב', color: '#1e40af', bg: '#dbeafe'},
                       {key: 'paid', label: '✅ שולם', color: '#166534', bg: '#dcfce7'}
                     ].map(s => (
-                      <button key={s.key}
-                        type="button"
-                        onClick={() => setClientStatusFilter(s.key as any)}
+                      <button key={s.key} type="button"
+                        onClick={() => setTempClientStatus(s.key as any)}
                         style={{
                           width: '100%', padding: '12px 10px', borderRadius: 12, border: 'none',
                           fontSize: 13, fontWeight: 600, cursor: 'pointer', textAlign: 'center',
-                          background: clientStatusFilter === s.key ? s.bg : '#f3f4f6',
-                          color: clientStatusFilter === s.key ? s.color : '#374151'
+                          background: tempClientStatus === s.key ? s.bg : '#f3f4f6',
+                          color: tempClientStatus === s.key ? s.color : '#374151'
                         }}
-                      >
-                        {s.label}
-                      </button>
+                      >{s.label}</button>
                     ))}
                   </div>
                 </div>
 
-                <button onClick={() => { setClientPeriodFilter('all'); setClientStatusFilter('all'); }}
-                  style={{width: '100%', padding: '14px', borderRadius: 12, border: '1px solid #E5E7EB',
-                    background: 'white', fontSize: 14, fontWeight: 600, color: '#6B7280', cursor: 'pointer'}}>
-                  איפוס סינון
-                </button>
+                <div style={{display: 'flex', gap: 8, marginTop: 4}}>
+                  <button type="button" onClick={() => setClientFilterSheetOpen(false)}
+                    style={{padding: '12px 16px', background: '#F3F4F6', border: 'none', borderRadius: 10, fontSize: 15, cursor: 'pointer', color: '#6B7280'}}>
+                    ביטול
+                  </button>
+                  <button type="button" onClick={() => { setClientStatusFilter(tempClientStatus); setClientFilterSheetOpen(false) }}
+                    style={{flex: 1, padding: '12px', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', background: '#1d4ed8', color: 'white'}}>
+                    הגדר
+                  </button>
+                </div>
               </div>
             </>
           )}
@@ -3648,7 +3659,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                 <span style={{fontSize:'11px',fontWeight:500}}>{employeeFromDate ? '📅' : 'תאריך'}</span>
               </button>
-              <button onClick={() => setEmployeeFilterSheetOpen(true)} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',color: (employeeStatusFilter !== 'all' || employeePaymentStatusFilter !== 'all') ? '#1d4ed8' : '#374151'}}>
+              <button onClick={() => { setTempEmployeeStatus(employeeStatusFilter); setTempEmployeePaymentStatus(employeePaymentStatusFilter); setEmployeeFilterSheetOpen(true) }} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',color: (employeeStatusFilter !== 'all' || employeePaymentStatusFilter !== 'all') ? '#1d4ed8' : '#374151'}}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
                 <span style={{fontSize:'11px',fontWeight:500}}>סינון</span>
               </button>
@@ -3715,13 +3726,19 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <div style={{
                 position: 'fixed', bottom: 0, left: 0, right: 0,
                 background: 'white', borderRadius: '16px 16px 0 0',
-                padding: '20px 16px 32px', zIndex: 500, maxHeight: '80vh', overflowY: 'auto'
+                padding: '20px 16px 28px', zIndex: 500, maxHeight: '80vh', overflowY: 'auto'
               }}>
                 <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20}}>
-                  <button onClick={() => setEmployeeFilterSheetOpen(false)} style={{fontSize: 20, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer'}}>✕</button>
+                  <div style={{fontSize: 16, fontWeight: 700, color: '#111827'}}>סינון</div>
+                  <button type="button" onClick={() => { setTempEmployeeStatus('all'); setTempEmployeePaymentStatus('all') }}
+                    style={{display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10,
+                      background: '#FEF2F2', border: '1.5px solid #FECACA', color: '#DC2626',
+                      fontSize: 13, fontWeight: 700, cursor: 'pointer'}}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    איפוס
+                  </button>
                 </div>
 
-                {/* סטטוס גביה — 2-column grid */}
                 <div style={{marginBottom: 20}}>
                   <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 10}}>סטטוס גביה</div>
                   <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8}}>
@@ -3732,19 +3749,18 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                       {key: 'paid', label: '✅ שולם', color: '#166534', bg: '#dcfce7'}
                     ].map(s => (
                       <button key={s.key} type="button"
-                        onClick={() => setEmployeeStatusFilter(s.key as any)}
+                        onClick={() => setTempEmployeeStatus(s.key as any)}
                         style={{
                           width: '100%', padding: '12px 10px', borderRadius: 12, border: 'none',
                           fontSize: 13, fontWeight: 600, cursor: 'pointer', textAlign: 'center',
-                          background: employeeStatusFilter === s.key ? s.bg : '#f3f4f6',
-                          color: employeeStatusFilter === s.key ? s.color : '#374151'
+                          background: tempEmployeeStatus === s.key ? s.bg : '#f3f4f6',
+                          color: tempEmployeeStatus === s.key ? s.color : '#374151'
                         }}
                       >{s.label}</button>
                     ))}
                   </div>
                 </div>
 
-                {/* סטטוס תשלום */}
                 <div style={{marginBottom: 24}}>
                   <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 10}}>סטטוס תשלום</div>
                   <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8}}>
@@ -3754,23 +3770,28 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                       {key: 'paid', label: '✅ שולם', color: '#166534', bg: '#dcfce7'}
                     ].map(s => (
                       <button key={s.key} type="button"
-                        onClick={() => setEmployeePaymentStatusFilter(s.key as any)}
+                        onClick={() => setTempEmployeePaymentStatus(s.key as any)}
                         style={{
                           width: '100%', padding: '12px 10px', borderRadius: 12, border: 'none',
                           fontSize: 13, fontWeight: 600, cursor: 'pointer', textAlign: 'center',
-                          background: employeePaymentStatusFilter === s.key ? s.bg : '#f3f4f6',
-                          color: employeePaymentStatusFilter === s.key ? s.color : '#374151'
+                          background: tempEmployeePaymentStatus === s.key ? s.bg : '#f3f4f6',
+                          color: tempEmployeePaymentStatus === s.key ? s.color : '#374151'
                         }}
                       >{s.label}</button>
                     ))}
                   </div>
                 </div>
 
-                <button onClick={() => { setEmployeeStatusFilter('all'); setEmployeePaymentStatusFilter('all'); setEmployeeFromDate(''); setEmployeeToDate(''); }}
-                  style={{width: '100%', padding: '14px', borderRadius: 12, border: '1px solid #E5E7EB',
-                    background: 'white', fontSize: 14, fontWeight: 600, color: '#6B7280', cursor: 'pointer'}}>
-                  איפוס סינון
-                </button>
+                <div style={{display: 'flex', gap: 8, marginTop: 4}}>
+                  <button type="button" onClick={() => setEmployeeFilterSheetOpen(false)}
+                    style={{padding: '12px 16px', background: '#F3F4F6', border: 'none', borderRadius: 10, fontSize: 15, cursor: 'pointer', color: '#6B7280'}}>
+                    ביטול
+                  </button>
+                  <button type="button" onClick={() => { setEmployeeStatusFilter(tempEmployeeStatus); setEmployeePaymentStatusFilter(tempEmployeePaymentStatus); setEmployeeFilterSheetOpen(false) }}
+                    style={{flex: 1, padding: '12px', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', background: '#1d4ed8', color: 'white'}}>
+                    הגדר
+                  </button>
+                </div>
               </div>
             </>
           )}
