@@ -348,6 +348,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [bulkInvoiceNumber, setBulkInvoiceNumber] = useState('')
   const [bulkEmployeeInvoiceNumber, setBulkEmployeeInvoiceNumber] = useState('')
   const [bulkEmployeePaymentAmount, setBulkEmployeePaymentAmount] = useState('')
+  const [voiceListening, setVoiceListening] = useState(false)
+  const [voiceTranscript, setVoiceTranscript] = useState('')
+  const [voiceParsed, setVoiceParsed] = useState<{clientId: string, clientName: string, startTime: string, endTime: string, date: string} | null>(null)
+  const voiceRecogRef = useRef<any>(null)
   // Long-press helpers (shared across cards)
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const longPressFiredRef = useRef(false)
@@ -646,6 +650,48 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const monthForecast = forecasts[cat.id]?.[month]
     if (monthForecast !== undefined) return Math.abs(monthForecast)
     return Math.abs(cat.budget)
+  }
+
+  const hebrewTimeToHHMM = (timeStr: string): string | null => {
+    if (/בצהרים|צהרים/.test(timeStr)) return '12:00'
+    const isPM = /אחר הצהרים|אחה"צ|אחה״צ|בערב|בלילה/.test(timeStr)
+    const isAM = /בבוקר/.test(timeStr)
+    const m = timeStr.match(/(\d{1,2})(?::(\d{2}))?/)
+    if (!m) return null
+    let h = parseInt(m[1])
+    const min = m[2] ? parseInt(m[2]) : 0
+    if (isPM && h < 12) h += 12
+    if (isAM && h === 12) h = 0
+    if (h > 23 || min > 59) return null
+    return `${h.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`
+  }
+
+  const parseVoiceCommand = (transcript: string): {clientId: string, clientName: string, startTime: string, endTime: string, date: string} | null => {
+    const text = transcript.trim()
+    const today = new Date()
+    let date = today.toISOString().slice(0, 10)
+    if (text.includes('מחר')) {
+      const d = new Date(today); d.setDate(d.getDate() + 1); date = d.toISOString().slice(0, 10)
+    } else if (text.includes('אתמול')) {
+      const d = new Date(today); d.setDate(d.getDate() - 1); date = d.toISOString().slice(0, 10)
+    }
+    let matchedClient: {id: string, name: string} | null = null
+    for (const c of clients) {
+      if (text.includes(c.name)) { matchedClient = c; break }
+    }
+    if (!matchedClient) {
+      for (const c of clients) {
+        const words = c.name.split(/\s+/).filter(w => w.length > 1)
+        if (words.some(w => text.includes(w))) { matchedClient = c; break }
+      }
+    }
+    const timeMatch = text.match(/מ(?:שעה\s+)?(.+?)\s+עד\s+(.+?)(?:\s+(?:היום|מחר|אתמול|בבוקר|בלילה)|$)/) ||
+                      text.match(/מ(?:שעה\s+)?(.+?)\s+עד\s+(.+)/)
+    if (!timeMatch) return null
+    const startTime = hebrewTimeToHHMM(timeMatch[1])
+    const endTime = hebrewTimeToHHMM(timeMatch[2])
+    if (!matchedClient || !startTime || !endTime) return null
+    return { clientId: matchedClient.id, clientName: matchedClient.name, startTime, endTime, date }
   }
 
   const getActualValue = (catId: string, month: string): number | null => {
@@ -6625,6 +6671,87 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           ⚠️ {errorToast}
         </div>
       )}
+      {/* Voice command confirmation panel */}
+      {voiceParsed && (
+        <>
+          <div className="m-overlay" onClick={() => { setVoiceParsed(null); setVoiceTranscript('') }} />
+          <div style={{position:'fixed',bottom:80,left:16,right:16,zIndex:500,background:'white',borderRadius:16,padding:'20px 20px 16px',boxShadow:'0 8px 32px rgba(0,0,0,0.18)',direction:'rtl'}}>
+            <div style={{fontSize:15,fontWeight:700,color:'#111827',marginBottom:12}}>🎙 הוסף דיווח?</div>
+            <div style={{fontSize:14,color:'#374151',fontWeight:600,marginBottom:4}}>{voiceParsed.clientName}</div>
+            <div style={{fontSize:13,color:'#6B7280',marginBottom:2}}>
+              {new Date(voiceParsed.date).toLocaleDateString('he-IL',{weekday:'long',day:'2-digit',month:'2-digit',year:'2-digit'})}
+            </div>
+            <div style={{fontSize:13,color:'#6B7280',marginBottom:16}}>{voiceParsed.startTime} — {voiceParsed.endTime}</div>
+            <div style={{display:'flex',gap:8}}>
+              <button onClick={() => { setVoiceParsed(null); setVoiceTranscript('') }}
+                style={{flex:1,padding:'12px',border:'1px solid #E5E7EB',borderRadius:10,background:'white',fontSize:14,fontWeight:600,cursor:'pointer',color:'#374151'}}>ביטול</button>
+              <button onClick={() => {
+                const entry: TimeEntry = {
+                  id: Date.now().toString(),
+                  clientId: voiceParsed.clientId,
+                  startDate: voiceParsed.date,
+                  endDate: voiceParsed.date,
+                  startTime: voiceParsed.startTime,
+                  endTime: voiceParsed.endTime,
+                  notes: ''
+                }
+                setTimeEntries(prev => [...prev, entry])
+                setSuccessToast(`דיווח נוסף — ${voiceParsed.clientName}`)
+                setTimeout(() => setSuccessToast(null), 3000)
+                setVoiceParsed(null)
+                setVoiceTranscript('')
+              }} style={{flex:2,padding:'12px',border:'none',borderRadius:10,background:'#7c3aed',color:'white',fontSize:14,fontWeight:700,cursor:'pointer'}}>✓ הוסף דיווח</button>
+            </div>
+            {voiceTranscript && (
+              <div style={{marginTop:10,fontSize:11,color:'#9CA3AF',textAlign:'center'}}>"{voiceTranscript}"</div>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* Voice mic floating button */}
+      <button
+        title="דיווח קולי"
+        onClick={() => {
+          const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+          if (!SpeechRecognitionAPI) { alert('הדפדפן שלך לא תומך בזיהוי קול. נסי Chrome.'); return }
+          if (voiceListening) { voiceRecogRef.current?.stop(); setVoiceListening(false); return }
+          const recog = new SpeechRecognitionAPI()
+          recog.lang = 'he-IL'
+          recog.interimResults = false
+          recog.maxAlternatives = 3
+          voiceRecogRef.current = recog
+          recog.onstart = () => setVoiceListening(true)
+          recog.onend = () => setVoiceListening(false)
+          recog.onerror = () => setVoiceListening(false)
+          recog.onresult = (event: any) => {
+            const alternatives: string[] = Array.from(event.results[0]).map((r: any) => r.transcript)
+            for (const t of alternatives) {
+              const parsed = parseVoiceCommand(t)
+              if (parsed) { setVoiceParsed(parsed); setVoiceTranscript(t); return }
+            }
+            setVoiceTranscript(alternatives[0] || '')
+            setErrorToast(`לא הצלחתי לפענח: "${alternatives[0]}"`)
+            setTimeout(() => setErrorToast(null), 3000)
+          }
+          recog.start()
+        }}
+        style={{
+          position:'fixed', bottom:80, left:16, zIndex:400,
+          width:52, height:52, borderRadius:'50%',
+          background: voiceListening ? '#DC2626' : '#7c3aed',
+          border:'none', cursor:'pointer',
+          display:'flex', alignItems:'center', justifyContent:'center',
+          boxShadow: voiceListening ? '0 0 0 6px rgba(220,38,38,0.3)' : '0 4px 14px rgba(124,58,237,0.45)',
+          transition:'all 0.2s'
+        }}
+      >
+        {voiceListening
+          ? <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+          : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        }
+      </button>
+
       {showExitConfirm && (
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.4)',zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center',padding:24}}>
           <div style={{background:'#fff',borderRadius:16,padding:'28px 24px',maxWidth:300,width:'100%',textAlign:'center',boxShadow:'0 8px 32px rgba(0,0,0,0.18)'}}>
