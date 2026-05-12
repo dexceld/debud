@@ -6667,10 +6667,19 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         </div>
       )}
       {errorToast && (
-        <div className="m-delete-toast" style={{background:'#FEF2F2',color:'#DC2626',border:'1px solid #FECACA'}}>
+        <div className="m-delete-toast m-voice-error-toast" style={{background:'#FEF2F2',color:'#DC2626',border:'1px solid #FECACA'}}>
           ⚠️ {errorToast}
         </div>
       )}
+      {/* Voice listening banner */}
+      {voiceListening && (
+        <div className="m-voice-listening-banner">
+          <div className="m-voice-pulse-dot" />
+          <span>🎙 מקשיב... דבר/י עכשיו</span>
+          <div className="m-voice-pulse-dot" />
+        </div>
+      )}
+
       {/* Voice command confirmation panel */}
       {voiceParsed && (
         <>
@@ -6731,8 +6740,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               if (parsed) { setVoiceParsed(parsed); setVoiceTranscript(t); return }
             }
             setVoiceTranscript(alternatives[0] || '')
-            setErrorToast(`לא הצלחתי לפענח: "${alternatives[0]}"`)
-            setTimeout(() => setErrorToast(null), 3000)
+            setErrorToast('לא הצלחתי לפענח. נסי: "לקוח [שם] משעה [X] עד [Y]"')
+            setTimeout(() => setErrorToast(null), 4000)
           }
           recog.start()
         }}
