@@ -2182,7 +2182,14 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         const endIdx = forecastEnd ? months.indexOf(forecastEnd) : months.length - 1
         setForecasts(prev => {
           const next = { ...prev }
-          for (let i = startIdx; i <= endIdx; i++) next[cat.id] = { ...(next[cat.id] || {}), [months[i]]: signedVal }
+          for (let i = startIdx; i <= endIdx; i++) {
+            if (isAdd) {
+              const existingForecast = next[cat.id]?.[months[i]] ?? (isIncome ? -Math.abs(cat.budget) : Math.abs(cat.budget))
+              next[cat.id] = { ...(next[cat.id] || {}), [months[i]]: existingForecast + signedVal }
+            } else {
+              next[cat.id] = { ...(next[cat.id] || {}), [months[i]]: signedVal }
+            }
+          }
           return next
         })
       }
