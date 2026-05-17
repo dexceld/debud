@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android Static Shortcuts — בשליטה
+  Place this file at: app/src/main/res/xml/shortcuts.xml
+  Reference in AndroidManifest.xml:
+    <meta-data
+      android:name="android.app.shortcuts"
+      android:resource="@xml/shortcuts" />
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <!-- דיווח שעות -->
+  <shortcut
+    android:shortcutId="action_hours"
+    android:enabled="true"
+    android:shortcutShortLabel="דיווח שעות"
+    android:shortcutLongLabel="דווח שעות ללקוח">
+    <intent
+      android:action="android.intent.action.VIEW"
+      android:data="https://debud.onrender.com/?action=hours" />
+    <categories android:name="android.shortcut.conversation" />
+  </shortcut>
+
+  <!-- הוסף הוצאה -->
+  <shortcut
+    android:shortcutId="action_expense"
+    android:enabled="true"
+    android:shortcutShortLabel="הוצאה"
+    android:shortcutLongLabel="הוסף הוצאה">
+    <intent
+      android:action="android.intent.action.VIEW"
+      android:data="https://debud.onrender.com/?action=expense" />
+    <categories android:name="android.shortcut.conversation" />
+  </shortcut>
+
+  <!-- הוסף הכנסה -->
+  <shortcut
+    android:shortcutId="action_income"
+    android:enabled="true"
+    android:shortcutShortLabel="הכנסה"
+    android:shortcutLongLabel="הוסף הכנסה">
+    <intent
+      android:action="android.intent.action.VIEW"
+      android:data="https://debud.onrender.com/?action=income" />
+    <categories android:name="android.shortcut.conversation" />
+  </shortcut>
+
+</shortcuts>

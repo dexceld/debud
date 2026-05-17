@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Google Assistant App Actions — בשליטה
+  Place this file at: app/src/main/res/xml/app_actions.xml
+  Reference in AndroidManifest.xml (inside <application>):
+    <meta-data
+      android:name="com.google.android.actions"
+      android:resource="@xml/app_actions" />
+
+  Register the Actions project at:
+    https://console.actions.google.com/
+
+  App Actions docs:
+    https://developer.android.com/guide/app-actions/overview
+-->
+<actions>
+
+  <!--
+    דיווח שעות: "Hey Google, דווח שעות ב-בשליטה"
+    Built-in Intent: OPEN_APP_FEATURE
+  -->
+  <action intentName="actions.intent.OPEN_APP_FEATURE">
+    <fulfillment urlTemplate="https://debud.onrender.com/?action=hours">
+      <parameter-mapping
+        intentParameter="feature"
+        urlParameter="action"
+        required="false" />
+    </fulfillment>
+    <entity-set-reference entitySetId="featureEntitySet" paramName="feature" />
+  </action>
+
+  <!--
+    Custom intents for expense and income
+  -->
+  <action intentName="custom.actions.intent.ADD_EXPENSE">
+    <fulfillment urlTemplate="https://debud.onrender.com/?action=expense{&amp;catName}{&amp;amount}">
+      <parameter-mapping intentParameter="catName" urlParameter="catName" required="false" />
+      <parameter-mapping intentParameter="amount"  urlParameter="amount"  required="false" />
+    </fulfillment>
+  </action>
+
+  <action intentName="custom.actions.intent.ADD_INCOME">
+    <fulfillment urlTemplate="https://debud.onrender.com/?action=income{&amp;catName}{&amp;amount}">
+      <parameter-mapping intentParameter="catName" urlParameter="catName" required="false" />
+      <parameter-mapping intentParameter="amount"  urlParameter="amount"  required="false" />
+    </fulfillment>
+  </action>
+
+  <!-- Entity set: app features -->
+  <entity-set entitySetId="featureEntitySet">
+    <entity
+      identifier="hours"
+      name="דיווח שעות"
+      sameAs="https://schema.org/ReportAction" />
+    <entity
+      identifier="expense"
+      name="הוצאה"
+      sameAs="https://schema.org/Action" />
+    <entity
+      identifier="income"
+      name="הכנסה"
+      sameAs="https://schema.org/Action" />
+  </entity-set>
+
+</actions>

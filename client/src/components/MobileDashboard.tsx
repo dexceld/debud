@@ -352,7 +352,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [voiceTranscript, setVoiceTranscript] = useState('')
   type VoiceParsed =
     | { type: 'timeEntry'; clientId: string; clientName: string; startTime: string; endTime: string; date: string }
-    | { type: 'expense'; catId: string; catName: string; amount: number; month: string }
+    | { type: 'expense'; catId: string; catName: string; amount: number; month: string; isIncome: boolean }
   const [voiceParsed, setVoiceParsed] = useState<VoiceParsed | null>(null)
   const voiceRecogRef = useRef<any>(null)
   // Long-press helpers (shared across cards)
@@ -574,22 +574,33 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     }
   }, [groups])
 
-  // Handle ?voice= deep links — auto-navigate and auto-start mic
+  const [voiceMode, setVoiceMode] = useState<'hours' | 'expense' | 'income' | undefined>(undefined)
+
+  // Handle ?action= (App Actions / shortcuts) and legacy ?voice= deep links
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
+    const action = params.get('action')
     const voiceParam = params.get('voice')
-    if (voiceParam === 'time') {
-      setScreen('time-tracking')
+    if (action === 'hours') {
+      setVoiceMode('hours'); setScreen('time-tracking')
       setTimeout(() => startVoiceRecognition(), 1000)
-      window.history.replaceState({}, '', window.location.pathname)
+    } else if (action === 'expense') {
+      setVoiceMode('expense')
+      setTimeout(() => startVoiceRecognition(), 1000)
+    } else if (action === 'income') {
+      setVoiceMode('income')
+      setTimeout(() => startVoiceRecognition(), 1000)
+    } else if (voiceParam === 'time') {
+      setVoiceMode('hours'); setScreen('time-tracking')
+      setTimeout(() => startVoiceRecognition(), 1000)
     } else if (voiceParam === 'expense') {
+      setVoiceMode('expense')
       setTimeout(() => startVoiceRecognition(), 1000)
-      window.history.replaceState({}, '', window.location.pathname)
     } else if (voiceParam === '1') {
-      // Default: start mic from home screen (works for both expenses + time entries)
       setTimeout(() => startVoiceRecognition(), 1000)
-      window.history.replaceState({}, '', window.location.pathname)
     }
+    // Clean URL regardless
+    if (action || voiceParam) window.history.replaceState({}, '', window.location.pathname)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle employee invitation link - check URL parameter on mount
@@ -714,37 +725,43 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     return { type: 'timeEntry', clientId: matchedClient.id, clientName: matchedClient.name, startTime, endTime, date }
   }
 
-  const parseExpenseVoice = (text: string): VoiceParsed | null => {
+  const parseExpenseVoice = (text: string, forceIncome = false): VoiceParsed | null => {
     const amountMatch = text.match(/(\d+(?:[.,]\d+)?)/)
     if (!amountMatch) return null
     const amount = parseFloat(amountMatch[1].replace(',', '.'))
     if (!amount || amount <= 0) return null
+    const isIncomeContext = forceIncome || /קיבל|הכנס|משכורת|שכר|הכנסה/.test(text)
     const expCats = categories.filter(c => c.groupId !== 'g5')
+    const incCats = categories.filter(c => c.groupId === 'g5')
+    const orderedCats = isIncomeContext ? [...incCats, ...expCats] : [...expCats, ...incCats]
     let matchedCat: Category | null = null
-    for (const cat of expCats) {
+    for (const cat of orderedCats) {
       if (text.includes(cat.name)) { matchedCat = cat; break }
     }
     if (!matchedCat) {
-      for (const cat of expCats) {
+      for (const cat of orderedCats) {
         const words = cat.name.split(/\s+/).filter(w => w.length > 1)
         if (words.some(w => text.includes(w))) { matchedCat = cat; break }
       }
     }
+    if (!matchedCat && forceIncome && incCats.length > 0) matchedCat = incCats[0]
     if (!matchedCat) return null
-    return { type: 'expense', catId: matchedCat.id, catName: matchedCat.name, amount, month: currentMonth }
+    const isIncome = matchedCat.groupId === 'g5'
+    return { type: 'expense', catId: matchedCat.id, catName: matchedCat.name, amount, month: currentMonth, isIncome }
   }
 
-  const parseVoiceCommand = (transcript: string): VoiceParsed | null => {
+  const parseVoiceCommand = (transcript: string, mode?: 'hours' | 'expense' | 'income'): VoiceParsed | null => {
     const text = transcript.trim()
-    // Time entry: must have a time range ("עד")
+    if (mode === 'hours') return parseTimeEntryVoice(text)
+    if (mode === 'income') return parseExpenseVoice(text, true)
+    if (mode === 'expense') return parseExpenseVoice(text, false)
+    // Auto-detect: time entry has a time range pattern
     if (/עד\s+\d|עד שעה/.test(text)) {
       const r = parseTimeEntryVoice(text)
       if (r) return r
     }
-    // Expense: has an amount + category name
     const expenseResult = parseExpenseVoice(text)
     if (expenseResult) return expenseResult
-    // Fallback: try time entry
     return parseTimeEntryVoice(text)
   }
 
@@ -769,7 +786,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     recog.onresult = (event: any) => {
       const alternatives: string[] = Array.from(event.results[0]).map((r: any) => r.transcript)
       for (const t of alternatives) {
-        const parsed = parseVoiceCommand(t)
+        const parsed = parseVoiceCommand(t, voiceMode)
         if (parsed) { setVoiceParsed(parsed); setVoiceTranscript(t); return }
       }
       setVoiceTranscript(alternatives[0] || '')
@@ -6797,24 +6814,35 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               </>
             ) : (
               <>
-                <div style={{fontSize:15,fontWeight:700,color:'#111827',marginBottom:12}}>🎙 הוסף הוצאה?</div>
-                <div style={{fontSize:14,color:'#374151',fontWeight:600,marginBottom:4}}>{(voiceParsed as Extract<typeof voiceParsed, {type:'expense'}>).catName}</div>
-                <div style={{fontSize:20,color:'#7c3aed',fontWeight:700,marginBottom:4}}>₪{(voiceParsed as Extract<typeof voiceParsed, {type:'expense'}>).amount.toLocaleString()}</div>
-                <div style={{fontSize:12,color:'#9CA3AF',marginBottom:16}}>יתווסף לחודש הנוכחי</div>
-                <div style={{display:'flex',gap:8}}>
-                  <button onClick={() => { setVoiceParsed(null); setVoiceTranscript('') }}
-                    style={{flex:1,padding:'12px',border:'1px solid #E5E7EB',borderRadius:10,background:'white',fontSize:14,fontWeight:600,cursor:'pointer',color:'#374151'}}>ביטול</button>
-                  <button onClick={() => {
-                    const p = voiceParsed as Extract<typeof voiceParsed, {type:'expense'}>
-                    setActuals(prev => {
-                      const existing = prev[p.catId]?.[p.month] ?? 0
-                      return { ...prev, [p.catId]: { ...(prev[p.catId] || {}), [p.month]: existing + p.amount } }
-                    })
-                    setSuccessToast(`נוסף ₪${p.amount} ל${p.catName}`)
-                    setTimeout(() => setSuccessToast(null), 3000)
-                    setVoiceParsed(null); setVoiceTranscript('')
-                  }} style={{flex:2,padding:'12px',border:'none',borderRadius:10,background:'#7c3aed',color:'white',fontSize:14,fontWeight:700,cursor:'pointer'}}>✓ הוסף הוצאה</button>
-                </div>
+                {(() => {
+                  const p = voiceParsed as Extract<typeof voiceParsed, {type:'expense'}>
+                  const label = p.isIncome ? 'הכנסה' : 'הוצאה'
+                  const signedAmount = p.isIncome ? -Math.abs(p.amount) : Math.abs(p.amount)
+                  return (
+                    <>
+                      <div style={{fontSize:15,fontWeight:700,color:'#111827',marginBottom:12}}>🎙 הוסף {label}?</div>
+                      <div style={{fontSize:14,color:'#374151',fontWeight:600,marginBottom:4}}>{p.catName}</div>
+                      <div style={{fontSize:20,color: p.isIncome ? '#16A34A' : '#7c3aed',fontWeight:700,marginBottom:4}}>
+                        {p.isIncome ? '+' : ''}₪{Math.abs(p.amount).toLocaleString()}
+                      </div>
+                      <div style={{fontSize:12,color:'#9CA3AF',marginBottom:16}}>יתווסף לחודש הנוכחי</div>
+                      <div style={{display:'flex',gap:8}}>
+                        <button onClick={() => { setVoiceParsed(null); setVoiceTranscript('') }}
+                          style={{flex:1,padding:'12px',border:'1px solid #E5E7EB',borderRadius:10,background:'white',fontSize:14,fontWeight:600,cursor:'pointer',color:'#374151'}}>ביטול</button>
+                        <button onClick={() => {
+                          setActuals(prev => {
+                            const existing = prev[p.catId]?.[p.month] ?? 0
+                            return { ...prev, [p.catId]: { ...(prev[p.catId] || {}), [p.month]: existing + signedAmount } }
+                          })
+                          setSuccessToast(`נוסף${p.isIncome ? ' +' : ' '}₪${Math.abs(p.amount)} ל${p.catName}`)
+                          setTimeout(() => setSuccessToast(null), 3000)
+                          setVoiceParsed(null); setVoiceTranscript('')
+                          setVoiceMode(undefined)
+                        }} style={{flex:2,padding:'12px',border:'none',borderRadius:10,background: p.isIncome ? '#16A34A' : '#7c3aed',color:'white',fontSize:14,fontWeight:700,cursor:'pointer'}}>✓ הוסף {label}</button>
+                      </div>
+                    </>
+                  )
+                })()}
               </>
             )}
             {voiceTranscript && (
