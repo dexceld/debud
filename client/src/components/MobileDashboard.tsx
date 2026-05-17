@@ -790,7 +790,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         if (parsed) { setVoiceParsed(parsed); setVoiceTranscript(t); return }
       }
       setVoiceTranscript(alternatives[0] || '')
-      setErrorToast('לא הצלחתי לפענח. נסי: "לקוח [שם] משעה [X] עד [Y]"')
+      setErrorToast('לא הצלחתי לפענח. דיווח שעות: "[שם לקוח] מ-8 עד 16". הוצאה: "[קטגוריה] [סכום]"')
       setTimeout(() => setErrorToast(null), 4000)
     }
     recog.start()
@@ -6818,27 +6818,45 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   const p = voiceParsed as Extract<typeof voiceParsed, {type:'expense'}>
                   const label = p.isIncome ? 'הכנסה' : 'הוצאה'
                   const signedAmount = p.isIncome ? -Math.abs(p.amount) : Math.abs(p.amount)
+                  const existing = actuals[p.catId]?.[p.month]
+                  const existingAbs = existing !== undefined ? Math.abs(existing) : null
+                  const accentColor = p.isIncome ? '#16A34A' : '#7c3aed'
+                  const save = (replace: boolean) => {
+                    setActuals(prev => ({
+                      ...prev,
+                      [p.catId]: { ...(prev[p.catId] || {}), [p.month]: replace ? signedAmount : (prev[p.catId]?.[p.month] ?? 0) + signedAmount }
+                    }))
+                    setSuccessToast(replace ? `עודכן ₪${Math.abs(p.amount)} ב${p.catName}` : `נוסף ₪${Math.abs(p.amount)} ל${p.catName}`)
+                    setTimeout(() => setSuccessToast(null), 3000)
+                    setVoiceParsed(null); setVoiceTranscript(''); setVoiceMode(undefined)
+                  }
                   return (
                     <>
-                      <div style={{fontSize:15,fontWeight:700,color:'#111827',marginBottom:12}}>🎙 הוסף {label}?</div>
-                      <div style={{fontSize:14,color:'#374151',fontWeight:600,marginBottom:4}}>{p.catName}</div>
-                      <div style={{fontSize:20,color: p.isIncome ? '#16A34A' : '#7c3aed',fontWeight:700,marginBottom:4}}>
+                      <div style={{fontSize:15,fontWeight:700,color:'#111827',marginBottom:12}}>🎙 {label} — {p.catName}</div>
+                      <div style={{fontSize:22,color:accentColor,fontWeight:700,marginBottom:4}}>
                         {p.isIncome ? '+' : ''}₪{Math.abs(p.amount).toLocaleString()}
                       </div>
-                      <div style={{fontSize:12,color:'#9CA3AF',marginBottom:16}}>יתווסף לחודש הנוכחי</div>
-                      <div style={{display:'flex',gap:8}}>
+                      {existingAbs !== null && (
+                        <div style={{fontSize:12,color:'#6B7280',marginBottom:10}}>
+                          קיים כבר: ₪{existingAbs.toLocaleString()} — הוסף או עדכן?
+                        </div>
+                      )}
+                      {existingAbs === null && (
+                        <div style={{fontSize:12,color:'#9CA3AF',marginBottom:10}}>חודש נוכחי</div>
+                      )}
+                      <div style={{display:'flex',gap:8,marginBottom:0}}>
                         <button onClick={() => { setVoiceParsed(null); setVoiceTranscript('') }}
-                          style={{flex:1,padding:'12px',border:'1px solid #E5E7EB',borderRadius:10,background:'white',fontSize:14,fontWeight:600,cursor:'pointer',color:'#374151'}}>ביטול</button>
-                        <button onClick={() => {
-                          setActuals(prev => {
-                            const existing = prev[p.catId]?.[p.month] ?? 0
-                            return { ...prev, [p.catId]: { ...(prev[p.catId] || {}), [p.month]: existing + signedAmount } }
-                          })
-                          setSuccessToast(`נוסף${p.isIncome ? ' +' : ' '}₪${Math.abs(p.amount)} ל${p.catName}`)
-                          setTimeout(() => setSuccessToast(null), 3000)
-                          setVoiceParsed(null); setVoiceTranscript('')
-                          setVoiceMode(undefined)
-                        }} style={{flex:2,padding:'12px',border:'none',borderRadius:10,background: p.isIncome ? '#16A34A' : '#7c3aed',color:'white',fontSize:14,fontWeight:700,cursor:'pointer'}}>✓ הוסף {label}</button>
+                          style={{flex:1,padding:'10px',border:'1px solid #E5E7EB',borderRadius:10,background:'white',fontSize:13,fontWeight:600,cursor:'pointer',color:'#374151'}}>ביטול</button>
+                        {existingAbs !== null && (
+                          <button onClick={() => save(false)}
+                            style={{flex:1,padding:'10px',border:`1px solid ${accentColor}`,borderRadius:10,background:'white',fontSize:13,fontWeight:600,cursor:'pointer',color:accentColor}}>
+                            + הוסף
+                          </button>
+                        )}
+                        <button onClick={() => save(existingAbs === null ? false : true)}
+                          style={{flex:existingAbs !== null ? 1 : 2,padding:'10px',border:'none',borderRadius:10,background:accentColor,color:'white',fontSize:13,fontWeight:700,cursor:'pointer'}}>
+                          {existingAbs !== null ? '✓ עדכן' : `✓ שמור`}
+                        </button>
                       </div>
                     </>
                   )
