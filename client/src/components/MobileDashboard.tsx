@@ -574,7 +574,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     }
   }, [groups])
 
-  // Handle ?voice= deep links — auto-navigate and optionally auto-start mic
+  // Handle ?voice= deep links — auto-navigate and auto-start mic
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const voiceParam = params.get('voice')
@@ -583,12 +583,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       setTimeout(() => startVoiceRecognition(), 1000)
       window.history.replaceState({}, '', window.location.pathname)
     } else if (voiceParam === 'expense') {
-      // Stay on home screen, just start mic
       setTimeout(() => startVoiceRecognition(), 1000)
       window.history.replaceState({}, '', window.location.pathname)
     } else if (voiceParam === '1') {
-      // Legacy: just navigate to time tracking
-      setScreen('time-tracking')
+      // Default: start mic from home screen (works for both expenses + time entries)
+      setTimeout(() => startVoiceRecognition(), 1000)
       window.history.replaceState({}, '', window.location.pathname)
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -760,7 +759,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     voiceRecogRef.current = recog
     recog.onstart = () => setVoiceListening(true)
     recog.onend = () => setVoiceListening(false)
-    recog.onerror = () => setVoiceListening(false)
+    recog.onerror = (e: any) => {
+      setVoiceListening(false)
+      if (e.error === 'not-allowed' || e.error === 'permission-denied') {
+        setErrorToast('נדרשת הרשאת מיקרופון — אפשרי בהגדרות הדפדפן')
+        setTimeout(() => setErrorToast(null), 5000)
+      }
+    }
     recog.onresult = (event: any) => {
       const alternatives: string[] = Array.from(event.results[0]).map((r: any) => r.transcript)
       for (const t of alternatives) {
@@ -6757,6 +6762,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <div className="m-voice-pulse-dot" />
           <span>🎙 מקשיב... דבר/י עכשיו</span>
           <div className="m-voice-pulse-dot" />
+          <button
+            onClick={() => { voiceRecogRef.current?.stop(); setVoiceListening(false) }}
+            style={{position:'absolute',left:12,top:'50%',transform:'translateY(-50%)',background:'rgba(255,255,255,0.25)',border:'none',borderRadius:'50%',width:28,height:28,color:'white',fontSize:16,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}
+          >✕</button>
         </div>
       )}
 
