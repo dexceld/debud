@@ -571,6 +571,17 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     }
   }, [groups])
 
+  // Handle ?voice=1 — auto-navigate to time tracking and start mic
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('voice') === '1') {
+      setScreen('time-tracking')
+      setTimeout(() => startVoiceRecognition(), 1200)
+      // Clean up URL without reload
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Handle employee invitation link - check URL parameter on mount
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -692,6 +703,31 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const endTime = hebrewTimeToHHMM(timeMatch[2])
     if (!matchedClient || !startTime || !endTime) return null
     return { clientId: matchedClient.id, clientName: matchedClient.name, startTime, endTime, date }
+  }
+
+  const startVoiceRecognition = () => {
+    const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (!SpeechRecognitionAPI) { alert('הדפדפן שלך לא תומך בזיהוי קול. נסי Chrome.'); return }
+    if (voiceListening) { voiceRecogRef.current?.stop(); setVoiceListening(false); return }
+    const recog = new SpeechRecognitionAPI()
+    recog.lang = 'he-IL'
+    recog.interimResults = false
+    recog.maxAlternatives = 3
+    voiceRecogRef.current = recog
+    recog.onstart = () => setVoiceListening(true)
+    recog.onend = () => setVoiceListening(false)
+    recog.onerror = () => setVoiceListening(false)
+    recog.onresult = (event: any) => {
+      const alternatives: string[] = Array.from(event.results[0]).map((r: any) => r.transcript)
+      for (const t of alternatives) {
+        const parsed = parseVoiceCommand(t)
+        if (parsed) { setVoiceParsed(parsed); setVoiceTranscript(t); return }
+      }
+      setVoiceTranscript(alternatives[0] || '')
+      setErrorToast('לא הצלחתי לפענח. נסי: "לקוח [שם] משעה [X] עד [Y]"')
+      setTimeout(() => setErrorToast(null), 4000)
+    }
+    recog.start()
   }
 
   const getActualValue = (catId: string, month: string): number | null => {
@@ -6721,30 +6757,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       {/* Voice mic floating button */}
       <button
         title="דיווח קולי"
-        onClick={() => {
-          const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-          if (!SpeechRecognitionAPI) { alert('הדפדפן שלך לא תומך בזיהוי קול. נסי Chrome.'); return }
-          if (voiceListening) { voiceRecogRef.current?.stop(); setVoiceListening(false); return }
-          const recog = new SpeechRecognitionAPI()
-          recog.lang = 'he-IL'
-          recog.interimResults = false
-          recog.maxAlternatives = 3
-          voiceRecogRef.current = recog
-          recog.onstart = () => setVoiceListening(true)
-          recog.onend = () => setVoiceListening(false)
-          recog.onerror = () => setVoiceListening(false)
-          recog.onresult = (event: any) => {
-            const alternatives: string[] = Array.from(event.results[0]).map((r: any) => r.transcript)
-            for (const t of alternatives) {
-              const parsed = parseVoiceCommand(t)
-              if (parsed) { setVoiceParsed(parsed); setVoiceTranscript(t); return }
-            }
-            setVoiceTranscript(alternatives[0] || '')
-            setErrorToast('לא הצלחתי לפענח. נסי: "לקוח [שם] משעה [X] עד [Y]"')
-            setTimeout(() => setErrorToast(null), 4000)
-          }
-          recog.start()
-        }}
+        onClick={startVoiceRecognition}
         style={{
           position:'fixed', bottom:80, left:16, zIndex:400,
           width:52, height:52, borderRadius:'50%',
