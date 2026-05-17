@@ -571,12 +571,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     }
   }, [groups])
 
-  // Handle ?voice=1 — auto-navigate to time tracking and start mic
+  // Handle ?voice=1 — auto-navigate to time tracking (mic stays optional)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.get('voice') === '1') {
       setScreen('time-tracking')
-      setTimeout(() => startVoiceRecognition(), 1200)
       // Clean up URL without reload
       window.history.replaceState({}, '', window.location.pathname)
     }
