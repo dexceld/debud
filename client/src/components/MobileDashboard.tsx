@@ -350,7 +350,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [bulkEmployeePaymentAmount, setBulkEmployeePaymentAmount] = useState('')
   const [voiceListening, setVoiceListening] = useState(false)
   const [voiceTranscript, setVoiceTranscript] = useState('')
-  const [voiceParsed, setVoiceParsed] = useState<{clientId: string, clientName: string, startTime: string, endTime: string, date: string} | null>(null)
+  type VoiceParsed =
+    | { type: 'timeEntry'; clientId: string; clientName: string; startTime: string; endTime: string; date: string }
+    | { type: 'expense'; catId: string; catName: string; amount: number; month: string }
+  const [voiceParsed, setVoiceParsed] = useState<VoiceParsed | null>(null)
   const voiceRecogRef = useRef<any>(null)
   // Long-press helpers (shared across cards)
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -571,12 +574,21 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     }
   }, [groups])
 
-  // Handle ?voice=1 — auto-navigate to time tracking (mic stays optional)
+  // Handle ?voice= deep links — auto-navigate and optionally auto-start mic
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    if (params.get('voice') === '1') {
+    const voiceParam = params.get('voice')
+    if (voiceParam === 'time') {
       setScreen('time-tracking')
-      // Clean up URL without reload
+      setTimeout(() => startVoiceRecognition(), 1000)
+      window.history.replaceState({}, '', window.location.pathname)
+    } else if (voiceParam === 'expense') {
+      // Stay on home screen, just start mic
+      setTimeout(() => startVoiceRecognition(), 1000)
+      window.history.replaceState({}, '', window.location.pathname)
+    } else if (voiceParam === '1') {
+      // Legacy: just navigate to time tracking
+      setScreen('time-tracking')
       window.history.replaceState({}, '', window.location.pathname)
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -676,8 +688,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     return `${h.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`
   }
 
-  const parseVoiceCommand = (transcript: string): {clientId: string, clientName: string, startTime: string, endTime: string, date: string} | null => {
-    const text = transcript.trim()
+  const parseTimeEntryVoice = (text: string): VoiceParsed | null => {
     const today = new Date()
     let date = today.toISOString().slice(0, 10)
     if (text.includes('מחר')) {
@@ -701,7 +712,41 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const startTime = hebrewTimeToHHMM(timeMatch[1])
     const endTime = hebrewTimeToHHMM(timeMatch[2])
     if (!matchedClient || !startTime || !endTime) return null
-    return { clientId: matchedClient.id, clientName: matchedClient.name, startTime, endTime, date }
+    return { type: 'timeEntry', clientId: matchedClient.id, clientName: matchedClient.name, startTime, endTime, date }
+  }
+
+  const parseExpenseVoice = (text: string): VoiceParsed | null => {
+    const amountMatch = text.match(/(\d+(?:[.,]\d+)?)/)
+    if (!amountMatch) return null
+    const amount = parseFloat(amountMatch[1].replace(',', '.'))
+    if (!amount || amount <= 0) return null
+    const expCats = categories.filter(c => c.groupId !== 'g5')
+    let matchedCat: Category | null = null
+    for (const cat of expCats) {
+      if (text.includes(cat.name)) { matchedCat = cat; break }
+    }
+    if (!matchedCat) {
+      for (const cat of expCats) {
+        const words = cat.name.split(/\s+/).filter(w => w.length > 1)
+        if (words.some(w => text.includes(w))) { matchedCat = cat; break }
+      }
+    }
+    if (!matchedCat) return null
+    return { type: 'expense', catId: matchedCat.id, catName: matchedCat.name, amount, month: currentMonth }
+  }
+
+  const parseVoiceCommand = (transcript: string): VoiceParsed | null => {
+    const text = transcript.trim()
+    // Time entry: must have a time range ("עד")
+    if (/עד\s+\d|עד שעה/.test(text)) {
+      const r = parseTimeEntryVoice(text)
+      if (r) return r
+    }
+    // Expense: has an amount + category name
+    const expenseResult = parseExpenseVoice(text)
+    if (expenseResult) return expenseResult
+    // Fallback: try time entry
+    return parseTimeEntryVoice(text)
   }
 
   const startVoiceRecognition = () => {
@@ -6720,32 +6765,49 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         <>
           <div className="m-overlay" onClick={() => { setVoiceParsed(null); setVoiceTranscript('') }} />
           <div style={{position:'fixed',bottom:80,left:16,right:16,zIndex:500,background:'white',borderRadius:16,padding:'20px 20px 16px',boxShadow:'0 8px 32px rgba(0,0,0,0.18)',direction:'rtl'}}>
-            <div style={{fontSize:15,fontWeight:700,color:'#111827',marginBottom:12}}>🎙 הוסף דיווח?</div>
-            <div style={{fontSize:14,color:'#374151',fontWeight:600,marginBottom:4}}>{voiceParsed.clientName}</div>
-            <div style={{fontSize:13,color:'#6B7280',marginBottom:2}}>
-              {new Date(voiceParsed.date).toLocaleDateString('he-IL',{weekday:'long',day:'2-digit',month:'2-digit',year:'2-digit'})}
-            </div>
-            <div style={{fontSize:13,color:'#6B7280',marginBottom:16}}>{voiceParsed.startTime} — {voiceParsed.endTime}</div>
-            <div style={{display:'flex',gap:8}}>
-              <button onClick={() => { setVoiceParsed(null); setVoiceTranscript('') }}
-                style={{flex:1,padding:'12px',border:'1px solid #E5E7EB',borderRadius:10,background:'white',fontSize:14,fontWeight:600,cursor:'pointer',color:'#374151'}}>ביטול</button>
-              <button onClick={() => {
-                const entry: TimeEntry = {
-                  id: Date.now().toString(),
-                  clientId: voiceParsed.clientId,
-                  startDate: voiceParsed.date,
-                  endDate: voiceParsed.date,
-                  startTime: voiceParsed.startTime,
-                  endTime: voiceParsed.endTime,
-                  notes: ''
-                }
-                setTimeEntries(prev => [...prev, entry])
-                setSuccessToast(`דיווח נוסף — ${voiceParsed.clientName}`)
-                setTimeout(() => setSuccessToast(null), 3000)
-                setVoiceParsed(null)
-                setVoiceTranscript('')
-              }} style={{flex:2,padding:'12px',border:'none',borderRadius:10,background:'#7c3aed',color:'white',fontSize:14,fontWeight:700,cursor:'pointer'}}>✓ הוסף דיווח</button>
-            </div>
+            {voiceParsed.type === 'timeEntry' ? (
+              <>
+                <div style={{fontSize:15,fontWeight:700,color:'#111827',marginBottom:12}}>🎙 הוסף דיווח שעות?</div>
+                <div style={{fontSize:14,color:'#374151',fontWeight:600,marginBottom:4}}>{voiceParsed.clientName}</div>
+                <div style={{fontSize:13,color:'#6B7280',marginBottom:2}}>
+                  {new Date(voiceParsed.date).toLocaleDateString('he-IL',{weekday:'long',day:'2-digit',month:'2-digit',year:'2-digit'})}
+                </div>
+                <div style={{fontSize:13,color:'#6B7280',marginBottom:16}}>{voiceParsed.startTime} — {voiceParsed.endTime}</div>
+                <div style={{display:'flex',gap:8}}>
+                  <button onClick={() => { setVoiceParsed(null); setVoiceTranscript('') }}
+                    style={{flex:1,padding:'12px',border:'1px solid #E5E7EB',borderRadius:10,background:'white',fontSize:14,fontWeight:600,cursor:'pointer',color:'#374151'}}>ביטול</button>
+                  <button onClick={() => {
+                    const p = voiceParsed as Extract<typeof voiceParsed, {type:'timeEntry'}>
+                    const entry: TimeEntry = { id: Date.now().toString(), clientId: p.clientId, startDate: p.date, endDate: p.date, startTime: p.startTime, endTime: p.endTime, notes: '' }
+                    setTimeEntries(prev => [...prev, entry])
+                    setSuccessToast(`דיווח נוסף — ${p.clientName}`)
+                    setTimeout(() => setSuccessToast(null), 3000)
+                    setVoiceParsed(null); setVoiceTranscript('')
+                  }} style={{flex:2,padding:'12px',border:'none',borderRadius:10,background:'#7c3aed',color:'white',fontSize:14,fontWeight:700,cursor:'pointer'}}>✓ הוסף דיווח</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={{fontSize:15,fontWeight:700,color:'#111827',marginBottom:12}}>🎙 הוסף הוצאה?</div>
+                <div style={{fontSize:14,color:'#374151',fontWeight:600,marginBottom:4}}>{(voiceParsed as Extract<typeof voiceParsed, {type:'expense'}>).catName}</div>
+                <div style={{fontSize:20,color:'#7c3aed',fontWeight:700,marginBottom:4}}>₪{(voiceParsed as Extract<typeof voiceParsed, {type:'expense'}>).amount.toLocaleString()}</div>
+                <div style={{fontSize:12,color:'#9CA3AF',marginBottom:16}}>יתווסף לחודש הנוכחי</div>
+                <div style={{display:'flex',gap:8}}>
+                  <button onClick={() => { setVoiceParsed(null); setVoiceTranscript('') }}
+                    style={{flex:1,padding:'12px',border:'1px solid #E5E7EB',borderRadius:10,background:'white',fontSize:14,fontWeight:600,cursor:'pointer',color:'#374151'}}>ביטול</button>
+                  <button onClick={() => {
+                    const p = voiceParsed as Extract<typeof voiceParsed, {type:'expense'}>
+                    setActuals(prev => {
+                      const existing = prev[p.catId]?.[p.month] ?? 0
+                      return { ...prev, [p.catId]: { ...(prev[p.catId] || {}), [p.month]: existing + p.amount } }
+                    })
+                    setSuccessToast(`נוסף ₪${p.amount} ל${p.catName}`)
+                    setTimeout(() => setSuccessToast(null), 3000)
+                    setVoiceParsed(null); setVoiceTranscript('')
+                  }} style={{flex:2,padding:'12px',border:'none',borderRadius:10,background:'#7c3aed',color:'white',fontSize:14,fontWeight:700,cursor:'pointer'}}>✓ הוסף הוצאה</button>
+                </div>
+              </>
+            )}
             {voiceTranscript && (
               <div style={{marginTop:10,fontSize:11,color:'#9CA3AF',textAlign:'center'}}>"{voiceTranscript}"</div>
             )}
