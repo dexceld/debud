@@ -348,7 +348,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [bulkInvoiceNumber, setBulkInvoiceNumber] = useState('')
   const [bulkEmployeeInvoiceNumber, setBulkEmployeeInvoiceNumber] = useState('')
   const [bulkEmployeePaymentAmount, setBulkEmployeePaymentAmount] = useState('')
-  const [showFabs, setShowFabs] = useState(() => localStorage.getItem(lsKey('show_fabs')) !== '0')
+  const [showFabsBudget, setShowFabsBudget] = useState(() => localStorage.getItem(lsKey('show_fabs_budget')) !== '0')
+  const [showFabsTime, setShowFabsTime] = useState(() => localStorage.getItem(lsKey('show_fabs_time')) !== '0')
+  const [showFabsVoice, setShowFabsVoice] = useState(() => localStorage.getItem(lsKey('show_fabs_voice')) !== '0')
   const [voiceListening, setVoiceListening] = useState(false)
   const [voiceTranscript, setVoiceTranscript] = useState('')
   type VoiceParsed =
@@ -390,7 +392,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   // default is already 'monthly'
   const [catMgmtOpen, setCatMgmtOpen] = useState(false)
   const [catMgmtDrillGid, setCatMgmtDrillGid] = useState<string | null>(null)
-  const [settingsPage, setSettingsPage] = useState<'main' | 'balance' | 'backup' | 'categories'>('main')
+  const [settingsPage, setSettingsPage] = useState<'main' | 'balance' | 'backup' | 'categories' | 'fabs'>('main')
   const [catUsage, setCatUsage] = useState<Record<string, number>>(
     () => JSON.parse(localStorage.getItem(lsKey('cat_usage')) || '{}')
   )
@@ -669,7 +671,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   useEffect(() => { localStorage.setItem(lsKey('groupOrder'), JSON.stringify(groupOrder)) }, [groupOrder])
   useEffect(() => { localStorage.setItem(lsKey('time_clients'), JSON.stringify(clients)) }, [clients])
   useEffect(() => { localStorage.setItem(lsKey('time_entries'), JSON.stringify(timeEntries)) }, [timeEntries])
-  useEffect(() => { localStorage.setItem(lsKey('show_fabs'), showFabs ? '1' : '0') }, [showFabs])
+  useEffect(() => { localStorage.setItem(lsKey('show_fabs_budget'), showFabsBudget ? '1' : '0') }, [showFabsBudget])
+  useEffect(() => { localStorage.setItem(lsKey('show_fabs_time'), showFabsTime ? '1' : '0') }, [showFabsTime])
+  useEffect(() => { localStorage.setItem(lsKey('show_fabs_voice'), showFabsVoice ? '1' : '0') }, [showFabsVoice])
   useEffect(() => { localStorage.setItem(lsKey('time_employees'), JSON.stringify(employees)) }, [employees])
   useEffect(() => { localStorage.setItem(lsKey('charge_entries'), JSON.stringify(chargeEntries)) }, [chargeEntries])
   useEffect(() => { localStorage.setItem(lsKey('charge_tags'), JSON.stringify(chargeTags)) }, [chargeTags])
@@ -1462,7 +1466,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         </div>
 
         {/* Floating Action Buttons — draggable */}
-        {showFabs && <DraggableFABs />}
+        {showFabsBudget && <DraggableFABs />}
         {/* Save feedback toast */}
         {saveFeedback && (
           <div className="m-save-toast">
@@ -2089,23 +2093,15 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </div>
             <svg className="m-settings-chevron-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C4C9D4" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
-          <button className="m-settings-row" onClick={() => {
-            const next = !showFabs
-            setShowFabs(next)
-            localStorage.setItem(lsKey('show_fabs'), next ? '1' : '0')
-          }}>
+          <button className="m-settings-row" onClick={() => setSettingsPage('fabs')}>
             <span className="m-settings-icon-wrap" style={{background:'#F5F3FF'}}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M12 2v2M12 20v2M20 12h2M2 12h2M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41"/></svg>
             </span>
             <div className="m-settings-info">
               <span className="m-settings-title">כפתורים צפים</span>
-              <span className="m-settings-sub">{showFabs ? 'מוצגים' : 'מוסתרים'}</span>
+              <span className="m-settings-sub">{[showFabsBudget && 'תחזית/בפועל', showFabsTime && 'דיווח שעות', showFabsVoice && 'קול'].filter(Boolean).join(' · ') || 'הכל מוסתר'}</span>
             </div>
-            <div style={{marginRight:'auto', display:'flex', alignItems:'center'}}>
-              <div style={{width:44,height:26,borderRadius:13,background: showFabs ? '#7C3AED' : '#D1D5DB',transition:'background 0.2s',display:'flex',alignItems:'center',padding:3,cursor:'pointer'}}>
-                <div style={{width:20,height:20,borderRadius:'50%',background:'white',transform: showFabs ? 'translateX(18px)' : 'translateX(0)',transition:'transform 0.2s',boxShadow:'0 1px 3px rgba(0,0,0,0.2)'}} />
-              </div>
-            </div>
+            <svg className="m-settings-chevron-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C4C9D4" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
           <div style={{borderTop: '1px solid #E5E7EB', margin: '8px 0'}} />
           <button className="m-settings-row" onClick={async () => {
@@ -2126,6 +2122,36 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <span className="m-settings-sub">{userEmail || 'יציאה מהמערכת'}</span>
             </div>
           </button>
+        </div>
+      </div>
+    )
+
+    /* ── FABS PAGE ── */
+    if (!drillGid && settingsPage === 'fabs') return (
+      <div className="m-catmgmt-screen">
+        <div className="m-catmgmt-topbar">
+          <button className="m-catmgmt-back" onClick={() => setSettingsPage('main')}>‹ חזרה</button>
+          <span className="m-catmgmt-topbar-title">כפתורים צפים</span>
+          <div className="m-logo-block" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); setScreen('home') }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', height: '100%' }}><img src="/Trn color.png" alt="Dexcel" style={{ height: 29, maxHeight: '85%' }} /></div>
+        </div>
+        <div className="m-settings-menu">
+          {[
+            { label: 'עדכון בפועל + תחזית', sub: 'כפתורי תקציב בדף הבית', val: showFabsBudget, set: setShowFabsBudget, color: '#6366F1' },
+            { label: 'דיווח שעות', sub: 'כפתור דיווח מהיר בשעון', val: showFabsTime, set: setShowFabsTime, color: '#D97706' },
+            { label: 'Voice to Text', sub: 'מיקרופון לפקודות קוליות', val: showFabsVoice, set: setShowFabsVoice, color: '#7C3AED' },
+          ].map(({ label, sub, val, set, color }) => (
+            <button key={label} className="m-settings-row" onClick={() => set((p: boolean) => !p)}>
+              <div className="m-settings-info">
+                <span className="m-settings-title">{label}</span>
+                <span className="m-settings-sub">{sub}</span>
+              </div>
+              <div style={{marginRight:'auto', display:'flex', alignItems:'center'}}>
+                <div style={{width:44,height:26,borderRadius:13,background: val ? color : '#D1D5DB',transition:'background 0.2s',display:'flex',alignItems:'center',padding:3,cursor:'pointer'}}>
+                  <div style={{width:20,height:20,borderRadius:'50%',background:'white',transform: val ? 'translateX(18px)' : 'translateX(0)',transition:'transform 0.2s',boxShadow:'0 1px 3px rgba(0,0,0,0.2)'}} />
+                </div>
+              </div>
+            </button>
+          ))}
         </div>
       </div>
     )
@@ -6723,7 +6749,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       <QuickTimeEntryModal />
       <AddTimeEntryModal />
       {/* Global Floating Action Buttons */}
-      {showFabs && !quickTimeEntryOpen && !addTimeEntryOpen && !addClientOpen && !addEmployeeOpen && !bulkActionOpen && (
+      {showFabsTime && !quickTimeEntryOpen && !addTimeEntryOpen && !addClientOpen && !addEmployeeOpen && !bulkActionOpen && (
         <div
           style={{ position: 'fixed', left: fabPos.x, top: fabPos.y, display: 'flex', flexDirection: 'column', gap: 10, zIndex: 100, touchAction: 'none' }}
           onTouchStart={(e) => {
@@ -6891,7 +6917,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       )}
 
       {/* Voice mic floating button */}
-      {showFabs && <button
+      {showFabsVoice && <button
         title="דיווח קולי"
         onClick={startVoiceRecognition}
         style={{
