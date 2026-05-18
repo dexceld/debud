@@ -710,6 +710,17 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       const d = new Date(today); d.setDate(d.getDate() + 1); date = d.toISOString().slice(0, 10)
     } else if (text.includes('אתמול')) {
       const d = new Date(today); d.setDate(d.getDate() - 1); date = d.toISOString().slice(0, 10)
+    } else {
+      const dayNames: Record<string, number> = { 'ראשון': 0, 'שני': 1, 'שלישי': 2, 'רביעי': 3, 'חמישי': 4, 'שישי': 5, 'שבת': 6 }
+      for (const [name, targetDay] of Object.entries(dayNames)) {
+        if (text.includes(`יום ${name}`) || text.includes(name)) {
+          const d = new Date(today)
+          const diff = (d.getDay() - targetDay + 7) % 7
+          d.setDate(d.getDate() - (diff === 0 ? 7 : diff))
+          date = d.toISOString().slice(0, 10)
+          break
+        }
+      }
     }
     let matchedClient: {id: string, name: string} | null = null
     for (const c of clients) {
