@@ -356,7 +356,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   type VoiceParsed =
     | { type: 'timeEntry'; clientId: string; clientName: string; startTime: string; endTime: string; date: string }
     | { type: 'expense'; catId: string; catName: string; amount: number; month: string; isIncome: boolean }
-  const [voiceParsed, setVoiceParsed] = useState<VoiceParsed | null>(null)
   const voiceRecogRef = useRef<any>(null)
   // Long-press helpers (shared across cards)
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -722,8 +721,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         if (words.some(w => text.includes(w))) { matchedClient = c; break }
       }
     }
-    const timeMatch = text.match(/מ(?:שעה\s+)?(.+?)\s+עד\s+(.+?)(?:\s+(?:היום|מחר|אתמול|בבוקר|בלילה)|$)/) ||
-                      text.match(/מ(?:שעה\s+)?(.+?)\s+עד\s+(.+)/)
+    const timeMatch =
+      text.match(/מ-?\s*(?:שעה\s+)?(.+?)\s+עד\s+(.+?)(?:\s+(?:היום|מחר|אתמול|בבוקר|בלילה)|$)/) ||
+      text.match(/מ-?\s*(?:שעה\s+)?(.+?)\s+עד\s+(.+)/) ||
+      text.match(/\b(\d{1,2}(?::\d{2})?)\s+עד\s+(\d{1,2}(?::\d{2})?)/)
     if (!timeMatch) return null
     const startTime = hebrewTimeToHHMM(timeMatch[1])
     const endTime = hebrewTimeToHHMM(timeMatch[2])
@@ -793,10 +794,28 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       const alternatives: string[] = Array.from(event.results[0]).map((r: any) => r.transcript)
       for (const t of alternatives) {
         const parsed = parseVoiceCommand(t, voiceMode)
-        if (parsed) { setVoiceParsed(parsed); setVoiceTranscript(t); return }
+        if (parsed) {
+          if (parsed.type === 'timeEntry') {
+            const entry: TimeEntry = { id: Date.now().toString(), clientId: parsed.clientId, startDate: parsed.date, endDate: parsed.date, startTime: parsed.startTime, endTime: parsed.endTime, notes: '' }
+            setTimeEntries(prev => [...prev, entry])
+            const dateStr = new Date(parsed.date).toLocaleDateString('he-IL', { weekday: 'short', day: '2-digit', month: '2-digit' })
+            setSuccessToast(`✓ ${parsed.clientName}: ${parsed.startTime}–${parsed.endTime} (${dateStr})`)
+          } else {
+            const isReplace = /עדכן|שנה|החלף|תחליף/.test(t)
+            const signedAmount = parsed.isIncome ? -Math.abs(parsed.amount) : Math.abs(parsed.amount)
+            setActuals(prev => ({
+              ...prev,
+              [parsed.catId]: { ...(prev[parsed.catId] || {}), [parsed.month]: isReplace ? signedAmount : (prev[parsed.catId]?.[parsed.month] ?? 0) + signedAmount }
+            }))
+            const action = isReplace ? 'עודכן' : 'נוסף'
+            setSuccessToast(`✓ ${action} ${parsed.isIncome ? '+' : ''}₪${Math.abs(parsed.amount).toLocaleString()} — ${parsed.catName}`)
+            setVoiceMode(undefined)
+          }
+          setTimeout(() => setSuccessToast(null), 4000)
+          return
+        }
       }
-      setVoiceTranscript(alternatives[0] || '')
-      setErrorToast('לא הצלחתי לפענח. דיווח שעות: "[שם לקוח] מ-8 עד 16". הוצאה: "[קטגוריה] [סכום]"')
+      setErrorToast('לא הצלחתי לפענח. דיווח: "[לקוח] מ8 עד 16". הוצאה: "[קטגוריה] [סכום]"')
       setTimeout(() => setErrorToast(null), 4000)
     }
     recog.start()
@@ -6830,90 +6849,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             style={{position:'absolute',left:12,top:'50%',transform:'translateY(-50%)',background:'rgba(255,255,255,0.25)',border:'none',borderRadius:'50%',width:28,height:28,color:'white',fontSize:16,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700}}
           >✕</button>
         </div>
-      )}
-
-      {/* Voice command confirmation panel */}
-      {voiceParsed && (
-        <>
-          <div className="m-overlay" onClick={() => { setVoiceParsed(null); setVoiceTranscript('') }} />
-          <div style={{position:'fixed',bottom:80,left:16,right:16,zIndex:500,background:'white',borderRadius:16,padding:'20px 20px 16px',boxShadow:'0 8px 32px rgba(0,0,0,0.18)',direction:'rtl'}}>
-            {voiceParsed.type === 'timeEntry' ? (
-              <>
-                <div style={{fontSize:15,fontWeight:700,color:'#111827',marginBottom:12}}>🎙 הוסף דיווח שעות?</div>
-                <div style={{fontSize:14,color:'#374151',fontWeight:600,marginBottom:4}}>{voiceParsed.clientName}</div>
-                <div style={{fontSize:13,color:'#6B7280',marginBottom:2}}>
-                  {new Date(voiceParsed.date).toLocaleDateString('he-IL',{weekday:'long',day:'2-digit',month:'2-digit',year:'2-digit'})}
-                </div>
-                <div style={{fontSize:13,color:'#6B7280',marginBottom:16}}>{voiceParsed.startTime} — {voiceParsed.endTime}</div>
-                <div style={{display:'flex',gap:8}}>
-                  <button onClick={() => { setVoiceParsed(null); setVoiceTranscript('') }}
-                    style={{flex:1,padding:'12px',border:'1px solid #E5E7EB',borderRadius:10,background:'white',fontSize:14,fontWeight:600,cursor:'pointer',color:'#374151'}}>ביטול</button>
-                  <button onClick={() => {
-                    const p = voiceParsed as Extract<typeof voiceParsed, {type:'timeEntry'}>
-                    const entry: TimeEntry = { id: Date.now().toString(), clientId: p.clientId, startDate: p.date, endDate: p.date, startTime: p.startTime, endTime: p.endTime, notes: '' }
-                    setTimeEntries(prev => [...prev, entry])
-                    setSuccessToast(`דיווח נוסף — ${p.clientName}`)
-                    setTimeout(() => setSuccessToast(null), 3000)
-                    setVoiceParsed(null); setVoiceTranscript('')
-                  }} style={{flex:2,padding:'12px',border:'none',borderRadius:10,background:'#7c3aed',color:'white',fontSize:14,fontWeight:700,cursor:'pointer'}}>✓ הוסף דיווח</button>
-                </div>
-              </>
-            ) : (
-              <>
-                {(() => {
-                  const p = voiceParsed as Extract<typeof voiceParsed, {type:'expense'}>
-                  const label = p.isIncome ? 'הכנסה' : 'הוצאה'
-                  const signedAmount = p.isIncome ? -Math.abs(p.amount) : Math.abs(p.amount)
-                  const existing = actuals[p.catId]?.[p.month]
-                  const existingAbs = existing !== undefined ? Math.abs(existing) : null
-                  const accentColor = p.isIncome ? '#16A34A' : '#7c3aed'
-                  const save = (replace: boolean) => {
-                    setActuals(prev => ({
-                      ...prev,
-                      [p.catId]: { ...(prev[p.catId] || {}), [p.month]: replace ? signedAmount : (prev[p.catId]?.[p.month] ?? 0) + signedAmount }
-                    }))
-                    setSuccessToast(replace ? `עודכן ₪${Math.abs(p.amount)} ב${p.catName}` : `נוסף ₪${Math.abs(p.amount)} ל${p.catName}`)
-                    setTimeout(() => setSuccessToast(null), 3000)
-                    setVoiceParsed(null); setVoiceTranscript(''); setVoiceMode(undefined)
-                  }
-                  return (
-                    <>
-                      <div style={{fontSize:15,fontWeight:700,color:'#111827',marginBottom:12}}>🎙 {label} — {p.catName}</div>
-                      <div style={{fontSize:22,color:accentColor,fontWeight:700,marginBottom:4}}>
-                        {p.isIncome ? '+' : ''}₪{Math.abs(p.amount).toLocaleString()}
-                      </div>
-                      {existingAbs !== null && (
-                        <div style={{fontSize:12,color:'#6B7280',marginBottom:10}}>
-                          קיים כבר: ₪{existingAbs.toLocaleString()} — הוסף או עדכן?
-                        </div>
-                      )}
-                      {existingAbs === null && (
-                        <div style={{fontSize:12,color:'#9CA3AF',marginBottom:10}}>חודש נוכחי</div>
-                      )}
-                      <div style={{display:'flex',gap:8,marginBottom:0}}>
-                        <button onClick={() => { setVoiceParsed(null); setVoiceTranscript('') }}
-                          style={{flex:1,padding:'10px',border:'1px solid #E5E7EB',borderRadius:10,background:'white',fontSize:13,fontWeight:600,cursor:'pointer',color:'#374151'}}>ביטול</button>
-                        {existingAbs !== null && (
-                          <button onClick={() => save(false)}
-                            style={{flex:1,padding:'10px',border:`1px solid ${accentColor}`,borderRadius:10,background:'white',fontSize:13,fontWeight:600,cursor:'pointer',color:accentColor}}>
-                            + הוסף
-                          </button>
-                        )}
-                        <button onClick={() => save(existingAbs === null ? false : true)}
-                          style={{flex:existingAbs !== null ? 1 : 2,padding:'10px',border:'none',borderRadius:10,background:accentColor,color:'white',fontSize:13,fontWeight:700,cursor:'pointer'}}>
-                          {existingAbs !== null ? '✓ עדכן' : `✓ שמור`}
-                        </button>
-                      </div>
-                    </>
-                  )
-                })()}
-              </>
-            )}
-            {voiceTranscript && (
-              <div style={{marginTop:10,fontSize:11,color:'#9CA3AF',textAlign:'center'}}>"{voiceTranscript}"</div>
-            )}
-          </div>
-        </>
       )}
 
       {/* Voice mic floating button */}
