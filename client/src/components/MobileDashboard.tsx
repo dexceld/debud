@@ -778,13 +778,22 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     if (voiceListening) { voiceRecogRef.current?.stop(); setVoiceListening(false); return }
     const recog = new SpeechRecognitionAPI()
     recog.lang = 'he-IL'
-    recog.interimResults = false
+    recog.continuous = false
+    recog.interimResults = true
     recog.maxAlternatives = 3
     voiceRecogRef.current = recog
+
+    let pauseTimer: ReturnType<typeof setTimeout> | null = null
+    const scheduleStop = () => {
+      if (pauseTimer) clearTimeout(pauseTimer)
+      pauseTimer = setTimeout(() => recog.stop(), 900)
+    }
+
     recog.onstart = () => setVoiceListening(true)
-    recog.onspeechend = () => recog.stop()
-    recog.onend = () => setVoiceListening(false)
+    recog.onspeechend = () => { if (pauseTimer) clearTimeout(pauseTimer); recog.stop() }
+    recog.onend = () => { if (pauseTimer) clearTimeout(pauseTimer); setVoiceListening(false) }
     recog.onerror = (e: any) => {
+      if (pauseTimer) clearTimeout(pauseTimer)
       setVoiceListening(false)
       if (e.error === 'not-allowed' || e.error === 'permission-denied') {
         setErrorToast('נדרשת הרשאת מיקרופון — אפשרי בהגדרות הדפדפן')
@@ -792,7 +801,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       }
     }
     recog.onresult = (event: any) => {
-      const alternatives: string[] = Array.from(event.results[0]).map((r: any) => r.transcript)
+      const lastResult = event.results[event.results.length - 1]
+      if (!lastResult.isFinal) { scheduleStop(); return }
+      if (pauseTimer) clearTimeout(pauseTimer)
+      recog.stop()
+      const alternatives: string[] = Array.from(lastResult).map((r: any) => r.transcript)
       for (const t of alternatives) {
         const parsed = parseVoiceCommand(t, voiceMode)
         if (parsed) {
@@ -802,7 +815,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             const dateStr = new Date(parsed.date).toLocaleDateString('he-IL', { weekday: 'short', day: '2-digit', month: '2-digit' })
             setSuccessToast(`✓ ${parsed.clientName}: ${parsed.startTime}–${parsed.endTime} (${dateStr})`)
           } else {
-            const isReplace = /עדכן|שנה|החלף|תחליף/.test(t)
+            const isReplace = /עדכן|עדכון|לעדכן|תעדכן|שנה|שינוי|החלף|תחליף|לשנות/.test(t)
             const signedAmount = parsed.isIncome ? -Math.abs(parsed.amount) : Math.abs(parsed.amount)
             setActuals(prev => ({
               ...prev,
