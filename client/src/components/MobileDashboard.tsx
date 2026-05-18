@@ -782,6 +782,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     recog.maxAlternatives = 3
     voiceRecogRef.current = recog
     recog.onstart = () => setVoiceListening(true)
+    recog.onspeechend = () => recog.stop()
     recog.onend = () => setVoiceListening(false)
     recog.onerror = (e: any) => {
       setVoiceListening(false)
