@@ -817,6 +817,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       if (pauseTimer) clearTimeout(pauseTimer)
       recog.stop()
       const alternatives: string[] = Array.from(lastResult).map((r: any) => r.transcript)
+      const allText = alternatives.join(' ')
       for (const t of alternatives) {
         const parsed = parseVoiceCommand(t, voiceMode)
         if (parsed) {
@@ -826,7 +827,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             const dateStr = new Date(parsed.date).toLocaleDateString('he-IL', { weekday: 'short', day: '2-digit', month: '2-digit' })
             setSuccessToast(`✓ ${parsed.clientName}: ${parsed.startTime}–${parsed.endTime} (${dateStr})`)
           } else {
-            const isReplace = /עדכן|עדכון|לעדכן|תעדכן|שנה|שינוי|החלף|תחליף|לשנות/.test(t)
+            const isReplace = /עדכן|עדכון|לעדכן|תעדכן|שנה|שינוי|החלף|תחליף|לשנות/.test(allText)
             const signedAmount = parsed.isIncome ? -Math.abs(parsed.amount) : Math.abs(parsed.amount)
             setActuals(prev => ({
               ...prev,
