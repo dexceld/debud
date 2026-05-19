@@ -53,11 +53,14 @@ const initialCategories: Category[] = [
 
 const generateMonths = () => {
   const months: string[] = []
-  const startYear = 2026
-  const startMonth = 1
-  for (let i = 0; i < 48; i++) {
-    const month = ((startMonth - 1 + i) % 12) + 1
-    const year = startYear + Math.floor((startMonth - 1 + i) / 12)
+  const now = new Date()
+  const startYear = now.getFullYear()
+  const startMonth = now.getMonth() + 1
+  const totalMonths = 20 * 12 + 2
+  for (let i = -2; i < totalMonths; i++) {
+    const raw = startMonth - 1 + i
+    const month = ((raw % 12) + 12) % 12 + 1
+    const year = startYear + Math.floor(raw / 12)
     months.push(`${month.toString().padStart(2, '0')}/${(year % 100).toString().padStart(2, '0')}`)
   }
   return months
