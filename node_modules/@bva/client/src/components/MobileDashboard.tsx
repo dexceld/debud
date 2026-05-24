@@ -4700,10 +4700,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           position: 'fixed', bottom: 0, left: 0, right: 0, height: '60px',
           backgroundColor: 'white', borderTop: '1px solid #E5E7EB',
           display: 'flex', justifyContent: 'space-around', alignItems: 'center',
-          padding: '0 16px', zIndex: 100
+          padding: '0 8px', zIndex: 100
         }}>
-          <button onClick={() => { if (timeTrackingTab === 'summary') setSummaryDatePickerOpen(true); else setReportsDatePickerOpen(true) }}
+          <button onClick={() => { if (timeTrackingTab === 'summary') setSummaryDatePickerOpen(true); else if (timeTrackingTab === 'reports') setReportsDatePickerOpen(true) }}
             style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',
+              opacity: (timeTrackingTab === 'summary' || timeTrackingTab === 'reports') ? 1 : 0.3,
               color: (timeTrackingTab === 'summary' ? summaryFromDate : reportsFromDate) ? '#1d4ed8' : '#374151'}}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -4711,22 +4712,29 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </svg>
             <span style={{fontSize:'11px',fontWeight:500}}>תאריך</span>
           </button>
-          <button onClick={() => { if (timeTrackingTab === 'summary') { setTempSummaryClient(summaryClientFilter); setTempSummaryStatus(summaryStatusFilter); setSummaryFilterSheetOpen(true) } else { setTempReportsClient(reportsClientFilter); setTempReportsStatuses(reportsStatusFilter); setReportsFilterSheetOpen(true) } }}
+          <button onClick={() => { if (timeTrackingTab === 'summary') { setTempSummaryClient(summaryClientFilter); setTempSummaryStatus(summaryStatusFilter); setSummaryFilterSheetOpen(true) } else if (timeTrackingTab === 'reports') { setTempReportsClient(reportsClientFilter); setTempReportsStatuses(reportsStatusFilter); setReportsFilterSheetOpen(true) } }}
             style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',
+              opacity: (timeTrackingTab === 'summary' || timeTrackingTab === 'reports') ? 1 : 0.3,
               color: (timeTrackingTab === 'summary' ? summaryStatusFilter !== 'all' : !(reportsStatusFilter.length === 1 && reportsStatusFilter[0] === 'all')) ? '#1d4ed8' : '#374151'}}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
             </svg>
             <span style={{fontSize:'11px',fontWeight:500}}>סינון</span>
           </button>
-          <button onClick={() => { if (timeTrackingTab === 'summary') setSummaryShareOpen(true); else setReportsShareOpen(true) }}
-            style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',color:'#374151'}}>
+          <button onClick={() => { if (timeTrackingTab === 'summary') setSummaryShareOpen(true); else if (timeTrackingTab === 'reports') setReportsShareOpen(true) }}
+            style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',
+              opacity: (timeTrackingTab === 'summary' || timeTrackingTab === 'reports') ? 1 : 0.3,
+              color:'#374151'}}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
               <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
             </svg>
             <span style={{fontSize:'11px',fontWeight:500}}>שלח אל</span>
           </button>
+          {showFabsVoice && <button onClick={startVoiceRecognition} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',color: voiceListening ? '#DC2626' : '#7c3aed'}}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            <span style={{fontSize:'11px',fontWeight:500}}>{voiceListening ? '●' : 'קול'}</span>
+          </button>}
         </div>
 
         {/* Summary Share Popover */}
