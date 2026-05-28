@@ -9,19 +9,23 @@ export type Property = {
   tenantName: string
   tenantPhone: string
   tenantEmail: string
+  extraPhones: string[]   // additional phone numbers
   contractStart: string  // YYYY-MM-DD
   contractEnd: string    // YYYY-MM-DD
   monthlyRent: number
   deposit: number
   notes: string
   payments: Record<string, 'paid' | 'pending' | 'late'>  // key: YYYY-MM
+  contractFile: { name: string; data: string } | null  // base64 encoded file
 }
 
 type View = 'list' | 'detail' | 'edit'
 
 const EMPTY_PROPERTY: Omit<Property, 'id'> = {
   name: '', address: '', tenantName: '', tenantPhone: '', tenantEmail: '',
-  contractStart: '', contractEnd: '', monthlyRent: 0, deposit: 0, notes: '', payments: {}
+  extraPhones: [],
+  contractStart: '', contractEnd: '', monthlyRent: 0, deposit: 0, notes: '', payments: {},
+  contractFile: null
 }
 
 /* ─── Helpers ────────────────────────────────────────────────── */
@@ -209,7 +213,7 @@ export function PropertyManagement({ uid, onBack }: Props) {
           <div style={{ fontWeight: 700, fontSize: 14, color: '#374151', marginBottom: 12 }}>👤 פרטי שוכר</div>
           {([
             { label: 'שם שוכר', field: 'tenantName', placeholder: 'ישראל ישראלי', type: 'text' },
-            { label: 'טלפון', field: 'tenantPhone', placeholder: '050-1234567', type: 'tel' },
+            { label: 'טלפון ראשי', field: 'tenantPhone', placeholder: '050-1234567', type: 'tel' },
             { label: 'דוא"ל', field: 'tenantEmail', placeholder: 'email@example.com', type: 'email' },
           ] as const).map(({ label, field, placeholder, type }) => (
             <label key={field} style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 10 }}>
@@ -218,6 +222,23 @@ export function PropertyManagement({ uid, onBack }: Props) {
                 placeholder={placeholder} type={type} style={{ border: '1.5px solid #E5E7EB', borderRadius: 10, padding: '10px 12px', fontSize: 15 }} />
             </label>
           ))}
+          {/* Extra phones */}
+          <div style={{ marginBottom: 4 }}>
+            <div style={{ fontSize: 13, color: '#6B7280', fontWeight: 600, marginBottom: 6 }}>טלפונים נוספים</div>
+            {(editForm.extraPhones ?? []).map((ph, idx) => (
+              <div key={idx} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                <input value={ph} type="tel" placeholder={`טלפון ${idx + 2}`}
+                  onChange={e => setEditForm(f => { const a = [...(f.extraPhones ?? [])]; a[idx] = e.target.value; return { ...f, extraPhones: a } })}
+                  style={{ flex: 1, border: '1.5px solid #E5E7EB', borderRadius: 10, padding: '10px 12px', fontSize: 15 }} />
+                <button type="button" onClick={() => setEditForm(f => ({ ...f, extraPhones: (f.extraPhones ?? []).filter((_, i) => i !== idx) }))}
+                  style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '0 14px', color: '#DC2626', fontWeight: 700, cursor: 'pointer', fontSize: 18 }}>✕</button>
+              </div>
+            ))}
+            <button type="button" onClick={() => setEditForm(f => ({ ...f, extraPhones: [...(f.extraPhones ?? []), ''] }))}
+              style={{ background: '#F0FDF4', border: '1px dashed #86EFAC', borderRadius: 10, padding: '8px 14px', color: '#15803D', fontWeight: 600, cursor: 'pointer', fontSize: 13, width: '100%' }}>
+              + הוסף טלפון נוסף
+            </button>
+          </div>
         </div>
 
         <div style={{ borderRadius: 12, background: 'white', padding: 14, border: '1px solid #E5E7EB' }}>
@@ -246,6 +267,33 @@ export function PropertyManagement({ uid, onBack }: Props) {
                 placeholder="10000" style={{ border: '1.5px solid #E5E7EB', borderRadius: 10, padding: '10px 10px', fontSize: 15 }} />
             </label>
           </div>
+        </div>
+
+        {/* Contract file upload */}
+        <div style={{ borderRadius: 12, background: 'white', padding: 14, border: '1px solid #E5E7EB' }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: '#374151', marginBottom: 10 }}>📎 חוזה חתום</div>
+          {editForm.contractFile ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#F0FDF4', borderRadius: 10, padding: '10px 12px', border: '1px solid #BBF7D0' }}>
+              <span style={{ fontSize: 20 }}>📄</span>
+              <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: '#15803D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{editForm.contractFile.name}</span>
+              <button type="button" onClick={() => setEditForm(f => ({ ...f, contractFile: null }))}
+                style={{ background: 'none', border: 'none', color: '#DC2626', fontWeight: 700, cursor: 'pointer', fontSize: 18, padding: '0 4px' }}>✕</button>
+            </div>
+          ) : (
+            <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, background: '#F9FAFB', border: '2px dashed #D1D5DB', borderRadius: 10, padding: '16px', cursor: 'pointer' }}>
+              <span style={{ fontSize: 28 }}>📁</span>
+              <span style={{ fontSize: 13, color: '#6B7280', fontWeight: 600 }}>לחץ לצירוף קובץ (PDF / תמונה)</span>
+              <input type="file" accept=".pdf,.jpg,.jpeg,.png" style={{ display: 'none' }}
+                onChange={e => {
+                  const file = e.target.files?.[0]
+                  if (!file) return
+                  if (file.size > 4 * 1024 * 1024) { alert('הקובץ גדול מדי — מקסימום 4MB'); return }
+                  const reader = new FileReader()
+                  reader.onload = ev => setEditForm(f => ({ ...f, contractFile: { name: file.name, data: ev.target!.result as string } }))
+                  reader.readAsDataURL(file)
+                }} />
+            </label>
+          )}
         </div>
 
         <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -310,6 +358,7 @@ export function PropertyManagement({ uid, onBack }: Props) {
             <div style={{ fontWeight: 700, fontSize: 14, color: '#374151', marginBottom: 12 }}>👤 שוכר</div>
             <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 4 }}>{p.tenantName}</div>
             {p.tenantPhone && <div style={{ color: '#6B7280', fontSize: 14, marginBottom: 2 }}>📞 {p.tenantPhone}</div>}
+            {(p.extraPhones ?? []).map((ph, i) => ph && <div key={i} style={{ color: '#6B7280', fontSize: 14, marginBottom: 2 }}>📞 {ph}</div>)}
             {p.tenantEmail && <div style={{ color: '#6B7280', fontSize: 14 }}>✉ {p.tenantEmail}</div>}
 
             {/* Action buttons */}
@@ -327,18 +376,22 @@ export function PropertyManagement({ uid, onBack }: Props) {
                 <>
                   <div onClick={() => setSendMenuOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 99 }} />
                   <div style={{ position: 'absolute', top: '110%', right: 0, left: 0, background: 'white', borderRadius: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.15)', padding: 8, zIndex: 100, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <button onClick={() => sendWhatsApp(p.tenantPhone, p.name || p.address, currMonth, p.monthlyRent)}
-                      style={{ padding: '12px 14px', background: 'none', border: 'none', textAlign: 'right', cursor: 'pointer', borderRadius: 8, fontWeight: 600, fontSize: 14, color: '#059669' }}>
-                      💬 WhatsApp — תזכורת תשלום
-                    </button>
+                    {[p.tenantPhone, ...(p.extraPhones ?? [])].filter(Boolean).map((ph, i) => (
+                      <button key={i} onClick={() => sendWhatsApp(ph, p.name || p.address, currMonth, p.monthlyRent)}
+                        style={{ padding: '12px 14px', background: 'none', border: 'none', textAlign: 'right', cursor: 'pointer', borderRadius: 8, fontWeight: 600, fontSize: 14, color: '#059669' }}>
+                        💬 WhatsApp{i > 0 ? ` (${ph})` : ''} — תזכורת תשלום
+                      </button>
+                    ))}
                     {p.tenantEmail && <button onClick={() => sendEmail(p.tenantEmail, p.name || p.address, currMonth, p.monthlyRent)}
                       style={{ padding: '12px 14px', background: 'none', border: 'none', textAlign: 'right', cursor: 'pointer', borderRadius: 8, fontWeight: 600, fontSize: 14, color: '#4F46E5' }}>
                       📧 מייל — תזכורת תשלום
                     </button>}
-                    {p.tenantPhone && <button onClick={() => { window.location.href = `tel:${p.tenantPhone}`; setSendMenuOpen(false) }}
-                      style={{ padding: '12px 14px', background: 'none', border: 'none', textAlign: 'right', cursor: 'pointer', borderRadius: 8, fontWeight: 600, fontSize: 14, color: '#374151' }}>
-                      📞 התקשר
-                    </button>}
+                    {[p.tenantPhone, ...(p.extraPhones ?? [])].filter(Boolean).map((ph, i) => (
+                      <button key={i} onClick={() => { window.location.href = `tel:${ph}`; setSendMenuOpen(false) }}
+                        style={{ padding: '12px 14px', background: 'none', border: 'none', textAlign: 'right', cursor: 'pointer', borderRadius: 8, fontWeight: 600, fontSize: 14, color: '#374151' }}>
+                        📞 התקשר{i > 0 ? ` (${ph})` : ''}
+                      </button>
+                    ))}
                   </div>
                 </>
               )}
@@ -362,6 +415,18 @@ export function PropertyManagement({ uid, onBack }: Props) {
               ))}
             </div>
             {p.notes && <div style={{ marginTop: 12, padding: 10, background: '#FFF7ED', borderRadius: 10, fontSize: 13, color: '#92400E' }}>📝 {p.notes}</div>}
+            {/* Contract file */}
+            {p.contractFile && (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 6 }}>📎 חוזה מצורף</div>
+                <a href={p.contractFile.data} download={p.contractFile.name} target="_blank" rel="noopener noreferrer"
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#EFF6FF', borderRadius: 10, padding: '10px 12px', border: '1px solid #BFDBFE', textDecoration: 'none' }}>
+                  <span style={{ fontSize: 20 }}>📄</span>
+                  <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: '#1D4ED8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.contractFile.name}</span>
+                  <span style={{ fontSize: 12, color: '#3B82F6', fontWeight: 700 }}>פתח ↗</span>
+                </a>
+              </div>
+            )}
           </div>
 
           {/* Payment Tracking */}
