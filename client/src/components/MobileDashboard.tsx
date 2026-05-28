@@ -4,6 +4,7 @@ import { useFirebaseSync, flushAllSaves, useSyncStatus, firestoreHealthCheck } f
 import { signOutUser } from '../firebase'
 import { FeedbackModal } from './FeedbackModal'
 import { AboutModal } from './AboutModal'
+import { PropertyManagement } from './PropertyManagement'
 
 type Category = {
   id: string
@@ -76,7 +77,9 @@ const getCurrentMonth = (): string => {
   return `${month}/${year}`
 }
 
-type Screen = 'home' | 'detail' | 'update' | 'chart' | 'forecast' | 'budget' | 'forecast-chart' | 'net-chart' | 'mortgage-calc' | 'time-tracking'
+type Screen = 'home' | 'detail' | 'update' | 'chart' | 'forecast' | 'budget' | 'forecast-chart' | 'net-chart' | 'mortgage-calc' | 'time-tracking' | 'property-management'
+
+type AppModule = 'family-budget' | 'time-tracking' | 'mortgage-calc' | 'property-management'
 
 type ForecastSnapshot = {
   label: string
@@ -168,7 +171,18 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     Math.max(0, currentIdx),
     Math.min(months.length, Math.max(0, currentIdx) + 3)
   )
-  const [screen, setScreen] = useState<Screen>('home')
+  const [enabledModules, setEnabledModules] = useState<AppModule[]>(() => {
+    const saved = localStorage.getItem(lsKey('enabled_modules'))
+    return saved ? JSON.parse(saved) : ['family-budget', 'time-tracking', 'mortgage-calc']
+  })
+  const [defaultModule, setDefaultModule] = useState<AppModule>(() =>
+    (localStorage.getItem(lsKey('default_module')) as AppModule) || 'family-budget'
+  )
+  const [screen, setScreen] = useState<Screen>(() => {
+    const def = localStorage.getItem(lsKey('default_module')) as AppModule | null
+    if (def && def !== 'family-budget') return def as Screen
+    return 'home'
+  })
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const [aboutOpen, setAboutOpen] = useState(false)
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null)
@@ -394,7 +408,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   // default is already 'monthly'
   const [catMgmtOpen, setCatMgmtOpen] = useState(false)
   const [catMgmtDrillGid, setCatMgmtDrillGid] = useState<string | null>(null)
-  const [settingsPage, setSettingsPage] = useState<'main' | 'balance' | 'backup' | 'categories' | 'fabs'>('main')
+  const [settingsPage, setSettingsPage] = useState<'main' | 'balance' | 'backup' | 'categories' | 'fabs' | 'modules'>('main')
   const [catUsage, setCatUsage] = useState<Record<string, number>>(
     () => JSON.parse(localStorage.getItem(lsKey('cat_usage')) || '{}')
   )
@@ -1523,64 +1537,28 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           </div>
         )}
 
-        {/* Tools Section */}
-        <div style={{
-          padding: '16px',
-          background: '#FAFAFA',
-          borderTop: '2px solid #E0E0E0',
-          marginTop: '16px'
-        }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: '#999', marginBottom: 12, textAlign: 'center' }}>
-            כלים נוספים
-          </div>
-          <button 
-            className="m-tool-btn"
-            onClick={() => setScreen('time-tracking')}
-            style={{
-              width: '100%',
-              padding: '14px',
-              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '12px',
-              fontSize: '15px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              marginBottom: '12px'
-            }}
-          >
-            <span style={{ fontSize: '18px' }}>⏱</span>
-            דיווחי שעות
-          </button>
-          <button 
-            className="m-tool-btn"
-            onClick={() => setScreen('mortgage-calc')}
-            style={{
-              width: '100%',
-              padding: '14px',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '12px',
-              fontSize: '15px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px'
-            }}
-          >
-            <span style={{ fontSize: '18px' }}>🏠</span>
-            מחשבון משכנתא
-          </button>
-        </div>
+        {/* Tools Section — only shows enabled modules (excluding family-budget which is the home itself) */}
+        {(() => {
+          const toolModules: { id: AppModule; label: string; icon: string; screen: Screen; bg: string; shadow: string }[] = [
+            { id: 'time-tracking', label: 'דיווחי שעות', icon: '⏱', screen: 'time-tracking', bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', shadow: '0 4px 12px rgba(16,185,129,0.3)' },
+            { id: 'mortgage-calc', label: 'מחשבון משכנתא', icon: '🏠', screen: 'mortgage-calc', bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', shadow: '0 4px 12px rgba(102,126,234,0.3)' },
+            { id: 'property-management', label: 'ניהול נכסים', icon: '🏢', screen: 'property-management', bg: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', shadow: '0 4px 12px rgba(245,158,11,0.3)' },
+          ]
+          const visible = toolModules.filter(m => enabledModules.includes(m.id))
+          if (visible.length === 0) return null
+          return (
+            <div style={{ padding: '16px', background: '#FAFAFA', borderTop: '2px solid #E0E0E0', marginTop: '16px' }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#999', marginBottom: 12, textAlign: 'center' }}>כלים נוספים</div>
+              {visible.map((m, i) => (
+                <button key={m.id} className="m-tool-btn" onClick={() => setScreen(m.screen)}
+                  style={{ width: '100%', padding: '14px', background: m.bg, color: 'white', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', boxShadow: m.shadow, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: i < visible.length - 1 ? '12px' : 0 }}>
+                  <span style={{ fontSize: '18px' }}>{m.icon}</span>
+                  {m.label}
+                </button>
+              ))}
+            </div>
+          )
+        })()}
 
         {/* Spacer before footer */}
         <div style={{ flex: 1, minHeight: 20 }} />
@@ -2141,6 +2119,16 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </div>
             <svg className="m-settings-chevron-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C4C9D4" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
+          <button className="m-settings-row" onClick={() => setSettingsPage('modules')}>
+            <span className="m-settings-icon-wrap" style={{background:'#FFF7ED'}}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="6" height="6" rx="1"/><rect x="9" y="3" width="6" height="6" rx="1"/><rect x="16" y="3" width="6" height="6" rx="1"/><rect x="2" y="10" width="6" height="6" rx="1"/><rect x="9" y="10" width="6" height="6" rx="1"/><rect x="16" y="10" width="6" height="6" rx="1"/></svg>
+            </span>
+            <div className="m-settings-info">
+              <span className="m-settings-title">עולמות פעילים</span>
+              <span className="m-settings-sub">{enabledModules.length} פעילים · בית: {({'family-budget':'תקציב','time-tracking':'שעות','mortgage-calc':'משכנתא','property-management':'נכסים'} as Record<AppModule,string>)[defaultModule]}</span>
+            </div>
+            <svg className="m-settings-chevron-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C4C9D4" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
           <button className="m-settings-row" onClick={() => setSettingsPage('fabs')}>
             <span className="m-settings-icon-wrap" style={{background:'#F5F3FF'}}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M12 2v2M12 20v2M20 12h2M2 12h2M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41"/></svg>
@@ -2173,6 +2161,80 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         </div>
       </div>
     )
+
+    /* ── MODULES PAGE ── */
+    if (!drillGid && settingsPage === 'modules') {
+      const ALL_MODULES: { id: AppModule; label: string; icon: string; desc: string; color: string }[] = [
+        { id: 'family-budget', label: 'תקציב משפחתי', icon: '💰', desc: 'מעקב הוצאות, תחזית ובפועל', color: '#6366F1' },
+        { id: 'time-tracking', label: 'דיווחי שעות', icon: '⏱', desc: 'לקוחות, עובדים ודוחות', color: '#10B981' },
+        { id: 'mortgage-calc', label: 'מחשבון משכנתא', icon: '🏠', desc: 'חישוב החזרי משכנתא', color: '#764BA2' },
+        { id: 'property-management', label: 'ניהול נכסים', icon: '🏢', desc: 'שוכרים, חוזים ותשלומים', color: '#F97316' },
+      ]
+      const toggleModule = (id: AppModule) => {
+        const next = enabledModules.includes(id)
+          ? enabledModules.filter(m => m !== id)
+          : [...enabledModules, id]
+        if (next.length === 0) return // must have at least one
+        setEnabledModules(next)
+        localStorage.setItem(lsKey('enabled_modules'), JSON.stringify(next))
+        // if disabled module was default, reset default
+        if (!next.includes(defaultModule)) {
+          setDefaultModule(next[0])
+          localStorage.setItem(lsKey('default_module'), next[0])
+        }
+      }
+      const setHome = (id: AppModule) => {
+        if (!enabledModules.includes(id)) return
+        setDefaultModule(id)
+        localStorage.setItem(lsKey('default_module'), id)
+      }
+      return (
+        <div className="m-catmgmt-screen">
+          <div className="m-catmgmt-topbar">
+            <button className="m-catmgmt-back" onClick={() => setSettingsPage('main')}>‹ חזרה</button>
+            <span className="m-catmgmt-topbar-title">עולמות פעילים</span>
+            <div className="m-logo-block" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); setScreen('home') }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', height: '100%' }}><img src="/Trn color.png" alt="Dexcel" style={{ height: 29, maxHeight: '85%' }} /></div>
+          </div>
+          <div style={{ padding: '16px', background: '#F9FAFB', flex: 1, overflowY: 'auto' }}>
+            <div style={{ fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
+              בחר אילו עולמות יוצגו ומה יהיה מסך הבית. לפחות עולם אחד חייב להיות פעיל.
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+              {ALL_MODULES.map(m => {
+                const isEnabled = enabledModules.includes(m.id)
+                const isHome = defaultModule === m.id
+                return (
+                  <div key={m.id} style={{ background: 'white', borderRadius: 14, border: `2px solid ${isEnabled ? m.color + '40' : '#E5E7EB'}`, padding: 16, opacity: isEnabled ? 1 : 0.6, transition: 'all 0.2s' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <span style={{ fontSize: 28 }}>{m.icon}</span>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 700, fontSize: 15, color: '#111827' }}>{m.label}</div>
+                        <div style={{ fontSize: 12, color: '#6B7280' }}>{m.desc}</div>
+                      </div>
+                      {/* Toggle */}
+                      <button onClick={() => toggleModule(m.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                        <div style={{ width: 44, height: 26, borderRadius: 13, background: isEnabled ? m.color : '#D1D5DB', transition: 'background 0.2s', display: 'flex', alignItems: 'center', padding: 3 }}>
+                          <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'white', transform: isEnabled ? 'translateX(18px)' : 'translateX(0)', transition: 'transform 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+                        </div>
+                      </button>
+                    </div>
+                    {isEnabled && (
+                      <button onClick={() => setHome(m.id)}
+                        style={{ marginTop: 10, width: '100%', padding: '8px', borderRadius: 8, border: `1.5px solid ${isHome ? m.color : '#E5E7EB'}`, background: isHome ? m.color + '15' : 'white', color: isHome ? m.color : '#6B7280', fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                        {isHome ? '🏠 מסך בית נוכחי' : '☆ הגדר כמסך בית'}
+                      </button>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+            <div style={{ background: '#FFF7ED', borderRadius: 12, padding: 14, fontSize: 13, color: '#92400E', lineHeight: 1.5 }}>
+              💡 טיפ: אם תגדיר עולם אחד כמסך בית, תיכנס ישירות אליו בכל פתיחה. ניתן לעבור לעולמות אחרים דרך כפתור "⬅" ◀ חזרה.
+            </div>
+          </div>
+        </div>
+      )
+    }
 
     /* ── FABS PAGE ── */
     if (!drillGid && settingsPage === 'fabs') return (
@@ -6806,6 +6868,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       {screen === 'net-chart' && <NetChartScreen />}
       {screen === 'mortgage-calc' && <MortgageCalculator />}
       {screen === 'time-tracking' && <TimeTrackingScreen />}
+      {screen === 'property-management' && <PropertyManagement uid={uid} onBack={() => setScreen('home')} />}
       {renderCatMgmt()}
       <InlineSheet />
       <AddClientModal />
