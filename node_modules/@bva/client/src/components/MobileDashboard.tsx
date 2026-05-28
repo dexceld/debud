@@ -173,7 +173,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   )
   const [enabledModules, setEnabledModules] = useState<AppModule[]>(() => {
     const saved = localStorage.getItem(lsKey('enabled_modules'))
-    return saved ? JSON.parse(saved) : ['family-budget', 'time-tracking', 'mortgage-calc']
+    return saved ? JSON.parse(saved) : ['family-budget', 'time-tracking', 'mortgage-calc', 'property-management']
   })
   const [defaultModule, setDefaultModule] = useState<AppModule>(() =>
     (localStorage.getItem(lsKey('default_module')) as AppModule) || 'family-budget'
@@ -399,6 +399,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [quickPanelForecastEnd, setQuickPanelForecastEnd] = useState('')
   const [quickOpenKey, setQuickOpenKey] = useState(0)
   const savedAmountRef = useRef<string>('')
+  const toolLpRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [deleteToast, setDeleteToast] = useState<string | null>(null)
   const [successToast, setSuccessToast] = useState<string | null>(null)
   const [globalMonth, setGlobalMonth] = useState(getCurrentMonth)
@@ -1537,25 +1538,43 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           </div>
         )}
 
-        {/* Tools Section — only shows enabled modules (excluding family-budget which is the home itself) */}
+        {/* Tools Section — all modules, with star button to set as home */}
         {(() => {
           const toolModules: { id: AppModule; label: string; icon: string; screen: Screen; bg: string; shadow: string }[] = [
             { id: 'time-tracking', label: 'דיווחי שעות', icon: '⏱', screen: 'time-tracking', bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', shadow: '0 4px 12px rgba(16,185,129,0.3)' },
             { id: 'mortgage-calc', label: 'מחשבון משכנתא', icon: '🏠', screen: 'mortgage-calc', bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', shadow: '0 4px 12px rgba(102,126,234,0.3)' },
             { id: 'property-management', label: 'ניהול נכסים', icon: '🏢', screen: 'property-management', bg: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', shadow: '0 4px 12px rgba(245,158,11,0.3)' },
           ]
-          const visible = toolModules.filter(m => enabledModules.includes(m.id))
-          if (visible.length === 0) return null
+          const setAsHome = (id: AppModule) => {
+            setDefaultModule(id)
+            localStorage.setItem(lsKey('default_module'), id)
+            setSuccessToast(`⭐ ${toolModules.find(m => m.id === id)?.label} הוגדר כמסך בית`); setTimeout(() => setSuccessToast(null), 2500)
+          }
           return (
             <div style={{ padding: '16px', background: '#FAFAFA', borderTop: '2px solid #E0E0E0', marginTop: '16px' }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#999', marginBottom: 12, textAlign: 'center' }}>כלים נוספים</div>
-              {visible.map((m, i) => (
-                <button key={m.id} className="m-tool-btn" onClick={() => setScreen(m.screen)}
-                  style={{ width: '100%', padding: '14px', background: m.bg, color: 'white', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', boxShadow: m.shadow, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: i < visible.length - 1 ? '12px' : 0 }}>
-                  <span style={{ fontSize: '18px' }}>{m.icon}</span>
-                  {m.label}
-                </button>
-              ))}
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#999', marginBottom: 12, textAlign: 'center' }}>כלים נוספים — לחץ לכניסה • לחץ ⭐ להגדרת מסך בית</div>
+              {toolModules.map((m, i) => {
+                const isHome = defaultModule === m.id
+                return (
+                  <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: i < toolModules.length - 1 ? '12px' : 0 }}>
+                    <button className="m-tool-btn"
+                      onClick={() => setScreen(m.screen)}
+                      onTouchStart={() => { toolLpRef.current = setTimeout(() => { toolLpRef.current = null; setAsHome(m.id) }, 600) }}
+                      onTouchEnd={() => { if (toolLpRef.current) { clearTimeout(toolLpRef.current); toolLpRef.current = null } }}
+                      onTouchMove={() => { if (toolLpRef.current) { clearTimeout(toolLpRef.current); toolLpRef.current = null } }}
+                      style={{ flex: 1, padding: '14px', background: m.bg, color: 'white', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', boxShadow: m.shadow, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '18px' }}>{m.icon}</span>
+                      {m.label}
+                      {isHome && <span style={{ fontSize: 12, background: 'rgba(255,255,255,0.25)', borderRadius: 20, padding: '2px 8px', marginRight: 4 }}>בית</span>}
+                    </button>
+                    <button onClick={() => setAsHome(m.id)}
+                      title="הגדר כמסך בית"
+                      style={{ width: 40, height: 40, borderRadius: '50%', border: isHome ? '2px solid #F59E0B' : '2px solid #E5E7EB', background: isHome ? '#FFFBEB' : 'white', cursor: 'pointer', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.2s', boxShadow: isHome ? '0 2px 8px rgba(245,158,11,0.4)' : 'none' }}>
+                      {isHome ? '⭐' : '☆'}
+                    </button>
+                  </div>
+                )
+              })}
             </div>
           )
         })()}
