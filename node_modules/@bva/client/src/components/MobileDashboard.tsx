@@ -77,7 +77,7 @@ const getCurrentMonth = (): string => {
   return `${month}/${year}`
 }
 
-type Screen = 'home' | 'detail' | 'update' | 'chart' | 'forecast' | 'budget' | 'forecast-chart' | 'net-chart' | 'mortgage-calc' | 'time-tracking' | 'property-management'
+type Screen = 'hub' | 'home' | 'detail' | 'update' | 'chart' | 'forecast' | 'budget' | 'forecast-chart' | 'net-chart' | 'mortgage-calc' | 'time-tracking' | 'property-management'
 
 type AppModule = 'family-budget' | 'time-tracking' | 'mortgage-calc' | 'property-management'
 
@@ -180,8 +180,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   )
   const [screen, setScreen] = useState<Screen>(() => {
     const def = localStorage.getItem(lsKey('default_module')) as AppModule | null
+    if (def === 'family-budget') return 'home'
     if (def && def !== 'family-budget') return def as Screen
-    return 'home'
+    return 'hub'
   })
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const [aboutOpen, setAboutOpen] = useState(false)
@@ -1225,6 +1226,54 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     )
   }
 
+  // --- HUB SCREEN (module launcher) ---
+  const HubScreen = () => {
+    const HUB_MODULES: { id: AppModule; label: string; icon: string; dest: Screen; bg: string; desc: string }[] = [
+      { id: 'family-budget',       label: 'תקציב משפחתי',   icon: '💰', dest: 'home',                bg: 'linear-gradient(135deg,#6366F1,#8B5CF6)', desc: 'הוצאות, תחזית ויתרות' },
+      { id: 'time-tracking',       label: 'דיווחי שעות',    icon: '⏱',  dest: 'time-tracking',       bg: 'linear-gradient(135deg,#10B981,#059669)', desc: 'לקוחות, עובדים ודוחות' },
+      { id: 'mortgage-calc',       label: 'מחשבון משכנתא',  icon: '🏠', dest: 'mortgage-calc',       bg: 'linear-gradient(135deg,#667EEA,#764BA2)', desc: 'חישוב החזרי משכנתא' },
+      { id: 'property-management', label: 'ניהול נכסים',    icon: '🏢', dest: 'property-management', bg: 'linear-gradient(135deg,#F59E0B,#D97706)', desc: 'שוכרים, חוזים ותשלומים' },
+    ]
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', background: 'linear-gradient(180deg,#EEF2FF 0%,#F9FAFB 100%)' }}>
+        <div style={{ padding: '20px 20px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+          <DexcelLogo />
+          <div style={{ fontSize: 12, color: '#9CA3AF', fontWeight: 600 }}>בחר עולם</div>
+        </div>
+        <div style={{ flex: 1, padding: '8px 16px 16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignContent: 'start', overflowY: 'auto' }}>
+          {HUB_MODULES.map(m => {
+            const isDefault = defaultModule === m.id
+            return (
+              <div key={m.id} style={{ display: 'flex', flexDirection: 'column', borderRadius: 20, overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.12)' }}>
+                <button onClick={() => setScreen(m.dest)}
+                  style={{ flex: 1, padding: '22px 14px 16px', background: m.bg, border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textAlign: 'center' }}>
+                  <span style={{ fontSize: 44 }}>{m.icon}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'white', lineHeight: 1.3 }}>{m.label}</span>
+                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.8)', lineHeight: 1.4 }}>{m.desc}</span>
+                </button>
+                <button onClick={() => {
+                    setDefaultModule(m.id)
+                    localStorage.setItem(lsKey('default_module'), m.id)
+                    setSuccessToast(`⭐ ${m.label} הוגדר כמסך בית`); setTimeout(() => setSuccessToast(null), 2500)
+                  }}
+                  style={{ padding: '10px', background: isDefault ? '#FFFBEB' : 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: isDefault ? '#D97706' : '#9CA3AF', borderTop: '1px solid #F3F4F6' }}>
+                  {isDefault ? '⭐ מסך בית' : '☆ הגדר כבית'}
+                </button>
+              </div>
+            )
+          })}
+        </div>
+        <div style={{ padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8, borderTop: '1px solid #E5E7EB', background: 'white', flexShrink: 0 }}>
+          {!isLocalMode && userPhoto
+            ? <img src={userPhoto} alt="" style={{ width: 28, height: 28, borderRadius: '50%' }} referrerPolicy="no-referrer" />
+            : <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#6366F1', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700 }}>{isLocalMode ? '👤' : userEmail?.[0]?.toUpperCase() || '?'}</div>}
+          <span style={{ fontSize: 12, color: '#6B7280' }}>{userEmail}</span>
+        </div>
+        {successToast && <div className="m-save-toast"><span className="m-save-toast-icon">✓</span><span>{successToast}</span></div>}
+      </div>
+    )
+  }
+
   // --- HOME SCREEN ---
   const HomeScreen = () => {
     const vm = months[viewMonthIdx] || currentMonth
@@ -1264,6 +1313,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             )}
           </div>
           <div className="m-header-actions">
+            <button className="m-hbtn" onClick={() => setScreen('hub')} title="חזור לרשימת עולמות">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+              <span className="m-hbtn-label">עולמות</span>
+            </button>
             <button className="m-hbtn m-hbtn-gear" onClick={() => setCatMgmtOpen(true)}>
               <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" /></svg>
               <span className="m-hbtn-label">הגדרות</span>
@@ -1538,46 +1591,14 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           </div>
         )}
 
-        {/* Tools Section — all modules, with star button to set as home */}
-        {(() => {
-          const toolModules: { id: AppModule; label: string; icon: string; screen: Screen; bg: string; shadow: string }[] = [
-            { id: 'time-tracking', label: 'דיווחי שעות', icon: '⏱', screen: 'time-tracking', bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', shadow: '0 4px 12px rgba(16,185,129,0.3)' },
-            { id: 'mortgage-calc', label: 'מחשבון משכנתא', icon: '🏠', screen: 'mortgage-calc', bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', shadow: '0 4px 12px rgba(102,126,234,0.3)' },
-            { id: 'property-management', label: 'ניהול נכסים', icon: '🏢', screen: 'property-management', bg: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', shadow: '0 4px 12px rgba(245,158,11,0.3)' },
-          ]
-          const setAsHome = (id: AppModule) => {
-            setDefaultModule(id)
-            localStorage.setItem(lsKey('default_module'), id)
-            setSuccessToast(`⭐ ${toolModules.find(m => m.id === id)?.label} הוגדר כמסך בית`); setTimeout(() => setSuccessToast(null), 2500)
-          }
-          return (
-            <div style={{ padding: '16px', background: '#FAFAFA', borderTop: '2px solid #E0E0E0', marginTop: '16px' }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#999', marginBottom: 12, textAlign: 'center' }}>כלים נוספים — לחץ לכניסה • לחץ ⭐ להגדרת מסך בית</div>
-              {toolModules.map((m, i) => {
-                const isHome = defaultModule === m.id
-                return (
-                  <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: i < toolModules.length - 1 ? '12px' : 0 }}>
-                    <button className="m-tool-btn"
-                      onClick={() => setScreen(m.screen)}
-                      onTouchStart={() => { toolLpRef.current = setTimeout(() => { toolLpRef.current = null; setAsHome(m.id) }, 600) }}
-                      onTouchEnd={() => { if (toolLpRef.current) { clearTimeout(toolLpRef.current); toolLpRef.current = null } }}
-                      onTouchMove={() => { if (toolLpRef.current) { clearTimeout(toolLpRef.current); toolLpRef.current = null } }}
-                      style={{ flex: 1, padding: '14px', background: m.bg, color: 'white', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', boxShadow: m.shadow, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '18px' }}>{m.icon}</span>
-                      {m.label}
-                      {isHome && <span style={{ fontSize: 12, background: 'rgba(255,255,255,0.25)', borderRadius: 20, padding: '2px 8px', marginRight: 4 }}>בית</span>}
-                    </button>
-                    <button onClick={() => setAsHome(m.id)}
-                      title="הגדר כמסך בית"
-                      style={{ width: 40, height: 40, borderRadius: '50%', border: isHome ? '2px solid #F59E0B' : '2px solid #E5E7EB', background: isHome ? '#FFFBEB' : 'white', cursor: 'pointer', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.2s', boxShadow: isHome ? '0 2px 8px rgba(245,158,11,0.4)' : 'none' }}>
-                      {isHome ? '⭐' : '☆'}
-                    </button>
-                  </div>
-                )
-              })}
-            </div>
-          )
-        })()}
+        {/* Hub shortcut strip */}
+        <div style={{ padding: '12px 16px 4px', display: 'flex', gap: 8, justifyContent: 'center' }}>
+          <button onClick={() => setScreen('hub')}
+            style={{ padding: '10px 20px', background: 'linear-gradient(135deg,#6366F1,#8B5CF6)', color: 'white', border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(99,102,241,0.3)', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            כל העולמות
+          </button>
+        </div>
 
         {/* Spacer before footer */}
         <div style={{ flex: 1, minHeight: 20 }} />
@@ -3129,7 +3150,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     return (
       <div className="m-screen">
         <div className="m-header">
-          <button className="m-back-btn" onClick={() => setScreen('home')}>
+          <button className="m-back-btn" onClick={() => setScreen('hub')}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
           <h1 className="m-title">מחשבון משכנתא</h1>
@@ -4211,13 +4232,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           ) : (
             <>
               {!employeeMode ? (
-                <button className="m-back-btn" onClick={() => setScreen('home')}>
+                <button className="m-back-btn" onClick={() => setScreen('hub')}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
                 </button>
               ) : (
                 <button className="m-back-btn" onClick={() => {
                   setEmployeeMode(null)
-                  setScreen('home')
+                  setScreen('hub')
                 }}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5m0 0-5-5m5 5H9"/></svg>
                 </button>
@@ -6879,6 +6900,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
   return (
     <div className="m-app" onClick={() => { if (menuCatId) setMenuCatId(null) }}>
+      {screen === 'hub' && <HubScreen />}
       {screen === 'home' && <HomeScreen />}
       {screen === 'forecast' && <ForecastScreen />}
       {screen === 'budget' && <BudgetScreen />}
@@ -6887,7 +6909,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       {screen === 'net-chart' && <NetChartScreen />}
       {screen === 'mortgage-calc' && <MortgageCalculator />}
       {screen === 'time-tracking' && <TimeTrackingScreen />}
-      {screen === 'property-management' && <PropertyManagement uid={uid} onBack={() => setScreen('home')} />}
+      {screen === 'property-management' && <PropertyManagement uid={uid} onBack={() => setScreen('hub')} />}
       {renderCatMgmt()}
       <InlineSheet />
       <AddClientModal />
