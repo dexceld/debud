@@ -67,6 +67,27 @@ const currYM = () => {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`
 }
 
+const getTenancyStatus = (tn: Tenancy): 'active' | 'future' | 'past' => {
+  const today = todayStr()
+  if (tn.contractEnd && tn.contractEnd < today) return 'past'
+  if (tn.contractStart && tn.contractStart > today) return 'future'
+  return 'active'
+}
+
+const getMonthsInRange = (start: string, end: string): string[] => {
+  if (!start || !end) return []
+  const result: string[] = []
+  const [sy, sm] = start.slice(0,7).split('-').map(Number)
+  const [ey, em] = end.slice(0,7).split('-').map(Number)
+  let y = sy, m = sm
+  while (y < ey || (y === ey && m <= em)) {
+    result.push(`${y}-${String(m).padStart(2,'0')}`)
+    m++; if (m > 12) { m = 1; y++ }
+    if (result.length > 60) break // safety cap
+  }
+  return result
+}
+
 /* ─── Component ──────────────────────────────────────────────── */
 type Props = { uid: string | null; onBack: () => void }
 
@@ -88,6 +109,7 @@ export function PropertyManagement({ uid, onBack }: Props) {
   const [propView, setPropView] = useState<'list'|'detail'|'editProp'|'editTenancy'|'addTenant'>('list')
   const [selPropId, setSelPropId] = useState<string | null>(null)
   const [selTenancyId, setSelTenancyId] = useState<string | null>(null)
+  const [selViewTenancyId, setSelViewTenancyId] = useState<string | null>(null)
   const [propForm, setPropForm] = useState<Omit<Property,'id'>>({
     name:'', address:'', monthlyRent:0, deposit:0, notes:''
   })
@@ -115,7 +137,8 @@ export function PropertyManagement({ uid, onBack }: Props) {
   useEffect(() => {
     const generated: PMTask[] = []
     tenancies.forEach(tn => {
-      if (!tn.isCurrent) return
+      const tnStatus = getTenancyStatus(tn)
+      if (tnStatus === 'past') return  // skip past
       const days = tn.contractEnd ? daysLeft(tn.contractEnd) : 999
       if (days <= 60 && days >= -30)
         generated.push({ id:`auto_renewal_${tn.id}`, propertyId:tn.propertyId, tenantId:tn.tenantId, tenancyId:tn.id,
@@ -144,10 +167,20 @@ export function PropertyManagement({ uid, onBack }: Props) {
   const updateTenancy = (id: string, patch: Partial<Tenancy>) =>
     setTenancies(prev => prev.map(t => t.id===id ? {...t,...patch} : t))
 
-  const selProp        = properties.find(p => p.id===selPropId) ?? null
-  const currentTenancy = tenancies.find(t => t.propertyId===selPropId && t.isCurrent) ?? null
-  const currentTenant  = currentTenancy ? (tenants.find(t => t.id===currentTenancy.tenantId) ?? null) : null
-  const pastTenancies  = tenancies.filter(t => t.propertyId===selPropId && !t.isCurrent)
+  const selProp         = properties.find(p => p.id===selPropId) ?? null
+  const propTenancies   = tenancies.filter(t => t.propertyId===selPropId).sort((a,b) => a.contractStart.localeCompare(b.contractStart))
+  const activeTenancy   = propTenancies.find(t => getTenancyStatus(t)==='active') ?? null
+  const currentTenancy  = activeTenancy  // backward compat alias
+  const currentTenant   = activeTenancy ? (tenants.find(t => t.id===activeTenancy.tenantId) ?? null) : null
+  const viewedTenancy   = selViewTenancyId ? (tenancies.find(t=>t.id===selViewTenancyId) ?? activeTenancy) : activeTenancy
+  const viewedTenant    = viewedTenancy ? (tenants.find(t=>t.id===viewedTenancy.tenantId) ?? null) : null
+
+  const hasOverlapForProp = (newStart: string, newEnd: string, propId: string, excludeId?: string) =>
+    tenancies.some(t => {
+      if (t.propertyId !== propId) return false
+      if (excludeId && t.id === excludeId) return false
+      return newStart <= t.contractEnd && t.contractStart <= newEnd
+    })
 
   const HDR:  React.CSSProperties = { background:'white', borderBottom:'1px solid #E5E7EB', padding:'12px 16px', display:'flex', alignItems:'center', gap:12, position:'sticky', top:0, zIndex:10 }
   const CARD: React.CSSProperties = { background:'white', border:'1px solid #E5E7EB', borderRadius:14, padding:16, marginBottom:12 }
@@ -218,16 +251,17 @@ export function PropertyManagement({ uid, onBack }: Props) {
         <span style={{ fontWeight:700, fontSize:17, flex:1 }}>{selTenancyId ? 'עריכת שכירות' : 'קישור שוכר לנכס'}</span>
         <button style={BTN_P} onClick={() => {
           if (!tenancyForm.tenantId || !tenancyForm.contractStart) return
+          if (!tenancyForm.contractStart || !tenancyForm.contractEnd) { alert('חסרים תאריכי חוזה'); return }
+          if (tenancyForm.contractStart > tenancyForm.contractEnd) { alert('תאריך התחלה חייב להיות לפני תאריך הסיום'); return }
+          const overlapExists = hasOverlapForProp(tenancyForm.contractStart, tenancyForm.contractEnd, tenancyForm.propertyId, selTenancyId || undefined)
+          if (overlapExists && !window.confirm('⚠️ תקופה זו חופפת לחוזה קיים. האם להמשיך בכל זאת?')) return
           const id = selTenancyId || `ten_${Date.now()}`
           const existing = selTenancyId ? tenancies.find(t=>t.id===selTenancyId) : null
           const rec: Tenancy = { ...tenancyForm, id, payments: existing?.payments || {} }
           if (selTenancyId) setTenancies(prev => prev.map(t => t.id===selTenancyId ? rec : t))
-          else {
-            if (tenancyForm.isCurrent)
-              setTenancies(prev => prev.map(t => t.propertyId===tenancyForm.propertyId ? {...t,isCurrent:false} : t))
-            setTenancies(prev => [...prev, rec])
-          }
-          setPropView('detail'); showToast('✓ שוכר קושר לנכס')
+          else setTenancies(prev => [...prev, rec])
+          setSelViewTenancyId(id)
+          setPropView('detail'); showToast('✓ שכירות נשמרה')
         }}>שמור</button>
       </div>
       <div style={SCROLL}>
@@ -321,125 +355,202 @@ export function PropertyManagement({ uid, onBack }: Props) {
   const renderPropDetail = () => {
     if (!selProp) return null
     const p = selProp
-    const ct = currentTenancy
-    const ctn = currentTenant
-    const days = ct?.contractEnd ? daysLeft(ct.contractEnd) : null
-    const urgColor = days===null ? '#9CA3AF' : days<0 ? '#EF4444' : days<=60 ? '#F59E0B' : '#22C55E'
-    const ym = currYM()
-    const pmtStatus = ct?.payments?.[ym]
+    const tn  = viewedTenancy
+    const tnt = viewedTenant
+    const ym  = currYM()
+
+    const STATUS_COLOR: Record<string,string> = { active:'#22C55E', future:'#6366F1', past:'#9CA3AF' }
+    const STATUS_LABEL: Record<string,string> = { active:'פעיל', future:'עתידי', past:'עבר' }
+    const PMT_COLOR = (s?: string) => s==='paid'?'#22C55E':s==='late'?'#EF4444':'#F59E0B'
+
     return (
       <div style={{ display:'flex', flexDirection:'column', height:'100dvh', background:'#F9FAFB' }}>
         <div style={HDR}>
-          <button style={BACK} onClick={() => setPropView('list')}>‹</button>
+          <button style={BACK} onClick={() => { setPropView('list'); setSelViewTenancyId(null) }}>‹</button>
           <span style={{ fontWeight:700, fontSize:17, flex:1 }}>{p.name || p.address}</span>
           <button type="button" onClick={() => {
             setPropFormId(p.id)
             setPropForm({name:p.name,address:p.address,monthlyRent:p.monthlyRent,deposit:p.deposit,notes:p.notes})
             setPropView('editProp')
-          }} style={{ background:'#F3F4F6', border:'none', borderRadius:8, padding:'6px 14px', fontWeight:600, cursor:'pointer', color:'#374151' }}>ערוך</button>
+          }} style={{ background:'#F3F4F6', border:'none', borderRadius:8, padding:'6px 12px', fontWeight:600, cursor:'pointer', color:'#374151', fontSize:13 }}>ערוך</button>
         </div>
         <div style={SCROLL}>
-          {/* Basic info */}
-          <div style={CARD}>
-            <div style={{ fontSize:13, color:'#6B7280' }}>📍 {p.address}</div>
-            <div style={{ display:'flex', gap:12, marginTop:8, flexWrap:'wrap', alignItems:'center' }}>
-              <span style={{ fontWeight:700, fontSize:16 }}>{fmtMoney(p.monthlyRent)}/חודש</span>
-              {p.deposit>0 && <span style={{ fontSize:13, color:'#6B7280' }}>פיקדון: {fmtMoney(p.deposit)}</span>}
+
+          {/* ── Property info bar ── */}
+          <div style={{ background:'white', borderRadius:14, padding:'12px 16px', marginBottom:12, border:'1px solid #E5E7EB', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+            <div>
+              <div style={{ fontSize:12, color:'#6B7280' }}>📍 {p.address}</div>
+              {p.notes && <div style={{ marginTop:4, fontSize:12, color:'#92400E' }}>📝 {p.notes}</div>}
             </div>
-            {p.notes && <div style={{ marginTop:8, fontSize:13, color:'#92400E', background:'#FFF7ED', borderRadius:8, padding:'6px 10px' }}>📝 {p.notes}</div>}
+            <div style={{ textAlign:'left' }}>
+              <div style={{ fontWeight:700, fontSize:16, color:'#111827' }}>{fmtMoney(p.monthlyRent)}</div>
+              {p.deposit>0 && <div style={{ fontSize:11, color:'#6B7280' }}>פיקדון {fmtMoney(p.deposit)}</div>}
+            </div>
           </div>
 
-          {/* Current tenant */}
+          {/* ── Tenancy timeline ── */}
           <div style={CARD}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
-              <div style={{ fontWeight:700, fontSize:14 }}>👤 שוכר נוכחי</div>
+              <div style={{ fontWeight:700, fontSize:14 }}>� תקופות שכירות</div>
               <button type="button" onClick={() => {
                 setSelTenancyId(null)
                 setTenancyForm({propertyId:p.id,tenantId:'',contractStart:'',contractEnd:'',monthlyRent:p.monthlyRent,depositPaid:false,paymentMethod:'',checksDelivered:false,contractSigned:false,isCurrent:true})
                 setPropView('editTenancy')
-              }} style={{ background:'#EFF6FF', border:'1px solid #BFDBFE', borderRadius:8, padding:'5px 12px', color:'#1D4ED8', fontWeight:600, cursor:'pointer', fontSize:12 }}>
-                {ct ? 'החלף / ערוך' : '+ קשר שוכר'}
+              }} style={{ background:'#6366F1', color:'white', border:'none', borderRadius:8, padding:'5px 12px', fontWeight:700, cursor:'pointer', fontSize:12 }}>
+                + הוסף תקופה
               </button>
             </div>
-            {ct && ctn ? (
-              <>
-                <div style={{ fontWeight:700, fontSize:16, marginBottom:4 }}>{ctn.name}</div>
-                {ctn.phone && <div style={{ fontSize:13, color:'#6B7280', marginBottom:2 }}>📞 {ctn.phone}</div>}
-                {ctn.email && <div style={{ fontSize:13, color:'#6B7280', marginBottom:8 }}>✉ {ctn.email}</div>}
-                <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
-                  <span style={{ fontSize:12, background:urgColor+'20', color:urgColor, borderRadius:20, padding:'2px 10px', fontWeight:700 }}>
-                    {days===null ? '—' : days<0 ? 'פג תוקף' : `${days} ימים`}
-                  </span>
-                  <span style={{ fontSize:12, color:'#6B7280' }}>{ct.contractStart} → {ct.contractEnd}</span>
-                </div>
-                {/* Checklist */}
-                <div style={{ background:'#F9FAFB', borderRadius:10, padding:12, marginBottom:12, display:'flex', flexDirection:'column', gap:8 }}>
-                  {([
-                    {k:'depositPaid', l:'פיקדון התקבל'},
-                    {k:'checksDelivered', l:"צ'קים / אסמכתה"},
-                    {k:'contractSigned', l:'חוזה חתום'},
-                  ] as const).map(({k,l}) => {
-                    const val = (ct as any)[k] as boolean
-                    return (
-                      <button key={k} type="button" onClick={() => updateTenancy(ct.id, {[k]:!val} as any)}
-                        style={{ display:'flex', alignItems:'center', gap:10, background:val?'#F0FDF4':'white', border:val?'1px solid #BBF7D0':'1px solid #E5E7EB', borderRadius:8, padding:'8px 12px', cursor:'pointer', textAlign:'right' }}>
-                        <span style={{ fontSize:18, color:val?'#16A34A':'#9CA3AF' }}>{val?'✅':'☐'}</span>
-                        <span style={{ fontSize:13, fontWeight:600, color:val?'#15803D':'#374151' }}>{l}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-                {/* Quick action buttons */}
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:14 }}>
-                  {[
-                    {label:'🔄 חידוש חוזה', bg:'#F0FDF4', bc:'#BBF7D0', c:'#15803D',
-                      msg:`שלום ${ctn.name}, תזכורת לחידוש חוזה השכירות עבור ${p.name}. החוזה מסתיים ב-${ct.contractEnd}. האם ברצונך לחדש? 🙏`},
-                    {label:'💰 תזכורת פיקדון', bg:'#EFF6FF', bc:'#BFDBFE', c:'#1D4ED8',
-                      msg:`שלום ${ctn.name}, תזכורת להעברת פיקדון (${fmtMoney(p.deposit)}) עבור ${p.name}. תודה 🙏`},
-                    {label:"📑 תזכורת צ'קים", bg:'#FFF7ED', bc:'#FED7AA', c:'#C2410C',
-                      msg:`שלום ${ctn.name}, תזכורת לשלוח צ'קים / אסמכתה עבור ${p.name}. תודה 🙏`},
-                    {label:'💬 תזכורת תשלום', bg:'#F5F3FF', bc:'#DDD6FE', c:'#7C3AED',
-                      msg:`שלום ${ctn.name}, תזכורת לתשלום שכ"ד חודש ${monthLabel(ym)} עבור ${p.name}: ${fmtMoney(ct.monthlyRent||p.monthlyRent)}. תודה 🙏`},
-                  ].map(({label,bg,bc,c,msg}) => (
-                    <button key={label} type="button"
-                      onClick={() => ctn.phone ? sendWA(ctn.phone, msg) : alert('אין טלפון רשום')}
-                      style={{ padding:'10px 8px', background:bg, border:`1px solid ${bc}`, borderRadius:10, color:c, fontWeight:700, cursor:'pointer', fontSize:12 }}>
-                      {label}
-                    </button>
-                  ))}
-                </div>
-                {/* Monthly payment tracker */}
-                <div style={{ borderTop:'1px solid #F3F4F6', paddingTop:12 }}>
-                  <div style={{ fontWeight:700, fontSize:13, marginBottom:8 }}>💳 תשלום חודשי — {monthLabel(ym)}</div>
-                  <div style={{ background:'#EFF6FF', borderRadius:10, padding:'10px 12px', border:'1px solid #BFDBFE', display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
-                    {(['paid','pending','late'] as const).map(s => (
-                      <button key={s} type="button" onClick={() => updateTenancy(ct.id, {payments:{...ct.payments,[ym]:s}})}
-                        style={{ flex:1, padding:'8px 6px', borderRadius:8, border:'none', cursor:'pointer', fontSize:12, fontWeight:700,
-                          background:pmtStatus===s ? (s==='paid'?'#22C55E':s==='late'?'#EF4444':'#F59E0B') : '#E5E7EB',
-                          color:pmtStatus===s ? 'white' : '#6B7280' }}>
-                        {s==='paid' ? '✓ שולם' : s==='late' ? '⚠ מאחר' : '⏳ ממתין'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </>
+
+            {propTenancies.length === 0 ? (
+              <div style={{ textAlign:'center', padding:'16px', color:'#9CA3AF', fontSize:13 }}>אין תקופות שכירות — לחץ "הוסף תקופה"</div>
             ) : (
-              <div style={{ textAlign:'center', padding:'20px', color:'#9CA3AF', fontSize:14 }}>אין שוכר פעיל</div>
+              <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                {propTenancies.map(t => {
+                  const st  = getTenancyStatus(t)
+                  const sc  = STATUS_COLOR[st]
+                  const tnt2 = tenants.find(x=>x.id===t.tenantId)
+                  const days2 = t.contractEnd ? daysLeft(t.contractEnd) : null
+                  const isViewed = (viewedTenancy?.id === t.id)
+                  return (
+                    <button key={t.id} type="button"
+                      onClick={() => setSelViewTenancyId(t.id)}
+                      style={{ background:isViewed?sc+'12':'#F9FAFB', border:`2px solid ${isViewed?sc:'#E5E7EB'}`, borderRadius:12, padding:'10px 14px', cursor:'pointer', textAlign:'right', display:'flex', flexDirection:'column', gap:4 }}>
+                      {/* Tenant + status badge */}
+                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                        <span style={{ fontWeight:700, fontSize:15, color:'#111827' }}>{tnt2?.name || '—'}</span>
+                        <span style={{ fontSize:11, background:sc+'20', color:sc, borderRadius:20, padding:'2px 8px', fontWeight:700 }}>{STATUS_LABEL[st]}</span>
+                      </div>
+                      {/* Date range — large and prominent */}
+                      <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                        <span style={{ fontWeight:700, fontSize:15, color:sc }}>{t.contractStart.slice(0,7)}</span>
+                        <span style={{ fontSize:14, color:'#9CA3AF' }}>→</span>
+                        <span style={{ fontWeight:700, fontSize:15, color:sc }}>{t.contractEnd.slice(0,7)}</span>
+                        {days2!==null && st!=='past' && (
+                          <span style={{ fontSize:11, color:'#6B7280', marginRight:'auto' }}>
+                            {days2<0?'פג תוקף':st==='future'?`מתחיל בעוד ${Math.abs(daysLeft(t.contractStart))}י'`:`${days2}י' לסיום`}
+                          </span>
+                        )}
+                      </div>
+                      {/* Checklist badges */}
+                      <div style={{ display:'flex', gap:6, marginTop:2 }}>
+                        {([{k:'depositPaid',l:'פיקדון'},{k:'checksDelivered',l:"צ'קים"},{k:'contractSigned',l:'חוזה'}] as const).map(({k,l}) => (
+                          <span key={k} style={{ fontSize:10, background:(t as any)[k]?'#D1FAE5':'#FEE2E2', color:(t as any)[k]?'#065F46':'#991B1B', borderRadius:10, padding:'1px 7px', fontWeight:600 }}>
+                            {(t as any)[k]?'✓':''} {l}
+                          </span>
+                        ))}
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
             )}
           </div>
 
-          {/* Past tenants */}
-          {pastTenancies.length > 0 && (
+          {/* ── Selected tenancy detail ── */}
+          {tn && tnt && (
             <div style={CARD}>
-              <div style={{ fontWeight:700, fontSize:14, marginBottom:10 }}>📜 שוכרים לשעבר</div>
-              {pastTenancies.map(pt => (
-                <div key={pt.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'8px 0', borderBottom:'1px solid #F3F4F6' }}>
-                  <span style={{ fontWeight:600, fontSize:14 }}>{getTenantName(pt.tenantId)}</span>
-                  <span style={{ fontSize:12, color:'#9CA3AF' }}>{pt.contractStart} → {pt.contractEnd}</span>
+              {/* Header with edit */}
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
+                <div>
+                  <div style={{ fontWeight:700, fontSize:17 }}>{tnt.name}</div>
+                  <div style={{ fontSize:13, color:'#6B7280', marginTop:2 }}>
+                    {tnt.phone && <span style={{ marginLeft:12 }}>📞 {tnt.phone}</span>}
+                    {tnt.email && <span>✉ {tnt.email}</span>}
+                  </div>
                 </div>
-              ))}
+                <button type="button" onClick={() => {
+                  setSelTenancyId(tn.id)
+                  setTenancyForm({propertyId:tn.propertyId,tenantId:tn.tenantId,contractStart:tn.contractStart,contractEnd:tn.contractEnd,monthlyRent:tn.monthlyRent,depositPaid:tn.depositPaid,paymentMethod:tn.paymentMethod,checksDelivered:tn.checksDelivered,contractSigned:tn.contractSigned,isCurrent:tn.isCurrent})
+                  setPropView('editTenancy')
+                }} style={{ background:'#F3F4F6', border:'none', borderRadius:8, padding:'6px 12px', fontWeight:600, cursor:'pointer', color:'#374151', fontSize:13, flexShrink:0 }}>ערוך</button>
+              </div>
+
+              {/* Contract dates — very prominent */}
+              <div style={{ background:'linear-gradient(135deg,#EEF2FF,#F5F3FF)', borderRadius:12, padding:'14px 16px', marginBottom:14, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <div style={{ textAlign:'center' }}>
+                  <div style={{ fontSize:10, color:'#6B7280', marginBottom:2 }}>תחילת חוזה</div>
+                  <div style={{ fontWeight:800, fontSize:18, color:'#4F46E5', direction:'ltr' }}>{tn.contractStart.slice(0,7).replace('-','/')}</div>
+                  <div style={{ fontSize:11, color:'#6366F1' }}>{monthLabel(tn.contractStart.slice(0,7))}</div>
+                </div>
+                <div style={{ color:'#A5B4FC', fontSize:22 }}>→</div>
+                <div style={{ textAlign:'center' }}>
+                  <div style={{ fontSize:10, color:'#6B7280', marginBottom:2 }}>סוף חוזה</div>
+                  <div style={{ fontWeight:800, fontSize:18, color:'#4F46E5', direction:'ltr' }}>{tn.contractEnd.slice(0,7).replace('-','/')}</div>
+                  <div style={{ fontSize:11, color:'#6366F1' }}>{monthLabel(tn.contractEnd.slice(0,7))}</div>
+                </div>
+                <div style={{ textAlign:'center', borderRight:'1px solid #C7D2FE', paddingRight:12 }}>
+                  <div style={{ fontSize:10, color:'#6B7280', marginBottom:2 }}>שכ"ד</div>
+                  <div style={{ fontWeight:800, fontSize:16, color:'#4F46E5' }}>{fmtMoney(tn.monthlyRent||p.monthlyRent)}</div>
+                  <div style={{ fontSize:11, color:'#6366F1' }}>לחודש</div>
+                </div>
+              </div>
+
+              {/* Checklist */}
+              <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:14 }}>
+                {([{k:'depositPaid',l:'פיקדון התקבל'},{k:'checksDelivered',l:"צ'קים / אסמכתה"},{k:'contractSigned',l:'חוזה חתום'}] as const).map(({k,l}) => {
+                  const val = (tn as any)[k] as boolean
+                  return (
+                    <button key={k} type="button" onClick={() => updateTenancy(tn.id,{[k]:!val} as any)}
+                      style={{ display:'flex', alignItems:'center', gap:10, background:val?'#F0FDF4':'white', border:val?'1px solid #BBF7D0':'1px solid #E5E7EB', borderRadius:8, padding:'8px 12px', cursor:'pointer', textAlign:'right' }}>
+                      <span style={{ fontSize:18, color:val?'#16A34A':'#9CA3AF' }}>{val?'✅':'☐'}</span>
+                      <span style={{ fontSize:13, fontWeight:600, color:val?'#15803D':'#374151' }}>{l}</span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Quick WA actions */}
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:16 }}>
+                {[
+                  {label:'🔄 חידוש חוזה', bg:'#F0FDF4', bc:'#BBF7D0', c:'#15803D', msg:`שלום ${tnt.name}, תזכורת לחידוש חוזה השכירות עבור ${p.name}. החוזה מסתיים ב-${tn.contractEnd}. האם ברצונך לחדש? 🙏`},
+                  {label:'💰 תזכורת פיקדון', bg:'#EFF6FF', bc:'#BFDBFE', c:'#1D4ED8', msg:`שלום ${tnt.name}, תזכורת להעברת פיקדון (${fmtMoney(p.deposit)}) עבור ${p.name}. תודה 🙏`},
+                  {label:"📑 תזכורת צ'קים", bg:'#FFF7ED', bc:'#FED7AA', c:'#C2410C', msg:`שלום ${tnt.name}, תזכורת לשלוח צ'קים / אסמכתה עבור ${p.name}. תודה 🙏`},
+                  {label:'💬 תזכורת תשלום', bg:'#F5F3FF', bc:'#DDD6FE', c:'#7C3AED', msg:`שלום ${tnt.name}, תזכורת לתשלום שכ"ד חודש ${monthLabel(ym)} עבור ${p.name}: ${fmtMoney(tn.monthlyRent||p.monthlyRent)}. תודה 🙏`},
+                ].map(({label,bg,bc,c,msg}) => (
+                  <button key={label} type="button"
+                    onClick={() => tnt.phone ? sendWA(tnt.phone, msg) : alert('אין טלפון רשום')}
+                    style={{ padding:'10px 6px', background:bg, border:`1px solid ${bc}`, borderRadius:10, color:c, fontWeight:700, cursor:'pointer', fontSize:11 }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {/* ── Full payment tracker — all months in contract ── */}
+              <div style={{ borderTop:'1px solid #F3F4F6', paddingTop:12 }}>
+                <div style={{ fontWeight:700, fontSize:13, marginBottom:10, color:'#374151' }}>💳 מעקב תשלומים</div>
+                <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                  {getMonthsInRange(tn.contractStart, tn.contractEnd).map(m => {
+                    const status = tn.payments?.[m]
+                    const isCurr = m === ym
+                    const isFuture = m > ym
+                    return (
+                      <div key={m} style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 12px', borderRadius:10, background:isCurr?'#EFF6FF':'#F9FAFB', border:isCurr?'1.5px solid #BFDBFE':'1px solid #F3F4F6' }}>
+                        <div style={{ flex:1 }}>
+                          <span style={{ fontWeight:isCurr?800:600, fontSize:13, color:isCurr?'#1D4ED8':'#374151' }}>{monthLabel(m)}</span>
+                          {isCurr && <span style={{ fontSize:10, color:'#6366F1', marginRight:6, background:'#EEF2FF', borderRadius:10, padding:'1px 6px' }}>חודש נוכחי</span>}
+                        </div>
+                        <div style={{ display:'flex', gap:5 }}>
+                          {(['paid','pending','late'] as const).map(s => (
+                            <button key={s} type="button"
+                              onClick={() => updateTenancy(tn.id, {payments:{...tn.payments,[m]:s}})}
+                              style={{ padding:'5px 8px', borderRadius:7, border:'none', cursor:'pointer', fontSize:11, fontWeight:700,
+                                background:status===s?(s==='paid'?'#22C55E':s==='late'?'#EF4444':'#F59E0B'):(isFuture?'#F3F4F6':'#E5E7EB'),
+                                color:status===s?'white':(isFuture?'#D1D5DB':'#6B7280') }}>
+                              {s==='paid'?'✓':s==='late'?'⚠':'⏳'}
+                            </button>
+                          ))}
+                          {status && <span style={{ fontSize:11, color:PMT_COLOR(status), fontWeight:700, padding:'4px 0', minWidth:36, textAlign:'center' }}>
+                            {status==='paid'?'שולם':status==='late'?'מאחר':'ממתין'}
+                          </span>}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
             </div>
           )}
+
         </div>
       </div>
     )
@@ -461,8 +572,10 @@ export function PropertyManagement({ uid, onBack }: Props) {
             <div style={{ fontSize:14 }}>לחץ "+ נכס" להתחלה</div>
           </div>
         ) : properties.map(p => {
-          const ct = tenancies.find(t=>t.propertyId===p.id&&t.isCurrent)
+          const allPropTn = tenancies.filter(t=>t.propertyId===p.id)
+          const ct = allPropTn.find(t=>getTenancyStatus(t)==='active') ?? allPropTn.find(t=>getTenancyStatus(t)==='future') ?? null
           const ctn = ct ? tenants.find(t=>t.id===ct.tenantId) : null
+          const ctStatus = ct ? getTenancyStatus(ct) : null
           const days = ct?.contractEnd ? daysLeft(ct.contractEnd) : null
           const urg = days===null ? '#9CA3AF' : days<0 ? '#EF4444' : days<=60 ? '#F59E0B' : '#22C55E'
           return (
@@ -481,7 +594,7 @@ export function PropertyManagement({ uid, onBack }: Props) {
               </div>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                 <span style={{ fontWeight:700, fontSize:15, color:'#111827' }}>{fmtMoney(p.monthlyRent)}/חודש</span>
-                <span style={{ fontSize:13, color:ctn?'#374151':'#9CA3AF' }}>{ctn ? ctn.name : 'פנוי'}</span>
+                <span style={{ fontSize:13, color:ctn?'#374151':'#9CA3AF' }}>{ctn ? `${ctn.name}${ctStatus==='future'?' (עתידי)':''}` : 'פנוי'}</span>
               </div>
             </button>
           )
@@ -491,7 +604,7 @@ export function PropertyManagement({ uid, onBack }: Props) {
         <div style={{ background:'white', borderTop:'1px solid #E5E7EB', padding:'12px 20px', display:'flex', justifyContent:'space-around', flexShrink:0 }}>
           <div style={{ textAlign:'center' }}><div style={{ fontSize:18, fontWeight:700 }}>{properties.length}</div><div style={{ fontSize:11, color:'#6B7280' }}>נכסים</div></div>
           <div style={{ textAlign:'center' }}><div style={{ fontSize:18, fontWeight:700, color:'#22C55E' }}>{fmtMoney(properties.reduce((s,p)=>s+p.monthlyRent,0))}</div><div style={{ fontSize:11, color:'#6B7280' }}>שכ"ד חודשי</div></div>
-          <div style={{ textAlign:'center' }}><div style={{ fontSize:18, fontWeight:700, color:'#6366F1' }}>{tenancies.filter(t=>t.isCurrent).length}</div><div style={{ fontSize:11, color:'#6B7280' }}>מושכרים</div></div>
+          <div style={{ textAlign:'center' }}><div style={{ fontSize:18, fontWeight:700, color:'#6366F1' }}>{properties.filter(p=>tenancies.some(t=>t.propertyId===p.id&&getTenancyStatus(t)==='active')).length}</div><div style={{ fontSize:11, color:'#6B7280' }}>מושכרים</div></div>
         </div>
       )}
     </>
