@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react'
+﻿import React, { useState, useEffect, useRef } from 'react'
 import { useFirebaseSync } from '../hooks/useFirebaseSync'
 
 /* ─── Types ─────────────────────────────────────────────────── */
@@ -35,6 +35,18 @@ export type Tenancy = {
   contractSigned: boolean
   payments: Record<string, 'paid' | 'pending' | 'late'>
   isCurrent: boolean
+}
+
+export type TenancyDoc = {
+  id: string
+  tenancyId: string
+  propertyId: string
+  name: string
+  type: 'contract' | 'renewal' | 'receipt' | 'other'
+  date: string
+  mimeType: string
+  size: number
+  // binary data stored separately in localStorage under key pm_doc_data_{id}
 }
 
 export type PMTask = {
@@ -106,7 +118,7 @@ export function PropertyManagement({ uid, onBack }: Props) {
   const [tab, setTab] = useState<Tab>('properties')
   const [toast, setToast] = useState<string | null>(null)
 
-  const [propView, setPropView] = useState<'list'|'detail'|'editProp'|'editTenancy'|'addTenant'>('list')
+  const [propView, setPropView] = useState<'list'|'detail'|'editProp'|'editTenancy'|'addTenant'|'docs'>('list')
   const [selPropId, setSelPropId] = useState<string | null>(null)
   const [selTenancyId, setSelTenancyId] = useState<string | null>(null)
   const [selViewTenancyId, setSelViewTenancyId] = useState<string | null>(null)
@@ -118,6 +130,13 @@ export function PropertyManagement({ uid, onBack }: Props) {
     propertyId:'', tenantId:'', contractStart:'', contractEnd:'', monthlyRent:0,
     depositPaid:false, paymentMethod:'', checksDelivered:false, contractSigned:false, isCurrent:true
   })
+  const [docs, setDocs] = useState<TenancyDoc[]>(
+    () => JSON.parse(localStorage.getItem(lsKey('docs')) || '[]'))
+  const [pendingDocFile, setPendingDocFile] = useState<{file:File; tenancyId:string; propertyId:string} | null>(null)
+  const [pendingDocType, setPendingDocType] = useState<TenancyDoc['type']>('contract')
+  const [docSearchQuery, setDocSearchQuery] = useState('')
+  const docInputRef = useRef<HTMLInputElement>(null)
+
   const [tenantView, setTenantView] = useState<'list'|'edit'>('list')
   const [tenantForm, setTenantForm] = useState<Omit<Tenant,'id'>>({
     name:'', phone:'', email:'', extraPhones:[], notes:'', status:'lead', interestedPropertyId:null
@@ -128,11 +147,13 @@ export function PropertyManagement({ uid, onBack }: Props) {
   useFirebaseSync(uid, 'pm_tenants',    tenants,    v => setTenants(v as Tenant[]))
   useFirebaseSync(uid, 'pm_tenancies',  tenancies,  v => setTenancies(v as Tenancy[]))
   useFirebaseSync(uid, 'pm_tasks',      tasks,      v => setTasks(v as PMTask[]))
+  useFirebaseSync(uid, 'pm_docs',       docs,       v => setDocs(v as TenancyDoc[]))
 
   useEffect(() => { localStorage.setItem(lsKey('properties'), JSON.stringify(properties)) }, [properties])
   useEffect(() => { localStorage.setItem(lsKey('tenants'),    JSON.stringify(tenants))    }, [tenants])
   useEffect(() => { localStorage.setItem(lsKey('tenancies'),  JSON.stringify(tenancies))  }, [tenancies])
   useEffect(() => { localStorage.setItem(lsKey('tasks'),      JSON.stringify(tasks))      }, [tasks])
+  useEffect(() => { localStorage.setItem(lsKey('docs'),       JSON.stringify(docs))       }, [docs])
 
   useEffect(() => {
     const generated: PMTask[] = []
@@ -158,6 +179,53 @@ export function PropertyManagement({ uid, onBack }: Props) {
   }, [tenancies])
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
+
+  const DOC_TYPE_LABEL: Record<TenancyDoc['type'],string> = { contract:'חוזה', renewal:'חידוש', receipt:'אסמכתא', other:'אחר' }
+  const DOC_TYPE_COLOR: Record<TenancyDoc['type'],string> = { contract:'#6366F1', renewal:'#10B981', receipt:'#F59E0B', other:'#6B7280' }
+  const DOC_TYPE_ICON:  Record<TenancyDoc['type'],string> = { contract:'📄', renewal:'🔄', receipt:'🧾', other:'📎' }
+
+  const fmtFileSize = (bytes: number) => bytes < 1024*1024 ? `${(bytes/1024).toFixed(0)}KB` : `${(bytes/1024/1024).toFixed(1)}MB`
+
+  const saveDoc = (file: File, tenancyId: string, propertyId: string, type: TenancyDoc['type']) => {
+    const MAX = 8 * 1024 * 1024
+    if (file.size > MAX) { alert(`הקובץ גדול מדי (${fmtFileSize(file.size)}). מקסימום 8MB`); return }
+    const reader = new FileReader()
+    reader.onload = () => {
+      const b64 = reader.result as string
+      const id = `doc_${Date.now()}`
+      try {
+        localStorage.setItem(lsKey(`doc_data_${id}`), b64)
+      } catch { alert('אין מספיק מקום בזיכרון המכשיר'); return }
+      const meta: TenancyDoc = { id, tenancyId, propertyId, name: file.name, type, date: new Date().toISOString().slice(0,10), mimeType: file.type, size: file.size }
+      setDocs(prev => [...prev, meta])
+      setPendingDocFile(null)
+      showToast('✓ מסמך נוסף')
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const deleteDoc = (id: string) => {
+    if (!window.confirm('למחוק את המסמך?')) return
+    localStorage.removeItem(lsKey(`doc_data_${id}`))
+    setDocs(prev => prev.filter(d => d.id !== id))
+  }
+
+  const openDoc = (id: string, mimeType: string, name: string) => {
+    const b64 = localStorage.getItem(lsKey(`doc_data_${id}`))
+    if (!b64) { alert('הקובץ לא נמצא במכשיר זה'); return }
+    try {
+      const arr = b64.split(',')
+      const bstr = atob(arr[1] || arr[0])
+      const bytes = new Uint8Array(bstr.length)
+      for (let i=0; i<bstr.length; i++) bytes[i] = bstr.charCodeAt(i)
+      const blob = new Blob([bytes], { type: mimeType || 'application/octet-stream' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url; a.target = '_blank'; a.download = name
+      a.click()
+      setTimeout(() => URL.revokeObjectURL(url), 5000)
+    } catch { alert('שגיאה בפתיחת הקובץ') }
+  }
   const sendWA = (phone: string, msg: string) => {
     const clean = phone.replace(/\D/g,'').replace(/^0/,'972')
     window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, '_blank')
@@ -516,7 +584,7 @@ export function PropertyManagement({ uid, onBack }: Props) {
               </div>
 
               {/* ── Full payment tracker — all months in contract ── */}
-              <div style={{ borderTop:'1px solid #F3F4F6', paddingTop:12 }}>
+              <div style={{ borderTop:'1px solid #F3F4F6', paddingTop:12, marginBottom:14 }}>
                 <div style={{ fontWeight:700, fontSize:13, marginBottom:10, color:'#374151' }}>💳 מעקב תשלומים</div>
                 <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
                   {getMonthsInRange(tn.contractStart, tn.contractEnd).map(m => {
@@ -548,9 +616,23 @@ export function PropertyManagement({ uid, onBack }: Props) {
                   })}
                 </div>
               </div>
+
+              {/* ── Documents ── */}
+              {renderDocSection(tn)}
             </div>
           )}
 
+          {/* Hidden file input — shared for all tenancies */}
+          <input ref={docInputRef} type="file" accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx" style={{ display:'none' }}
+            onChange={e => {
+              const file = e.target.files?.[0]
+              if (!file) return
+              const tid = docInputRef.current?.getAttribute('data-tid') || ''
+              const pid = docInputRef.current?.getAttribute('data-pid') || ''
+              setPendingDocFile({ file, tenancyId: tid, propertyId: pid })
+              setPendingDocType('contract')
+              e.target.value = ''
+            }} />
         </div>
       </div>
     )
@@ -560,6 +642,10 @@ export function PropertyManagement({ uid, onBack }: Props) {
       <div style={HDR}>
         <button style={BACK} onClick={onBack}>‹</button>
         <span style={{ fontWeight:700, fontSize:17, flex:1 }}>🏠 נכסים</span>
+        <button type="button" onClick={() => { setDocSearchQuery(''); setPropView('docs') }}
+          style={{ background:'#F5F3FF', border:'none', borderRadius:8, padding:'6px 10px', color:'#7C3AED', fontWeight:700, cursor:'pointer', fontSize:12, marginLeft:6 }}>
+          📄 {docs.length > 0 ? docs.length : ''}
+        </button>
         <button style={BTN_P} onClick={() => {
           setPropFormId(null); setPropForm({name:'',address:'',monthlyRent:0,deposit:0,notes:''}); setPropView('editProp')
         }}>+ נכס</button>
@@ -610,11 +696,170 @@ export function PropertyManagement({ uid, onBack }: Props) {
     </>
   )
 
+  /* ── Per-tenancy document attachment section ── */
+  const renderDocSection = (tn: Tenancy) => {
+    const tnDocs = docs.filter(d => d.tenancyId === tn.id)
+    const isPending = pendingDocFile?.tenancyId === tn.id
+    return (
+      <div style={{ borderTop:'1px solid #F3F4F6', paddingTop:14, marginTop:4 }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
+          <div style={{ fontWeight:700, fontSize:13, color:'#374151' }}>📎 מסמכים {tnDocs.length > 0 && <span style={{ fontSize:11, background:'#EEF2FF', color:'#6366F1', borderRadius:10, padding:'1px 7px', fontWeight:700 }}>{tnDocs.length}</span>}</div>
+          <button type="button" onClick={() => {
+            setPendingDocFile(null)
+            setPendingDocType('contract')
+            docInputRef.current?.click()
+            // store context for when file is selected
+            docInputRef.current?.setAttribute('data-tid', tn.id)
+            docInputRef.current?.setAttribute('data-pid', tn.propertyId)
+          }} style={{ background:'#6366F1', color:'white', border:'none', borderRadius:8, padding:'5px 12px', fontWeight:700, cursor:'pointer', fontSize:12 }}>
+            + הוסף מסמך
+          </button>
+        </div>
+
+        {/* Pending file — type picker */}
+        {isPending && pendingDocFile && (
+          <div style={{ background:'#EEF2FF', borderRadius:12, padding:'12px 14px', marginBottom:12, border:'1.5px solid #A5B4FC' }}>
+            <div style={{ fontSize:12, fontWeight:700, color:'#4338CA', marginBottom:8 }}>📂 {pendingDocFile.file.name} ({fmtFileSize(pendingDocFile.file.size)})</div>
+            <div style={{ fontSize:12, color:'#374151', marginBottom:8, fontWeight:600 }}>סוג מסמך:</div>
+            <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:10 }}>
+              {(['contract','renewal','receipt','other'] as TenancyDoc['type'][]).map(t => (
+                <button key={t} type="button" onClick={() => setPendingDocType(t)}
+                  style={{ padding:'6px 12px', borderRadius:8, border:`1.5px solid ${pendingDocType===t?DOC_TYPE_COLOR[t]:'#E5E7EB'}`, background:pendingDocType===t?DOC_TYPE_COLOR[t]+'18':'white', color:pendingDocType===t?DOC_TYPE_COLOR[t]:'#6B7280', fontWeight:700, fontSize:12, cursor:'pointer' }}>
+                  {DOC_TYPE_ICON[t]} {DOC_TYPE_LABEL[t]}
+                </button>
+              ))}
+            </div>
+            <div style={{ display:'flex', gap:8 }}>
+              <button type="button" onClick={() => saveDoc(pendingDocFile.file, pendingDocFile.tenancyId, pendingDocFile.propertyId, pendingDocType)}
+                style={{ flex:1, background:'#6366F1', color:'white', border:'none', borderRadius:8, padding:'8px', fontWeight:700, cursor:'pointer', fontSize:13 }}>שמור</button>
+              <button type="button" onClick={() => setPendingDocFile(null)}
+                style={{ background:'#F3F4F6', border:'none', borderRadius:8, padding:'8px 14px', color:'#6B7280', fontWeight:600, cursor:'pointer', fontSize:13 }}>ביטול</button>
+            </div>
+          </div>
+        )}
+
+        {/* Doc list */}
+        {tnDocs.length === 0 && !isPending ? (
+          <div style={{ fontSize:12, color:'#9CA3AF', textAlign:'center', padding:'10px 0' }}>אין מסמכים מצורפים</div>
+        ) : (
+          <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+            {tnDocs.map(d => {
+              const hasData = !!localStorage.getItem(lsKey(`doc_data_${d.id}`))
+              return (
+                <div key={d.id} style={{ display:'flex', alignItems:'center', gap:10, background:'#F9FAFB', borderRadius:10, padding:'10px 12px', border:'1px solid #E5E7EB' }}>
+                  <span style={{ fontSize:20, flexShrink:0 }}>{DOC_TYPE_ICON[d.type]}</span>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontWeight:600, fontSize:13, color:'#111827', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{d.name}</div>
+                    <div style={{ display:'flex', gap:6, alignItems:'center', marginTop:2 }}>
+                      <span style={{ fontSize:10, background:DOC_TYPE_COLOR[d.type]+'20', color:DOC_TYPE_COLOR[d.type], borderRadius:10, padding:'1px 7px', fontWeight:700 }}>{DOC_TYPE_LABEL[d.type]}</span>
+                      <span style={{ fontSize:10, color:'#9CA3AF' }}>{d.date} · {fmtFileSize(d.size)}</span>
+                      {!hasData && <span style={{ fontSize:10, color:'#F59E0B' }}>⚠ לא זמין במכשיר זה</span>}
+                    </div>
+                  </div>
+                  <div style={{ display:'flex', gap:6, flexShrink:0 }}>
+                    {hasData && <button type="button" onClick={() => openDoc(d.id, d.mimeType, d.name)}
+                      style={{ background:'#EFF6FF', border:'1px solid #BFDBFE', color:'#1D4ED8', borderRadius:8, padding:'6px 10px', fontWeight:700, cursor:'pointer', fontSize:12 }}>פתח</button>}
+                    <button type="button" onClick={() => deleteDoc(d.id)}
+                      style={{ background:'#FEF2F2', border:'1px solid #FECACA', color:'#DC2626', borderRadius:8, padding:'6px 10px', fontWeight:700, cursor:'pointer', fontSize:12 }}>✕</button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  /* ── Global document browser ── */
+  const renderDocsView = () => {
+    const q = docSearchQuery.toLowerCase()
+    const filtered = docs.filter(d => {
+      if (q && !d.name.toLowerCase().includes(q) &&
+          !DOC_TYPE_LABEL[d.type].includes(q) &&
+          !(properties.find(p=>p.id===d.propertyId)?.name||'').toLowerCase().includes(q) &&
+          !(tenants.find(t=>t.id===tenancies.find(tn=>tn.id===d.tenancyId)?.tenantId)?.name||'').toLowerCase().includes(q)
+      ) return false
+      return true
+    }).sort((a,b) => b.date.localeCompare(a.date))
+
+    return (
+      <div style={{ display:'flex', flexDirection:'column', height:'100dvh', background:'#F9FAFB' }}>
+        <div style={HDR}>
+          <button style={BACK} onClick={() => setPropView('list')}>‹</button>
+          <span style={{ fontWeight:700, fontSize:17, flex:1 }}>📄 כל המסמכים</span>
+          <span style={{ fontSize:12, color:'#9CA3AF' }}>{docs.length} מסמכים</span>
+        </div>
+
+        {/* Search + filter */}
+        <div style={{ padding:'10px 16px', background:'white', borderBottom:'1px solid #E5E7EB', flexShrink:0 }}>
+          <input style={{ ...INP, marginBottom:8 }} placeholder="חיפוש לפי שם, נכס, שוכר..." value={docSearchQuery}
+            onChange={e => setDocSearchQuery(e.target.value)} />
+          <div style={{ display:'flex', gap:6 }}>
+            {(['all','contract','renewal','receipt','other'] as const).map(t => {
+              const isAll = t==='all'
+              const active = isAll ? q==='' && docSearchQuery==='' : false
+              return (
+                <button key={t} type="button" onClick={() => setDocSearchQuery(isAll ? '' : DOC_TYPE_LABEL[t as TenancyDoc['type']])}
+                  style={{ flex:1, padding:'5px 4px', borderRadius:8, border:`1.5px solid ${active?'#6366F1':'#E5E7EB'}`, background:active?'#EEF2FF':'white', fontSize:11, fontWeight:700, color:active?'#6366F1':'#6B7280', cursor:'pointer' }}>
+                  {isAll ? 'הכל' : DOC_TYPE_LABEL[t as TenancyDoc['type']]}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        <div style={SCROLL}>
+          {filtered.length === 0 ? (
+            <div style={{ textAlign:'center', padding:'60px 20px', color:'#9CA3AF' }}>
+              <div style={{ fontSize:48, marginBottom:12 }}>📄</div>
+              <div style={{ fontWeight:700, fontSize:15, color:'#374151' }}>{docs.length===0 ? 'אין מסמכים עדיין' : 'לא נמצאו תוצאות'}</div>
+            </div>
+          ) : filtered.map(d => {
+            const prop   = properties.find(p=>p.id===d.propertyId)
+            const tncy   = tenancies.find(t=>t.id===d.tenancyId)
+            const tenant = tncy ? tenants.find(t=>t.id===tncy.tenantId) : null
+            const hasData = !!localStorage.getItem(lsKey(`doc_data_${d.id}`))
+            return (
+              <div key={d.id} style={{ background:'white', borderRadius:14, padding:'12px 14px', marginBottom:10, border:'1px solid #E5E7EB' }}>
+                <div style={{ display:'flex', alignItems:'flex-start', gap:10 }}>
+                  <span style={{ fontSize:24, flexShrink:0 }}>{DOC_TYPE_ICON[d.type]}</span>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontWeight:700, fontSize:14, color:'#111827', marginBottom:2 }}>{d.name}</div>
+                    <div style={{ display:'flex', gap:6, alignItems:'center', flexWrap:'wrap', marginBottom:4 }}>
+                      <span style={{ fontSize:11, background:DOC_TYPE_COLOR[d.type]+'20', color:DOC_TYPE_COLOR[d.type], borderRadius:10, padding:'1px 7px', fontWeight:700 }}>{DOC_TYPE_LABEL[d.type]}</span>
+                      <span style={{ fontSize:11, color:'#6B7280' }}>{d.date} · {fmtFileSize(d.size)}</span>
+                    </div>
+                    <div style={{ fontSize:12, color:'#6B7280' }}>
+                      🏠 {prop?.name || '—'}
+                      {tenant && <span> · 👤 {tenant.name}</span>}
+                      {tncy && <span style={{ fontSize:11, color:'#9CA3AF' }}> · {tncy.contractStart.slice(0,7)} → {tncy.contractEnd.slice(0,7)}</span>}
+                    </div>
+                    {!hasData && <div style={{ fontSize:11, color:'#F59E0B', marginTop:4 }}>⚠ קובץ לא זמין במכשיר זה</div>}
+                  </div>
+                </div>
+                <div style={{ display:'flex', gap:8, marginTop:10 }}>
+                  {hasData && <button type="button" onClick={() => openDoc(d.id, d.mimeType, d.name)}
+                    style={{ flex:1, background:'#EFF6FF', border:'1px solid #BFDBFE', color:'#1D4ED8', borderRadius:8, padding:'8px', fontWeight:700, cursor:'pointer', fontSize:13 }}>📂 פתח</button>}
+                  <button type="button" onClick={() => { setSelPropId(d.propertyId); setSelViewTenancyId(d.tenancyId); setPropView('detail') }}
+                    style={{ flex:1, background:'#F9FAFB', border:'1px solid #E5E7EB', color:'#374151', borderRadius:8, padding:'8px', fontWeight:700, cursor:'pointer', fontSize:13 }}>→ לנכס</button>
+                  <button type="button" onClick={() => deleteDoc(d.id)}
+                    style={{ background:'#FEF2F2', border:'1px solid #FECACA', color:'#DC2626', borderRadius:8, padding:'8px 12px', fontWeight:700, cursor:'pointer', fontSize:13 }}>✕</button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
   const renderPropertiesTab = () => {
     if (propView==='editProp')    return renderEditProp()
     if (propView==='editTenancy') return renderEditTenancy()
     if (propView==='addTenant')   return renderAddTenantInline()
     if (propView==='detail')      return renderPropDetail()
+    if (propView==='docs')        return renderDocsView()
     return null
   }
 
