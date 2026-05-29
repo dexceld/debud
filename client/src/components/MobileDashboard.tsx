@@ -1230,8 +1230,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const HubScreen = () => {
     const HUB_MODULES: { id: AppModule; label: string; icon: string; dest: Screen; bg: string; desc: string }[] = [
       { id: 'family-budget',       label: 'תקציב משפחתי',   icon: '💰', dest: 'home',                bg: 'linear-gradient(135deg,#6366F1,#8B5CF6)', desc: 'הוצאות, תחזית ויתרות' },
-      { id: 'time-tracking',       label: 'דיווחי שעות',    icon: '⏱',  dest: 'time-tracking',       bg: 'linear-gradient(135deg,#10B981,#059669)', desc: 'לקוחות, עובדים ודוחות' },
-      { id: 'mortgage-calc',       label: 'מחשבון משכנתא',  icon: '🏠', dest: 'mortgage-calc',       bg: 'linear-gradient(135deg,#667EEA,#764BA2)', desc: 'חישוב החזרי משכנתא' },
+      { id: 'time-tracking',       label: 'דיווח שעות',     icon: '⏱',  dest: 'time-tracking',       bg: 'linear-gradient(135deg,#10B981,#059669)', desc: 'לקוחות, עובדים ודוחות' },
+      { id: 'mortgage-calc',       label: 'מחשבון משכנתא',  icon: '🏠', dest: 'mortgage-calc',       bg: 'linear-gradient(135deg,#667EEA,#764BA2)', desc: 'חישובי החזרי משכנתא' },
       { id: 'property-management', label: 'ניהול נכסים',    icon: '🏢', dest: 'property-management', bg: 'linear-gradient(135deg,#F59E0B,#D97706)', desc: 'שוכרים, חוזים ותשלומים' },
     ]
     return (
@@ -1248,8 +1248,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 <button onClick={() => setScreen(m.dest)}
                   style={{ flex: 1, padding: '22px 14px 16px', background: m.bg, border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textAlign: 'center' }}>
                   <span style={{ fontSize: 44 }}>{m.icon}</span>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: 'white', lineHeight: 1.3 }}>{m.label}</span>
-                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.8)', lineHeight: 1.4 }}>{m.desc}</span>
+                  <span style={{ fontSize: 16, fontWeight: 800, color: 'white', lineHeight: 1.25 }}>{m.label}</span>
+                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', lineHeight: 1.4 }}>{m.desc}</span>
                 </button>
                 <button onClick={() => {
                     setDefaultModule(m.id)
