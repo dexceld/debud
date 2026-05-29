@@ -538,10 +538,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           setSelectedEmployeeId(null)
         } else if (selectedClientIdRef.current) {
           setSelectedClientId(null)
-        } else if (screenRef.current !== 'home') {
-          setScreen('home')
+        } else if (screenRef.current !== 'hub' && screenRef.current !== 'home') {
+          setScreen('hub')
+        } else if (screenRef.current === 'home') {
+          setScreen('hub')
         } else {
-          // User is on home screen - just let the app minimize (don't show exit dialog)
+          // Already on hub — let app minimize
         }
       } catch (err) {
         console.error('Back button error:', err)
