@@ -1249,7 +1249,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   style={{ flex: 1, padding: '22px 14px 16px', background: m.bg, border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textAlign: 'center' }}>
                   <span style={{ fontSize: 44 }}>{m.icon}</span>
                   <span style={{ fontSize: 16, fontWeight: 800, color: 'white', lineHeight: 1.25 }}>{m.label}</span>
-                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', lineHeight: 1.4 }}>{m.desc}</span>
                 </button>
                 <button onClick={() => {
                     setDefaultModule(m.id)
@@ -1262,6 +1261,28 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               </div>
             )
           })}
+        </div>
+        {/* FABs toggles below tiles */}
+        <div style={{ padding: '8px 16px 10px', flexShrink: 0 }}>
+          <div style={{ background: 'white', borderRadius: 14, padding: '10px 14px', border: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 12, color: '#6B7280', fontWeight: 700, flexShrink: 0 }}>⚡ כפתורים צפים</span>
+            <div style={{ display: 'flex', gap: 8, flex: 1 }}>
+              {([
+                { label: 'תחזית / בפועל', val: showFabsBudget, set: setShowFabsBudget, color: '#6366F1' },
+                { label: 'שעות', val: showFabsTime, set: setShowFabsTime, color: '#10B981' },
+                { label: 'קול', val: showFabsVoice, set: setShowFabsVoice, color: '#7C3AED' },
+              ] as { label: string; val: boolean; set: React.Dispatch<React.SetStateAction<boolean>>; color: string }[]).map(({ label, val, set, color }) => (
+                <button key={label} type="button" onClick={() => set(p => !p)}
+                  style={{ flex: 1, padding: '7px 4px', borderRadius: 10,
+                    border: `1.5px solid ${val ? color : '#E5E7EB'}`,
+                    background: val ? color + '18' : '#F9FAFB',
+                    color: val ? color : '#9CA3AF',
+                    fontWeight: 700, fontSize: 11, cursor: 'pointer', transition: 'all 0.15s' }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
         <div style={{ padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8, borderTop: '1px solid #E5E7EB', background: 'white', flexShrink: 0 }}>
           {!isLocalMode && userPhoto
@@ -2166,16 +2187,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <div className="m-settings-info">
               <span className="m-settings-title">עולמות פעילים</span>
               <span className="m-settings-sub">{enabledModules.length} פעילים · בית: {({'family-budget':'תקציב','time-tracking':'שעות','mortgage-calc':'משכנתא','property-management':'נכסים'} as Record<AppModule,string>)[defaultModule]}</span>
-            </div>
-            <svg className="m-settings-chevron-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C4C9D4" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
-          <button className="m-settings-row" onClick={() => setSettingsPage('fabs')}>
-            <span className="m-settings-icon-wrap" style={{background:'#F5F3FF'}}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M12 2v2M12 20v2M20 12h2M2 12h2M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41"/></svg>
-            </span>
-            <div className="m-settings-info">
-              <span className="m-settings-title">כפתורים צפים</span>
-              <span className="m-settings-sub">{[showFabsBudget && 'תחזית/בפועל', showFabsTime && 'דיווח שעות', showFabsVoice && 'קול'].filter(Boolean).join(' · ') || 'הכל מוסתר'}</span>
             </div>
             <svg className="m-settings-chevron-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C4C9D4" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
