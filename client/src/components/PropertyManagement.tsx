@@ -566,6 +566,9 @@ export function PropertyManagement({ uid, onBack }: Props) {
                                 })()}
                               </div>
 
+                              {/* Documents */}
+                              {renderDocSection(t)}
+
                               {/* Payment tracker */}
                               <div style={{ borderTop:'1px solid #F3F4F6', paddingTop:12, marginBottom:14 }}>
                                 <div style={{ fontWeight:700, fontSize:13, marginBottom:10, color:'#374151' }}>💳 מעקב תשלומים</div>
@@ -603,9 +606,6 @@ export function PropertyManagement({ uid, onBack }: Props) {
                                   })}
                                 </div>
                               </div>
-
-                              {/* Documents */}
-                              {renderDocSection(t)}
                             </>
                           )}
                         </div>
