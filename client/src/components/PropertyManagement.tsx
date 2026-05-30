@@ -29,6 +29,8 @@ export type Tenancy = {
   contractStart: string
   contractEnd: string
   monthlyRent: number
+  deposit?: number
+  renewalRent?: number
   depositPaid: boolean
   paymentMethod: 'checks' | 'bank' | 'cash' | ''
   checksDelivered: boolean
@@ -127,7 +129,7 @@ export function PropertyManagement({ uid, onBack }: Props) {
   })
   const [propFormId, setPropFormId] = useState<string | null>(null)
   const [tenancyForm, setTenancyForm] = useState<Omit<Tenancy,'id'|'payments'>>({
-    propertyId:'', tenantId:'', contractStart:'', contractEnd:'', monthlyRent:0,
+    propertyId:'', tenantId:'', contractStart:'', contractEnd:'', monthlyRent:0, deposit:0, renewalRent:0,
     depositPaid:false, paymentMethod:'', checksDelivered:false, contractSigned:false, isCurrent:true
   })
   const [docs, setDocs] = useState<TenancyDoc[]>(
@@ -357,11 +359,18 @@ export function PropertyManagement({ uid, onBack }: Props) {
               onChange={e=>setTenancyForm(f=>({...f,contractEnd:e.target.value}))} />
           </label>
         </div>
-        <label style={{ display:'block', marginBottom:12 }}>
-          <span style={LBL}>שכ"ד חודשי (₪)</span>
-          <input style={INP} type="number" value={tenancyForm.monthlyRent||''}
-            onChange={e=>setTenancyForm(f=>({...f,monthlyRent:Number(e.target.value)}))} />
-        </label>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12 }}>
+          <label>
+            <span style={LBL}>שכ"ד חודשי (₪)</span>
+            <input style={INP} type="number" value={tenancyForm.monthlyRent||''}
+              onChange={e=>setTenancyForm(f=>({...f,monthlyRent:Number(e.target.value)}))} />
+          </label>
+          <label>
+            <span style={LBL}>פיקדון (₪)</span>
+            <input style={INP} type="number" value={(tenancyForm as any).deposit||''}
+              onChange={e=>setTenancyForm(f=>({...f,deposit:Number(e.target.value)}))} />
+          </label>
+        </div>
         <label style={{ display:'block', marginBottom:12 }}>
           <span style={LBL}>אמצעי תשלום</span>
           <select style={INP} value={tenancyForm.paymentMethod}
@@ -460,7 +469,7 @@ export function PropertyManagement({ uid, onBack }: Props) {
               <div style={{ fontWeight:700, fontSize:14 }}>📅 תקופות שכירות</div>
               <button type="button" onClick={() => {
                 setSelTenancyId(null)
-                setTenancyForm({propertyId:p.id,tenantId:'',contractStart:'',contractEnd:'',monthlyRent:p.monthlyRent,depositPaid:false,paymentMethod:'',checksDelivered:false,contractSigned:false,isCurrent:true})
+                setTenancyForm({propertyId:p.id,tenantId:'',contractStart:'',contractEnd:'',monthlyRent:p.monthlyRent,deposit:p.deposit||0,renewalRent:0,depositPaid:false,paymentMethod:'',checksDelivered:false,contractSigned:false,isCurrent:true})
                 setPropView('editTenancy')
               }} style={{ background:'#6366F1', color:'white', border:'none', borderRadius:8, padding:'5px 12px', fontWeight:700, cursor:'pointer', fontSize:12 }}>+ הוסף תקופה</button>
             </div>
@@ -514,7 +523,7 @@ export function PropertyManagement({ uid, onBack }: Props) {
                                 </div>
                                 <button type="button" onClick={() => {
                                   setSelTenancyId(t.id)
-                                  setTenancyForm({propertyId:t.propertyId,tenantId:t.tenantId,contractStart:t.contractStart,contractEnd:t.contractEnd,monthlyRent:t.monthlyRent,depositPaid:t.depositPaid,paymentMethod:t.paymentMethod,checksDelivered:t.checksDelivered,contractSigned:t.contractSigned,isCurrent:t.isCurrent})
+                                  setTenancyForm({propertyId:t.propertyId,tenantId:t.tenantId,contractStart:t.contractStart,contractEnd:t.contractEnd,monthlyRent:t.monthlyRent,deposit:t.deposit||0,renewalRent:t.renewalRent||0,depositPaid:t.depositPaid,paymentMethod:t.paymentMethod,checksDelivered:t.checksDelivered,contractSigned:t.contractSigned,isCurrent:t.isCurrent})
                                   setPropView('editTenancy')
                                 }} style={{ background:'#F3F4F6', border:'none', borderRadius:8, padding:'6px 12px', fontWeight:600, cursor:'pointer', color:'#374151', fontSize:13 }}>ערוך</button>
                               </div>
@@ -523,7 +532,7 @@ export function PropertyManagement({ uid, onBack }: Props) {
                               {/* Checklist + inline WA */}
                               <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:14 }}>
                                 {([
-                                  {k:'depositPaid' as const, l:'פיקדון התקבל', waIcon:'💰', waBg:'#EFF6FF', waBc:'#BFDBFE', waC:'#1D4ED8', waMsg:`שלום ${t_tnt.name}, תזכורת להעברת פיקדון (${fmtMoney(p.deposit)}) עבור ${p.name}. תודה 🙏`},
+                                  {k:'depositPaid' as const, l:'פיקדון התקבל', waIcon:'💰', waBg:'#EFF6FF', waBc:'#BFDBFE', waC:'#1D4ED8', waMsg:`שלום ${t_tnt.name}, תזכורת להעברת פיקדון (${fmtMoney(t.deposit ?? p.deposit)}) עבור ${p.name}. תודה 🙏`},
                                   {k:'checksDelivered' as const, l:"צ'קים / אסמכתא", waIcon:'📑', waBg:'#FFF7ED', waBc:'#FED7AA', waC:'#C2410C', waMsg:`שלום ${t_tnt.name}, תזכורת לשלוח צ'קים / אסמכתה עבור ${p.name}. תודה 🙏`},
                                   {k:'contractSigned' as const, l:'חוזה חתום', waIcon:'✍️', waBg:'#F0FDF4', waBc:'#BBF7D0', waC:'#15803D', waMsg:`שלום ${t_tnt.name}, אנא חתום על חוזה השכירות עבור ${p.name} ושלח חזרה. תודה 🙏`},
                                 ]).map(({k,l,waIcon,waBg,waBc,waC,waMsg}) => {
@@ -554,10 +563,15 @@ export function PropertyManagement({ uid, onBack }: Props) {
                                   const hasRenewal = tasks.some(tk => tk.tenancyId===t.id && tk.type==='renewal' && !tk.done)
                                   return (
                                     <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                                      <div style={{ flex:1, display:'flex', alignItems:'center', gap:10, background:hasRenewal?'#FAF5FF':'white', border:`1px solid ${hasRenewal?'#DDD6FE':'#E5E7EB'}`, borderRadius:8, padding:'8px 12px' }}>
-                                        <span style={{ fontSize:18 }}>{hasRenewal?'🔄':'○'}</span>
-                                        <span style={{ fontSize:13, fontWeight:600, color:hasRenewal?'#5B21B6':'#374151' }}>חידוש חוזה</span>
-                                        {hasRenewal && <span style={{ fontSize:10, background:'#7C3AED20', color:'#7C3AED', borderRadius:10, padding:'1px 6px', marginRight:'auto' }}>משימה פתוחה</span>}
+                                      <div style={{ flex:1, display:'flex', alignItems:'center', gap:8, background:hasRenewal?'#FAF5FF':'white', border:`1px solid ${hasRenewal?'#DDD6FE':'#E5E7EB'}`, borderRadius:8, padding:'8px 10px' }}>
+                                        <span style={{ fontSize:18, flexShrink:0 }}>{hasRenewal?'🔄':'○'}</span>
+                                        <span style={{ fontSize:13, fontWeight:600, color:hasRenewal?'#5B21B6':'#374151', flexShrink:0 }}>חידוש חוזה</span>
+                                        {hasRenewal && <span style={{ fontSize:10, background:'#7C3AED20', color:'#7C3AED', borderRadius:10, padding:'1px 5px', fontWeight:700, flexShrink:0 }}>משימה</span>}
+                                        <input type="number" value={t.renewalRent||''}
+                                          onClick={e => e.stopPropagation()}
+                                          onChange={e => updateTenancy(t.id, {renewalRent: Number(e.target.value)||undefined})}
+                                          style={{ flex:1, minWidth:0, fontSize:12, border:'1px solid #DDD6FE', borderRadius:6, padding:'3px 6px', color:'#5B21B6', background:'white', fontWeight:600, textAlign:'center' }}
+                                          placeholder="₪ שכ״ד חידוש" />
                                       </div>
                                       <button type="button" onClick={() => t_tnt.phone ? sendWA(t_tnt.phone, `שלום ${t_tnt.name}, תזכורת לחידוש חוזה השכירות עבור ${p.name}. החוזה מסתיים ב-${t.contractEnd}. האם ברצונך לחדש? 🙏`) : alert('אין טלפון רשום')}
                                         style={{ background:'#F5F3FF', border:'1px solid #DDD6FE', color:'#7C3AED', borderRadius:8, padding:'8px 12px', fontWeight:700, cursor:'pointer', fontSize:16, flexShrink:0 }}>🔄</button>
