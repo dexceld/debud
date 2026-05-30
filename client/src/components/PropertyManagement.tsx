@@ -718,14 +718,12 @@ export function PropertyManagement({ uid, onBack }: Props) {
           <div style={{ background:'#EEF2FF', borderRadius:12, padding:'12px 14px', marginBottom:12, border:'1.5px solid #A5B4FC' }}>
             <div style={{ fontSize:12, fontWeight:700, color:'#4338CA', marginBottom:8 }}>📂 {pendingDocFile.file.name} ({fmtFileSize(pendingDocFile.file.size)})</div>
             <div style={{ fontSize:12, color:'#374151', marginBottom:8, fontWeight:600 }}>סוג מסמך:</div>
-            <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:10 }}>
-              {(['contract','renewal','receipt','other'] as TenancyDoc['type'][]).map(t => (
-                <button key={t} type="button" onClick={() => setPendingDocType(t)}
-                  style={{ padding:'6px 12px', borderRadius:8, border:`1.5px solid ${pendingDocType===t?DOC_TYPE_COLOR[t]:'#E5E7EB'}`, background:pendingDocType===t?DOC_TYPE_COLOR[t]+'18':'white', color:pendingDocType===t?DOC_TYPE_COLOR[t]:'#6B7280', fontWeight:700, fontSize:12, cursor:'pointer' }}>
-                  {DOC_TYPE_ICON[t]} {DOC_TYPE_LABEL[t]}
-                </button>
+            <select value={pendingDocType} onChange={e => setPendingDocType(e.target.value as TenancyDoc['type'])}
+              style={{ width:'100%', padding:'8px 10px', borderRadius:8, border:'1.5px solid #A5B4FC', fontSize:13, fontWeight:600, marginBottom:10, background:'white', color:'#374151', cursor:'pointer' }}>
+              {(['contract','renewal','receipt','other'] as TenancyDoc['type'][]).map(tp => (
+                <option key={tp} value={tp}>{DOC_TYPE_ICON[tp]} {DOC_TYPE_LABEL[tp]}</option>
               ))}
-            </div>
+            </select>
             <div style={{ display:'flex', gap:8 }}>
               <button type="button" onClick={() => saveDoc(pendingDocFile.file, pendingDocFile.tenancyId, pendingDocFile.propertyId, pendingDocType)}
                 style={{ flex:1, background:'#6366F1', color:'white', border:'none', borderRadius:8, padding:'8px', fontWeight:700, cursor:'pointer', fontSize:13 }}>שמור</button>
