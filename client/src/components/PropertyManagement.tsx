@@ -424,18 +424,20 @@ export function PropertyManagement({ uid, onBack }: Props) {
   const renderPropDetail = () => {
     if (!selProp) return null
     const p = selProp
-    const tn  = viewedTenancy
-    const tnt = viewedTenant
-    const ym  = currYM()
-
+    const ym = currYM()
     const STATUS_COLOR: Record<string,string> = { active:'#22C55E', future:'#6366F1', past:'#9CA3AF' }
-    const STATUS_LABEL: Record<string,string> = { active:'פעיל', future:'עתידי', past:'עבר' }
+    const STATUS_LABEL: Record<string,string>  = { active:'פעיל', future:'עתידי', past:'עבר' }
     const PMT_COLOR = (s?: string) => s==='paid'?'#22C55E':s==='late'?'#EF4444':'#F59E0B'
-
+    const handleBack = () => {
+      if (selViewTenancyId) setSelViewTenancyId(null)
+      else { setPropView('list') }
+    }
     return (
       <div style={{ display:'flex', flexDirection:'column', height:'100dvh', background:'#F9FAFB' }}>
         <div style={HDR}>
-          <button style={BACK} onClick={() => { setPropView('list'); setSelViewTenancyId(null) }}>‹</button>
+          <button style={{ background:'none', border:'none', cursor:'pointer', padding:'0 4px', display:'flex', alignItems:'center', height:32 }} onClick={handleBack}>
+            <img src="/Trn color.png" alt="חזור" style={{ height:22 }} />
+          </button>
           <span style={{ fontWeight:700, fontSize:17, flex:1 }}>{p.name || p.address}</span>
           <button type="button" onClick={() => {
             setPropFormId(p.id)
@@ -457,192 +459,183 @@ export function PropertyManagement({ uid, onBack }: Props) {
             </div>
           </div>
 
-          {/* ── Tenancy timeline ── */}
+          {/* ── Tenancy accordion ── */}
           <div style={CARD}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
-              <div style={{ fontWeight:700, fontSize:14 }}>� תקופות שכירות</div>
+              <div style={{ fontWeight:700, fontSize:14 }}>📅 תקופות שכירות</div>
               <button type="button" onClick={() => {
                 setSelTenancyId(null)
                 setTenancyForm({propertyId:p.id,tenantId:'',contractStart:'',contractEnd:'',monthlyRent:p.monthlyRent,depositPaid:false,paymentMethod:'',checksDelivered:false,contractSigned:false,isCurrent:true})
                 setPropView('editTenancy')
-              }} style={{ background:'#6366F1', color:'white', border:'none', borderRadius:8, padding:'5px 12px', fontWeight:700, cursor:'pointer', fontSize:12 }}>
-                + הוסף תקופה
-              </button>
+              }} style={{ background:'#6366F1', color:'white', border:'none', borderRadius:8, padding:'5px 12px', fontWeight:700, cursor:'pointer', fontSize:12 }}>+ הוסף תקופה</button>
             </div>
 
             {propTenancies.length === 0 ? (
               <div style={{ textAlign:'center', padding:'16px', color:'#9CA3AF', fontSize:13 }}>אין תקופות שכירות — לחץ "הוסף תקופה"</div>
             ) : (
-              <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+              <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
                 {propTenancies.map(t => {
-                  const st  = getTenancyStatus(t)
-                  const sc  = STATUS_COLOR[st]
-                  const tnt2 = tenants.find(x=>x.id===t.tenantId)
+                  const st    = getTenancyStatus(t)
+                  const sc    = STATUS_COLOR[st]
+                  const t_tnt = tenants.find(x => x.id===t.tenantId)
                   const days2 = t.contractEnd ? daysLeft(t.contractEnd) : null
-                  const isViewed = (viewedTenancy?.id === t.id)
+                  const isOpen = selViewTenancyId === t.id
                   return (
-                    <button key={t.id} type="button"
-                      onClick={() => setSelViewTenancyId(t.id)}
-                      style={{ background:isViewed?sc+'12':'#F9FAFB', border:`2px solid ${isViewed?sc:'#E5E7EB'}`, borderRadius:12, padding:'10px 14px', cursor:'pointer', textAlign:'right', display:'flex', flexDirection:'column', gap:4 }}>
-                      {/* Tenant + status badge */}
-                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                        <span style={{ fontWeight:700, fontSize:15, color:'#111827' }}>{tnt2?.name || '—'}</span>
-                        <span style={{ fontSize:11, background:sc+'20', color:sc, borderRadius:20, padding:'2px 8px', fontWeight:700 }}>{STATUS_LABEL[st]}</span>
-                      </div>
-                      {/* Date range — large and prominent */}
-                      <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                        <span style={{ fontWeight:700, fontSize:15, color:sc }}>{t.contractStart.slice(0,7)}</span>
-                        <span style={{ fontSize:14, color:'#9CA3AF' }}>→</span>
-                        <span style={{ fontWeight:700, fontSize:15, color:sc }}>{t.contractEnd.slice(0,7)}</span>
-                        {days2!==null && st!=='past' && (
-                          <span style={{ fontSize:11, color:'#6B7280', marginRight:'auto' }}>
-                            {days2<0?'פג תוקף':st==='future'?`מתחיל בעוד ${Math.abs(daysLeft(t.contractStart))}י'`:`${days2}י' לסיום`}
-                          </span>
-                        )}
-                      </div>
-                      {/* Checklist badges */}
-                      <div style={{ display:'flex', gap:6, marginTop:2 }}>
-                        {([{k:'depositPaid',l:'פיקדון'},{k:'checksDelivered',l:"צ'קים"},{k:'contractSigned',l:'חוזה'}] as const).map(({k,l}) => (
-                          <span key={k} style={{ fontSize:10, background:(t as any)[k]?'#D1FAE5':'#FEE2E2', color:(t as any)[k]?'#065F46':'#991B1B', borderRadius:10, padding:'1px 7px', fontWeight:600 }}>
-                            {(t as any)[k]?'✓':''} {l}
-                          </span>
-                        ))}
-                      </div>
-                    </button>
+                    <div key={t.id} style={{ borderRadius:14, overflow:'hidden', border:`2px solid ${isOpen ? sc : '#E5E7EB'}`, background:'white' }}>
+
+                      {/* ── Card header (contract title row) ── */}
+                      <button type="button" onClick={() => setSelViewTenancyId(isOpen ? null : t.id)}
+                        style={{ width:'100%', background:isOpen ? sc+'14' : 'white', border:'none', padding:'12px 14px', cursor:'pointer', textAlign:'right', display:'flex', justifyContent:'space-between', alignItems:'center', gap:10 }}>
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <div style={{ fontWeight:800, fontSize:15, color:'#111827', marginBottom:3 }}>{t_tnt?.name || '—'}</div>
+                          <div style={{ display:'flex', alignItems:'center', gap:5 }}>
+                            <span style={{ fontWeight:700, fontSize:13, color:sc, direction:'ltr' }}>{t.contractStart.slice(0,7).replace('-','/')}</span>
+                            <span style={{ color:'#9CA3AF', fontSize:12 }}>→</span>
+                            <span style={{ fontWeight:700, fontSize:13, color:sc, direction:'ltr' }}>{t.contractEnd.slice(0,7).replace('-','/')}</span>
+                            {days2!==null && st!=='past' && <span style={{ fontSize:11, color:'#9CA3AF' }}>· {days2<0?'פג תוקף':st==='future'?`בעוד ${Math.abs(daysLeft(t.contractStart))}י'`:`${days2}י' לסיום`}</span>}
+                          </div>
+                        </div>
+                        <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
+                          <span style={{ fontSize:11, background:sc+'20', color:sc, borderRadius:20, padding:'2px 8px', fontWeight:700 }}>{STATUS_LABEL[st]}</span>
+                          <span style={{ fontSize:16, color:sc }}>{isOpen ? '▲' : '▼'}</span>
+                        </div>
+                      </button>
+
+                      {/* ── Accordion body ── */}
+                      {isOpen && (
+                        <div style={{ borderTop:`2px solid ${sc}30`, padding:'14px' }}>
+                          {!t_tnt ? (
+                            <div style={{ textAlign:'center', color:'#9CA3AF', fontSize:13, padding:'10px 0' }}>שוכר לא נמצא — ערוך את התקופה</div>
+                          ) : (
+                            <>
+                              {/* Tenant contact + edit */}
+                              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
+                                <div>
+                                  <div style={{ fontWeight:700, fontSize:16 }}>{t_tnt.name}</div>
+                                  <div style={{ fontSize:12, color:'#6B7280', marginTop:2 }}>
+                                    {t_tnt.phone && <span style={{ marginLeft:10 }}>📞 {t_tnt.phone}</span>}
+                                    {t_tnt.email && <span>✉ {t_tnt.email}</span>}
+                                  </div>
+                                </div>
+                                <button type="button" onClick={() => {
+                                  setSelTenancyId(t.id)
+                                  setTenancyForm({propertyId:t.propertyId,tenantId:t.tenantId,contractStart:t.contractStart,contractEnd:t.contractEnd,monthlyRent:t.monthlyRent,depositPaid:t.depositPaid,paymentMethod:t.paymentMethod,checksDelivered:t.checksDelivered,contractSigned:t.contractSigned,isCurrent:t.isCurrent})
+                                  setPropView('editTenancy')
+                                }} style={{ background:'#F3F4F6', border:'none', borderRadius:8, padding:'6px 12px', fontWeight:600, cursor:'pointer', color:'#374151', fontSize:13 }}>ערוך</button>
+                              </div>
+
+                              {/* Contract dates — prominent */}
+                              <div style={{ background:'linear-gradient(135deg,#EEF2FF,#F5F3FF)', borderRadius:12, padding:'14px 16px', marginBottom:14 }}>
+                                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+                                  <div style={{ textAlign:'center' }}>
+                                    <div style={{ fontSize:10, color:'#6B7280', marginBottom:2 }}>תחילת חוזה</div>
+                                    <div style={{ fontWeight:800, fontSize:18, color:'#4F46E5', direction:'ltr' }}>{t.contractStart.slice(0,7).replace('-','/')}</div>
+                                    <div style={{ fontSize:11, color:'#6366F1' }}>{monthLabel(t.contractStart.slice(0,7))}</div>
+                                  </div>
+                                  <div style={{ color:'#A5B4FC', fontSize:22 }}>→</div>
+                                  <div style={{ textAlign:'center' }}>
+                                    <div style={{ fontSize:10, color:'#6B7280', marginBottom:2 }}>סוף חוזה</div>
+                                    <div style={{ fontWeight:800, fontSize:18, color:'#4F46E5', direction:'ltr' }}>{t.contractEnd.slice(0,7).replace('-','/')}</div>
+                                    <div style={{ fontSize:11, color:'#6366F1' }}>{monthLabel(t.contractEnd.slice(0,7))}</div>
+                                  </div>
+                                  <div style={{ textAlign:'center', borderRight:'1px solid #C7D2FE', paddingRight:12 }}>
+                                    <div style={{ fontSize:10, color:'#6B7280', marginBottom:2 }}>שכ"ד</div>
+                                    <div style={{ fontWeight:800, fontSize:16, color:'#4F46E5' }}>{fmtMoney(t.monthlyRent||p.monthlyRent)}</div>
+                                    <div style={{ fontSize:11, color:'#6366F1' }}>לחודש</div>
+                                  </div>
+                                </div>
+                                <div style={{ borderTop:'1px solid #C7D2FE', paddingTop:10, display:'flex', justifyContent:'space-between', alignItems:'center', gap:8 }}>
+                                  <div style={{ display:'flex', alignItems:'center', gap:5, flexWrap:'wrap', flex:1 }}>
+                                    <span style={{ fontSize:11, color:'#6B7280', flexShrink:0 }}>משימה לחידוש:</span>
+                                    {([{v:14,l:'שבועיים'},{v:30,l:'חודש'},{v:60,l:'חודשיים'},{v:90,l:'3 חודשים'}] as const).map(({v,l}) => (
+                                      <button key={v} type="button" onClick={() => setRenewalLeadDays(v)}
+                                        style={{ padding:'3px 8px', borderRadius:6, border:`1px solid ${renewalLeadDays===v?'#6366F1':'#C7D2FE'}`, background:renewalLeadDays===v?'#6366F1':'transparent', color:renewalLeadDays===v?'white':'#6366F1', fontSize:10, fontWeight:700, cursor:'pointer' }}>
+                                        {l}
+                                      </button>
+                                    ))}
+                                    <span style={{ fontSize:10, color:'#9CA3AF' }}>לפני הסיום</span>
+                                  </div>
+                                  <button type="button" onClick={() => t_tnt.phone ? sendWA(t_tnt.phone, `שלום ${t_tnt.name}, תזכורת לחידוש חוזה השכירות עבור ${p.name}. החוזה מסתיים ב-${t.contractEnd}. האם ברצונך לחדש? 🙏`) : alert('אין טלפון רשום')}
+                                    style={{ background:'#F0FDF4', border:'1px solid #BBF7D0', color:'#15803D', borderRadius:8, padding:'7px 12px', fontWeight:700, cursor:'pointer', fontSize:13, flexShrink:0, whiteSpace:'nowrap' }}>🔄 חידוש</button>
+                                </div>
+                              </div>
+
+                              {/* Checklist + inline WA */}
+                              <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:14 }}>
+                                {([
+                                  {k:'depositPaid' as const, l:'פיקדון התקבל', waIcon:'💰', waBg:'#EFF6FF', waBc:'#BFDBFE', waC:'#1D4ED8', waMsg:`שלום ${t_tnt.name}, תזכורת להעברת פיקדון (${fmtMoney(p.deposit)}) עבור ${p.name}. תודה 🙏`},
+                                  {k:'checksDelivered' as const, l:"צ'קים / אסמכתא", waIcon:'📑', waBg:'#FFF7ED', waBc:'#FED7AA', waC:'#C2410C', waMsg:`שלום ${t_tnt.name}, תזכורת לשלוח צ'קים / אסמכתה עבור ${p.name}. תודה 🙏`},
+                                  {k:'contractSigned' as const, l:'חוזה חתום', waIcon:null, waBg:'', waBc:'', waC:'', waMsg:''},
+                                ]).map(({k,l,waIcon,waBg,waBc,waC,waMsg}) => {
+                                  const val = t[k]
+                                  return (
+                                    <div key={k} style={{ display:'flex', alignItems:'center', gap:8 }}>
+                                      <button type="button" onClick={() => updateTenancy(t.id,{[k]:!val} as any)}
+                                        style={{ flex:1, display:'flex', alignItems:'center', gap:10, background:val?'#F0FDF4':'white', border:val?'1px solid #BBF7D0':'1px solid #E5E7EB', borderRadius:8, padding:'8px 12px', cursor:'pointer', textAlign:'right' }}>
+                                        <span style={{ fontSize:18, color:val?'#16A34A':'#9CA3AF' }}>{val?'✅':'☐'}</span>
+                                        <span style={{ fontSize:13, fontWeight:600, color:val?'#15803D':'#374151' }}>{l}</span>
+                                      </button>
+                                      {waIcon && (
+                                        <button type="button" onClick={() => t_tnt.phone ? sendWA(t_tnt.phone, waMsg) : alert('אין טלפון רשום')}
+                                          style={{ background:waBg, border:`1px solid ${waBc}`, color:waC, borderRadius:8, padding:'8px 12px', fontWeight:700, cursor:'pointer', fontSize:16, flexShrink:0 }}>{waIcon}</button>
+                                      )}
+                                    </div>
+                                  )
+                                })}
+                              </div>
+
+                              {/* Payment tracker */}
+                              <div style={{ borderTop:'1px solid #F3F4F6', paddingTop:12, marginBottom:14 }}>
+                                <div style={{ fontWeight:700, fontSize:13, marginBottom:10, color:'#374151' }}>💳 מעקב תשלומים</div>
+                                <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                                  {getMonthsInRange(t.contractStart, t.contractEnd).map(m => {
+                                    const status = t.payments?.[m]
+                                    const isCurr = m === ym
+                                    const isFuture = m > ym
+                                    return (
+                                      <div key={m} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 10px', borderRadius:10, background:isCurr?'#EFF6FF':'#F9FAFB', border:isCurr?'1.5px solid #BFDBFE':'1px solid #F3F4F6' }}>
+                                        <div style={{ flex:1 }}>
+                                          <span style={{ fontWeight:isCurr?800:600, fontSize:13, color:isCurr?'#1D4ED8':'#374151' }}>{monthLabel(m)}</span>
+                                          {isCurr && <span style={{ fontSize:10, color:'#6366F1', marginRight:6, background:'#EEF2FF', borderRadius:10, padding:'1px 6px' }}>נוכחי</span>}
+                                        </div>
+                                        {isCurr && (
+                                          <button type="button" onClick={() => t_tnt.phone ? sendWA(t_tnt.phone, `שלום ${t_tnt.name}, תזכורת לתשלום שכ"ד חודש ${monthLabel(m)} עבור ${p.name}: ${fmtMoney(t.monthlyRent||p.monthlyRent)}. תודה 🙏`) : alert('אין טלפון רשום')}
+                                            style={{ background:'#F5F3FF', border:'1px solid #DDD6FE', color:'#7C3AED', borderRadius:7, padding:'5px 8px', fontWeight:700, cursor:'pointer', fontSize:14, flexShrink:0 }}>💬</button>
+                                        )}
+                                        <div style={{ display:'flex', gap:4 }}>
+                                          {(['paid','pending','late'] as const).map(s => (
+                                            <button key={s} type="button"
+                                              onClick={() => updateTenancy(t.id, {payments:{...t.payments,[m]:s}})}
+                                              style={{ padding:'5px 8px', borderRadius:7, border:'none', cursor:'pointer', fontSize:11, fontWeight:700,
+                                                background:status===s?(s==='paid'?'#22C55E':s==='late'?'#EF4444':'#F59E0B'):(isFuture?'#F3F4F6':'#E5E7EB'),
+                                                color:status===s?'white':(isFuture?'#D1D5DB':'#6B7280') }}>
+                                              {s==='paid'?'✓':s==='late'?'⚠':'⏳'}
+                                            </button>
+                                          ))}
+                                          {status && <span style={{ fontSize:11, color:PMT_COLOR(status), fontWeight:700, padding:'4px 0', minWidth:32, textAlign:'center' }}>
+                                            {status==='paid'?'שולם':status==='late'?'מאחר':'ממתין'}
+                                          </span>}
+                                        </div>
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+                              </div>
+
+                              {/* Documents */}
+                              {renderDocSection(t)}
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   )
                 })}
               </div>
             )}
           </div>
 
-          {/* ── Selected tenancy detail ── */}
-          {tn && tnt && (
-            <div style={CARD}>
-              {/* Header with edit */}
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
-                <div>
-                  <div style={{ fontWeight:700, fontSize:17 }}>{tnt.name}</div>
-                  <div style={{ fontSize:13, color:'#6B7280', marginTop:2 }}>
-                    {tnt.phone && <span style={{ marginLeft:12 }}>📞 {tnt.phone}</span>}
-                    {tnt.email && <span>✉ {tnt.email}</span>}
-                  </div>
-                </div>
-                <button type="button" onClick={() => {
-                  setSelTenancyId(tn.id)
-                  setTenancyForm({propertyId:tn.propertyId,tenantId:tn.tenantId,contractStart:tn.contractStart,contractEnd:tn.contractEnd,monthlyRent:tn.monthlyRent,depositPaid:tn.depositPaid,paymentMethod:tn.paymentMethod,checksDelivered:tn.checksDelivered,contractSigned:tn.contractSigned,isCurrent:tn.isCurrent})
-                  setPropView('editTenancy')
-                }} style={{ background:'#F3F4F6', border:'none', borderRadius:8, padding:'6px 12px', fontWeight:600, cursor:'pointer', color:'#374151', fontSize:13, flexShrink:0 }}>ערוך</button>
-              </div>
-
-              {/* Contract dates — very prominent */}
-              <div style={{ background:'linear-gradient(135deg,#EEF2FF,#F5F3FF)', borderRadius:12, padding:'14px 16px', marginBottom:14 }}>
-                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
-                  <div style={{ textAlign:'center' }}>
-                    <div style={{ fontSize:10, color:'#6B7280', marginBottom:2 }}>תחילת חוזה</div>
-                    <div style={{ fontWeight:800, fontSize:18, color:'#4F46E5', direction:'ltr' }}>{tn.contractStart.slice(0,7).replace('-','/')}</div>
-                    <div style={{ fontSize:11, color:'#6366F1' }}>{monthLabel(tn.contractStart.slice(0,7))}</div>
-                  </div>
-                  <div style={{ color:'#A5B4FC', fontSize:22 }}>→</div>
-                  <div style={{ textAlign:'center' }}>
-                    <div style={{ fontSize:10, color:'#6B7280', marginBottom:2 }}>סוף חוזה</div>
-                    <div style={{ fontWeight:800, fontSize:18, color:'#4F46E5', direction:'ltr' }}>{tn.contractEnd.slice(0,7).replace('-','/')}</div>
-                    <div style={{ fontSize:11, color:'#6366F1' }}>{monthLabel(tn.contractEnd.slice(0,7))}</div>
-                  </div>
-                  <div style={{ textAlign:'center', borderRight:'1px solid #C7D2FE', paddingRight:12 }}>
-                    <div style={{ fontSize:10, color:'#6B7280', marginBottom:2 }}>שכ"ד</div>
-                    <div style={{ fontWeight:800, fontSize:16, color:'#4F46E5' }}>{fmtMoney(tn.monthlyRent||p.monthlyRent)}</div>
-                    <div style={{ fontSize:11, color:'#6366F1' }}>לחודש</div>
-                  </div>
-                </div>
-                {/* Renewal row — WA + lead-time selector */}
-                <div style={{ borderTop:'1px solid #C7D2FE', paddingTop:10, display:'flex', justifyContent:'space-between', alignItems:'center', gap:8 }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:5, flexWrap:'wrap', flex:1 }}>
-                    <span style={{ fontSize:11, color:'#6B7280', flexShrink:0 }}>משימה לחידוש:</span>
-                    {([{v:14,l:'שבועיים'},{v:30,l:'חודש'},{v:60,l:'חודשיים'},{v:90,l:'3 חודשים'}] as const).map(({v,l}) => (
-                      <button key={v} type="button" onClick={() => setRenewalLeadDays(v)}
-                        style={{ padding:'3px 8px', borderRadius:6, border:`1px solid ${renewalLeadDays===v?'#6366F1':'#C7D2FE'}`, background:renewalLeadDays===v?'#6366F1':'transparent', color:renewalLeadDays===v?'white':'#6366F1', fontSize:10, fontWeight:700, cursor:'pointer' }}>
-                        {l}
-                      </button>
-                    ))}
-                    <span style={{ fontSize:10, color:'#9CA3AF' }}>לפני הסיום</span>
-                  </div>
-                  <button type="button" onClick={() => tnt.phone ? sendWA(tnt.phone, `שלום ${tnt.name}, תזכורת לחידוש חוזה השכירות עבור ${p.name}. החוזה מסתיים ב-${tn.contractEnd}. האם ברצונך לחדש? 🙏`) : alert('אין טלפון רשום')}
-                    style={{ background:'#F0FDF4', border:'1px solid #BBF7D0', color:'#15803D', borderRadius:8, padding:'7px 12px', fontWeight:700, cursor:'pointer', fontSize:13, flexShrink:0, whiteSpace:'nowrap' }}>
-                    🔄 חידוש
-                  </button>
-                </div>
-              </div>
-
-              {/* Checklist with inline WA buttons */}
-              <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:14 }}>
-                {([
-                  {k:'depositPaid' as const, l:'פיקדון התקבל', waIcon:'💰', waBg:'#EFF6FF', waBc:'#BFDBFE', waC:'#1D4ED8', waMsg:`שלום ${tnt.name}, תזכורת להעברת פיקדון (${fmtMoney(p.deposit)}) עבור ${p.name}. תודה 🙏`},
-                  {k:'checksDelivered' as const, l:"צ'קים / אסמכתא", waIcon:'📑', waBg:'#FFF7ED', waBc:'#FED7AA', waC:'#C2410C', waMsg:`שלום ${tnt.name}, תזכורת לשלוח צ'קים / אסמכתה עבור ${p.name}. תודה 🙏`},
-                  {k:'contractSigned' as const, l:'חוזה חתום', waIcon:null, waBg:'', waBc:'', waC:'', waMsg:''},
-                ]).map(({k,l,waIcon,waBg,waBc,waC,waMsg}) => {
-                  const val = tn[k]
-                  return (
-                    <div key={k} style={{ display:'flex', alignItems:'center', gap:8 }}>
-                      <button type="button" onClick={() => updateTenancy(tn.id,{[k]:!val} as any)}
-                        style={{ flex:1, display:'flex', alignItems:'center', gap:10, background:val?'#F0FDF4':'white', border:val?'1px solid #BBF7D0':'1px solid #E5E7EB', borderRadius:8, padding:'8px 12px', cursor:'pointer', textAlign:'right' }}>
-                        <span style={{ fontSize:18, color:val?'#16A34A':'#9CA3AF' }}>{val?'✅':'☐'}</span>
-                        <span style={{ fontSize:13, fontWeight:600, color:val?'#15803D':'#374151' }}>{l}</span>
-                      </button>
-                      {waIcon && (
-                        <button type="button" onClick={() => tnt.phone ? sendWA(tnt.phone, waMsg) : alert('אין טלפון רשום')}
-                          style={{ background:waBg, border:`1px solid ${waBc}`, color:waC, borderRadius:8, padding:'8px 12px', fontWeight:700, cursor:'pointer', fontSize:16, flexShrink:0 }}>
-                          {waIcon}
-                        </button>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-
-              {/* ── Full payment tracker — all months in contract ── */}
-              <div style={{ borderTop:'1px solid #F3F4F6', paddingTop:12, marginBottom:14 }}>
-                <div style={{ fontWeight:700, fontSize:13, marginBottom:10, color:'#374151' }}>💳 מעקב תשלומים</div>
-                <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-                  {getMonthsInRange(tn.contractStart, tn.contractEnd).map(m => {
-                    const status = tn.payments?.[m]
-                    const isCurr = m === ym
-                    const isFuture = m > ym
-                    return (
-                      <div key={m} style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 12px', borderRadius:10, background:isCurr?'#EFF6FF':'#F9FAFB', border:isCurr?'1.5px solid #BFDBFE':'1px solid #F3F4F6' }}>
-                        <div style={{ flex:1 }}>
-                          <span style={{ fontWeight:isCurr?800:600, fontSize:13, color:isCurr?'#1D4ED8':'#374151' }}>{monthLabel(m)}</span>
-                          {isCurr && <span style={{ fontSize:10, color:'#6366F1', marginRight:6, background:'#EEF2FF', borderRadius:10, padding:'1px 6px' }}>חודש נוכחי</span>}
-                        </div>
-                        {isCurr && (
-                          <button type="button" onClick={() => tnt.phone ? sendWA(tnt.phone, `שלום ${tnt.name}, תזכורת לתשלום שכ"ד חודש ${monthLabel(m)} עבור ${p.name}: ${fmtMoney(tn.monthlyRent||p.monthlyRent)}. תודה 🙏`) : alert('אין טלפון רשום')}
-                            style={{ background:'#F5F3FF', border:'1px solid #DDD6FE', color:'#7C3AED', borderRadius:7, padding:'5px 8px', fontWeight:700, cursor:'pointer', fontSize:14, flexShrink:0 }}>💬</button>
-                        )}
-                        <div style={{ display:'flex', gap:5 }}>
-                          {(['paid','pending','late'] as const).map(s => (
-                            <button key={s} type="button"
-                              onClick={() => updateTenancy(tn.id, {payments:{...tn.payments,[m]:s}})}
-                              style={{ padding:'5px 8px', borderRadius:7, border:'none', cursor:'pointer', fontSize:11, fontWeight:700,
-                                background:status===s?(s==='paid'?'#22C55E':s==='late'?'#EF4444':'#F59E0B'):(isFuture?'#F3F4F6':'#E5E7EB'),
-                                color:status===s?'white':(isFuture?'#D1D5DB':'#6B7280') }}>
-                              {s==='paid'?'✓':s==='late'?'⚠':'⏳'}
-                            </button>
-                          ))}
-                          {status && <span style={{ fontSize:11, color:PMT_COLOR(status), fontWeight:700, padding:'4px 0', minWidth:36, textAlign:'center' }}>
-                            {status==='paid'?'שולם':status==='late'?'מאחר':'ממתין'}
-                          </span>}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* ── Documents ── */}
-              {renderDocSection(tn)}
-            </div>
-          )}
-
-          {/* Hidden file input — shared for all tenancies */}
+          {/* Hidden file input */}
           <input ref={docInputRef} type="file" accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx" style={{ display:'none' }}
             onChange={e => {
               const file = e.target.files?.[0]
@@ -660,7 +653,9 @@ export function PropertyManagement({ uid, onBack }: Props) {
   const renderPropList = () => (
     <>
       <div style={HDR}>
-        <button style={BACK} onClick={onBack}>‹</button>
+        <button style={{ background:'none', border:'none', cursor:'pointer', padding:'0 4px', display:'flex', alignItems:'center', height:32 }} onClick={onBack}>
+          <img src="/Trn color.png" alt="חזור" style={{ height:22 }} />
+        </button>
         <span style={{ fontWeight:700, fontSize:17, flex:1 }}>🏠 נכסים</span>
         <button type="button" onClick={() => { setDocSearchQuery(''); setPropView('docs') }}
           style={{ background:'#F5F3FF', border:'none', borderRadius:8, padding:'6px 10px', color:'#7C3AED', fontWeight:700, cursor:'pointer', fontSize:12, marginLeft:6 }}>
