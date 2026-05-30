@@ -1069,7 +1069,7 @@ export function PropertyManagement({ uid, onBack }: Props) {
     const vacant = properties.filter(p=>!rented.find(t=>t.propertyId===p.id))
     const ganttMonths: string[] = []
     const now = new Date()
-    for (let i=-2; i<10; i++) {
+    for (let i=-2; i<26; i++) {
       const d = new Date(now.getFullYear(), now.getMonth()+i, 1)
       ganttMonths.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`)
     }
@@ -1126,7 +1126,8 @@ export function PropertyManagement({ uid, onBack }: Props) {
                   <tr>
                     <th style={{ textAlign:'right', padding:'4px 8px', color:'#6B7280', minWidth:70 }}>נכס</th>
                     {ganttMonths.map(m => (
-                      <th key={m} style={{ padding:'4px 3px', color:m===cm?'#6366F1':'#9CA3AF', fontWeight:m===cm?700:400, minWidth:34, textAlign:'center', borderRight:'1px solid #F3F4F6' }}>
+                      <th key={m} style={{ padding:'4px 3px', color:m===cm?'#6366F1':'#9CA3AF', fontWeight:m===cm?700:400, minWidth:34, textAlign:'center', borderRight:'1px solid #F3F4F6', verticalAlign:'bottom' }}>
+                        {m.slice(5)==='01' && <div style={{ fontSize:8, color:'#6366F1', fontWeight:800, lineHeight:1.2 }}>{m.slice(0,4)}</div>}
                         {m.slice(5)}
                       </th>
                     ))}
@@ -1140,7 +1141,8 @@ export function PropertyManagement({ uid, onBack }: Props) {
                         <td style={{ padding:'6px 8px', fontWeight:600, color:'#374151', fontSize:12 }}>{p.name}</td>
                         {ganttMonths.map(m => {
                           const tn = propTen.find(t => t.contractStart.slice(0,7)<=m && t.contractEnd.slice(0,7)>=m)
-                          const bg = tn ? (tn.isCurrent ? '#22C55E' : '#A78BFA') : '#FEE2E2'
+                          const st2 = tn ? getTenancyStatus(tn) : null
+                          const bg = tn ? (st2==='active'?'#22C55E':st2==='future'?'#A78BFA':'#9CA3AF') : '#FEE2E2'
                           const isEnd = tn && tn.contractEnd.slice(0,7)===m
                           return (
                             <td key={m} style={{ padding:'6px 3px', background:bg, textAlign:'center', borderRight:'1px solid #F9FAFB', fontSize:9, color:'white', fontWeight:700 }}>
