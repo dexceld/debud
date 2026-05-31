@@ -973,6 +973,9 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
     return (
       <>
         <div style={HDR}>
+          <button style={{ background:'none', border:'none', cursor:'pointer', padding:'0 4px', display:'flex', alignItems:'center', height:32 }} onClick={onBack}>
+            <img src="/Trn color.png" alt="חזור" style={{ height:22 }} />
+          </button>
           <span style={{ fontWeight:700, fontSize:17, flex:1 }}>👤 שוכרים</span>
           <button style={BTN_P} onClick={() => {
             setTenantFormId(null); setTenantForm({name:'',phone:'',email:'',extraPhones:[],notes:'',status:'lead',interestedPropertyId:null}); setTenantView('edit')
@@ -1046,6 +1049,9 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
     return (
       <>
         <div style={HDR}>
+          <button style={{ background:'none', border:'none', cursor:'pointer', padding:'0 4px', display:'flex', alignItems:'center', height:32 }} onClick={onBack}>
+            <img src="/Trn color.png" alt="חזור" style={{ height:22 }} />
+          </button>
           <span style={{ fontWeight:700, fontSize:17, flex:1 }}>✅ משימות</span>
           {open.length>0 && <span style={{ background:'#EF4444', color:'white', borderRadius:20, padding:'2px 10px', fontSize:12, fontWeight:700, marginLeft:4 }}>{open.length}</span>}
           <button style={BTN_P} onClick={() => {
@@ -1133,6 +1139,9 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
     return (
       <>
         <div style={HDR}>
+          <button style={{ background:'none', border:'none', cursor:'pointer', padding:'0 4px', display:'flex', alignItems:'center', height:32 }} onClick={onBack}>
+            <img src="/Trn color.png" alt="חזור" style={{ height:22 }} />
+          </button>
           <span style={{ fontWeight:700, fontSize:17, flex:1 }}>📊 דשבורד</span>
         </div>
         <div style={SCROLL}>
