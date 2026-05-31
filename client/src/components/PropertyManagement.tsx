@@ -37,6 +37,7 @@ export type Tenancy = {
   contractSigned: boolean
   payments: Record<string, 'paid' | 'pending' | 'late'>
   isCurrent: boolean
+  hasOption?: boolean
 }
 
 export type TenancyDoc = {
@@ -132,7 +133,7 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
   const [propFormId, setPropFormId] = useState<string | null>(null)
   const [tenancyForm, setTenancyForm] = useState<Omit<Tenancy,'id'|'payments'>>({
     propertyId:'', tenantId:'', contractStart:'', contractEnd:'', monthlyRent:0, deposit:0, renewalRent:0,
-    depositPaid:false, paymentMethod:'', checksDelivered:false, contractSigned:false, isCurrent:true
+    depositPaid:false, paymentMethod:'', checksDelivered:false, contractSigned:false, isCurrent:true, hasOption:false
   })
   const [docs, setDocs] = useState<TenancyDoc[]>(
     () => JSON.parse(localStorage.getItem(lsKey('docs')) || '[]'))
@@ -403,6 +404,7 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
             {k:'checksDelivered',l:"צ'קים / אסמכתה התקבלה"},
             {k:'contractSigned',l:'חוזה חתום'},
             {k:'isCurrent',l:'שכירות פעילה'},
+            {k:'hasOption',l:'יש אופציה (אופשיית חידוש לשוכר)'},
           ] as const).map(({k,l}) => (
             <label key={k} style={{ display:'flex', alignItems:'center', gap:10, cursor:'pointer' }}>
               <input type="checkbox" checked={(tenancyForm as any)[k]}
@@ -484,7 +486,7 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
               <div style={{ fontWeight:700, fontSize:14 }}>📅 תקופות שכירות</div>
               <button type="button" onClick={() => {
                 setSelTenancyId(null)
-                setTenancyForm({propertyId:p.id,tenantId:'',contractStart:'',contractEnd:'',monthlyRent:p.monthlyRent,deposit:p.deposit||0,renewalRent:0,depositPaid:false,paymentMethod:'',checksDelivered:false,contractSigned:false,isCurrent:true})
+                setTenancyForm({propertyId:p.id,tenantId:'',contractStart:'',contractEnd:'',monthlyRent:p.monthlyRent,deposit:p.deposit||0,renewalRent:0,depositPaid:false,paymentMethod:'',checksDelivered:false,contractSigned:false,isCurrent:true,hasOption:false})
                 setPropView('editTenancy')
               }} style={{ background:'#6366F1', color:'white', border:'none', borderRadius:8, padding:'5px 12px', fontWeight:700, cursor:'pointer', fontSize:12 }}>+ הוסף תקופה</button>
             </div>
@@ -553,6 +555,7 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
                                   <span style={{ fontSize:12, background:'#ECFDF5', color:'#059669', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>💳 {fmtMoney(t.monthlyRent||p.monthlyRent)}/חודש</span>
                                   {t.deposit ? <span style={{ fontSize:12, background:'#EFF6FF', color:'#1D4ED8', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>💰 פיקדון: {fmtMoney(t.deposit)}</span> : <span style={{ fontSize:12, background:'#F3F4F6', color:'#9CA3AF', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>💰 פיקדון: לא הוגדר</span>}
                                   {t.renewalRent ? <span style={{ fontSize:12, background:'#FAF5FF', color:'#5B21B6', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>🔄 חידוש: {fmtMoney(t.renewalRent)}</span> : <span style={{ fontSize:12, background:'#F3F4F6', color:'#9CA3AF', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>🔄 חידוש: לא הוגדר</span>}
+                                  {t.hasOption && <span style={{ fontSize:11, background:'#FEF3C7', color:'#92400E', borderRadius:8, padding:'3px 8px', fontWeight:700 }}>⭐ יש אופציה</span>}
                                   <button type="button" onClick={() => { setFinancialEditId(t.id); setFinancialEditForm({ monthlyRent:t.monthlyRent||p.monthlyRent, deposit:t.deposit||0, renewalRent:t.renewalRent||0 }) }}
                                     style={{ background:'none', border:'1px solid #E5E7EB', borderRadius:8, padding:'3px 8px', cursor:'pointer', fontSize:11, color:'#6B7280', fontWeight:600, marginRight:'auto' }}>✏️ ערוך</button>
                                 </div>
@@ -567,7 +570,7 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
                                 </div>
                                 <button type="button" onClick={() => {
                                   setSelTenancyId(t.id)
-                                  setTenancyForm({propertyId:t.propertyId,tenantId:t.tenantId,contractStart:t.contractStart,contractEnd:t.contractEnd,monthlyRent:t.monthlyRent,deposit:t.deposit||0,renewalRent:t.renewalRent||0,depositPaid:t.depositPaid,paymentMethod:t.paymentMethod,checksDelivered:t.checksDelivered,contractSigned:t.contractSigned,isCurrent:t.isCurrent})
+                                  setTenancyForm({propertyId:t.propertyId,tenantId:t.tenantId,contractStart:t.contractStart,contractEnd:t.contractEnd,monthlyRent:t.monthlyRent,deposit:t.deposit||0,renewalRent:t.renewalRent||0,depositPaid:t.depositPaid,paymentMethod:t.paymentMethod,checksDelivered:t.checksDelivered,contractSigned:t.contractSigned,isCurrent:t.isCurrent,hasOption:t.hasOption||false})
                                   setPropView('editTenancy')
                                 }} style={{ background:'#F3F4F6', border:'none', borderRadius:8, padding:'6px 12px', fontWeight:600, cursor:'pointer', color:'#374151', fontSize:13 }}>ערוך</button>
                               </div>
