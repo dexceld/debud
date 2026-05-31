@@ -124,6 +124,8 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
   const [selPropId, setSelPropId] = useState<string | null>(null)
   const [selTenancyId, setSelTenancyId] = useState<string | null>(null)
   const [selViewTenancyId, setSelViewTenancyId] = useState<string | null>(null)
+  const [financialEditId, setFinancialEditId] = useState<string | null>(null)
+  const [financialEditForm, setFinancialEditForm] = useState({ monthlyRent:0, deposit:0, renewalRent:0 })
   const [propForm, setPropForm] = useState<Omit<Property,'id'>>({
     name:'', address:'', monthlyRent:0, deposit:0, notes:''
   })
@@ -527,12 +529,34 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
                           ) : (
                             <>
                               {/* Financial summary strip */}
-                              {(t.deposit || t.renewalRent) ? (
-                                <div style={{ display:'flex', gap:8, marginBottom:12, flexWrap:'wrap' }}>
-                                  {t.deposit ? <span style={{ fontSize:12, background:'#EFF6FF', color:'#1D4ED8', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>💰 פיקדון: {fmtMoney(t.deposit)}</span> : null}
-                                  {t.renewalRent ? <span style={{ fontSize:12, background:'#FAF5FF', color:'#5B21B6', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>🔄 חידוש: {fmtMoney(t.renewalRent)}</span> : null}
+                              {financialEditId === t.id ? (
+                                <div style={{ background:'#F9FAFB', border:'1.5px solid #E5E7EB', borderRadius:12, padding:'12px 14px', marginBottom:12 }}>
+                                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:10 }}>
+                                    {([{k:'monthlyRent',l:'שכ"ד חודשי',col:'#059669'},{k:'deposit',l:'פיקדון',col:'#1D4ED8'},{k:'renewalRent',l:'שכ"ד חידוש',col:'#5B21B6'}] as const).map(({k,l,col}) => (
+                                      <label key={k}>
+                                        <div style={{ fontSize:10, color:'#6B7280', fontWeight:600, marginBottom:3 }}>{l} (₪)</div>
+                                        <input type="number" value={financialEditForm[k]||''}
+                                          onChange={e => setFinancialEditForm(f => ({...f,[k]:Number(e.target.value)}))}
+                                          style={{ width:'100%', fontSize:13, border:`1.5px solid ${col}40`, borderRadius:8, padding:'5px 7px', color:col, fontWeight:700, background:'white', boxSizing:'border-box' }} />
+                                      </label>
+                                    ))}
+                                  </div>
+                                  <div style={{ display:'flex', gap:8 }}>
+                                    <button type="button" onClick={() => { updateTenancy(t.id, {monthlyRent:financialEditForm.monthlyRent, deposit:financialEditForm.deposit||undefined, renewalRent:financialEditForm.renewalRent||undefined}); setFinancialEditId(null) }}
+                                      style={{ flex:1, background:'#6366F1', color:'white', border:'none', borderRadius:8, padding:'8px', fontWeight:700, cursor:'pointer', fontSize:13 }}>שמור</button>
+                                    <button type="button" onClick={() => setFinancialEditId(null)}
+                                      style={{ background:'#F3F4F6', border:'none', borderRadius:8, padding:'8px 14px', color:'#6B7280', fontWeight:600, cursor:'pointer', fontSize:13 }}>ביטול</button>
+                                  </div>
                                 </div>
-                              ) : null}
+                              ) : (
+                                <div style={{ display:'flex', gap:6, marginBottom:12, flexWrap:'wrap', alignItems:'center' }}>
+                                  <span style={{ fontSize:12, background:'#ECFDF5', color:'#059669', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>💳 {fmtMoney(t.monthlyRent||p.monthlyRent)}/חודש</span>
+                                  {t.deposit ? <span style={{ fontSize:12, background:'#EFF6FF', color:'#1D4ED8', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>💰 פיקדון: {fmtMoney(t.deposit)}</span> : <span style={{ fontSize:12, background:'#F3F4F6', color:'#9CA3AF', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>💰 פיקדון: לא הוגדר</span>}
+                                  {t.renewalRent ? <span style={{ fontSize:12, background:'#FAF5FF', color:'#5B21B6', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>🔄 חידוש: {fmtMoney(t.renewalRent)}</span> : <span style={{ fontSize:12, background:'#F3F4F6', color:'#9CA3AF', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>🔄 חידוש: לא הוגדר</span>}
+                                  <button type="button" onClick={() => { setFinancialEditId(t.id); setFinancialEditForm({ monthlyRent:t.monthlyRent||p.monthlyRent, deposit:t.deposit||0, renewalRent:t.renewalRent||0 }) }}
+                                    style={{ background:'none', border:'1px solid #E5E7EB', borderRadius:8, padding:'3px 8px', cursor:'pointer', fontSize:11, color:'#6B7280', fontWeight:600, marginRight:'auto' }}>✏️ ערוך</button>
+                                </div>
+                              )}
                               {/* Tenant contact + edit */}
                               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
                                 <div>
