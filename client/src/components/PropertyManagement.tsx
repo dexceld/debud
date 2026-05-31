@@ -255,7 +255,7 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
     setTenancies(prev => prev.map(t => t.id===id ? {...t,...patch} : t))
 
   const selProp         = properties.find(p => p.id===selPropId) ?? null
-  const propTenancies   = tenancies.filter(t => t.propertyId===selPropId).sort((a,b) => a.contractStart.localeCompare(b.contractStart))
+  const propTenancies   = tenancies.filter(t => t.propertyId===selPropId).sort((a,b) => b.contractStart.localeCompare(a.contractStart))
 
   const hasOverlapForProp = (newStart: string, newEnd: string, propId: string, excludeId?: string) =>
     tenancies.some(t => {
