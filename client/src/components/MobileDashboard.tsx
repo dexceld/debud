@@ -437,6 +437,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const showExitConfirmRef = useRef(false)
   const exitingRef = useRef(false)
   const popStateHandlerRef = useRef<(() => void) | null>(null)
+  const pmBackHandlerRef = useRef<(() => boolean) | null>(null)
   useEffect(() => { showExitConfirmRef.current = showExitConfirm }, [showExitConfirm])
 
   // CatMgmt internal state (lifted here to prevent remount on state change)
@@ -538,6 +539,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           setSelectedEmployeeId(null)
         } else if (selectedClientIdRef.current) {
           setSelectedClientId(null)
+        } else if (screenRef.current === 'property-management') {
+          const handled = pmBackHandlerRef.current?.()
+          if (!handled) setScreen('hub')
         } else if (screenRef.current !== 'hub' && screenRef.current !== 'home') {
           setScreen('hub')
         } else if (screenRef.current === 'home') {
@@ -6922,7 +6926,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       {screen === 'net-chart' && <NetChartScreen />}
       {screen === 'mortgage-calc' && <MortgageCalculator />}
       {screen === 'time-tracking' && <TimeTrackingScreen />}
-      {screen === 'property-management' && <PropertyManagement uid={uid} onBack={() => setScreen('hub')} />}
+      {screen === 'property-management' && <PropertyManagement uid={uid} onBack={() => setScreen('hub')} backHandlerRef={pmBackHandlerRef} />}
       {renderCatMgmt()}
       <InlineSheet />
       <AddClientModal />

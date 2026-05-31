@@ -103,9 +103,9 @@ const getMonthsInRange = (start: string, end: string): string[] => {
 }
 
 /* ─── Component ──────────────────────────────────────────────── */
-type Props = { uid: string | null; onBack: () => void }
+type Props = { uid: string | null; onBack: () => void; backHandlerRef?: React.MutableRefObject<(() => boolean) | null> }
 
-export function PropertyManagement({ uid, onBack }: Props) {
+export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
   const lsKey = (k: string) =>
     uid ? `bva_${uid.slice(0,8)}_pm_${k}` : `bva_local_pm_${k}`
 
@@ -139,6 +139,19 @@ export function PropertyManagement({ uid, onBack }: Props) {
   const [docSearchQuery, setDocSearchQuery] = useState('')
   const docInputRef = useRef<HTMLInputElement>(null)
   const renewalLeadDays = 90
+
+  // Register Android back handler
+  useEffect(() => {
+    if (!backHandlerRef) return
+    backHandlerRef.current = () => {
+      if (propView === 'addTenant')   { setPropView('editTenancy'); return true }
+      if (propView === 'editTenancy') { setPropView('detail');      return true }
+      if (propView === 'editProp')    { setPropView('list');         return true }
+      if (propView === 'docs')        { setPropView('list');         return true }
+      if (propView === 'detail')      { setSelPropId(null); setPropView('list'); return true }
+      return false
+    }
+  }, [propView, backHandlerRef])
 
   const [tenantView, setTenantView] = useState<'list'|'edit'>('list')
   const [tenantForm, setTenantForm] = useState<Omit<Tenant,'id'>>({
