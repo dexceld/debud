@@ -493,9 +493,9 @@ export function PropertyManagement({ uid, onBack }: Props) {
                         <div style={{ flex:1, minWidth:0 }}>
                           <div style={{ fontWeight:800, fontSize:15, color:'#111827', marginBottom:3 }}>{t_tnt?.name || '—'}</div>
                           <div style={{ display:'flex', alignItems:'center', gap:5 }}>
-                            <span style={{ fontWeight:700, fontSize:13, color:sc, direction:'ltr' }}>{t.contractStart.slice(0,7).replace('-','/')}</span>
+                            <span style={{ fontWeight:700, fontSize:13, color:sc, direction:'ltr' }}>{t.contractStart.split('-').reverse().map((x,i)=>i===2?x.slice(2):x).join('/')}</span>
                             <span style={{ color:'#9CA3AF', fontSize:12 }}>→</span>
-                            <span style={{ fontWeight:700, fontSize:13, color:sc, direction:'ltr' }}>{t.contractEnd.slice(0,7).replace('-','/')}</span>
+                            <span style={{ fontWeight:700, fontSize:13, color:sc, direction:'ltr' }}>{t.contractEnd.split('-').reverse().map((x,i)=>i===2?x.slice(2):x).join('/')}</span>
                             <span style={{ fontSize:12, color:'#374151', fontWeight:600 }}>· {fmtMoney(t.monthlyRent||p.monthlyRent)}</span>
                             {days2!==null && st!=='past' && <span style={{ fontSize:11, color:'#9CA3AF' }}>· {days2<0?'פג תוקף':st==='future'?`בעוד ${Math.abs(daysLeft(t.contractStart))}י'`:`${days2}י' לסיום`}</span>}
                           </div>
@@ -513,6 +513,13 @@ export function PropertyManagement({ uid, onBack }: Props) {
                             <div style={{ textAlign:'center', color:'#9CA3AF', fontSize:13, padding:'10px 0' }}>שוכר לא נמצא — ערוך את התקופה</div>
                           ) : (
                             <>
+                              {/* Financial summary strip */}
+                              {(t.deposit || t.renewalRent) ? (
+                                <div style={{ display:'flex', gap:8, marginBottom:12, flexWrap:'wrap' }}>
+                                  {t.deposit ? <span style={{ fontSize:12, background:'#EFF6FF', color:'#1D4ED8', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>💰 פיקדון: {fmtMoney(t.deposit)}</span> : null}
+                                  {t.renewalRent ? <span style={{ fontSize:12, background:'#FAF5FF', color:'#5B21B6', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>🔄 חידוש: {fmtMoney(t.renewalRent)}</span> : null}
+                                </div>
+                              ) : null}
                               {/* Tenant contact + edit */}
                               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
                                 <div>
@@ -566,12 +573,7 @@ export function PropertyManagement({ uid, onBack }: Props) {
                                       <div style={{ flex:1, display:'flex', alignItems:'center', gap:8, background:hasRenewal?'#FAF5FF':'white', border:`1px solid ${hasRenewal?'#DDD6FE':'#E5E7EB'}`, borderRadius:8, padding:'8px 10px' }}>
                                         <span style={{ fontSize:18, flexShrink:0 }}>{hasRenewal?'🔄':'○'}</span>
                                         <span style={{ fontSize:13, fontWeight:600, color:hasRenewal?'#5B21B6':'#374151', flexShrink:0 }}>חידוש חוזה</span>
-                                        {hasRenewal && <span style={{ fontSize:10, background:'#7C3AED20', color:'#7C3AED', borderRadius:10, padding:'1px 5px', fontWeight:700, flexShrink:0 }}>משימה</span>}
-                                        <input type="number" value={t.renewalRent||''}
-                                          onClick={e => e.stopPropagation()}
-                                          onChange={e => updateTenancy(t.id, {renewalRent: Number(e.target.value)||undefined})}
-                                          style={{ flex:1, minWidth:0, fontSize:12, border:'1px solid #DDD6FE', borderRadius:6, padding:'3px 6px', color:'#5B21B6', background:'white', fontWeight:600, textAlign:'center' }}
-                                          placeholder="₪ שכ״ד חידוש" />
+                                        {hasRenewal && <span style={{ fontSize:10, background:'#7C3AED20', color:'#7C3AED', borderRadius:10, padding:'1px 5px', fontWeight:700, flexShrink:0 }}>משימה פתוחה</span>}
                                       </div>
                                       <button type="button" onClick={() => t_tnt.phone ? sendWA(t_tnt.phone, `שלום ${t_tnt.name}, תזכורת לחידוש חוזה השכירות עבור ${p.name}. החוזה מסתיים ב-${t.contractEnd}. האם ברצונך לחדש? 🙏`) : alert('אין טלפון רשום')}
                                         style={{ background:'#F5F3FF', border:'1px solid #DDD6FE', color:'#7C3AED', borderRadius:8, padding:'8px 12px', fontWeight:700, cursor:'pointer', fontSize:16, flexShrink:0 }}>🔄</button>
@@ -1171,7 +1173,8 @@ export function PropertyManagement({ uid, onBack }: Props) {
               </table>
               <div style={{ display:'flex', gap:12, marginTop:8, fontSize:11, color:'#6B7280', flexWrap:'wrap' }}>
                 <span><span style={{ display:'inline-block', width:12, height:10, background:'#22C55E', borderRadius:2, marginLeft:4 }}/>מושכר פעיל</span>
-                <span><span style={{ display:'inline-block', width:12, height:10, background:'#A78BFA', borderRadius:2, marginLeft:4 }}/>מושכר בעבר</span>
+                <span><span style={{ display:'inline-block', width:12, height:10, background:'#A78BFA', borderRadius:2, marginLeft:4 }}/>עתידי</span>
+                <span><span style={{ display:'inline-block', width:12, height:10, background:'#9CA3AF', borderRadius:2, marginLeft:4 }}/>עבר</span>
                 <span><span style={{ display:'inline-block', width:12, height:10, background:'#FEE2E2', border:'1px solid #FECACA', borderRadius:2, marginLeft:4 }}/>פנוי</span>
               </div>
             </div>
