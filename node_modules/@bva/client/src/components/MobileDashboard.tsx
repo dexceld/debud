@@ -1246,30 +1246,30 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <DexcelLogo />
           <div style={{ fontSize: 12, color: '#9CA3AF', fontWeight: 600 }}>בחר עולם</div>
         </div>
-        <div style={{ flex: 1, padding: '8px 16px 16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignContent: 'start', overflowY: 'auto' }}>
-          {HUB_MODULES.map(m => {
-            const isDefault = defaultModule === m.id
-            return (
-              <div key={m.id} style={{ display: 'flex', flexDirection: 'column', borderRadius: 20, overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.12)' }}>
-                <button onClick={() => setScreen(m.dest)}
-                  style={{ flex: 1, padding: '22px 14px 16px', background: m.bg, border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textAlign: 'center' }}>
-                  <span style={{ fontSize: 44 }}>{m.icon}</span>
-                  <span style={{ fontSize: 16, fontWeight: 800, color: 'white', lineHeight: 1.25 }}>{m.label}</span>
-                </button>
-                <button onClick={() => {
-                    setDefaultModule(m.id)
-                    localStorage.setItem(lsKey('default_module'), m.id)
-                    setSuccessToast(`⭐ ${m.label} הוגדר כמסך בית`); setTimeout(() => setSuccessToast(null), 2500)
-                  }}
-                  style={{ padding: '10px', background: isDefault ? '#FFFBEB' : 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: isDefault ? '#D97706' : '#9CA3AF', borderTop: '1px solid #F3F4F6' }}>
-                  {isDefault ? '⭐ מסך בית' : '☆ הגדר כבית'}
-                </button>
-              </div>
-            )
-          })}
-        </div>
-        {/* FABs toggles below tiles */}
-        <div style={{ padding: '8px 16px 10px', flexShrink: 0 }}>
+        <div style={{ flex: 1, padding: '8px 16px 16px', display: 'flex', flexDirection: 'column', overflowY: 'auto', justifyContent: 'center' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+            {HUB_MODULES.map(m => {
+              const isDefault = defaultModule === m.id
+              return (
+                <div key={m.id} style={{ display: 'flex', flexDirection: 'column', borderRadius: 20, overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.12)' }}>
+                  <button onClick={() => setScreen(m.dest)}
+                    style={{ flex: 1, padding: '22px 14px 16px', background: m.bg, border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textAlign: 'center' }}>
+                    <span style={{ fontSize: 44 }}>{m.icon}</span>
+                    <span style={{ fontSize: 16, fontWeight: 800, color: 'white', lineHeight: 1.25 }}>{m.label}</span>
+                  </button>
+                  <button onClick={() => {
+                      setDefaultModule(m.id)
+                      localStorage.setItem(lsKey('default_module'), m.id)
+                      setSuccessToast(`⭐ ${m.label} הוגדר כמסך בית`); setTimeout(() => setSuccessToast(null), 2500)
+                    }}
+                    style={{ padding: '10px', background: isDefault ? '#FFFBEB' : 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: isDefault ? '#D97706' : '#9CA3AF', borderTop: '1px solid #F3F4F6' }}>
+                    {isDefault ? '⭐ מסך בית' : '☆ הגדר כבית'}
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+          {/* FABs toggles — right below the module cards */}
           <div style={{ background: 'white', borderRadius: 14, padding: '10px 14px', border: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 12, color: '#6B7280', fontWeight: 700, flexShrink: 0 }}>⚡ כפתורים צפים</span>
             <div style={{ display: 'flex', gap: 8, flex: 1 }}>
