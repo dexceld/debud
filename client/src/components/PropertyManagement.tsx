@@ -249,6 +249,30 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
     const clean = phone.replace(/\D/g,'').replace(/^0/,'972')
     window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, '_blank')
   }
+
+  const shareDocWA = async (phone: string, msg: string, docType: TenancyDoc['type'], tenancyId: string) => {
+    const doc = [...docs].filter(d => d.tenancyId===tenancyId && d.type===docType).sort((a,b)=>b.date.localeCompare(a.date))[0]
+    if (!doc) { sendWA(phone, msg); return }
+    const b64 = localStorage.getItem(lsKey(`doc_data_${doc.id}`))
+    if (!b64) { sendWA(phone, msg); return }
+    try {
+      const base64Data = b64.split(',')[1]
+      const bstr = atob(base64Data)
+      const bytes = new Uint8Array(bstr.length)
+      for (let i=0; i<bstr.length; i++) bytes[i] = bstr.charCodeAt(i)
+      const blob = new Blob([bytes], { type: doc.mimeType || 'application/octet-stream' })
+      const file = new File([blob], doc.name, { type: doc.mimeType })
+      if ((navigator as any).canShare?.({ files:[file] })) {
+        await (navigator as any).share({ files:[file], text:msg })
+      } else {
+        sendWA(phone, msg)
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a'); a.href=url; a.download=doc.name; a.click()
+        setTimeout(() => URL.revokeObjectURL(url), 5000)
+        showToast('הקובץ הורד — צרף אותו ידנית בוואטסאפ')
+      }
+    } catch { sendWA(phone, msg) }
+  }
   const getPropName   = (id: string) => properties.find(p=>p.id===id)?.name || '—'
   const getTenantName = (id: string) => tenants.find(t=>t.id===id)?.name || '—'
   const updateTenancy = (id: string, patch: Partial<Tenancy>) =>
@@ -604,7 +628,7 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
                                         <span style={{ fontSize:18, color:val?'#16A34A':'#9CA3AF' }}>{val?'✅':'☐'}</span>
                                         <span style={{ fontSize:13, fontWeight:600, color:val?'#15803D':'#374151' }}>{l}</span>
                                       </button>
-                                      <button type="button" onClick={() => t_tnt.phone ? sendWA(t_tnt.phone, waMsg) : alert('אין טלפון רשום')}
+                                      <button type="button" onClick={() => t_tnt.phone ? (k==='contractSigned' ? shareDocWA(t_tnt.phone, waMsg, 'contract', t.id) : sendWA(t_tnt.phone, waMsg)) : alert('אין טלפון רשום')}
                                         style={{ background:waBg, border:`1px solid ${waBc}`, color:waC, borderRadius:8, padding:'8px 12px', fontWeight:700, cursor:'pointer', fontSize:16, flexShrink:0 }}>{waIcon}</button>
                                       {k==='contractSigned' && (
                                         <button type="button" title="צרף חוזה" onClick={() => {
@@ -628,8 +652,15 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
                                         <span style={{ fontSize:13, fontWeight:600, color:hasRenewal?'#5B21B6':'#374151', flexShrink:0 }}>חידוש חוזה</span>
                                         {hasRenewal && <span style={{ fontSize:10, background:'#7C3AED20', color:'#7C3AED', borderRadius:10, padding:'1px 5px', fontWeight:700, flexShrink:0 }}>משימה פתוחה</span>}
                                       </div>
-                                      <button type="button" onClick={() => t_tnt.phone ? sendWA(t_tnt.phone, `שלום ${t_tnt.name}, תזכורת לחידוש חוזה השכירות עבור ${p.name}. החוזה מסתיים ב-${t.contractEnd}. האם ברצונך לחדש? 🙏`) : alert('אין טלפון רשום')}
+                                      <button type="button" onClick={() => t_tnt.phone ? shareDocWA(t_tnt.phone, `שלום ${t_tnt.name}, תזכורת לחידוש חוזה השכירות עבור ${p.name}. החוזה מסתיים ב-${t.contractEnd}. האם ברצונך לחדש? 🙏`, 'renewal', t.id) : alert('אין טלפון רשום')}
                                         style={{ background:'#F5F3FF', border:'1px solid #DDD6FE', color:'#7C3AED', borderRadius:8, padding:'8px 12px', fontWeight:700, cursor:'pointer', fontSize:16, flexShrink:0 }}>🔄</button>
+                                      <button type="button" title="צרף חידוש" onClick={() => {
+                                        if (!docInputRef.current) return
+                                        docInputRef.current.setAttribute('data-tid', t.id)
+                                        docInputRef.current.setAttribute('data-pid', t.propertyId)
+                                        setPendingDocType('renewal')
+                                        docInputRef.current.click()
+                                      }} style={{ background:'#F0FDF4', border:'1px solid #BBF7D0', color:'#15803D', borderRadius:8, padding:'8px 10px', fontWeight:700, cursor:'pointer', fontSize:15, flexShrink:0 }}>📎</button>
                                     </div>
                                   )
                                 })()}
