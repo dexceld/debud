@@ -1225,6 +1225,7 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
                 <span><span style={{ display:'inline-block', width:12, height:10, background:'#A78BFA', borderRadius:2, marginLeft:4 }}/>עתידי</span>
                 <span><span style={{ display:'inline-block', width:12, height:10, background:'#9CA3AF', borderRadius:2, marginLeft:4 }}/>עבר</span>
                 <span><span style={{ display:'inline-block', width:12, height:10, background:'#FEE2E2', border:'1px solid #FECACA', borderRadius:2, marginLeft:4 }}/>פנוי</span>
+                <span>⚠ סיום חוזה בחודש זה</span>
               </div>
             </div>
           </div>
