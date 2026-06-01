@@ -399,7 +399,7 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
               onChange={e=>setTenancyForm(f=>({...f,contractEnd:e.target.value}))} />
           </label>
         </div>
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, marginBottom:12 }}>
           <label>
             <span style={LBL}>שכ"ד חודשי (₪)</span>
             <input style={INP} type="number" value={tenancyForm.monthlyRent||''}
@@ -409,6 +409,11 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
             <span style={LBL}>פיקדון (₪)</span>
             <input style={INP} type="number" value={(tenancyForm as any).deposit||''}
               onChange={e=>setTenancyForm(f=>({...f,deposit:Number(e.target.value)}))} />
+          </label>
+          <label>
+            <span style={LBL}>שכ"ד חידוש (₪)</span>
+            <input style={INP} type="number" value={tenancyForm.renewalRent||''}
+              onChange={e=>setTenancyForm(f=>({...f,renewalRent:Number(e.target.value)||undefined}))} />
           </label>
         </div>
         <label style={{ display:'block', marginBottom:12 }}>
@@ -589,7 +594,7 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
                                   {t.renewalRent ? <span style={{ fontSize:12, background:'#FAF5FF', color:'#5B21B6', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>🔄 חידוש: {fmtMoney(t.renewalRent)}</span> : <span style={{ fontSize:12, background:'#F3F4F6', color:'#9CA3AF', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>🔄 חידוש: לא הוגדר</span>}
                                   {t.hasOption && <span style={{ fontSize:11, background:'#FEF3C7', color:'#92400E', borderRadius:8, padding:'3px 8px', fontWeight:700 }}>⭐ יש אופציה</span>}
                                   <button type="button" onClick={() => { setFinancialEditId(t.id); setFinancialEditForm({ monthlyRent:t.monthlyRent||p.monthlyRent, deposit:t.deposit||0, renewalRent:t.renewalRent||0, hasOption:t.hasOption||false }) }}
-                                    style={{ background:'none', border:'1px solid #E5E7EB', borderRadius:8, padding:'3px 8px', cursor:'pointer', fontSize:11, color:'#6B7280', fontWeight:600, marginRight:'auto' }}>✏️ ערוך</button>
+                                    style={{ background:'none', border:'1px solid #E5E7EB', borderRadius:8, padding:'3px 8px', cursor:'pointer', fontSize:11, color:'#6B7280', fontWeight:600, marginRight:'auto' }}>✏️ סכומים</button>
                                 </div>
                               )}
                               {/* Tenant contact + edit */}
@@ -604,7 +609,7 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
                                   setSelTenancyId(t.id)
                                   setTenancyForm({propertyId:t.propertyId,tenantId:t.tenantId,contractStart:t.contractStart,contractEnd:t.contractEnd,monthlyRent:t.monthlyRent,deposit:t.deposit||0,renewalRent:t.renewalRent||0,depositPaid:t.depositPaid,paymentMethod:t.paymentMethod,checksDelivered:t.checksDelivered,contractSigned:t.contractSigned,isCurrent:t.isCurrent,hasOption:t.hasOption||false})
                                   setPropView('editTenancy')
-                                }} style={{ background:'#F3F4F6', border:'none', borderRadius:8, padding:'6px 12px', fontWeight:600, cursor:'pointer', color:'#374151', fontSize:13 }}>ערוך</button>
+                                }} style={{ background:'#6366F1', border:'none', borderRadius:8, padding:'6px 14px', fontWeight:700, cursor:'pointer', color:'white', fontSize:13 }}>📝 ערוך הסכם</button>
                                 <button type="button" onClick={() => {
                                   if (!window.confirm(`למחוק את ההסכם עם ${t_tnt?.name||''}? פעולה זו אינה הפיכה.`)) return
                                   setTenancies(prev => prev.filter(x => x.id !== t.id))
