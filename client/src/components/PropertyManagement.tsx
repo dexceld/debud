@@ -911,7 +911,7 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
     if (propView==='addTenant')   return renderAddTenantInline()
     if (propView==='detail')      return renderPropDetail()
     if (propView==='docs')        return renderDocsView()
-    return null
+    return renderPropList()
   }
 
   /* ════════════════════════════════════════
@@ -1246,7 +1246,7 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
 
   // Full-screen sub-views that take over the whole screen (no tab bar)
   const isFullScreen =
-    (tab==='properties' && ['detail','editProp','editTenancy','addTenant'].includes(propView)) ||
+    (tab==='properties' && ['editProp','editTenancy','addTenant'].includes(propView)) ||
     (tab==='tenants' && tenantView==='edit')
 
   const subView = isFullScreen ? (
@@ -1267,7 +1267,7 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
   return (
     <div style={{ display:'flex', flexDirection:'column', height:'100dvh', background:'#F9FAFB' }}>
       <div style={{ flex:1, overflowY:'auto', display:'flex', flexDirection:'column', minHeight:0 }}>
-        {tab==='properties' && renderPropList()}
+        {tab==='properties' && renderPropertiesTab()}
         {tab==='tenants'    && renderTenantsTab()}
         {tab==='tasks'      && renderTasksTab()}
         {tab==='dashboard'  && renderDashboard()}
