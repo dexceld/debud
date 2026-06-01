@@ -126,7 +126,7 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
   const [selTenancyId, setSelTenancyId] = useState<string | null>(null)
   const [selViewTenancyId, setSelViewTenancyId] = useState<string | null>(null)
   const [financialEditId, setFinancialEditId] = useState<string | null>(null)
-  const [financialEditForm, setFinancialEditForm] = useState({ monthlyRent:0, deposit:0, renewalRent:0 })
+  const [financialEditForm, setFinancialEditForm] = useState({ monthlyRent:0, deposit:0, renewalRent:0, hasOption:false })
   const [propForm, setPropForm] = useState<Omit<Property,'id'>>({
     name:'', address:'', monthlyRent:0, deposit:0, notes:''
   })
@@ -544,7 +544,15 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
                                     ))}
                                   </div>
                                   <div style={{ display:'flex', gap:8 }}>
-                                    <button type="button" onClick={() => { updateTenancy(t.id, {monthlyRent:financialEditForm.monthlyRent, deposit:financialEditForm.deposit||undefined, renewalRent:financialEditForm.renewalRent||undefined}); setFinancialEditId(null) }}
+                                    <label style={{ display:'flex', alignItems:'center', gap:8, fontSize:13, fontWeight:600, color:'#374151', gridColumn:'1/-1', cursor:'pointer' }}>
+                                      <input type="checkbox" checked={financialEditForm.hasOption}
+                                        onChange={e => setFinancialEditForm(f => ({...f, hasOption:e.target.checked}))}
+                                        style={{ width:18, height:18 }} />
+                                      יש אופציה לחידוש
+                                    </label>
+                                  </div>
+                                  <div style={{ display:'flex', gap:8 }}>
+                                    <button type="button" onClick={() => { updateTenancy(t.id, {monthlyRent:financialEditForm.monthlyRent, deposit:financialEditForm.deposit||undefined, renewalRent:financialEditForm.renewalRent||undefined, hasOption:financialEditForm.hasOption}); setFinancialEditId(null) }}
                                       style={{ flex:1, background:'#6366F1', color:'white', border:'none', borderRadius:8, padding:'8px', fontWeight:700, cursor:'pointer', fontSize:13 }}>שמור</button>
                                     <button type="button" onClick={() => setFinancialEditId(null)}
                                       style={{ background:'#F3F4F6', border:'none', borderRadius:8, padding:'8px 14px', color:'#6B7280', fontWeight:600, cursor:'pointer', fontSize:13 }}>ביטול</button>
@@ -556,7 +564,7 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
                                   {t.deposit ? <span style={{ fontSize:12, background:'#EFF6FF', color:'#1D4ED8', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>💰 פיקדון: {fmtMoney(t.deposit)}</span> : <span style={{ fontSize:12, background:'#F3F4F6', color:'#9CA3AF', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>💰 פיקדון: לא הוגדר</span>}
                                   {t.renewalRent ? <span style={{ fontSize:12, background:'#FAF5FF', color:'#5B21B6', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>🔄 חידוש: {fmtMoney(t.renewalRent)}</span> : <span style={{ fontSize:12, background:'#F3F4F6', color:'#9CA3AF', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>🔄 חידוש: לא הוגדר</span>}
                                   {t.hasOption && <span style={{ fontSize:11, background:'#FEF3C7', color:'#92400E', borderRadius:8, padding:'3px 8px', fontWeight:700 }}>⭐ יש אופציה</span>}
-                                  <button type="button" onClick={() => { setFinancialEditId(t.id); setFinancialEditForm({ monthlyRent:t.monthlyRent||p.monthlyRent, deposit:t.deposit||0, renewalRent:t.renewalRent||0 }) }}
+                                  <button type="button" onClick={() => { setFinancialEditId(t.id); setFinancialEditForm({ monthlyRent:t.monthlyRent||p.monthlyRent, deposit:t.deposit||0, renewalRent:t.renewalRent||0, hasOption:t.hasOption||false }) }}
                                     style={{ background:'none', border:'1px solid #E5E7EB', borderRadius:8, padding:'3px 8px', cursor:'pointer', fontSize:11, color:'#6B7280', fontWeight:600, marginRight:'auto' }}>✏️ ערוך</button>
                                 </div>
                               )}
