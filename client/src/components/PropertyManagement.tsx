@@ -581,6 +581,11 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
                                   setTenancyForm({propertyId:t.propertyId,tenantId:t.tenantId,contractStart:t.contractStart,contractEnd:t.contractEnd,monthlyRent:t.monthlyRent,deposit:t.deposit||0,renewalRent:t.renewalRent||0,depositPaid:t.depositPaid,paymentMethod:t.paymentMethod,checksDelivered:t.checksDelivered,contractSigned:t.contractSigned,isCurrent:t.isCurrent,hasOption:t.hasOption||false})
                                   setPropView('editTenancy')
                                 }} style={{ background:'#F3F4F6', border:'none', borderRadius:8, padding:'6px 12px', fontWeight:600, cursor:'pointer', color:'#374151', fontSize:13 }}>ערוך</button>
+                                <button type="button" onClick={() => {
+                                  if (!window.confirm(`למחוק את ההסכם עם ${t_tnt?.name||''}? פעולה זו אינה הפיכה.`)) return
+                                  setTenancies(prev => prev.filter(x => x.id !== t.id))
+                                  setSelViewTenancyId(null)
+                                }} style={{ background:'#FEF2F2', border:'1px solid #FECACA', borderRadius:8, padding:'6px 12px', fontWeight:600, cursor:'pointer', color:'#DC2626', fontSize:13 }}>🗑 מחק</button>
                               </div>
 
 
