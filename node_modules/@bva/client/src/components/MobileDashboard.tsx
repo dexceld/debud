@@ -1290,11 +1290,24 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </div>
           </div>
         </div>
-        <div style={{ padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8, borderTop: '1px solid #E5E7EB', background: 'white', flexShrink: 0 }}>
+        <div style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8, borderTop: '1px solid #E5E7EB', background: 'white', flexShrink: 0 }}>
           {!isLocalMode && userPhoto
-            ? <img src={userPhoto} alt="" style={{ width: 28, height: 28, borderRadius: '50%' }} referrerPolicy="no-referrer" />
-            : <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#6366F1', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700 }}>{isLocalMode ? '👤' : userEmail?.[0]?.toUpperCase() || '?'}</div>}
-          <span style={{ fontSize: 12, color: '#6B7280' }}>{userEmail}</span>
+            ? <img src={userPhoto} alt="" style={{ width: 26, height: 26, borderRadius: '50%' }} referrerPolicy="no-referrer" />
+            : <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#6366F1', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{isLocalMode ? '👤' : userEmail?.[0]?.toUpperCase() || '?'}</div>}
+          <span style={{ fontSize: 12, color: '#6B7280', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userEmail}</span>
+          <button onClick={async () => {
+            if (!window.confirm(isLocalMode ? 'לצאת ממצב לקוח?' : 'להתנתק?')) return
+            if (isLocalMode) {
+              localStorage.removeItem('bva_local_mode')
+            } else {
+              await flushAllSaves()
+              await new Promise(r => setTimeout(r, 500))
+              await signOutUser().catch(() => {})
+            }
+            window.location.reload()
+          }} style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}>
+            התנתק
+          </button>
         </div>
         {successToast && <div className="m-save-toast"><span className="m-save-toast-icon">✓</span><span>{successToast}</span></div>}
       </div>
