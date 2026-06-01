@@ -588,33 +588,33 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
                                   </div>
                                 </div>
                               ) : (
-                                <div style={{ display:'flex', gap:6, marginBottom:12, flexWrap:'wrap', alignItems:'center' }}>
-                                  <span style={{ fontSize:12, background:'#ECFDF5', color:'#059669', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>💳 {fmtMoney(t.monthlyRent||p.monthlyRent)}/חודש</span>
-                                  {t.deposit ? <span style={{ fontSize:12, background:'#EFF6FF', color:'#1D4ED8', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>💰 פיקדון: {fmtMoney(t.deposit)}</span> : <span style={{ fontSize:12, background:'#F3F4F6', color:'#9CA3AF', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>💰 פיקדון: לא הוגדר</span>}
-                                  {t.renewalRent ? <span style={{ fontSize:12, background:'#FAF5FF', color:'#5B21B6', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>🔄 חידוש: {fmtMoney(t.renewalRent)}</span> : <span style={{ fontSize:12, background:'#F3F4F6', color:'#9CA3AF', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>🔄 חידוש: לא הוגדר</span>}
+                                <div style={{ display:'flex', gap:6, marginBottom:10, flexWrap:'wrap', alignItems:'center' }}>
+                                  {t.deposit ? <span style={{ fontSize:12, background:'#EFF6FF', color:'#1D4ED8', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>💰 פיקדון: {fmtMoney(t.deposit)}</span> : <span style={{ fontSize:12, background:'#F3F4F6', color:'#9CA3AF', borderRadius:8, padding:'4px 10px' }}>💰 פיקדון: לא הוגדר</span>}
+                                  {t.renewalRent ? <span style={{ fontSize:12, background:'#FAF5FF', color:'#5B21B6', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>🔄 חידוש: {fmtMoney(t.renewalRent)}</span> : <span style={{ fontSize:12, background:'#F3F4F6', color:'#9CA3AF', borderRadius:8, padding:'4px 10px' }}>🔄 חידוש: לא הוגדר</span>}
                                   {t.hasOption && <span style={{ fontSize:11, background:'#FEF3C7', color:'#92400E', borderRadius:8, padding:'3px 8px', fontWeight:700 }}>⭐ יש אופציה</span>}
-                                  <button type="button" onClick={() => { setFinancialEditId(t.id); setFinancialEditForm({ monthlyRent:t.monthlyRent||p.monthlyRent, deposit:t.deposit||0, renewalRent:t.renewalRent||0, hasOption:t.hasOption||false }) }}
-                                    style={{ background:'none', border:'1px solid #E5E7EB', borderRadius:8, padding:'3px 8px', cursor:'pointer', fontSize:11, color:'#6B7280', fontWeight:600, marginRight:'auto' }}>✏️ סכומים</button>
                                 </div>
                               )}
-                              {/* Tenant contact + edit */}
-                              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
-                                <div>
-                                  <div style={{ fontSize:12, color:'#6B7280' }}>
-                                    {t_tnt.phone && <span style={{ marginLeft:10 }}>📞 {t_tnt.phone}</span>}
-                                    {t_tnt.email && <span>✉ {t_tnt.email}</span>}
-                                  </div>
+                              {/* Contact info */}
+                              {(t_tnt.phone || t_tnt.email) && (
+                                <div style={{ fontSize:12, color:'#6B7280', marginBottom:10 }}>
+                                  {t_tnt.phone && <span style={{ marginLeft:12 }}>📞 {t_tnt.phone}</span>}
+                                  {t_tnt.email && <span>✉ {t_tnt.email}</span>}
                                 </div>
+                              )}
+                              {/* Action buttons row */}
+                              <div style={{ display:'flex', gap:8, marginBottom:14 }}>
                                 <button type="button" onClick={() => {
                                   setSelTenancyId(t.id)
                                   setTenancyForm({propertyId:t.propertyId,tenantId:t.tenantId,contractStart:t.contractStart,contractEnd:t.contractEnd,monthlyRent:t.monthlyRent,deposit:t.deposit||0,renewalRent:t.renewalRent||0,depositPaid:t.depositPaid,paymentMethod:t.paymentMethod,checksDelivered:t.checksDelivered,contractSigned:t.contractSigned,isCurrent:t.isCurrent,hasOption:t.hasOption||false})
                                   setPropView('editTenancy')
-                                }} style={{ background:'#6366F1', border:'none', borderRadius:8, padding:'6px 14px', fontWeight:700, cursor:'pointer', color:'white', fontSize:13 }}>📝 ערוך הסכם</button>
+                                }} style={{ flex:1, background:'#6366F1', border:'none', borderRadius:8, padding:'8px', fontWeight:700, cursor:'pointer', color:'white', fontSize:13 }}>📝 ערוך הסכם</button>
+                                <button type="button" onClick={() => { setFinancialEditId(t.id); setFinancialEditForm({ monthlyRent:t.monthlyRent||p.monthlyRent, deposit:t.deposit||0, renewalRent:t.renewalRent||0, hasOption:t.hasOption||false }) }}
+                                  style={{ flex:1, background:'#F3F4F6', border:'1px solid #E5E7EB', borderRadius:8, padding:'8px', cursor:'pointer', fontSize:13, color:'#374151', fontWeight:600 }}>✏️ סכומים</button>
                                 <button type="button" onClick={() => {
                                   if (!window.confirm(`למחוק את ההסכם עם ${t_tnt?.name||''}? פעולה זו אינה הפיכה.`)) return
                                   setTenancies(prev => prev.filter(x => x.id !== t.id))
                                   setSelViewTenancyId(null)
-                                }} style={{ background:'#FEF2F2', border:'1px solid #FECACA', borderRadius:8, padding:'6px 12px', fontWeight:600, cursor:'pointer', color:'#DC2626', fontSize:13 }}>🗑 מחק</button>
+                                }} style={{ background:'#FEF2F2', border:'1px solid #FECACA', borderRadius:8, padding:'8px 12px', fontWeight:600, cursor:'pointer', color:'#DC2626', fontSize:13 }}>🗑</button>
                               </div>
 
 
