@@ -534,23 +534,37 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
                     <div key={t.id} style={{ borderRadius:14, overflow:'hidden', border:`2px solid ${isOpen ? sc : '#E5E7EB'}`, background:'white' }}>
 
                       {/* ── Card header (contract title row) ── */}
-                      <button type="button" onClick={() => setSelViewTenancyId(isOpen ? null : t.id)}
-                        style={{ width:'100%', background:isOpen ? sc+'14' : 'white', border:'none', padding:'12px 14px', cursor:'pointer', textAlign:'right', display:'flex', justifyContent:'space-between', alignItems:'center', gap:10 }}>
-                        <div style={{ flex:1, minWidth:0 }}>
-                          <div style={{ fontWeight:800, fontSize:15, color:'#111827', marginBottom:3 }}>{t_tnt?.name || '—'}</div>
-                          <div style={{ display:'flex', alignItems:'center', gap:5 }}>
-                            <span style={{ fontWeight:700, fontSize:13, color:sc, direction:'ltr' }}>{t.contractStart.split('-').reverse().map((x,i)=>i===2?x.slice(2):x).join('/')}</span>
-                            <span style={{ color:'#9CA3AF', fontSize:12 }}>→</span>
-                            <span style={{ fontWeight:700, fontSize:13, color:sc, direction:'ltr' }}>{t.contractEnd.split('-').reverse().map((x,i)=>i===2?x.slice(2):x).join('/')}</span>
-                            <span style={{ fontSize:12, color:'#374151', fontWeight:600 }}>· {fmtMoney(t.monthlyRent||p.monthlyRent)}</span>
-                            {days2!==null && st!=='past' && <span style={{ fontSize:11, color:'#9CA3AF' }}>· {days2<0?'פג תוקף':st==='future'?`בעוד ${Math.abs(daysLeft(t.contractStart))}י'`:`${days2}י' לסיום`}</span>}
+                      <div style={{ display:'flex', alignItems:'stretch', background:isOpen ? sc+'14' : 'white' }}>
+                        <button type="button" onClick={() => setSelViewTenancyId(isOpen ? null : t.id)}
+                          style={{ flex:1, background:'none', border:'none', padding:'12px 14px', cursor:'pointer', textAlign:'right', display:'flex', alignItems:'center', gap:10 }}>
+                          <div style={{ flex:1, minWidth:0 }}>
+                            <div style={{ fontWeight:800, fontSize:15, color:'#111827', marginBottom:3 }}>{t_tnt?.name || '—'}</div>
+                            <div style={{ display:'flex', alignItems:'center', gap:5, flexWrap:'wrap' }}>
+                              <span style={{ fontWeight:700, fontSize:13, color:sc, direction:'ltr' }}>{t.contractStart.split('-').reverse().map((x,i)=>i===2?x.slice(2):x).join('/')}</span>
+                              <span style={{ color:'#9CA3AF', fontSize:12 }}>→</span>
+                              <span style={{ fontWeight:700, fontSize:13, color:sc, direction:'ltr' }}>{t.contractEnd.split('-').reverse().map((x,i)=>i===2?x.slice(2):x).join('/')}</span>
+                              {days2!==null && st!=='past' && <span style={{ fontSize:11, color:'#9CA3AF' }}>· {days2<0?'פג תוקף':st==='future'?`בעוד ${Math.abs(daysLeft(t.contractStart))}י'`:`${days2}י' לסיום`}</span>}
+                            </div>
                           </div>
+                          <div style={{ display:'flex', alignItems:'center', gap:6, flexShrink:0 }}>
+                            <span style={{ fontSize:11, background:sc+'20', color:sc, borderRadius:20, padding:'2px 8px', fontWeight:700 }}>{STATUS_LABEL[st]}</span>
+                            <span style={{ fontSize:14, color:sc }}>{isOpen ? '▲' : '▼'}</span>
+                          </div>
+                        </button>
+                        {/* Edit + Delete in header */}
+                        <div style={{ display:'flex', alignItems:'center', gap:2, padding:'0 8px', borderRight:`1px solid ${sc}30` }}>
+                          <button type="button" title="ערוך הסכם" onClick={() => {
+                            setSelTenancyId(t.id)
+                            setTenancyForm({propertyId:t.propertyId,tenantId:t.tenantId,contractStart:t.contractStart,contractEnd:t.contractEnd,monthlyRent:t.monthlyRent,deposit:t.deposit||0,renewalRent:t.renewalRent||0,depositPaid:t.depositPaid,paymentMethod:t.paymentMethod,checksDelivered:t.checksDelivered,contractSigned:t.contractSigned,isCurrent:t.isCurrent,hasOption:t.hasOption||false})
+                            setPropView('editTenancy')
+                          }} style={{ background:'none', border:'none', borderRadius:8, padding:'6px 8px', cursor:'pointer', fontSize:18, lineHeight:1 }}>✏️</button>
+                          <button type="button" title="מחק הסכם" onClick={() => {
+                            if (!window.confirm(`למחוק את ההסכם עם ${t_tnt?.name||'השוכר'}? פעולה זו אינה הפיכה.`)) return
+                            setTenancies(prev => prev.filter(x => x.id !== t.id))
+                            setSelViewTenancyId(null)
+                          }} style={{ background:'none', border:'none', borderRadius:8, padding:'6px 8px', cursor:'pointer', fontSize:18, lineHeight:1 }}>🗑️</button>
                         </div>
-                        <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
-                          <span style={{ fontSize:11, background:sc+'20', color:sc, borderRadius:20, padding:'2px 8px', fontWeight:700 }}>{STATUS_LABEL[st]}</span>
-                          <span style={{ fontSize:16, color:sc }}>{isOpen ? '▲' : '▼'}</span>
-                        </div>
-                      </button>
+                      </div>
 
                       {/* ── Accordion body ── */}
                       {isOpen && (
@@ -560,40 +574,12 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
                           ) : (
                             <>
                               {/* Financial summary strip */}
-                              {financialEditId === t.id ? (
-                                <div style={{ background:'#F9FAFB', border:'1.5px solid #E5E7EB', borderRadius:12, padding:'12px 14px', marginBottom:12 }}>
-                                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:10 }}>
-                                    {([{k:'monthlyRent',l:'שכ"ד חודשי',col:'#059669'},{k:'deposit',l:'פיקדון',col:'#1D4ED8'},{k:'renewalRent',l:'שכ"ד חידוש',col:'#5B21B6'}] as const).map(({k,l,col}) => (
-                                      <label key={k}>
-                                        <div style={{ fontSize:10, color:'#6B7280', fontWeight:600, marginBottom:3 }}>{l} (₪)</div>
-                                        <input type="number" value={financialEditForm[k]||''}
-                                          onChange={e => setFinancialEditForm(f => ({...f,[k]:Number(e.target.value)}))}
-                                          style={{ width:'100%', fontSize:13, border:`1.5px solid ${col}40`, borderRadius:8, padding:'5px 7px', color:col, fontWeight:700, background:'white', boxSizing:'border-box' }} />
-                                      </label>
-                                    ))}
-                                  </div>
-                                  <div style={{ display:'flex', gap:8 }}>
-                                    <label style={{ display:'flex', alignItems:'center', gap:8, fontSize:13, fontWeight:600, color:'#374151', gridColumn:'1/-1', cursor:'pointer' }}>
-                                      <input type="checkbox" checked={financialEditForm.hasOption}
-                                        onChange={e => setFinancialEditForm(f => ({...f, hasOption:e.target.checked}))}
-                                        style={{ width:18, height:18 }} />
-                                      יש אופציה לחידוש
-                                    </label>
-                                  </div>
-                                  <div style={{ display:'flex', gap:8 }}>
-                                    <button type="button" onClick={() => { updateTenancy(t.id, {monthlyRent:financialEditForm.monthlyRent, deposit:financialEditForm.deposit||undefined, renewalRent:financialEditForm.renewalRent||undefined, hasOption:financialEditForm.hasOption}); setFinancialEditId(null) }}
-                                      style={{ flex:1, background:'#6366F1', color:'white', border:'none', borderRadius:8, padding:'8px', fontWeight:700, cursor:'pointer', fontSize:13 }}>שמור</button>
-                                    <button type="button" onClick={() => setFinancialEditId(null)}
-                                      style={{ background:'#F3F4F6', border:'none', borderRadius:8, padding:'8px 14px', color:'#6B7280', fontWeight:600, cursor:'pointer', fontSize:13 }}>ביטול</button>
-                                  </div>
-                                </div>
-                              ) : (
-                                <div style={{ display:'flex', gap:6, marginBottom:10, flexWrap:'wrap', alignItems:'center' }}>
-                                  {t.deposit ? <span style={{ fontSize:12, background:'#EFF6FF', color:'#1D4ED8', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>💰 פיקדון: {fmtMoney(t.deposit)}</span> : <span style={{ fontSize:12, background:'#F3F4F6', color:'#9CA3AF', borderRadius:8, padding:'4px 10px' }}>💰 פיקדון: לא הוגדר</span>}
-                                  {t.renewalRent ? <span style={{ fontSize:12, background:'#FAF5FF', color:'#5B21B6', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>🔄 חידוש: {fmtMoney(t.renewalRent)}</span> : <span style={{ fontSize:12, background:'#F3F4F6', color:'#9CA3AF', borderRadius:8, padding:'4px 10px' }}>🔄 חידוש: לא הוגדר</span>}
-                                  {t.hasOption && <span style={{ fontSize:11, background:'#FEF3C7', color:'#92400E', borderRadius:8, padding:'3px 8px', fontWeight:700 }}>⭐ יש אופציה</span>}
-                                </div>
-                              )}
+                              <div style={{ display:'flex', gap:6, marginBottom:10, flexWrap:'wrap', alignItems:'center' }}>
+                                <span style={{ fontSize:12, background:'#ECFDF5', color:'#059669', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>💳 {fmtMoney(t.monthlyRent||p.monthlyRent)}/חודש</span>
+                                {t.deposit ? <span style={{ fontSize:12, background:'#EFF6FF', color:'#1D4ED8', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>💰 פיקדון: {fmtMoney(t.deposit)}</span> : <span style={{ fontSize:12, background:'#F3F4F6', color:'#9CA3AF', borderRadius:8, padding:'4px 10px' }}>💰 פיקדון: לא הוגדר</span>}
+                                {t.renewalRent ? <span style={{ fontSize:12, background:'#FAF5FF', color:'#5B21B6', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>🔄 חידוש: {fmtMoney(t.renewalRent)}</span> : <span style={{ fontSize:12, background:'#F3F4F6', color:'#9CA3AF', borderRadius:8, padding:'4px 10px' }}>🔄 חידוש: לא הוגדר</span>}
+                                {t.hasOption && <span style={{ fontSize:11, background:'#FEF3C7', color:'#92400E', borderRadius:8, padding:'3px 8px', fontWeight:700 }}>⭐ אופציה</span>}
+                              </div>
                               {/* Contact info */}
                               {(t_tnt.phone || t_tnt.email) && (
                                 <div style={{ fontSize:12, color:'#6B7280', marginBottom:10 }}>
@@ -601,23 +587,6 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
                                   {t_tnt.email && <span>✉ {t_tnt.email}</span>}
                                 </div>
                               )}
-                              {/* Action buttons row */}
-                              <div style={{ display:'flex', gap:8, marginBottom:14 }}>
-                                <button type="button" onClick={() => {
-                                  setSelTenancyId(t.id)
-                                  setTenancyForm({propertyId:t.propertyId,tenantId:t.tenantId,contractStart:t.contractStart,contractEnd:t.contractEnd,monthlyRent:t.monthlyRent,deposit:t.deposit||0,renewalRent:t.renewalRent||0,depositPaid:t.depositPaid,paymentMethod:t.paymentMethod,checksDelivered:t.checksDelivered,contractSigned:t.contractSigned,isCurrent:t.isCurrent,hasOption:t.hasOption||false})
-                                  setPropView('editTenancy')
-                                }} style={{ flex:1, background:'#6366F1', border:'none', borderRadius:8, padding:'8px', fontWeight:700, cursor:'pointer', color:'white', fontSize:13 }}>📝 ערוך הסכם</button>
-                                <button type="button" onClick={() => { setFinancialEditId(t.id); setFinancialEditForm({ monthlyRent:t.monthlyRent||p.monthlyRent, deposit:t.deposit||0, renewalRent:t.renewalRent||0, hasOption:t.hasOption||false }) }}
-                                  style={{ flex:1, background:'#F3F4F6', border:'1px solid #E5E7EB', borderRadius:8, padding:'8px', cursor:'pointer', fontSize:13, color:'#374151', fontWeight:600 }}>✏️ סכומים</button>
-                                <button type="button" onClick={() => {
-                                  if (!window.confirm(`למחוק את ההסכם עם ${t_tnt?.name||''}? פעולה זו אינה הפיכה.`)) return
-                                  setTenancies(prev => prev.filter(x => x.id !== t.id))
-                                  setSelViewTenancyId(null)
-                                }} style={{ background:'#FEF2F2', border:'1px solid #FECACA', borderRadius:8, padding:'8px 12px', fontWeight:600, cursor:'pointer', color:'#DC2626', fontSize:13 }}>🗑</button>
-                              </div>
-
-
                               {/* Checklist + inline WA */}
                               <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:14 }}>
                                 {([
