@@ -4634,8 +4634,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
             {(() => {
               // Filter entries by date range, client, and status
-              let filteredEntries = [...timeEntries]
-              let filteredCharges = [...chargeEntries]
+              const clientIds = new Set(clients.map(c => c.id))
+              let filteredEntries = timeEntries.filter(e => clientIds.has(e.clientId))
+              let filteredCharges = chargeEntries.filter(e => clientIds.has(e.clientId))
 
               // Date range filter (custom date picker only — period buttons only control grouping)
               if (reportsFromDate && reportsToDate) {
@@ -5841,8 +5842,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           {editClientId && (
             <button 
               onClick={() => {
-                if (confirm('למחוק את הלקוח?')) {
+                if (confirm('למחוק את הלקוח? כל דיווחי השעות והחיובים שלו יימחקו גם כן.')) {
                   setClients(prev => prev.filter(c => c.id !== editClientId))
+                  setTimeEntries(prev => prev.filter(e => e.clientId !== editClientId))
+                  setChargeEntries(prev => prev.filter(e => e.clientId !== editClientId))
                   setAddClientOpen(false)
                   setEditClientId(null)
                   setSelectedClientId(null)

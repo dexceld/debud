@@ -66,6 +66,23 @@ export async function flushAllSaves(): Promise<void> {
   await Promise.all(writes)
 }
 
+// ── Auto-flush on page hide / close ──
+// On mobile, beforeunload is unreliable; visibilitychange:'hidden' is the correct event
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      console.log('[sync] visibilitychange:hidden — flushing pending saves')
+      flushAllSaves()
+    }
+  })
+}
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeunload', () => {
+    console.log('[sync] beforeunload — flushing pending saves')
+    flushAllSaves()
+  })
+}
+
 // ── Main sync hook ──
 export function useFirebaseSync(uid: string | null, key: string, value: unknown, onLoad: (v: unknown) => void) {
   const loadedRef = useRef(false)
