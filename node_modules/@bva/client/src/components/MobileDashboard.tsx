@@ -4079,7 +4079,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 padding: '16px 0', zIndex: 500, maxHeight: '60vh'
               }}>
                 <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 16px', marginBottom: 12}}>
-                  <span style={{fontSize: 18, fontWeight: 700, color: '#111827'}}>שנה סטטוס תשלום</span>
+                  <span style={{fontSize: 18, fontWeight: 700, color: '#111827'}}>עדכון סטטוס ותשלום</span>
                   <button onClick={() => setEmployeeStatusPickerOpen(false)} style={{fontSize: 20, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer'}}>✕</button>
                 </div>
                 <div style={{overflowY: 'auto', maxHeight: 'calc(60vh - 60px)'}}>
@@ -4109,10 +4109,27 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   </div>
                 </div>
                 <div style={{marginTop: 12, padding: '12px 16px', borderTop: '1px solid #E5E7EB'}}>
-                  <div style={{fontSize: 13, color: '#6B7280', marginBottom: 8}}>סכום ששולם לעובד (לדיווח ראשון):</div>
-                  <input type="number" inputMode="decimal" placeholder="הכנס סכום ₪"
-                    key="emp-picker-amount" defaultValue={bulkEmployeePaymentAmount} onBlur={e => setBulkEmployeePaymentAmount(e.target.value)}
-                    style={{width: '100%', padding: '12px', fontSize: 16, border: '1px solid #E5E7EB', borderRadius: 8, background: 'white', outline: 'none'}} />
+                  <div style={{fontSize: 13, color: '#6B7280', marginBottom: 8}}>סכום לתשלום (לדיווח ראשון):</div>
+                  <div style={{display: 'flex', gap: 8}}>
+                    <input type="number" inputMode="decimal" placeholder="הכנס סכום ₪"
+                      key="emp-picker-amount" value={bulkEmployeePaymentAmount} onChange={e => setBulkEmployeePaymentAmount(e.target.value)}
+                      style={{flex: 1, padding: '12px', fontSize: 16, border: '1px solid #E5E7EB', borderRadius: 8, background: 'white', outline: 'none'}} />
+                    <button onClick={() => {
+                      const amt = parseFloat(bulkEmployeePaymentAmount)
+                      if (isNaN(amt)) return
+                      const firstId = employeeSelectedIds[0]
+                      setTimeEntries(prev => prev.map(e => {
+                        if (!employeeSelectedIds.includes(e.id)) return e
+                        if (e.id === firstId) return {...e, employeePaymentAmount: amt}
+                        return e
+                      }))
+                      setBulkEmployeePaymentAmount('')
+                      setEmployeeSelectedIds([])
+                      setEmployeeStatusPickerOpen(false)
+                    }} style={{padding: '12px 14px', fontSize: 14, fontWeight: 700, border: 'none', borderRadius: 8, background: '#1d4ed8', color: 'white', cursor: 'pointer', whiteSpace: 'nowrap'}}>
+                      שמור סכום
+                    </button>
+                  </div>
                 </div>
               </div>
             </>
