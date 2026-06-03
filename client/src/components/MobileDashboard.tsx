@@ -5081,8 +5081,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             style={{flex: 1, overflowY: 'auto', padding: '12px 16px', paddingBottom: 100}}
           >
             {(() => {
+              const clientIds = new Set(clients.map(c => c.id))
               // Filter time entries
               const filteredTimeEntries = timeEntries.filter(e => {
+                if (!clientIds.has(e.clientId)) return false
                 const entryDate = new Date(e.startDate)
                 const from = summaryFromDate ? new Date(summaryFromDate) : null
                 const to = summaryToDate ? new Date(summaryToDate) : null
@@ -5097,6 +5099,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
               // Filter charge entries by same criteria
               const filteredChargeEntries = chargeEntries.filter(c => {
+                if (!clientIds.has(c.clientId)) return false
                 const chargeDate = new Date(c.date)
                 const from = summaryFromDate ? new Date(summaryFromDate) : null
                 const to = summaryToDate ? new Date(summaryToDate) : null

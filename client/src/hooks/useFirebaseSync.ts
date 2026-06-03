@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { doc, setDoc, getDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 
-const DEBOUNCE_MS = 1500
+const DEBOUNCE_MS = 500
 
 // ── Sync status tracking ──
 // Possible: 'idle' | 'loading' | 'saving' | 'saved' | 'load_error' | 'save_error' | 'ok'
@@ -56,12 +56,17 @@ export async function firestoreHealthCheck(uid: string): Promise<string> {
 const pendingSaves: Map<string, () => void> = new Map()
 const pendingWrites: Map<string, { uid: string; key: string; value: unknown }> = new Map()
 
+// helper: local timestamp key per uid+key
+const tsKey = (uid: string, key: string) => `${uid}:_ts_${key}`
+
 export async function flushAllSaves(): Promise<void> {
   pendingSaves.forEach(fn => fn())
   pendingSaves.clear()
-  const writes = Array.from(pendingWrites.values()).map(({ uid, key, value }) =>
-    setDoc(doc(db, 'users', uid, 'data', key), { value }).catch(err => console.error('Flush save error:', key, err))
-  )
+  const ts = Date.now()
+  const writes = Array.from(pendingWrites.values()).map(({ uid, key, value }) => {
+    try { localStorage.setItem(tsKey(uid, key), String(ts)) } catch {}
+    return setDoc(doc(db, 'users', uid, 'data', key), { value, updatedAt: ts }).catch(err => console.error('Flush save error:', key, err))
+  })
   pendingWrites.clear()
   await Promise.all(writes)
 }
@@ -105,13 +110,29 @@ export function useFirebaseSync(uid: string | null, key: string, value: unknown,
     getDoc(doc(db, 'users', uid, 'data', key))
       .then(snap => {
         if (snap.exists()) {
-          const loadedValue = snap.data().value
-          console.log('[sync] loaded', key, '- doc exists')
-          // Only block echo if loaded value differs from current
-          // This prevents blocking legitimate saves after loading empty data
-          const shouldBlock = JSON.stringify(loadedValue) !== JSON.stringify(value)
-          firstSaveBlockedRef.current = shouldBlock
-          onLoad(loadedValue)
+          const data = snap.data()
+          const loadedValue = data.value
+          const fbTs: number = data.updatedAt || 0
+          const localTs = parseInt(localStorage.getItem(tsKey(uid, key)) || '0')
+          console.log('[sync] loaded', key, '- fbTs:', fbTs, 'localTs:', localTs)
+
+          if (fbTs >= localTs) {
+            // Firebase data is same age or newer → use it
+            console.log('[sync]', key, '- using Firebase data')
+            const shouldBlock = JSON.stringify(loadedValue) !== JSON.stringify(latestValueRef.current)
+            firstSaveBlockedRef.current = shouldBlock
+            onLoad(loadedValue)
+            if (fbTs > 0) try { localStorage.setItem(tsKey(uid, key), String(fbTs)) } catch {}
+          } else {
+            // Local data is newer → keep local, upload it to Firebase
+            console.log('[sync]', key, '- local data is newer, uploading to Firebase')
+            firstSaveBlockedRef.current = false
+            const localValue = latestValueRef.current
+            setSyncStatus('saving')
+            setDoc(doc(db, 'users', uid, 'data', key), { value: localValue, updatedAt: localTs })
+              .then(() => { console.log('[sync] uploaded local', key, 'OK'); setSyncStatus('saved') })
+              .catch(err => { console.error('[sync] upload local error:', key, err) })
+          }
         } else {
           console.log('[sync] loaded', key, '- doc does NOT exist, no echo to block')
           firstSaveBlockedRef.current = false
@@ -149,9 +170,11 @@ export function useFirebaseSync(uid: string | null, key: string, value: unknown,
       const u = latestUidRef.current
       const v = latestValueRef.current
       if (!u || u === 'local') return
-      console.log('[sync] SAVING', key, 'to Firestore')
+      const ts = Date.now()
+      try { localStorage.setItem(tsKey(u, key), String(ts)) } catch {}
+      console.log('[sync] SAVING', key, 'to Firestore ts:', ts)
       setSyncStatus('saving')
-      setDoc(doc(db, 'users', u, 'data', key), { value: v })
+      setDoc(doc(db, 'users', u, 'data', key), { value: v, updatedAt: ts })
         .then(() => {
           console.log('[sync] SAVED', key, 'OK')
           setSyncStatus('saved')
