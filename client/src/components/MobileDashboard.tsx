@@ -282,7 +282,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const employeeListScrollPos = useRef(0)
   const [summaryClientFilter, setSummaryClientFilter] = useState<string>('all')
   const [summaryStatusFilter, setSummaryStatusFilter] = useState<string>('all')
-  const [reportsPeriod, setReportsPeriod] = useState<'week' | 'month' | 'year' | null>(null)
+  const [reportsPeriod, setReportsPeriod] = useState<'week' | 'month' | 'year'>('month')
   const [clientFormName, setClientFormName] = useState('')
   const [clientFormRate, setClientFormRate] = useState('')
   const [clientFormVat, setClientFormVat] = useState('18')
@@ -4292,19 +4292,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               )}
               <h1 className="m-title">{employeeMode ? `שלום ${employeeMode.name}` : 'דיווחי שעות'}</h1>
               <div className="m-header-actions">
-                {timeTrackingTab === 'reports' && (
-                  <>
-                    <button className={`m-hbtn ${reportsPeriod === 'week' ? 'active' : ''}`} onClick={() => setReportsPeriod(p => p === 'week' ? null : 'week')} title="שבועי">
-                      <span className="m-hbtn-label">שבועי</span>
-                    </button>
-                    <button className={`m-hbtn ${reportsPeriod === 'month' ? 'active' : ''}`} onClick={() => setReportsPeriod(p => p === 'month' ? null : 'month')} title="חודשי">
-                      <span className="m-hbtn-label">חודשי</span>
-                    </button>
-                    <button className={`m-hbtn ${reportsPeriod === 'year' ? 'active' : ''}`} onClick={() => setReportsPeriod(p => p === 'year' ? null : 'year')} title="שנתי">
-                      <span className="m-hbtn-label">שנתי</span>
-                    </button>
-                  </>
-                )}
                 {timeTrackingTab === 'clients' && !employeeMode && renderHeaderNewBtn(openNewClientForm, 'לקוח חדש')}
                 {timeTrackingTab === 'employees' && renderHeaderNewBtn(openNewEmployeeForm, 'עובד חדש')}
                 {timeTrackingTab === 'summary' && !employeeMode && (
@@ -4384,7 +4371,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 className={`m-time-tab ${timeTrackingTab === 'reports' ? 'active' : ''}`}
                 onClick={() => setTimeTrackingTab('reports')}
               >
-                תקופתי
+                דשבורד
               </button>
               <button
                 className={`m-time-tab ${timeTrackingTab === 'summary' ? 'active' : ''}`}
@@ -4507,6 +4494,127 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
         {/* Tab 3: Reports */}
         {timeTrackingTab === 'reports' && (
+          <div style={{flex: 1, overflowY: 'auto', padding: '12px 0 100px'}}>
+            {/* Period selector */}
+            <div style={{padding: '0 16px 14px'}}>
+              <select
+                value={reportsPeriod}
+                onChange={e => setReportsPeriod(e.target.value as 'week' | 'month' | 'year')}
+                style={{width: '100%', padding: '12px 16px', border: '1.5px solid #E5E7EB', borderRadius: 12,
+                  fontSize: 16, fontWeight: 600, color: '#111827', background: 'white', cursor: 'pointer'}}
+              >
+                <option value="week">שבועי</option>
+                <option value="month">חודשי</option>
+                <option value="year">שנתי</option>
+              </select>
+            </div>
+
+            {/* Dashboard cards */}
+            {(() => {
+              const period = reportsPeriod
+              const clientIds = new Set(clients.map(c => c.id))
+              const validEntries = timeEntries.filter(e => clientIds.has(e.clientId))
+
+              const getPeriodKey = (dateStr: string): string => {
+                const d = new Date(dateStr)
+                if (period === 'week') {
+                  const day = d.getDay() === 0 ? 6 : d.getDay() - 1
+                  const mon = new Date(d); mon.setDate(d.getDate() - day)
+                  return mon.toISOString().split('T')[0]
+                } else if (period === 'month') {
+                  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+                } else {
+                  return `${d.getFullYear()}`
+                }
+              }
+
+              const getPeriodLabel = (key: string): string => {
+                if (period === 'week') {
+                  const mon = new Date(key)
+                  const sun = new Date(mon); sun.setDate(mon.getDate() + 6)
+                  return `${mon.toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'})} – ${sun.toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'})}`
+                } else if (period === 'month') {
+                  const [y, m] = key.split('-')
+                  return new Date(parseInt(y), parseInt(m) - 1, 1).toLocaleDateString('he-IL', {month: 'long', year: 'numeric'})
+                } else {
+                  return key
+                }
+              }
+
+              const grouped: Record<string, TimeEntry[]> = {}
+              validEntries.forEach(e => {
+                const key = getPeriodKey(e.startDate)
+                if (!grouped[key]) grouped[key] = []
+                grouped[key].push(e)
+              })
+
+              const sortedKeys = Object.keys(grouped).sort((a, b) => b.localeCompare(a))
+              if (sortedKeys.length === 0) return <div className="m-empty-state">אין דיווחים</div>
+
+              return (
+                <div style={{display: 'flex', flexDirection: 'column', gap: 14, padding: '0 16px'}}>
+                  {sortedKeys.map(key => {
+                    const periodEntries = grouped[key]
+                    const totalHours = periodEntries.reduce((sum, e) => sum + calculateHours(e), 0)
+                    let revenueBeforeVAT = 0
+                    let revenueWithVAT = 0
+                    let incomeTaxDeduction = 0
+                    let employeePayments = 0
+
+                    periodEntries.forEach(e => {
+                      const client = clients.find(c => c.id === e.clientId)
+                      if (!client) return
+                      const h = calculateHours(e)
+                      const rev = h * client.hourlyRate
+                      revenueBeforeVAT += rev
+                      revenueWithVAT += rev * (1 + client.vatPercent / 100)
+                      incomeTaxDeduction += rev * (client.incomeTaxPercent / 100)
+                      if (e.employeePaymentAmount != null) employeePayments += e.employeePaymentAmount
+                    })
+
+                    const netProfit = revenueBeforeVAT - incomeTaxDeduction - employeePayments
+
+                    return (
+                      <div key={key} style={{background: 'white', borderRadius: 14, boxShadow: '0 2px 10px rgba(0,0,0,0.09)', overflow: 'hidden'}}>
+                        <div style={{background: '#1e3a8a', padding: '13px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                          <span style={{fontSize: 15, fontWeight: 700, color: 'white'}}>{getPeriodLabel(key)}</span>
+                          <span style={{fontSize: 14, color: '#93c5fd', fontWeight: 700}}>{totalHours.toFixed(1)}h</span>
+                        </div>
+                        <div style={{padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 0}}>
+                          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '9px 0', borderBottom: '1px solid #F3F4F6'}}>
+                            <span style={{fontSize: 13, color: '#6B7280'}}>הכנסות לפני מע"מ</span>
+                            <span style={{fontSize: 16, fontWeight: 700, color: '#374151'}}>₪{revenueBeforeVAT.toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
+                          </div>
+                          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '9px 0', borderBottom: '1px solid #F3F4F6'}}>
+                            <span style={{fontSize: 13, color: '#6B7280'}}>הכנסות כולל מע"מ</span>
+                            <span style={{fontSize: 16, fontWeight: 700, color: '#374151'}}>₪{revenueWithVAT.toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
+                          </div>
+                          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '11px 0 4px'}}>
+                            <div>
+                              <div style={{fontSize: 14, fontWeight: 700, color: netProfit >= 0 ? '#065F46' : '#DC2626'}}>רווח נטו</div>
+                              {(incomeTaxDeduction > 0 || employeePayments > 0) && (
+                                <div style={{fontSize: 11, color: '#9CA3AF', marginTop: 3}}>
+                                  {incomeTaxDeduction > 0 && `מס ₪${incomeTaxDeduction.toLocaleString('he-IL',{maximumFractionDigits:0})}`}
+                                  {incomeTaxDeduction > 0 && employeePayments > 0 && ' + '}
+                                  {employeePayments > 0 && `עובדים ₪${employeePayments.toLocaleString('he-IL',{maximumFractionDigits:0})}`}
+                                </div>
+                              )}
+                            </div>
+                            <span style={{fontSize: 22, fontWeight: 800, color: netProfit >= 0 ? '#065F46' : '#DC2626'}}>
+                              ₪{netProfit.toLocaleString('he-IL', {maximumFractionDigits: 0})}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            })()}
+          </div>
+        )}
+
+        {false && timeTrackingTab === '_old_reports' && (
           <div className="m-time-summary-tab">
             {/* Reports Filter Sheet */}
             {reportsFilterSheetOpen && (() => {
@@ -4852,28 +4960,28 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           display: 'flex', justifyContent: 'space-around', alignItems: 'center',
           padding: '0 8px', zIndex: 100
         }}>
-          <button onClick={() => { if (timeTrackingTab === 'summary') setSummaryDatePickerOpen(true); else if (timeTrackingTab === 'reports') setReportsDatePickerOpen(true) }}
+          <button onClick={() => { if (timeTrackingTab === 'summary') setSummaryDatePickerOpen(true) }}
             style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',
-              opacity: (timeTrackingTab === 'summary' || timeTrackingTab === 'reports') ? 1 : 0.3,
-              color: (timeTrackingTab === 'summary' ? summaryFromDate : reportsFromDate) ? '#1d4ed8' : '#374151'}}>
+              opacity: timeTrackingTab === 'summary' ? 1 : 0.3,
+              color: summaryFromDate ? '#1d4ed8' : '#374151'}}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
               <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
             </svg>
             <span style={{fontSize:'11px',fontWeight:500}}>תאריך</span>
           </button>
-          <button onClick={() => { if (timeTrackingTab === 'summary') { setTempSummaryClient(summaryClientFilter); setTempSummaryStatus(summaryStatusFilter); setSummaryFilterSheetOpen(true) } else if (timeTrackingTab === 'reports') { setTempReportsClient(reportsClientFilter); setTempReportsStatuses(reportsStatusFilter); setReportsFilterSheetOpen(true) } }}
+          <button onClick={() => { if (timeTrackingTab === 'summary') { setTempSummaryClient(summaryClientFilter); setTempSummaryStatus(summaryStatusFilter); setSummaryFilterSheetOpen(true) } }}
             style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',
-              opacity: (timeTrackingTab === 'summary' || timeTrackingTab === 'reports') ? 1 : 0.3,
-              color: (timeTrackingTab === 'summary' ? summaryStatusFilter !== 'all' : !(reportsStatusFilter.length === 1 && reportsStatusFilter[0] === 'all')) ? '#1d4ed8' : '#374151'}}>
+              opacity: timeTrackingTab === 'summary' ? 1 : 0.3,
+              color: summaryStatusFilter !== 'all' ? '#1d4ed8' : '#374151'}}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
             </svg>
             <span style={{fontSize:'11px',fontWeight:500}}>סינון</span>
           </button>
-          <button onClick={() => { if (timeTrackingTab === 'summary') setSummaryShareOpen(true); else if (timeTrackingTab === 'reports') setReportsShareOpen(true) }}
+          <button onClick={() => { if (timeTrackingTab === 'summary') setSummaryShareOpen(true) }}
             style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',
-              opacity: (timeTrackingTab === 'summary' || timeTrackingTab === 'reports') ? 1 : 0.3,
+              opacity: timeTrackingTab === 'summary' ? 1 : 0.3,
               color:'#374151'}}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
