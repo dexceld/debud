@@ -4552,7 +4552,38 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
               return (
                 <div style={{display: 'flex', flexDirection: 'column', gap: 14, padding: '0 16px'}}>
-                  {sortedKeys.map(key => {
+                  {(() => {
+                    const PIE_COLORS = ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#84cc16','#ec4899','#6366f1']
+
+                    const buildPieSvg = (slices: {value: number, color: string}[], size: number) => {
+                      const total = slices.reduce((s, d) => s + d.value, 0)
+                      if (total === 0 || slices.length === 0) return null
+                      if (slices.length === 1) {
+                        return (
+                          <svg width={size} height={size}>
+                            <circle cx={size/2} cy={size/2} r={size/2 - 2} fill={slices[0].color} />
+                          </svg>
+                        )
+                      }
+                      const cx = size / 2, cy = size / 2, r = size / 2 - 2
+                      let angle = -Math.PI / 2
+                      return (
+                        <svg width={size} height={size}>
+                          {slices.map((s, i) => {
+                            const sweep = (s.value / total) * 2 * Math.PI
+                            const x1 = cx + r * Math.cos(angle)
+                            const y1 = cy + r * Math.sin(angle)
+                            angle += sweep
+                            const x2 = cx + r * Math.cos(angle)
+                            const y2 = cy + r * Math.sin(angle)
+                            const large = sweep > Math.PI ? 1 : 0
+                            return <path key={i} d={`M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${large},1 ${x2},${y2} Z`} fill={s.color} />
+                          })}
+                        </svg>
+                      )
+                    }
+
+                    return sortedKeys.map(key => {
                     const periodEntries = grouped[key]
                     const totalHours = periodEntries.reduce((sum, e) => sum + calculateHours(e), 0)
                     let revenueBeforeVAT = 0
@@ -4560,6 +4591,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     let incomeTaxDeduction = 0
                     let employeePayments = 0
 
+                    const clientMap: Record<string, {name: string, hours: number, revenue: number}> = {}
                     periodEntries.forEach(e => {
                       const client = clients.find(c => c.id === e.clientId)
                       if (!client) return
@@ -4569,9 +4601,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                       revenueWithVAT += rev * (1 + client.vatPercent / 100)
                       incomeTaxDeduction += rev * (client.incomeTaxPercent / 100)
                       if (e.employeePaymentAmount != null) employeePayments += e.employeePaymentAmount
+                      if (!clientMap[e.clientId]) clientMap[e.clientId] = {name: client.name, hours: 0, revenue: 0}
+                      clientMap[e.clientId].hours += h
+                      clientMap[e.clientId].revenue += rev
                     })
 
                     const netProfit = revenueBeforeVAT - incomeTaxDeduction - employeePayments
+                    const clientList = Object.values(clientMap).sort((a, b) => b.hours - a.hours)
 
                     return (
                       <div key={key} style={{background: 'white', borderRadius: 14, boxShadow: '0 2px 10px rgba(0,0,0,0.09)', overflow: 'hidden'}}>
@@ -4604,9 +4640,37 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                             </span>
                           </div>
                         </div>
+
+                        {/* Pie chart by client */}
+                        {clientList.length > 0 && (
+                          <div style={{borderTop: '1px solid #F3F4F6', padding: '14px 16px'}}>
+                            <div style={{fontSize: 12, fontWeight: 600, color: '#6B7280', marginBottom: 12}}>חלוקה לפי לקוח</div>
+                            <div style={{display: 'flex', alignItems: 'center', gap: 16}}>
+                              {buildPieSvg(
+                                clientList.map((c, i) => ({value: c.hours, color: PIE_COLORS[i % PIE_COLORS.length]})),
+                                110
+                              )}
+                              <div style={{flex: 1, display: 'flex', flexDirection: 'column', gap: 7}}>
+                                {clientList.map((c, i) => (
+                                  <div key={i} style={{display: 'flex', alignItems: 'center', gap: 8}}>
+                                    <div style={{width: 10, height: 10, borderRadius: '50%', background: PIE_COLORS[i % PIE_COLORS.length], flexShrink: 0}} />
+                                    <div style={{flex: 1, minWidth: 0}}>
+                                      <div style={{fontSize: 13, fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{c.name}</div>
+                                      <div style={{fontSize: 11, color: '#6B7280'}}>{c.hours.toFixed(1)}h · ₪{c.revenue.toLocaleString('he-IL',{maximumFractionDigits:0})}</div>
+                                    </div>
+                                    <div style={{fontSize: 12, fontWeight: 700, color: PIE_COLORS[i % PIE_COLORS.length], flexShrink: 0}}>
+                                      {totalHours > 0 ? Math.round(c.hours / totalHours * 100) : 0}%
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )
-                  })}
+                  })
+                  })()}
                 </div>
               )
             })()}
