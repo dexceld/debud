@@ -4518,9 +4518,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               const getPeriodKey = (dateStr: string): string => {
                 const d = new Date(dateStr)
                 if (period === 'week') {
-                  const day = d.getDay() === 0 ? 6 : d.getDay() - 1
-                  const mon = new Date(d); mon.setDate(d.getDate() - day)
-                  return mon.toISOString().split('T')[0]
+                  const sun = new Date(d); sun.setDate(d.getDate() - d.getDay())
+                  return sun.toISOString().split('T')[0]
                 } else if (period === 'month') {
                   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
                 } else {
@@ -4530,9 +4529,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
               const getPeriodLabel = (key: string): string => {
                 if (period === 'week') {
-                  const mon = new Date(key)
-                  const sun = new Date(mon); sun.setDate(mon.getDate() + 6)
-                  return `${mon.toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'})} – ${sun.toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'})}`
+                  const sun = new Date(key)
+                  const sat = new Date(sun); sat.setDate(sun.getDate() + 6)
+                  return `${sun.toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'})} – ${sat.toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'})}`
                 } else if (period === 'month') {
                   const [y, m] = key.split('-')
                   return new Date(parseInt(y), parseInt(m) - 1, 1).toLocaleDateString('he-IL', {month: 'long', year: 'numeric'})
@@ -4785,10 +4784,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               const getPeriodKey = (dateStr: string) => {
                 const d = new Date(dateStr)
                 if (reportsPeriod === 'week') {
-                  // ISO week: Mon-Sun
-                  const day = d.getDay() === 0 ? 6 : d.getDay() - 1 // Mon=0
-                  const mon = new Date(d); mon.setDate(d.getDate() - day)
-                  return mon.toISOString().split('T')[0]
+                  // Israeli week: Sun-Sat
+                  const sun = new Date(d); sun.setDate(d.getDate() - d.getDay())
+                  return sun.toISOString().split('T')[0]
                 } else if (reportsPeriod === 'month') {
                   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
                 } else {
@@ -4798,9 +4796,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
               const getPeriodLabel = (key: string) => {
                 if (reportsPeriod === 'week') {
-                  const mon = new Date(key)
-                  const sun = new Date(mon); sun.setDate(mon.getDate() + 6)
-                  return `${mon.toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'})} – ${sun.toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'})}`
+                  const sun = new Date(key)
+                  const sat = new Date(sun); sat.setDate(sun.getDate() + 6)
+                  return `${sun.toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'})} – ${sat.toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'})}`
                 } else if (reportsPeriod === 'month') {
                   const [y, m] = key.split('-')
                   return new Date(parseInt(y), parseInt(m) - 1, 1).toLocaleDateString('he-IL', {month: 'long', year: 'numeric'})
