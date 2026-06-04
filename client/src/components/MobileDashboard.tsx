@@ -5,6 +5,7 @@ import { signOutUser } from '../firebase'
 import { FeedbackModal } from './FeedbackModal'
 import { AboutModal } from './AboutModal'
 import { PropertyManagement } from './PropertyManagement'
+import { tt, type Lang } from '../i18n/timeTracking'
 
 type Category = {
   id: string
@@ -135,9 +136,10 @@ type ChargeTag = {
   name: string
 }
 
-export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode }: { uid: string; userEmail: string; userPhoto?: string; isLocalMode?: boolean }) {
+export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode, lang = 'he', onLangChange }: { uid: string; userEmail: string; userPhoto?: string; isLocalMode?: boolean; lang?: Lang; onLangChange?: (l: Lang) => void }) {
   // Prefix localStorage keys with uid so each account has separate data
   const lsKey = (key: string) => uid ? `${uid}:${key}` : key
+  const t = (key: keyof typeof tt.he): string => (tt[lang] as typeof tt.he)[key] as string
 
   const [groups, setGroups] = useState<Group[]>(() => {
     const saved = localStorage.getItem(lsKey('groups'))
@@ -1236,7 +1238,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const HubScreen = () => {
     const HUB_MODULES: { id: AppModule; label: string; icon: string; dest: Screen; bg: string; desc: string }[] = [
       { id: 'family-budget',       label: 'תקציב משפחתי',   icon: '💰', dest: 'home',                bg: 'linear-gradient(135deg,#6366F1,#8B5CF6)', desc: 'הוצאות, תחזית ויתרות' },
-      { id: 'time-tracking',       label: 'דיווח שעות',     icon: '⏱',  dest: 'time-tracking',       bg: 'linear-gradient(135deg,#10B981,#059669)', desc: 'לקוחות, עובדים ודוחות' },
+      { id: 'time-tracking',       label: t('timeTrackingLabel'), icon: '⏱',  dest: 'time-tracking', bg: 'linear-gradient(135deg,#10B981,#059669)', desc: t('timeTrackingDesc') },
       { id: 'mortgage-calc',       label: 'מחשבון משכנתא',  icon: '🏠', dest: 'mortgage-calc',       bg: 'linear-gradient(135deg,#667EEA,#764BA2)', desc: 'חישובי החזרי משכנתא' },
       { id: 'property-management', label: 'ניהול נכסים',    icon: '🏢', dest: 'property-management', bg: 'linear-gradient(135deg,#F59E0B,#D97706)', desc: 'שוכרים, חוזים ותשלומים' },
     ]
@@ -1244,7 +1246,20 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', background: 'linear-gradient(180deg,#EEF2FF 0%,#F9FAFB 100%)' }}>
         <div style={{ padding: '20px 20px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <DexcelLogo />
-          <div style={{ fontSize: 12, color: '#9CA3AF', fontWeight: 600 }}>בחר עולם</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ fontSize: 12, color: '#9CA3AF', fontWeight: 600 }}>בחר עולם</div>
+            {onLangChange && (
+              <div style={{ display: 'flex', gap: 4 }}>
+                {(['he', 'en'] as Lang[]).map(l => (
+                  <button key={l} onClick={() => onLangChange(l)} style={{
+                    padding: '3px 8px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700,
+                    background: lang === l ? '#6366F1' : '#E5E7EB',
+                    color: lang === l ? 'white' : '#6B7280',
+                  }}>{l === 'he' ? 'עב' : 'EN'}</button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
         <div style={{ flex: 1, padding: '8px 16px 16px', display: 'flex', flexDirection: 'column', overflowY: 'auto', justifyContent: 'center' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
@@ -3597,7 +3612,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                               </span>
                             )}
                             <span style={{fontSize: 11, padding: '2px 6px', borderRadius: '4px', fontWeight: 600, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e' }}>
-                              {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
+                              {status === 'paid' ? t('statusPaid') : status === 'invoiced' ? t('statusInvoiced') : t('statusPending')}
                             </span>
                           </div>
                           <div style={{fontSize: 15, fontWeight: 700, color: '#7c3aed'}}>₪{charge.amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
@@ -3661,19 +3676,19 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <div style={{position:'fixed',bottom:0,left:0,right:0,height:'60px',backgroundColor:'white',borderTop:'1px solid #E5E7EB',display:'flex',justifyContent:'space-around',alignItems:'center',padding:'0 8px',zIndex:100}}>
             <button onClick={() => setClientDatePickerOpen(true)} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',color: clientFromDate ? '#1d4ed8' : '#374151'}}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              <span style={{fontSize:'11px',fontWeight:500}}>{clientFromDate ? '📅' : 'תאריך'}</span>
+              <span style={{fontSize:'11px',fontWeight:500}}>{clientFromDate ? '📅' : t('date')}</span>
             </button>
             <button onClick={() => { setTempClientStatus(clientStatusFilter); setClientFilterSheetOpen(true) }} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',color: clientStatusFilter !== 'all' ? '#1d4ed8' : '#374151'}}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-              <span style={{fontSize:'11px',fontWeight:500}}>סינון</span>
+              <span style={{fontSize:'11px',fontWeight:500}}>{t('filter')}</span>
             </button>
             <button onClick={() => setClientShareOpen(true)} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',color:'#374151'}}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-              <span style={{fontSize:'11px',fontWeight:500}}>שלח אל</span>
+              <span style={{fontSize:'11px',fontWeight:500}}>{t('sendTo')}</span>
             </button>
             <button onClick={startVoiceRecognition} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',color: voiceListening ? '#DC2626' : '#7c3aed'}}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-              <span style={{fontSize:'11px',fontWeight:500}}>{voiceListening ? '●' : 'קול'}</span>
+              <span style={{fontSize:'11px',fontWeight:500}}>{voiceListening ? '●' : t('voice')}</span>
             </button>
           </div>
 
@@ -3687,7 +3702,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 padding: '20px 16px 28px', zIndex: 500, maxHeight: '80vh', overflowY: 'auto'
               }}>
                 <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20}}>
-                  <div style={{fontSize: 16, fontWeight: 700, color: '#111827'}}>סינון</div>
+                  <div style={{fontSize: 16, fontWeight: 700, color: '#111827'}}>{t('filterTitle')}</div>
                   <button type="button" onClick={() => setTempClientStatus('all')}
                     style={{display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10,
                       background: '#FEF2F2', border: '1.5px solid #FECACA', color: '#DC2626',
@@ -3979,7 +3994,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                             <span style={{fontSize: 11, padding: '2px 6px', borderRadius: 4, fontWeight: 600,
                               background: empPaid ? '#f3e8ff' : '#fef3c7',
                               color: empPaid ? '#6b21a8' : '#92400e'}}>
-                              {empPaid ? '✓ שולם' : '⏳ ממתין'}
+                              {empPaid ? `✓ ${t('empPaid')}` : `⏳ ${t('empPending')}`}
                             </span>
                             {entry.employeeInvoiceNumber && <span style={{fontSize: 11, color: '#8b5cf6'}}>#{entry.employeeInvoiceNumber}</span>}
                             {entry.employeePaymentAmount != null && <span style={{fontSize: 11, color: '#a78bfa', fontWeight: 700}}>💰 ₪{entry.employeePaymentAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})} סה"כ</span>}
@@ -4052,19 +4067,19 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <div style={{position:'fixed',bottom:0,left:0,right:0,height:'60px',backgroundColor:'white',borderTop:'1px solid #E5E7EB',display:'flex',justifyContent:'space-around',alignItems:'center',padding:'0 8px',zIndex:100}}>
               <button onClick={() => setEmployeeDatePickerOpen(true)} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',color: employeeFromDate ? '#1d4ed8' : '#374151'}}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                <span style={{fontSize:'11px',fontWeight:500}}>{employeeFromDate ? '📅' : 'תאריך'}</span>
+                <span style={{fontSize:'11px',fontWeight:500}}>{employeeFromDate ? '📅' : t('date')}</span>
               </button>
               <button onClick={() => { setTempEmployeeStatus(employeeStatusFilter); setTempEmployeePaymentStatus(employeePaymentStatusFilter); setEmployeeFilterSheetOpen(true) }} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',color: (employeeStatusFilter !== 'all' || employeePaymentStatusFilter !== 'all') ? '#1d4ed8' : '#374151'}}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-                <span style={{fontSize:'11px',fontWeight:500}}>סינון</span>
+                <span style={{fontSize:'11px',fontWeight:500}}>{t('filter')}</span>
               </button>
               <button onClick={() => setEmployeeShareOpen(true)} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',color:'#374151'}}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-                <span style={{fontSize:'11px',fontWeight:500}}>שלח אל</span>
+                <span style={{fontSize:'11px',fontWeight:500}}>{t('sendTo')}</span>
               </button>
               <button onClick={startVoiceRecognition} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',color: voiceListening ? '#DC2626' : '#7c3aed'}}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-                <span style={{fontSize:'11px',fontWeight:500}}>{voiceListening ? '●' : 'קול'}</span>
+                <span style={{fontSize:'11px',fontWeight:500}}>{voiceListening ? '●' : t('voice')}</span>
               </button>
             </div>
           )}
@@ -4145,7 +4160,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 padding: '20px 16px 28px', zIndex: 500, maxHeight: '80vh', overflowY: 'auto'
               }}>
                 <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20}}>
-                  <div style={{fontSize: 16, fontWeight: 700, color: '#111827'}}>סינון</div>
+                  <div style={{fontSize: 16, fontWeight: 700, color: '#111827'}}>{t('filterTitle')}</div>
                   <button type="button" onClick={() => { setTempEmployeeStatus('all'); setTempEmployeePaymentStatus('all') }}
                     style={{display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10,
                       background: '#FEF2F2', border: '1.5px solid #FECACA', color: '#DC2626',
@@ -4290,16 +4305,16 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5m0 0-5-5m5 5H9"/></svg>
                 </button>
               )}
-              <h1 className="m-title">{employeeMode ? `שלום ${employeeMode.name}` : 'דיווחי שעות'}</h1>
+              <h1 className="m-title">{employeeMode ? `${t('hello')} ${employeeMode.name}` : t('title')}</h1>
               <div className="m-header-actions">
-                {timeTrackingTab === 'clients' && !employeeMode && renderHeaderNewBtn(openNewClientForm, 'לקוח חדש')}
-                {timeTrackingTab === 'employees' && renderHeaderNewBtn(openNewEmployeeForm, 'עובד חדש')}
+                {timeTrackingTab === 'clients' && !employeeMode && renderHeaderNewBtn(openNewClientForm, t('newClient'))}
+                {timeTrackingTab === 'employees' && renderHeaderNewBtn(openNewEmployeeForm, t('newEmployee'))}
                 {timeTrackingTab === 'summary' && !employeeMode && (
-                  <button type="button" className="m-hbtn" title="בחר הכל"
+                  <button type="button" className="m-hbtn" title={t('selectAll')}
                     onClick={() => { setSelectedEntryIds(summaryVisibleEntryIds.current); setSelectedChargeIds(summaryVisibleChargeIds.current) }}
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="9 12 11 14 15 10"/></svg>
-                    <span className="m-hbtn-label">בחר הכל</span>
+                    <span className="m-hbtn-label">{t('selectAll')}</span>
                   </button>
                 )}
               </div>
@@ -4363,7 +4378,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             className={`m-time-tab ${timeTrackingTab === 'clients' ? 'active' : ''}`}
             onClick={() => setTimeTrackingTab('clients')}
           >
-            לקוחות
+            {t('tabClients')}
           </button>
           {!employeeMode && (
             <>
@@ -4371,19 +4386,19 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 className={`m-time-tab ${timeTrackingTab === 'reports' ? 'active' : ''}`}
                 onClick={() => setTimeTrackingTab('reports')}
               >
-                דשבורד
+                {t('tabDashboard')}
               </button>
               <button
                 className={`m-time-tab ${timeTrackingTab === 'summary' ? 'active' : ''}`}
                 onClick={() => setTimeTrackingTab('summary')}
               >
-                חיובים
+                {t('tabBilling')}
               </button>
               <button
                 className={`m-time-tab ${timeTrackingTab === 'employees' ? 'active' : ''}`}
                 onClick={() => setTimeTrackingTab('employees')}
               >
-                עובדים
+                {t('tabEmployees')}
               </button>
             </>
           )}
@@ -4396,10 +4411,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           {employeeMode && (
             <div style={{padding: '12px 16px', background: '#DBEAFE', borderBottom: '1px solid #93C5FD', marginBottom: 8}}>
               <div style={{fontSize: 14, fontWeight: 600, color: '#1E40AF'}}>
-                👋 שלום {employeeMode.name}!
+                👋 {t('hello')} {employeeMode.name}!
               </div>
               <div style={{fontSize: 12, color: '#3B82F6', marginTop: 4}}>
-                הלקוחות המקושרים אליך:
+                {t('employeeClients')}:
               </div>
             </div>
           )}
@@ -4503,9 +4518,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 style={{width: '100%', padding: '12px 16px', border: '1.5px solid #E5E7EB', borderRadius: 12,
                   fontSize: 16, fontWeight: 600, color: '#111827', background: 'white', cursor: 'pointer'}}
               >
-                <option value="week">שבועי</option>
-                <option value="month">חודשי</option>
-                <option value="year">שנתי</option>
+                <option value="week">{t('weekly')}</option>
+                <option value="month">{t('monthly')}</option>
+                <option value="year">{t('yearly')}</option>
               </select>
             </div>
 
@@ -4617,21 +4632,21 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                         </div>
                         <div style={{padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 0}}>
                           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '9px 0', borderBottom: '1px solid #F3F4F6'}}>
-                            <span style={{fontSize: 13, color: '#6B7280'}}>הכנסות לפני מע"מ</span>
+                            <span style={{fontSize: 13, color: '#6B7280'}}>{t('revenueBeforeVAT')}</span>
                             <span style={{fontSize: 16, fontWeight: 700, color: '#374151'}}>₪{revenueBeforeVAT.toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
                           </div>
                           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '9px 0', borderBottom: '1px solid #F3F4F6'}}>
-                            <span style={{fontSize: 13, color: '#6B7280'}}>הכנסות כולל מע"מ</span>
+                            <span style={{fontSize: 13, color: '#6B7280'}}>{t('revenueWithVAT')}</span>
                             <span style={{fontSize: 16, fontWeight: 700, color: '#374151'}}>₪{revenueWithVAT.toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
                           </div>
                           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '11px 0 4px'}}>
                             <div>
-                              <div style={{fontSize: 14, fontWeight: 700, color: netProfit >= 0 ? '#065F46' : '#DC2626'}}>רווח נטו</div>
+                              <div style={{fontSize: 14, fontWeight: 700, color: netProfit >= 0 ? '#065F46' : '#DC2626'}}>{t('netProfit')}</div>
                               {(incomeTaxDeduction > 0 || employeePayments > 0) && (
                                 <div style={{fontSize: 11, color: '#9CA3AF', marginTop: 3}}>
-                                  {incomeTaxDeduction > 0 && `מס ₪${incomeTaxDeduction.toLocaleString('he-IL',{maximumFractionDigits:0})}`}
+                                  {incomeTaxDeduction > 0 && `${t('taxLabel')} ₪${incomeTaxDeduction.toLocaleString('he-IL',{maximumFractionDigits:0})}`}
                                   {incomeTaxDeduction > 0 && employeePayments > 0 && ' + '}
-                                  {employeePayments > 0 && `עובדים ₪${employeePayments.toLocaleString('he-IL',{maximumFractionDigits:0})}`}
+                                  {employeePayments > 0 && `${t('employeesLabel')} ₪${employeePayments.toLocaleString('he-IL',{maximumFractionDigits:0})}`}
                                 </div>
                               )}
                             </div>
@@ -4644,7 +4659,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                         {/* Pie chart by client */}
                         {clientList.length > 0 && (
                           <div style={{borderTop: '1px solid #F3F4F6', padding: '14px 16px'}}>
-                            <div style={{fontSize: 12, fontWeight: 600, color: '#6B7280', marginBottom: 12}}>חלוקה לפי לקוח</div>
+                            <div style={{fontSize: 12, fontWeight: 600, color: '#6B7280', marginBottom: 12}}>{t('clientBreakdown')}</div>
                             <div style={{display: 'flex', alignItems: 'center', gap: 16}}>
                               {buildPieSvg(
                                 clientList.map((c, i) => ({value: c.hours, color: PIE_COLORS[i % PIE_COLORS.length]})),
@@ -4706,7 +4721,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   }}>
                     {/* Header */}
                     <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20}}>
-                      <div style={{fontSize: 16, fontWeight: 700, color: '#111827'}}>סינון</div>
+                      <div style={{fontSize: 16, fontWeight: 700, color: '#111827'}}>{t('filterTitle')}</div>
                       <button type="button" onClick={resetTemp}
                         style={{display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10,
                           background: '#FEF2F2', border: '1.5px solid #FECACA', color: '#DC2626',
@@ -5030,7 +5045,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
               <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
             </svg>
-            <span style={{fontSize:'11px',fontWeight:500}}>תאריך</span>
+            <span style={{fontSize:'11px',fontWeight:500}}>{t('date')}</span>
           </button>
           <button onClick={() => { if (timeTrackingTab === 'summary') { setTempSummaryClient(summaryClientFilter); setTempSummaryStatus(summaryStatusFilter); setSummaryFilterSheetOpen(true) } }}
             style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',
@@ -5039,7 +5054,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
             </svg>
-            <span style={{fontSize:'11px',fontWeight:500}}>סינון</span>
+            <span style={{fontSize:'11px',fontWeight:500}}>{t('filter')}</span>
           </button>
           <button onClick={() => { if (timeTrackingTab === 'summary') setSummaryShareOpen(true) }}
             style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',
@@ -5049,11 +5064,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
               <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
             </svg>
-            <span style={{fontSize:'11px',fontWeight:500}}>שלח אל</span>
+            <span style={{fontSize:'11px',fontWeight:500}}>{t('sendTo')}</span>
           </button>
           <button onClick={startVoiceRecognition} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',color: voiceListening ? '#DC2626' : '#7c3aed'}}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-            <span style={{fontSize:'11px',fontWeight:500}}>{voiceListening ? '●' : 'קול'}</span>
+            <span style={{fontSize:'11px',fontWeight:500}}>{voiceListening ? '●' : t('voice')}</span>
           </button>
         </div>
 
@@ -5105,7 +5120,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 }}>
                   {/* Header */}
                   <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20}}>
-                    <div style={{fontSize: 16, fontWeight: 700, color: '#111827'}}>סינון</div>
+                    <div style={{fontSize: 16, fontWeight: 700, color: '#111827'}}>{t('filterTitle')}</div>
                     <button type="button"
                       onClick={() => { setTempSummaryClient('all'); setTempSummaryStatus('all') }}
                       style={{display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10,
@@ -5956,7 +5971,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         <div className="m-overlay" onClick={() => setAddClientOpen(false)} />
         <div className="m-top-sheet">
           <div className="m-sheet-header">
-            <h2>{editClientId ? 'עריכת לקוח' : 'לקוח חדש'}</h2>
+            <h2>{editClientId ? t('editClient') : t('newClient')}</h2>
             <button className="m-close-btn" onClick={() => {
               setAddClientOpen(false)
               setEditClientId(null)
@@ -5968,19 +5983,19 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           </div>
 
           <div className="m-mortgage-field">
-            <label>שם הלקוח</label>
+            <label>{t('clientName')}</label>
             <input 
               ref={nameRef}
               type="text"
               defaultValue={clientFormName}
               onBlur={e => setClientFormName(e.target.value)}
-              placeholder="שם הלקוח"
+              placeholder={t('clientNamePlaceholder')}
               autoFocus
             />
           </div>
 
           <div className="m-mortgage-field">
-            <label>תעריף לשעה (₪)</label>
+            <label>{t('hourlyRate')}</label>
             <input 
               ref={rateRef}
               type="number"
@@ -5992,7 +6007,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           </div>
 
           <div className="m-mortgage-field">
-            <label>אחוז מע"מ (%)</label>
+            <label>{t('vatPct')}</label>
             <input 
               ref={vatRef}
               type="number"
@@ -6004,7 +6019,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           </div>
 
           <div className="m-mortgage-field">
-            <label>אחוז מס הכנסה (%)</label>
+            <label>{t('incomeTaxPct')}</label>
             <input 
               ref={taxRef}
               type="number"
@@ -6016,7 +6031,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           </div>
 
           <div className="m-mortgage-field">
-            <label>נטו לשעה</label>
+            <label>{t('netPerHour')}</label>
             <div style={{fontSize: 20, fontWeight: 600, color: '#15803D'}}>
               ₪{netPerHour.toFixed(2)}
             </div>
@@ -6026,13 +6041,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           </div>
 
           <button type="button" className="m-mortgage-calc-btn" onMouseDown={e => e.preventDefault()} onClick={save}>
-            {editClientId ? 'עדכן לקוח' : 'שמור לקוח'}
+            {editClientId ? t('updateClient') : t('saveClient')}
           </button>
           
           {editClientId && (
             <button 
               onClick={() => {
-                if (confirm('למחוק את הלקוח? כל דיווחי השעות והחיובים שלו יימחקו גם כן.')) {
+                if (confirm(t('deleteClientConfirm'))) {
                   setClients(prev => prev.filter(c => c.id !== editClientId))
                   setTimeEntries(prev => prev.filter(e => e.clientId !== editClientId))
                   setChargeEntries(prev => prev.filter(e => e.clientId !== editClientId))

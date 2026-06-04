@@ -3,12 +3,30 @@ import { onAuthStateChanged, User } from 'firebase/auth'
 import { auth } from './firebase'
 import MobileDashboard from './components/MobileDashboard'
 import { LoginScreen } from './components/LoginScreen'
+import type { Lang } from './i18n/timeTracking'
 import './App.css'
+
+const detectLang = (): Lang => {
+  const saved = localStorage.getItem('bva_lang')
+  if (saved === 'he' || saved === 'en') return saved
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+    const loc = (navigator.language || '').toLowerCase()
+    if (tz === 'Asia/Jerusalem' || loc.startsWith('he')) return 'he'
+  } catch {}
+  return 'en'
+}
 
 function App() {
   const [user, setUser] = useState<User | null | 'loading'>('loading')
   const [localMode, setLocalMode] = useState(false)
   const [isOnline, setIsOnline] = useState(navigator.onLine)
+  const [lang, setLang] = useState<Lang>(detectLang)
+
+  const handleLangChange = (l: Lang) => {
+    setLang(l)
+    localStorage.setItem('bva_lang', l)
+  }
 
   useEffect(() => {
     const saved = localStorage.getItem('bva_local_mode')
@@ -35,7 +53,7 @@ function App() {
     )
   }
 
-  if (!user && !localMode) return <LoginScreen onLocalMode={() => { setLocalMode(true); localStorage.setItem('bva_local_mode', 'true') }} />
+  if (!user && !localMode) return <LoginScreen onLocalMode={() => { setLocalMode(true); localStorage.setItem('bva_local_mode', 'true') }} lang={lang} onLangChange={handleLangChange} />
 
   return (
     <div className="app">
@@ -55,6 +73,8 @@ function App() {
         userEmail={localMode ? 'local' : (user && user !== 'loading' ? user.email ?? '' : '')} 
         userPhoto={localMode ? '' : (user && user !== 'loading' ? user.photoURL ?? '' : '')}
         isLocalMode={localMode}
+        lang={lang}
+        onLangChange={handleLangChange}
       />
     </div>
   )

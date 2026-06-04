@@ -1,8 +1,15 @@
 import { useState } from 'react'
 import { signInWithGoogle } from '../firebase'
+import type { Lang } from '../i18n/timeTracking'
 
-export function LoginScreen({ onLocalMode }: { onLocalMode: () => void }) {
+const L = {
+  he: { signIn: 'כניסה עם Google', secure: 'הנתונים שלך נשמרים באופן מאובטח בענן', continueNoLogin: '💻 המשך ללא login', localWarning: 'הנתונים שלך יישמרו רק במכשיר זה', continueBtn: '✓ המשך', backBtn: '← חזור', digital: 'טרנספורמציה דיגיטלית' },
+  en: { signIn: 'Sign in with Google', secure: 'Your data is stored securely in the cloud', continueNoLogin: '💻 Continue without login', localWarning: 'Your data will be saved on this device only', continueBtn: '✓ Continue', backBtn: '← Back', digital: 'Digital Transformation' },
+}
+
+export function LoginScreen({ onLocalMode, lang = 'he', onLangChange }: { onLocalMode: () => void; lang?: Lang; onLangChange?: (l: Lang) => void }) {
   const [showLocal, setShowLocal] = useState(false)
+  const s = L[lang]
 
   return (
     <div style={{
@@ -15,6 +22,19 @@ export function LoginScreen({ onLocalMode }: { onLocalMode: () => void }) {
       padding: '24px',
       gap: '24px',
     }}>
+      {/* Language toggle */}
+      {onLangChange && (
+        <div style={{ position: 'absolute', top: 16, left: 16, display: 'flex', gap: 6 }}>
+          {(['he', 'en'] as Lang[]).map(l => (
+            <button key={l} onClick={() => onLangChange(l)} style={{
+              padding: '5px 11px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700,
+              background: lang === l ? 'white' : 'rgba(255,255,255,0.2)',
+              color: lang === l ? '#764ba2' : 'white',
+            }}>{l === 'he' ? 'עב' : 'EN'}</button>
+          ))}
+        </div>
+      )}
+
       <div style={{ textAlign: 'center', color: 'white' }}>
         <div style={{ fontSize: 56, marginBottom: 8 }}>💰</div>
         <div style={{ fontSize: 42, fontWeight: 800, marginBottom: 8 }}>בשליטה</div>
@@ -46,19 +66,19 @@ export function LoginScreen({ onLocalMode }: { onLocalMode: () => void }) {
           <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
           <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
         </svg>
-        כניסה עם Google
+        {s.signIn}
       </button>
 
-              <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, textAlign: 'center' }}>
-                הנתונים שלך נשמרים באופן מאובטח בענן
-              </div>
+      <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, textAlign: 'center' }}>
+        {s.secure}
+      </div>
 
-              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, textAlign: 'center', marginTop: 12 }}>
-                <a href="https://www.dexcel.co.il" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginBottom: 8 }}>
-                  <img src="/Trn color.png" alt="Dexcel" style={{ height: 30, opacity: 0.9 }} />
-                </a>
-                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)' }}>טרנספורמציה דיגיטלית</div>
-              </div>
+      <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, textAlign: 'center', marginTop: 12 }}>
+        <a href="https://www.dexcel.co.il" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginBottom: 8 }}>
+          <img src="/Trn color.png" alt="Dexcel" style={{ height: 30, opacity: 0.9 }} />
+        </a>
+        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)' }}>{s.digital}</div>
+      </div>
 
       <div style={{ borderTop: '1px solid rgba(255,255,255,0.3)', width: '100%', maxWidth: 320, paddingTop: 16 }} />
 
@@ -77,11 +97,11 @@ export function LoginScreen({ onLocalMode }: { onLocalMode: () => void }) {
             backdropFilter: 'blur(10px)',
           }}
         >
-          💻 המשך ללא login
+          {s.continueNoLogin}
         </button>
       ) : (
         <div style={{ textAlign: 'center', color: 'white', fontSize: 13 }}>
-          <p style={{ marginBottom: 12 }}>הנתונים שלך יישמרו רק במכשיר זה</p>
+          <p style={{ marginBottom: 12 }}>{s.localWarning}</p>
           <button
             onClick={() => { onLocalMode(); setShowLocal(false) }}
             style={{
@@ -97,7 +117,7 @@ export function LoginScreen({ onLocalMode }: { onLocalMode: () => void }) {
               maxWidth: 320,
             }}
           >
-            ✓ המשך
+            {s.continueBtn}
           </button>
           <button
             onClick={() => setShowLocal(false)}
@@ -111,7 +131,7 @@ export function LoginScreen({ onLocalMode }: { onLocalMode: () => void }) {
               marginTop: 8,
             }}
           >
-            ← חזור
+            {s.backBtn}
           </button>
         </div>
       )}
