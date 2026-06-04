@@ -11,6 +11,7 @@ export const tt = {
     tabEmployees: 'עובדים',
     // Common actions
     save: 'שמור',
+    update: 'עדכן',
     cancel: 'ביטול',
     delete: 'מחק',
     reset: 'איפוס',
@@ -127,6 +128,26 @@ export const tt = {
     invoiceNumberShort: (n: string) => `חשבונית ${n}`,
     // Language toggle
     langToggle: 'EN',
+    // Hub modules
+    familyBudgetLabel: 'תקציב משפחתי',
+    familyBudgetDesc: 'הוצאות, תחזית ויתרות',
+    mortgageLabel: 'מחשבון משכנתא',
+    mortgageDesc: 'חישובי החזרי משכנתא',
+    propertyLabel: 'ניהול נכסים',
+    propertyDesc: 'שוכרים, חוזים ותשלומים',
+    // Date picker
+    dpToday: 'היום',
+    dpThisWeek: 'השבוע',
+    dpThisMonth: 'החודש',
+    dpThisYear: 'השנה',
+    dpPickStart: 'בחר תאריך התחלה',
+    dpSelectedSingle: (d: string) => `נבחר: ${d} — לחץ על יום אחר לטווח`,
+    dpRange: (s: string, e: string) => `${s} → ${e}`,
+    // More UI
+    noClientsYet: 'אין לקוחות עדיין',
+    addFirstClientHint: 'לחצו על \"חדש\" בכותרת (אייקון עיפרון ופלוס) כדי להוסיף לקוח ראשון',
+    billingStatusLabel: 'סטטוס גביה',
+    timerFor: (name: string) => `טיימר: ${name}`,
   },
   en: {
     // Header / title
@@ -138,6 +159,7 @@ export const tt = {
     tabEmployees: 'Employees',
     // Common actions
     save: 'Save',
+    update: 'Update',
     cancel: 'Cancel',
     delete: 'Delete',
     reset: 'Reset',
@@ -254,6 +276,26 @@ export const tt = {
     invoiceNumberShort: (n: string) => `Invoice ${n}`,
     // Language toggle
     langToggle: 'עב',
+    // Hub modules
+    familyBudgetLabel: 'Family Budget',
+    familyBudgetDesc: 'Expenses, forecasts & balances',
+    mortgageLabel: 'Mortgage Calculator',
+    mortgageDesc: 'Mortgage repayment calculations',
+    propertyLabel: 'Property Management',
+    propertyDesc: 'Tenants, contracts & payments',
+    // Date picker
+    dpToday: 'Today',
+    dpThisWeek: 'This Week',
+    dpThisMonth: 'This Month',
+    dpThisYear: 'This Year',
+    dpPickStart: 'Select start date',
+    dpSelectedSingle: (d: string) => `Selected: ${d} — tap another day for a range`,
+    dpRange: (s: string, e: string) => `${s} → ${e}`,
+    // More UI
+    noClientsYet: 'No clients yet',
+    addFirstClientHint: 'Tap \"New\" in the header to add your first client',
+    billingStatusLabel: 'Billing Status',
+    timerFor: (name: string) => `Timer: ${name}`,
   },
 } as const
 

@@ -1237,29 +1237,26 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   // --- HUB SCREEN (module launcher) ---
   const HubScreen = () => {
     const HUB_MODULES: { id: AppModule; label: string; icon: string; dest: Screen; bg: string; desc: string }[] = [
-      { id: 'family-budget',       label: 'תקציב משפחתי',   icon: '💰', dest: 'home',                bg: 'linear-gradient(135deg,#6366F1,#8B5CF6)', desc: 'הוצאות, תחזית ויתרות' },
+      { id: 'family-budget',       label: t('familyBudgetLabel'), icon: '💰', dest: 'home',                bg: 'linear-gradient(135deg,#6366F1,#8B5CF6)', desc: t('familyBudgetDesc') },
       { id: 'time-tracking',       label: t('timeTrackingLabel'), icon: '⏱',  dest: 'time-tracking', bg: 'linear-gradient(135deg,#10B981,#059669)', desc: t('timeTrackingDesc') },
-      { id: 'mortgage-calc',       label: 'מחשבון משכנתא',  icon: '🏠', dest: 'mortgage-calc',       bg: 'linear-gradient(135deg,#667EEA,#764BA2)', desc: 'חישובי החזרי משכנתא' },
-      { id: 'property-management', label: 'ניהול נכסים',    icon: '🏢', dest: 'property-management', bg: 'linear-gradient(135deg,#F59E0B,#D97706)', desc: 'שוכרים, חוזים ותשלומים' },
+      { id: 'mortgage-calc',       label: t('mortgageLabel'), icon: '🏠', dest: 'mortgage-calc', bg: 'linear-gradient(135deg,#667EEA,#764BA2)', desc: t('mortgageDesc') },
+      { id: 'property-management', label: t('propertyLabel'), icon: '🏢', dest: 'property-management', bg: 'linear-gradient(135deg,#F59E0B,#D97706)', desc: t('propertyDesc') },
     ]
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', background: 'linear-gradient(180deg,#EEF2FF 0%,#F9FAFB 100%)' }}>
         <div style={{ padding: '20px 20px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <DexcelLogo />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ fontSize: 12, color: '#9CA3AF', fontWeight: 600 }}>בחר עולם</div>
-            {onLangChange && (
-              <div style={{ display: 'flex', gap: 4 }}>
-                {(['he', 'en'] as Lang[]).map(l => (
-                  <button key={l} onClick={() => onLangChange(l)} style={{
-                    padding: '3px 8px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700,
-                    background: lang === l ? '#6366F1' : '#E5E7EB',
-                    color: lang === l ? 'white' : '#6B7280',
-                  }}>{l === 'he' ? 'עב' : 'EN'}</button>
-                ))}
-              </div>
-            )}
-          </div>
+          {onLangChange && (
+            <div style={{ display: 'flex', gap: 4 }}>
+              {(['he', 'en'] as Lang[]).map(l => (
+                <button key={l} onClick={() => onLangChange(l)} style={{
+                  padding: '4px 10px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700,
+                  background: lang === l ? '#6366F1' : '#E5E7EB',
+                  color: lang === l ? 'white' : '#6B7280',
+                }}>{l === 'he' ? 'עב' : 'EN'}</button>
+              ))}
+            </div>
+          )}
         </div>
         <div style={{ flex: 1, padding: '8px 16px 16px', display: 'flex', flexDirection: 'column', overflowY: 'auto', justifyContent: 'center' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
@@ -3713,7 +3710,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 </div>
 
                 <div style={{marginBottom: 24}}>
-                  <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>סטטוס גביה</div>
+                  <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>{t('billingStatusLabel')}</div>
                   <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8}}>
                     {[
                       {key: 'all', label: 'הכל', color: 'white', bg: '#374151'},
@@ -3737,11 +3734,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 <div style={{display: 'flex', gap: 8, marginTop: 4}}>
                   <button type="button" onClick={() => setClientFilterSheetOpen(false)}
                     style={{padding: '12px 16px', background: '#F3F4F6', border: 'none', borderRadius: 10, fontSize: 15, cursor: 'pointer', color: '#6B7280'}}>
-                    ביטול
+                    {t('cancel')}
                   </button>
                   <button type="button" onClick={() => { setClientStatusFilter(tempClientStatus); setClientFilterSheetOpen(false) }}
                     style={{flex: 1, padding: '12px', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', background: '#1d4ed8', color: 'white'}}>
-                    הגדר
+                    {t('set')}
                   </button>
                 </div>
               </div>
@@ -4166,7 +4163,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                       background: '#FEF2F2', border: '1.5px solid #FECACA', color: '#DC2626',
                       fontSize: 13, fontWeight: 700, cursor: 'pointer'}}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-                    איפוס
+                    {t('reset')}
                   </button>
                 </div>
 
@@ -4216,11 +4213,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 <div style={{display: 'flex', gap: 8, marginTop: 4}}>
                   <button type="button" onClick={() => setEmployeeFilterSheetOpen(false)}
                     style={{padding: '12px 16px', background: '#F3F4F6', border: 'none', borderRadius: 10, fontSize: 15, cursor: 'pointer', color: '#6B7280'}}>
-                    ביטול
+                    {t('cancel')}
                   </button>
                   <button type="button" onClick={() => { setEmployeeStatusFilter(tempEmployeeStatus); setEmployeePaymentStatusFilter(tempEmployeePaymentStatus); setEmployeeFilterSheetOpen(false) }}
                     style={{flex: 1, padding: '12px', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', background: '#1d4ed8', color: 'white'}}>
-                    הגדר
+                    {t('set')}
                   </button>
                 </div>
               </div>
@@ -4421,8 +4418,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           {clients.length === 0 ? (
             <div className="m-empty-state">
               <div style={{fontSize: 48, marginBottom: 16}}>👥</div>
-              <div style={{fontSize: 16, fontWeight: 600, marginBottom: 8}}>אין לקוחות עדיין</div>
-              <div style={{fontSize: 14, color: '#999'}}>לחצו על &quot;חדש&quot; בכותרת (אייקון עיפרון ופלוס) כדי להוסיף לקוח ראשון</div>
+              <div style={{fontSize: 16, fontWeight: 600, marginBottom: 8}}>{t('noClientsYet')}</div>
+              <div style={{fontSize: 14, color: '#999'}}>{t('addFirstClientHint')}</div>
             </div>
           ) : (
             [...clients]
@@ -4533,8 +4530,14 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               const getPeriodKey = (dateStr: string): string => {
                 const d = new Date(dateStr)
                 if (period === 'week') {
-                  const sun = new Date(d); sun.setDate(d.getDate() - d.getDay())
-                  return sun.toISOString().split('T')[0]
+                  const weekStart = new Date(d)
+                  if (lang === 'he') {
+                    weekStart.setDate(d.getDate() - d.getDay()) // Sunday start
+                  } else {
+                    const day = d.getDay()
+                    weekStart.setDate(d.getDate() - (day === 0 ? 6 : day - 1)) // Monday start
+                  }
+                  return weekStart.toISOString().split('T')[0]
                 } else if (period === 'month') {
                   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
                 } else {
@@ -4544,12 +4547,14 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
               const getPeriodLabel = (key: string): string => {
                 if (period === 'week') {
-                  const sun = new Date(key)
-                  const sat = new Date(sun); sat.setDate(sun.getDate() + 6)
-                  return `${sun.toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'})} – ${sat.toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'})}`
+                  const start = new Date(key)
+                  const end = new Date(start); end.setDate(start.getDate() + 6)
+                  const locale = lang === 'he' ? 'he-IL' : 'en-US'
+                  return `${start.toLocaleDateString(locale, {day:'2-digit',month:'2-digit'})} – ${end.toLocaleDateString(locale, {day:'2-digit',month:'2-digit',year:'numeric'})}`
                 } else if (period === 'month') {
                   const [y, m] = key.split('-')
-                  return new Date(parseInt(y), parseInt(m) - 1, 1).toLocaleDateString('he-IL', {month: 'long', year: 'numeric'})
+                  const locale = lang === 'he' ? 'he-IL' : 'en-US'
+                  return new Date(parseInt(y), parseInt(m) - 1, 1).toLocaleDateString(locale, {month: 'long', year: 'numeric'})
                 } else {
                   return key
                 }
@@ -4563,7 +4568,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               })
 
               const sortedKeys = Object.keys(grouped).sort((a, b) => b.localeCompare(a))
-              if (sortedKeys.length === 0) return <div className="m-empty-state">אין דיווחים</div>
+              if (sortedKeys.length === 0) return <div className="m-empty-state">{t('noEntries')}</div>
 
               return (
                 <div style={{display: 'flex', flexDirection: 'column', gap: 14, padding: '0 16px'}}>
@@ -4727,7 +4732,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           background: '#FEF2F2', border: '1.5px solid #FECACA', color: '#DC2626',
                           fontSize: 13, fontWeight: 700, cursor: 'pointer'}}>
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-                        איפוס
+                        {t('reset')}
                       </button>
                     </div>
 
@@ -4779,11 +4784,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     <div style={{display: 'flex', gap: 8, marginTop: 4}}>
                       <button type="button" onClick={cancelAndClose}
                         style={{padding: '12px 16px', background: '#F3F4F6', border: 'none', borderRadius: 10, fontSize: 15, cursor: 'pointer', color: '#6B7280'}}>
-                        ביטול
+                        {t('cancel')}
                       </button>
                       <button type="button" onClick={applyAndClose}
                         style={{flex: 1, padding: '12px', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', background: '#1d4ed8', color: 'white'}}>
-                        הגדר
+                        {t('set')}
                       </button>
                     </div>
                   </div>
@@ -5127,7 +5132,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                         background: '#FEF2F2', border: '1.5px solid #FECACA', color: '#DC2626',
                         fontSize: 13, fontWeight: 700, cursor: 'pointer'}}>
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-                      איפוס
+                      {t('reset')}
                     </button>
                   </div>
 
@@ -5176,11 +5181,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   <div style={{display: 'flex', gap: 8}}>
                     <button type="button" onClick={() => setSummaryFilterSheetOpen(false)}
                       style={{padding: '12px 16px', background: '#F3F4F6', border: 'none', borderRadius: 10, fontSize: 15, cursor: 'pointer', color: '#6B7280'}}>
-                      ביטול
+                      {t('cancel')}
                     </button>
                     <button type="button" onClick={() => { setSummaryClientFilter(tempSummaryClient); setSummaryStatusFilter(tempSummaryStatus); setSummaryFilterSheetOpen(false) }}
                       style={{flex: 1, padding: '12px', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', background: '#1d4ed8', color: 'white'}}>
-                      הגדר
+                      {t('set')}
                     </button>
                   </div>
                 </div>
@@ -5586,10 +5591,15 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     const [tempEnd, setTempEnd] = useState('')
 
     const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate()
-    const firstDayOfWeek = new Date(viewYear, viewMonth, 1).getDay() // 0=Sun
+    const rawFirstDay = new Date(viewYear, viewMonth, 1).getDay() // 0=Sun
+    const firstDayOfWeek = lang === 'he' ? rawFirstDay : (rawFirstDay + 6) % 7 // Mon-first for English
 
-    const monthNames = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר']
-    const dayNames = ['א','ב','ג','ד','ה','ו','ש']
+    const monthNames = lang === 'he'
+      ? ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר']
+      : ['January','February','March','April','May','June','July','August','September','October','November','December']
+    const dayNames = lang === 'he'
+      ? ['א','ב','ג','ד','ה','ו','ש'] // Sun,Mon,...,Sat
+      : ['Mo','Tu','We','Th','Fr','Sa','Su'] // Mon,...,Sun
 
     const toDateStr = (y: number, m: number, d: number) =>
       `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
@@ -5660,7 +5670,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     background: '#FEF2F2', border: '1.5px solid #FECACA', color: '#DC2626',
                     fontSize: 12, fontWeight: 700, cursor: 'pointer'}}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-                  איפוס
+                  {t('reset')}
                 </button>
               )}
               <button onClick={nextMonth} style={{border: 'none', background: 'none', fontSize: 22, cursor: 'pointer', padding: '4px 10px', color: '#374151'}}>›</button>
@@ -5669,19 +5679,19 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
           {/* Quick period buttons */}
           <div style={{display: 'flex', gap: 8, marginBottom: 12, justifyContent: 'center'}}>
-            <button onClick={() => { const today = new Date(); onChange(toDateStr(today.getFullYear(), today.getMonth(), today.getDate()), toDateStr(today.getFullYear(), today.getMonth(), today.getDate())); onClose(); }} style={{padding: '6px 12px', borderRadius: 16, border: '1px solid #D1D5DB', background: '#F3F4F6', fontSize: 13, cursor: 'pointer'}}>היום</button>
-            <button onClick={() => { const today = new Date(); const start = new Date(today); start.setDate(today.getDate() - today.getDay()); const end = new Date(start); end.setDate(start.getDate() + 6); onChange(toDateStr(start.getFullYear(), start.getMonth(), start.getDate()), toDateStr(end.getFullYear(), end.getMonth(), end.getDate())); onClose(); }} style={{padding: '6px 12px', borderRadius: 16, border: '1px solid #D1D5DB', background: '#F3F4F6', fontSize: 13, cursor: 'pointer'}}>השבוע</button>
-            <button onClick={() => { const today = new Date(); onChange(toDateStr(today.getFullYear(), today.getMonth(), 1), toDateStr(today.getFullYear(), today.getMonth() + 1, 0)); onClose(); }} style={{padding: '6px 12px', borderRadius: 16, border: '1px solid #D1D5DB', background: '#F3F4F6', fontSize: 13, cursor: 'pointer'}}>החודש</button>
-            <button onClick={() => { const today = new Date(); onChange(toDateStr(today.getFullYear(), 0, 1), toDateStr(today.getFullYear(), 11, 31)); onClose(); }} style={{padding: '6px 12px', borderRadius: 16, border: '1px solid #D1D5DB', background: '#F3F4F6', fontSize: 13, cursor: 'pointer'}}>השנה</button>
+            <button onClick={() => { const today = new Date(); onChange(toDateStr(today.getFullYear(), today.getMonth(), today.getDate()), toDateStr(today.getFullYear(), today.getMonth(), today.getDate())); onClose(); }} style={{padding: '6px 12px', borderRadius: 16, border: '1px solid #D1D5DB', background: '#F3F4F6', fontSize: 13, cursor: 'pointer'}}>{t('dpToday')}</button>
+            <button onClick={() => { const today = new Date(); const start = new Date(today); const day = today.getDay(); start.setDate(today.getDate() - (lang === 'he' ? day : (day === 0 ? 6 : day - 1))); const end = new Date(start); end.setDate(start.getDate() + 6); onChange(toDateStr(start.getFullYear(), start.getMonth(), start.getDate()), toDateStr(end.getFullYear(), end.getMonth(), end.getDate())); onClose(); }} style={{padding: '6px 12px', borderRadius: 16, border: '1px solid #D1D5DB', background: '#F3F4F6', fontSize: 13, cursor: 'pointer'}}>{t('dpThisWeek')}</button>
+            <button onClick={() => { const today = new Date(); onChange(toDateStr(today.getFullYear(), today.getMonth(), 1), toDateStr(today.getFullYear(), today.getMonth() + 1, 0)); onClose(); }} style={{padding: '6px 12px', borderRadius: 16, border: '1px solid #D1D5DB', background: '#F3F4F6', fontSize: 13, cursor: 'pointer'}}>{t('dpThisMonth')}</button>
+            <button onClick={() => { const today = new Date(); onChange(toDateStr(today.getFullYear(), 0, 1), toDateStr(today.getFullYear(), 11, 31)); onClose(); }} style={{padding: '6px 12px', borderRadius: 16, border: '1px solid #D1D5DB', background: '#F3F4F6', fontSize: 13, cursor: 'pointer'}}>{t('dpThisYear')}</button>
           </div>
 
           {/* Instructions */}
           <div style={{textAlign: 'center', fontSize: 13, color: '#6B7280', marginBottom: 12}}>
             {picking === 'start'
-              ? 'בחר תאריך התחלה'
+              ? t('dpPickStart')
               : tempStart === tempEnd
-                ? `נבחר: ${new Date(tempStart).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'})} — לחץ על יום אחר לטווח`
-                : `${new Date(tempStart).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit'})} → ${new Date(tempEnd).toLocaleDateString('he-IL', {day:'2-digit',month:'2-digit',year:'numeric'})}`
+                ? (tt[lang].dpSelectedSingle as (d:string)=>string)(new Date(tempStart).toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-US', {day:'2-digit',month:'2-digit',year:'numeric'}))
+                : (tt[lang].dpRange as (s:string,e:string)=>string)(new Date(tempStart).toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-US', {day:'2-digit',month:'2-digit'}), new Date(tempEnd).toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-US', {day:'2-digit',month:'2-digit',year:'numeric'}))
             }
           </div>
 
@@ -5740,10 +5750,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               }}
             >
               {!tempStart
-                ? 'הגדר'
+                ? t('set')
                 : tempStart === tempEnd
-                  ? `הגדר · ${new Date(tempStart).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit'})}`
-                  : `הגדר · ${new Date(tempStart).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit'})} – ${new Date(tempEnd).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit'})}`
+                  ? `${t('set')} · ${new Date(tempStart).toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-US', {day:'2-digit', month:'2-digit'})}`
+                  : `${t('set')} · ${new Date(tempStart).toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-US', {day:'2-digit', month:'2-digit'})} – ${new Date(tempEnd).toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-US', {day:'2-digit', month:'2-digit'})}`
               }
             </button>
           </div>
@@ -6243,10 +6253,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <div style={{display: 'flex', gap: 10}}>
             <button onClick={() => { setAddChargeOpen(false); setEditChargeId(null) }}
               style={{flex: 1, padding: '14px', background: '#F3F4F6', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer', color: '#6B7280'}}>
-              ביטול
+              {t('cancel')}
             </button>
             <button type="button" className="m-mortgage-calc-btn" onClick={save} style={{flex: 2, margin: 0}}>
-              {editChargeId ? 'עדכן' : 'שמור'} ✓
+              {editChargeId ? t('update') : t('save')} ✓
             </button>
           </div>
         </div>
@@ -6400,8 +6410,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 <input key="quick-notes" defaultValue={entryFormNotes} onBlur={e => setEntryFormNotes(e.target.value)} placeholder="הערה (אופציונלי)" style={{width: '100%', border: 'none', borderBottom: '1px solid #E5E7EB', padding: '8px 0', fontSize: 15, background: 'none', outline: 'none'}} />
               </div>
               <div style={{display: 'flex', gap: 10, marginTop: 8}}>
-                <button onClick={closeModal} style={{flex: 1, padding: '14px', background: '#F3F4F6', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer', color: '#6B7280'}}>ביטול</button>
-                <button className="m-mortgage-calc-btn" onClick={saveHourly} style={{flex: 2, margin: 0}}>שמור ✓</button>
+                <button onClick={closeModal} style={{flex: 1, padding: '14px', background: '#F3F4F6', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer', color: '#6B7280'}}>{t('cancel')}</button>
+                <button className="m-mortgage-calc-btn" onClick={saveHourly} style={{flex: 2, margin: 0}}>{t('save')} ✓</button>
               </div>
             </>
           )}
