@@ -104,9 +104,9 @@ const getMonthsInRange = (start: string, end: string): string[] => {
 }
 
 /* ─── Component ──────────────────────────────────────────────── */
-type Props = { uid: string | null; onBack: () => void; backHandlerRef?: React.MutableRefObject<(() => boolean) | null> }
+type Props = { uid: string | null; onBack: () => void; onLogoClick?: () => void; backHandlerRef?: React.MutableRefObject<(() => boolean) | null> }
 
-export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
+export function PropertyManagement({ uid, onBack, onLogoClick, backHandlerRef }: Props) {
   const lsKey = (k: string) =>
     uid ? `bva_${uid.slice(0,8)}_pm_${k}` : `bva_local_pm_${k}`
 
@@ -142,6 +142,8 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
   const [docSearchQuery, setDocSearchQuery] = useState('')
   const docInputRef = useRef<HTMLInputElement>(null)
   const renewalLeadDays = 90
+
+  const goToPmMain = () => { setTab('properties'); setPropView('list'); setSelPropId(null) }
 
   // Register Android back handler
   useEffect(() => {
@@ -709,7 +711,7 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
   const renderPropList = () => (
     <>
       <div style={HDR}>
-        <button style={{ background:'none', border:'none', cursor:'pointer', padding:'0 4px', display:'flex', alignItems:'center', height:32 }} onClick={onBack}>
+        <button style={{ background:'none', border:'none', cursor:'pointer', padding:'0 4px', display:'flex', alignItems:'center', height:32 }} onClick={onLogoClick ?? onBack}>
           <img src="/Trn color.png" alt="חזור" style={{ height:22 }} />
         </button>
         <span style={{ fontWeight:700, fontSize:17, flex:1 }}>🏠 נכסים</span>
@@ -991,7 +993,7 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
     return (
       <>
         <div style={HDR}>
-          <button style={{ background:'none', border:'none', cursor:'pointer', padding:'0 4px', display:'flex', alignItems:'center', height:32 }} onClick={onBack}>
+          <button style={{ background:'none', border:'none', cursor:'pointer', padding:'0 4px', display:'flex', alignItems:'center', height:32 }} onClick={goToPmMain}>
             <img src="/Trn color.png" alt="חזור" style={{ height:22 }} />
           </button>
           <span style={{ fontWeight:700, fontSize:17, flex:1 }}>👤 שוכרים</span>
@@ -1067,7 +1069,7 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
     return (
       <>
         <div style={HDR}>
-          <button style={{ background:'none', border:'none', cursor:'pointer', padding:'0 4px', display:'flex', alignItems:'center', height:32 }} onClick={onBack}>
+          <button style={{ background:'none', border:'none', cursor:'pointer', padding:'0 4px', display:'flex', alignItems:'center', height:32 }} onClick={goToPmMain}>
             <img src="/Trn color.png" alt="חזור" style={{ height:22 }} />
           </button>
           <span style={{ fontWeight:700, fontSize:17, flex:1 }}>✅ משימות</span>
@@ -1157,7 +1159,7 @@ export function PropertyManagement({ uid, onBack, backHandlerRef }: Props) {
     return (
       <>
         <div style={HDR}>
-          <button style={{ background:'none', border:'none', cursor:'pointer', padding:'0 4px', display:'flex', alignItems:'center', height:32 }} onClick={onBack}>
+          <button style={{ background:'none', border:'none', cursor:'pointer', padding:'0 4px', display:'flex', alignItems:'center', height:32 }} onClick={goToPmMain}>
             <img src="/Trn color.png" alt="חזור" style={{ height:22 }} />
           </button>
           <span style={{ fontWeight:700, fontSize:17, flex:1 }}>📊 דשבורד</span>

@@ -1076,8 +1076,23 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     if (dest === 'home') { setExpandedGroups(new Set()); setViewMonthIdx(months.indexOf(currentMonth) >= 0 ? months.indexOf(currentMonth) : 0) }
   }
 
+  const handleLogoClick = () => {
+    const fbSubs: Screen[] = ['detail', 'update', 'chart', 'budget', 'forecast', 'forecast-chart', 'net-chart']
+    if (screen === 'hub') { goHome(); return }
+    if (fbSubs.includes(screen)) {
+      setScreen('home')
+      setExpandedGroups(new Set())
+      setViewMonthIdx(months.indexOf(currentMonth) >= 0 ? months.indexOf(currentMonth) : 0)
+      setSelectedGroupId(null)
+      return
+    }
+    // On any module main screen → hub
+    if (employeeMode) setEmployeeMode(null)
+    setScreen('hub')
+  }
+
   const DexcelLogo = () => (
-    <div className="m-logo-block" onClick={goHome} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', height: '100%' }}>
+    <div className="m-logo-block" onClick={handleLogoClick} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', height: '100%' }}>
       <img src="/Trn color.png" alt="Dexcel" style={{ height: 22, maxHeight: '85%' }} />
     </div>
   )
@@ -1696,7 +1711,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     return (
       <div className="m-screen">
         <div className="m-header">
-          <button className="m-back-btn" onClick={() => setScreen('home')}>← חזרה</button>
+          <DexcelLogo />
           <span className="m-header-title">יתרות סגירה ונטו</span>
           <div style={{ width: 60 }} />
         </div>
@@ -1820,7 +1835,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     return (
       <div className="m-screen">
         <div className="m-header">
-          <button className="m-back-btn" onClick={() => setScreen('home')}>← חזרה</button>
+          <DexcelLogo />
           <span className="m-header-title">תחזית מול ביצוע</span>
           <div className="m-header-actions">
             <button className="m-icon-btn" onClick={() => setScreen('detail')} title="עדכן תחזית">📋</button>
@@ -1868,7 +1883,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     return (
       <div className="m-screen">
         <div className="m-header">
-          <button className="m-back-btn" onClick={() => { setScreen('home'); setSelectedGroupId(null) }}>← חזרה</button>
+          <DexcelLogo />
           <span className="m-header-title">{group ? group.name : 'כל ההוצאות'}</span>
           <div style={{ width: 40 }} />
         </div>
@@ -1955,7 +1970,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     return (
       <div className="m-screen">
         <div className="m-header">
-          <button className="m-back-btn" onClick={() => setScreen('home')}>← חזרה</button>
+          <DexcelLogo />
           <span className="m-header-title">📉 גרף תחזית</span>
           <button className="m-icon-btn" onClick={saveSnapshot} title="שמור תחזית">💾</button>
         </div>
@@ -2025,7 +2040,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     return (
       <div className="m-screen">
         <div className="m-header">
-          <button className="m-back-btn" onClick={() => setScreen('home')}>← חזרה</button>
+          <DexcelLogo />
           <span className="m-header-title">📊 גרף נטו חודשי</span>
           <div style={{width:40}} />
         </div>
@@ -2170,7 +2185,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         <div className="m-catmgmt-topbar">
           <button className="m-catmgmt-back" onClick={closeAll}>✕</button>
           <span className="m-catmgmt-topbar-title">הגדרות</span>
-          <div className="m-logo-block" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); goHome() }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', height: '100%' }} title="דף הבית"><img src="/Trn color.png" alt="Dexcel" style={{ height: 29, maxHeight: '85%' }} /></div>
+          <div className="m-logo-block" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); handleLogoClick() }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', height: '100%' }} title="דף הבית"><img src="/Trn color.png" alt="Dexcel" style={{ height: 29, maxHeight: '85%' }} /></div>
         </div>
         <div className="m-settings-menu">
           <button className="m-settings-row" onClick={() => setSettingsPage('categories')}>
@@ -2277,7 +2292,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <div className="m-catmgmt-topbar">
             <button className="m-catmgmt-back" onClick={() => setSettingsPage('main')}>‹ חזרה</button>
             <span className="m-catmgmt-topbar-title">עולמות פעילים</span>
-            <div className="m-logo-block" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); goHome() }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', height: '100%' }}><img src="/Trn color.png" alt="Dexcel" style={{ height: 29, maxHeight: '85%' }} /></div>
+            <div className="m-logo-block" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); handleLogoClick() }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', height: '100%' }}><img src="/Trn color.png" alt="Dexcel" style={{ height: 29, maxHeight: '85%' }} /></div>
           </div>
           <div style={{ padding: '16px', background: '#F9FAFB', flex: 1, overflowY: 'auto' }}>
             <div style={{ fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
@@ -2326,7 +2341,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         <div className="m-catmgmt-topbar">
           <button className="m-catmgmt-back" onClick={() => setSettingsPage('main')}>‹ חזרה</button>
           <span className="m-catmgmt-topbar-title">כפתורים צפים</span>
-          <div className="m-logo-block" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); goHome() }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', height: '100%' }}><img src="/Trn color.png" alt="Dexcel" style={{ height: 29, maxHeight: '85%' }} /></div>
+          <div className="m-logo-block" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); handleLogoClick() }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', height: '100%' }}><img src="/Trn color.png" alt="Dexcel" style={{ height: 29, maxHeight: '85%' }} /></div>
         </div>
         <div className="m-settings-menu">
           {[
@@ -2356,7 +2371,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         <div className="m-catmgmt-topbar">
           <button className="m-catmgmt-back" onClick={() => setSettingsPage('main')}>‹ חזרה</button>
           <span className="m-catmgmt-topbar-title">יתרת פתיחה / סגירה</span>
-          <div className="m-logo-block" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); goHome() }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', height: '100%' }} title="דף הבית"><img src="/Trn color.png" alt="Dexcel" style={{ height: 29, maxHeight: '85%' }} /></div>
+          <div className="m-logo-block" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); handleLogoClick() }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', height: '100%' }} title="דף הבית"><img src="/Trn color.png" alt="Dexcel" style={{ height: 29, maxHeight: '85%' }} /></div>
         </div>
         <OpeningBalanceSection />
       </div>
@@ -2368,7 +2383,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         <div className="m-catmgmt-topbar">
           <button className="m-catmgmt-back" onClick={() => setSettingsPage('main')}>‹ חזרה</button>
           <span className="m-catmgmt-topbar-title">גיבוי ושחזור</span>
-          <div className="m-logo-block" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); goHome() }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', height: '100%' }} title="דף הבית"><img src="/Trn color.png" alt="Dexcel" style={{ height: 29, maxHeight: '85%' }} /></div>
+          <div className="m-logo-block" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); handleLogoClick() }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', height: '100%' }} title="דף הבית"><img src="/Trn color.png" alt="Dexcel" style={{ height: 29, maxHeight: '85%' }} /></div>
         </div>
         <div style={{padding:'20px 16px',display:'flex',flexDirection:'column',gap:12}}>
           <p style={{margin:0,fontSize:13,color:'#6B7280',lineHeight:1.5}}>הנתונים שמורים בדפדפן. מומלץ לגבות לקובץ JSON ולשמור ב-Google Drive / iCloud.</p>
@@ -2391,7 +2406,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         <div className="m-catmgmt-topbar">
           <button className="m-catmgmt-back" onClick={() => setSettingsPage('main')}>‹ חזרה</button>
           <span className="m-catmgmt-topbar-title">ניהול קטגוריות</span>
-          <div className="m-logo-block" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); goHome() }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', height: '100%' }} title="דף הבית"><img src="/Trn color.png" alt="Dexcel" style={{ height: 29, maxHeight: '85%' }} /></div>
+          <div className="m-logo-block" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); handleLogoClick() }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', height: '100%' }} title="דף הבית"><img src="/Trn color.png" alt="Dexcel" style={{ height: 29, maxHeight: '85%' }} /></div>
         </div>
         <button className="m-catmgmt-add-row" onClick={() => setAddingGroup(true)}>
           <span className="m-catmgmt-add-plus">＋</span>
@@ -2475,7 +2490,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         <div className="m-catmgmt-topbar" style={{ background: accent }}>
           <button className="m-catmgmt-back" onClick={goBack}>‹ חזרה</button>
           <span className="m-catmgmt-topbar-title">{group.icon} {group.name}</span>
-          <div className="m-logo-block" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); goHome() }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', height: '100%' }} title="דף הבית"><img src="/Trn color.png" alt="Dexcel" style={{ height: 29, maxHeight: '85%' }} /></div>
+          <div className="m-logo-block" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); handleLogoClick() }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', height: '100%' }} title="דף הבית"><img src="/Trn color.png" alt="Dexcel" style={{ height: 29, maxHeight: '85%' }} /></div>
         </div>
 
         {/* Add new button */}
@@ -3194,9 +3209,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     return (
       <div className="m-screen">
         <div className="m-header">
-          <button className="m-back-btn" onClick={() => setScreen('hub')}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-          </button>
+          <DexcelLogo />
           <h1 className="m-title">מחשבון משכנתא</h1>
           <div style={{width:40}}></div>
         </div>
@@ -4292,18 +4305,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </>
           ) : (
             <>
-              {!employeeMode ? (
-                <button className="m-back-btn" onClick={() => setScreen('hub')}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-                </button>
-              ) : (
-                <button className="m-back-btn" onClick={() => {
-                  setEmployeeMode(null)
-                  setScreen('hub')
-                }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4m7 14 5-5m0 0-5-5m5 5H9"/></svg>
-                </button>
-              )}
+              <DexcelLogo />
               <h1 className="m-title">{employeeMode ? `${t('hello')} ${employeeMode.name}` : t('title')}</h1>
               <div className="m-header-actions">
                 {timeTrackingTab === 'clients' && !employeeMode && renderHeaderNewBtn(openNewClientForm, t('newClient'))}
@@ -7159,7 +7161,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       {screen === 'net-chart' && <NetChartScreen />}
       {screen === 'mortgage-calc' && <MortgageCalculator />}
       {screen === 'time-tracking' && <TimeTrackingScreen />}
-      {screen === 'property-management' && <PropertyManagement uid={uid} onBack={() => setScreen('hub')} backHandlerRef={pmBackHandlerRef} />}
+      {screen === 'property-management' && <PropertyManagement uid={uid} onBack={() => setScreen('hub')} onLogoClick={handleLogoClick} backHandlerRef={pmBackHandlerRef} />}
       {renderCatMgmt()}
       <InlineSheet />
       <AddClientModal />
