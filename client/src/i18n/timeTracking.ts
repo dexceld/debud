@@ -148,6 +148,25 @@ export const tt = {
     addFirstClientHint: 'לחצו על \"חדש\" בכותרת (אייקון עיפרון ופלוס) כדי להוסיף לקוח ראשון',
     billingStatusLabel: 'סטטוס גביה',
     timerFor: (name: string) => `טיימר: ${name}`,
+    // Hub / FABs
+    floatingButtons: 'כפתורים צפים',
+    fabForecast: 'תחזית / בפועל',
+    fabHoursShort: 'שעות',
+    about: 'אודות',
+    longPressActivate: 'לחיצה ארוכה להפעלה',
+    setAsHome: 'הגדר כבית',
+    homeScreen: 'מסך בית',
+    setAsHomeToast: (name: string) => `⭐ ${name} הוגדר כמסך בית`,
+    // Mortgage calculator
+    calcMonthlyPayment: 'חישוב החזר חודשי',
+    calcLoanAmount: 'חישוב סכום משכנתא',
+    calcYears: 'חישוב מספר שנים',
+    loanAmountLabel: 'סכום משכנתא',
+    annualInterest: 'ריבית שנתית',
+    mortgageYears: 'מספר שנים',
+    monthlyPaymentLabel: 'החזר חודשי',
+    calculate: 'חשב',
+    yearsUnit: 'שנים',
   },
   en: {
     // Header / title
@@ -296,6 +315,25 @@ export const tt = {
     addFirstClientHint: 'Tap \"New\" in the header to add your first client',
     billingStatusLabel: 'Billing Status',
     timerFor: (name: string) => `Timer: ${name}`,
+    // Hub / FABs
+    floatingButtons: 'Floating Buttons',
+    fabForecast: 'Forecast / Actual',
+    fabHoursShort: 'Hours',
+    about: 'About',
+    longPressActivate: 'Long press to activate',
+    setAsHome: 'Set as Home',
+    homeScreen: 'Home Screen',
+    setAsHomeToast: (name: string) => `⭐ ${name} set as home`,
+    // Mortgage calculator
+    calcMonthlyPayment: 'Calc Monthly Payment',
+    calcLoanAmount: 'Calc Loan Amount',
+    calcYears: 'Calc Years',
+    loanAmountLabel: 'Loan Amount',
+    annualInterest: 'Annual Interest',
+    mortgageYears: 'Years',
+    monthlyPaymentLabel: 'Monthly Payment',
+    calculate: 'Calculate',
+    yearsUnit: 'years',
   },
 } as const
 

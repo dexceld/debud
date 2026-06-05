@@ -1309,19 +1309,19 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   onMouseDown={() => startLp(m.id)} onMouseUp={cancelLp} onMouseLeave={cancelLp}
                   style={{ display: 'flex', flexDirection: 'column', borderRadius: 20, overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.12)', opacity: isEnabled ? 1 : 0.42, transition: 'opacity 0.2s', userSelect: 'none' }}>
                   <button
-                    onClick={() => { if (!isEnabled) { setSuccessToast('לחיצה ארוכה להפעלה'); setTimeout(() => setSuccessToast(null), 2000) } else { setScreen(m.dest) } }}
+                    onClick={() => { if (!isEnabled) { setSuccessToast(t('longPressActivate')); setTimeout(() => setSuccessToast(null), 2000) } else { setScreen(m.dest) } }}
                     style={{ flex: 1, padding: '22px 14px 16px', background: isEnabled ? m.bg : 'linear-gradient(135deg,#9CA3AF,#6B7280)', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textAlign: 'center', WebkitUserSelect: 'none' }}>
                     <span style={{ fontSize: 44 }}>{m.icon}</span>
                     <span style={{ fontSize: 16, fontWeight: 800, color: 'white', lineHeight: 1.25 }}>{m.label}</span>
                   </button>
                   {isEnabled ? (
-                    <button onClick={() => { setDefaultModule(m.id); localStorage.setItem(lsKey('default_module'), m.id); setSuccessToast(`⭐ ${m.label} הוגדר כמסך בית`); setTimeout(() => setSuccessToast(null), 2500) }}
+                    <button onClick={() => { setDefaultModule(m.id); localStorage.setItem(lsKey('default_module'), m.id); setSuccessToast((tt[lang].setAsHomeToast as (n:string)=>string)(m.label)); setTimeout(() => setSuccessToast(null), 2500) }}
                       style={{ padding: '10px', background: isDefault ? '#FFFBEB' : 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: isDefault ? '#D97706' : '#9CA3AF', borderTop: '1px solid #F3F4F6' }}>
-                      {isDefault ? '⭐ מסך בית' : '☆ הגדר כבית'}
+                      {isDefault ? `⭐ ${t('homeScreen')}` : `☆ ${t('setAsHome')}`}
                     </button>
                   ) : (
                     <div style={{ padding: '8px', background: '#F9FAFB', borderTop: '1px solid #F3F4F6', textAlign: 'center', fontSize: 11, color: '#9CA3AF', fontWeight: 600 }}>
-                      לחץ לחיצה ארוכה להפעלה
+                      {t('longPressActivate')}
                     </div>
                   )}
                 </div>
@@ -1330,12 +1330,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           </div>
           {/* FABs toggles */}
           <div style={{ background: 'white', borderRadius: 14, padding: '10px 14px', border: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 12, color: '#6B7280', fontWeight: 700, flexShrink: 0 }}>⚡ כפתורים צפים</span>
+            <span style={{ fontSize: 12, color: '#6B7280', fontWeight: 700, flexShrink: 0 }}>⚡ {t('floatingButtons')}</span>
             <div style={{ display: 'flex', gap: 8, flex: 1 }}>
               {([
-                { label: 'תחזית / בפועל', val: showFabsBudget, set: setShowFabsBudget, color: '#6366F1' },
-                { label: 'שעות', val: showFabsTime, set: setShowFabsTime, color: '#10B981' },
-                { label: 'קול', val: showFabsVoice, set: setShowFabsVoice, color: '#7C3AED' },
+                { label: t('fabForecast'), val: showFabsBudget, set: setShowFabsBudget, color: '#6366F1' },
+                { label: t('fabHoursShort'), val: showFabsTime, set: setShowFabsTime, color: '#10B981' },
+                { label: t('voice'), val: showFabsVoice, set: setShowFabsVoice, color: '#7C3AED' },
               ] as { label: string; val: boolean; set: React.Dispatch<React.SetStateAction<boolean>>; color: string }[]).map(({ label, val, set, color }) => (
                 <button key={label} type="button" onClick={() => set(p => !p)}
                   style={{ flex: 1, padding: '7px 4px', borderRadius: 10, border: `1.5px solid ${val ? color : '#E5E7EB'}`, background: val ? color + '18' : '#F9FAFB', color: val ? color : '#9CA3AF', fontWeight: 700, fontSize: 11, cursor: 'pointer', transition: 'all 0.15s' }}>
@@ -1351,7 +1351,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             : <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#6366F1', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{isLocalMode ? '👤' : userEmail?.[0]?.toUpperCase() || '?'}</div>}
           <span style={{ fontSize: 12, color: '#6B7280', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userEmail}</span>
           <button onClick={() => setAboutOpen(true)} style={{ background: '#F3E8FF', border: '1px solid #E9D5FF', color: '#7C3AED', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}>
-            ⓘ אודות
+            ⓘ {t('about')}
           </button>
           <button onClick={async () => {
             if (!window.confirm(isLocalMode ? 'לצאת ממצב לקוח?' : 'להתנתק?')) return
@@ -3207,7 +3207,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       <div className="m-screen">
         <div className="m-header">
           <DexcelLogo />
-          <h1 className="m-title">מחשבון משכנתא</h1>
+          <h1 className="m-title">{t('mortgageLabel')}</h1>
           <div style={{width:40}}></div>
         </div>
 
@@ -3218,25 +3218,25 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               className={`m-mortgage-tab ${mode === 'calc-payment' ? 'active' : ''}`}
               onClick={() => { setMode('calc-payment'); setResult(null) }}
             >
-              חישוב החזר חודשי
+              {t('calcMonthlyPayment')}
             </button>
             <button 
               className={`m-mortgage-tab ${mode === 'calc-loan' ? 'active' : ''}`}
               onClick={() => { setMode('calc-loan'); setResult(null) }}
             >
-              חישוב סכום משכנתא
+              {t('calcLoanAmount')}
             </button>
             <button 
               className={`m-mortgage-tab ${mode === 'calc-years' ? 'active' : ''}`}
               onClick={() => { setMode('calc-years'); setResult(null) }}
             >
-              חישוב מספר שנים
+              {t('calcYears')}
             </button>
           </div>
 
           {/* Interest Rate */}
           <div className="m-mortgage-field">
-            <label>ריבית שנתית (%)</label>
+            <label>{t('annualInterest')} (%)</label>
             <input 
               type="number" 
               inputMode="decimal"
@@ -3250,7 +3250,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           {mode === 'calc-payment' && (
             <>
               <div className="m-mortgage-field">
-                <label>סכום משכנתא (₪)</label>
+                <label>{t('loanAmountLabel')} (₪)</label>
                 <input 
                   type="number" 
                   inputMode="numeric"
@@ -3260,7 +3260,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 />
               </div>
               <div className="m-mortgage-field">
-                <label>מספר שנים</label>
+                <label>{t('mortgageYears')}</label>
                 <input 
                   type="number" 
                   inputMode="numeric"
@@ -3275,7 +3275,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           {mode === 'calc-loan' && (
             <>
               <div className="m-mortgage-field">
-                <label>החזר חודשי (₪)</label>
+                <label>{t('monthlyPaymentLabel')} (₪)</label>
                 <input 
                   type="number" 
                   inputMode="numeric"
@@ -3285,7 +3285,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 />
               </div>
               <div className="m-mortgage-field">
-                <label>מספר שנים</label>
+                <label>{t('mortgageYears')}</label>
                 <input 
                   type="number" 
                   inputMode="numeric"
@@ -3300,7 +3300,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           {mode === 'calc-years' && (
             <>
               <div className="m-mortgage-field">
-                <label>סכום משכנתא (₪)</label>
+                <label>{t('loanAmountLabel')} (₪)</label>
                 <input 
                   type="number" 
                   inputMode="numeric"
@@ -3310,7 +3310,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 />
               </div>
               <div className="m-mortgage-field">
-                <label>החזר חודשי (₪)</label>
+                <label>{t('monthlyPaymentLabel')} (₪)</label>
                 <input 
                   type="number" 
                   inputMode="numeric"
@@ -3324,20 +3324,20 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
           {/* Calculate Button */}
           <button className="m-mortgage-calc-btn" onClick={calculate}>
-            חשב
+            {t('calculate')}
           </button>
 
           {/* Result */}
           {result !== null && (
             <div className="m-mortgage-result">
               <div className="m-mortgage-result-label">
-                {mode === 'calc-payment' && 'החזר חודשי:'}
-                {mode === 'calc-loan' && 'סכום משכנתא:'}
-                {mode === 'calc-years' && 'מספר שנים:'}
+                {mode === 'calc-payment' && `${t('monthlyPaymentLabel')}:`}
+                {mode === 'calc-loan' && `${t('loanAmountLabel')}:`}
+                {mode === 'calc-years' && `${t('mortgageYears')}:`}
               </div>
               <div className="m-mortgage-result-value">
                 {mode === 'calc-years' 
-                  ? `${result.toFixed(1)} שנים`
+                  ? `${result.toFixed(1)} ${t('yearsUnit')}`
                   : `₪${result.toLocaleString('he-IL', {maximumFractionDigits: 0})}`
                 }
               </div>
