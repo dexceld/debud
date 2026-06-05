@@ -1111,9 +1111,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       <>
         <div className="m-acc-col-header m-acc-col-header-global">
           <span className="m-acc-col-name"></span>
-          <span className="m-acc-col-val">תחזית</span>
-          <span className="m-acc-col-val">בפועל</span>
-          <span className="m-acc-col-val">פער</span>
+          <span className="m-acc-col-val">{t('forecastLabel')}</span>
+          <span className="m-acc-col-val">{t('actualLabel')}</span>
+          <span className="m-acc-col-val">{t('gapLabel')}</span>
         </div>
         <div className={`m-acc-content ${slideDir ? 'slide-' + slideDir : ''}`}>
           {/* Income */}
@@ -1452,7 +1452,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 localStorage.setItem(lsKey('home_view'), 'actual')
               }}
             >
-              בפועל מול תחזית
+              {t('viewActualVsForecast')}
             </button>
             <button
               className={`m-segmented-btn ${homeView === 'monthly' ? 'active' : ''}`}
@@ -1461,7 +1461,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 localStorage.setItem(lsKey('home_view'), 'monthly')
               }}
             >
-              חודש מול חודש
+              {t('viewMonthVsMonth')}
             </button>
           </div>
         </div>
@@ -1500,8 +1500,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           >
             <span className="m-home-group-arrow"></span>
             <span className="m-home-group-name"></span>
-            <span className="m-home-group-actual">בפועל</span>
-            <span className="m-home-group-budget">תחזית</span>
+            <span className="m-home-group-actual">{t('actualLabel')}</span>
+            <span className="m-home-group-budget">{t('forecastLabel')}</span>
           </button>
           {groupOrder.map((gid) => {
             const g = groups.find(x => x.id === gid)
@@ -1534,19 +1534,19 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           })}
           <div className="m-home-group-footer">
             <span className="m-home-group-arrow"></span>
-            <span className="m-home-group-name">נטו</span>
+            <span className="m-home-group-name">{t('net')}</span>
             <span className={`m-home-group-actual ${net >= 0 ? '' : 'neg'}`}>&#x202A;{net < 0 ? '−' : ''}{Math.abs(net).toLocaleString()}&#x202C;</span>
             <span className="m-home-group-budget">&#x202A;{forecastBalance < 0 ? '−' : ''}{Math.abs(forecastBalance).toLocaleString()}&#x202C;</span>
           </div>
           <div className="m-home-group-footer m-home-balance-row">
             <span className="m-home-group-arrow"></span>
-            <span className="m-home-group-name">יתרת סגירה</span>
+            <span className="m-home-group-name">{t('closingBalance')}</span>
             {(() => { const b = getRunningBalance(vm); const isManual = openingBalance?.month === vm; return <span className={`m-home-group-actual ${b >= 0 ? '' : 'neg'} ${isManual ? 'manual-balance' : ''}`}>{isManual && <span className="m-manual-pin">📌</span>}&#x202A;{b < 0 ? '−' : ''}{Math.abs(b).toLocaleString()}&#x202C;</span> })()}
             <span className="m-home-group-budget"></span>
           </div>
           <div className="m-forecast-expand-hint" onClick={() => {
             setExpandedGroups(new Set(categories.map(c => c.groupId)))
-          }}>מפורט ›</div>
+          }}>{t('detailedHint')}</div>
         </div>
         ) : (
         /* ── VIEW 2: month vs month ── */
@@ -1608,7 +1608,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           {/* Net footer */}
           <div className="m-home-group-footer">
             <span className="m-home-group-arrow"></span>
-            <span className="m-mm-name">נטו</span>
+            <span className="m-mm-name">{t('net')}</span>
             <div className="m-mm-header-months scrollable">
               {monthCols.map(m => {
                 const { net: n } = getMonthTotals(m)
@@ -1619,7 +1619,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           {/* Closing balance */}
           <div className="m-home-group-footer m-home-balance-row">
             <span className="m-home-group-arrow"></span>
-            <span className="m-mm-name">יתרת סגירה</span>
+            <span className="m-mm-name">{t('closingBalance')}</span>
             <div className="m-mm-header-months scrollable">
               {monthCols.map(m => {
                 const b = getRunningBalance(m)
@@ -1641,7 +1641,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 <polyline points="7 3 7 8 15 8"/>
               </svg>
             </span>
-            <span>שמור</span>
+            <span>{t('saveLabel')}</span>
           </button>
           <button className="m-hab-btn" onClick={() => setScreen('forecast-chart')}>
             <span className="m-hab-icon">
@@ -1650,7 +1650,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>
               </svg>
             </span>
-            <span>גרף</span>
+            <span>{t('chartLabel')}</span>
           </button>
           <button className="m-hab-btn" onClick={() => setScreen('forecast')}>
             <span className="m-hab-icon">
@@ -1663,7 +1663,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 <line x1="3" y1="18" x2="3.01" y2="18"/>
               </svg>
             </span>
-            <span>יתרות סגירה ונטו</span>
+            <span>{t('closingAndNet')}</span>
           </button>
         </div>
 
@@ -1682,7 +1682,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <button onClick={() => setScreen('hub')}
             style={{ padding: '10px 20px', background: 'linear-gradient(135deg,#6366F1,#8B5CF6)', color: 'white', border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(99,102,241,0.3)', display: 'flex', alignItems: 'center', gap: 6 }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-            כל העולמות
+            {t('allWorlds')}
           </button>
         </div>
 
@@ -1729,7 +1729,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       <div className="m-screen">
         <div className="m-header">
           <DexcelLogo />
-          <span className="m-header-title">יתרות סגירה ונטו</span>
+          <span className="m-header-title">{t('closingAndNet')}</span>
           <div style={{ width: 60 }} />
         </div>
         
@@ -1739,13 +1739,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             className={`m-forecast-tab ${forecastView === 'current' ? 'active' : ''}`}
             onClick={() => setForecastView('current')}
           >
-            נוכחי
+            {t('currentLabel')}
           </button>
           <button 
             className={`m-forecast-tab ${forecastView === 'history' ? 'active' : ''}`}
             onClick={() => setForecastView('history')}
           >
-            היסטוריה
+            {t('historyLabel')}
           </button>
         </div>
         
@@ -1753,8 +1753,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <>
             <div className="m-table-header">
               <div className="m-row-month" style={{visibility:'hidden'}}><span className="m-row-month-name">00/00</span></div>
-              <span className="m-th-val col-forecast">יתרת סגירה</span>
-              <span className="m-th-val col-net">נטו חודשי</span>
+              <span className="m-th-val col-forecast">{t('closingBalance')}</span>
+              <span className="m-th-val col-net">{t('monthlyNet')}</span>
             </div>
             <div className="m-forecast-table" style={{ overflowY: 'auto', flex: 1 }}>
               {months.slice(Math.max(0, currentIdx)).map((month, i) => {
@@ -1766,7 +1766,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   <div key={month} className={`m-table-row ${isCurrent ? 'current' : ''}`}>
                     <div className="m-row-month">
                       <span className="m-row-month-name">
-                        {month}{isCurrent ? ' (נוכחי)' : i === 1 ? ' (הבא)' : ''}
+                        {month}{isCurrent ? ` (${t('currentMonthTag')})` : i === 1 ? ` (${t('nextMonthTag')})` : ''}
                       </span>
                     </div>
                     <span className={`m-row-val col-forecast ${balance < 0 ? 'neg' : ''} ${isManual ? 'manual-balance' : ''}`}>
@@ -1853,7 +1853,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       <div className="m-screen">
         <div className="m-header">
           <DexcelLogo />
-          <span className="m-header-title">תחזית מול ביצוע</span>
+          <span className="m-header-title">{t('forecastVsActual')}</span>
           <div className="m-header-actions">
             <button className="m-icon-btn" onClick={() => setScreen('detail')} title="עדכן תחזית">📋</button>
             <button className="m-icon-btn m-icon-btn-add" onClick={openQuickAdd} title="עדכן הוצאה">＋</button>
@@ -1901,7 +1901,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       <div className="m-screen">
         <div className="m-header">
           <DexcelLogo />
-          <span className="m-header-title">{group ? group.name : 'כל ההוצאות'}</span>
+          <span className="m-header-title">{group ? group.name : t('allExpenses')}</span>
           <div style={{ width: 40 }} />
         </div>
 
@@ -1988,7 +1988,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       <div className="m-screen">
         <div className="m-header">
           <DexcelLogo />
-          <span className="m-header-title">📉 גרף תחזית</span>
+          <span className="m-header-title">📉 {t('forecastChartTitle')}</span>
           <button className="m-icon-btn" onClick={saveSnapshot} title="שמור תחזית">💾</button>
         </div>
         <div className="m-chart-wrap">
@@ -2058,7 +2058,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       <div className="m-screen">
         <div className="m-header">
           <DexcelLogo />
-          <span className="m-header-title">📊 גרף נטו חודשי</span>
+          <span className="m-header-title">📊 {t('netChartTitle')}</span>
           <div style={{width:40}} />
         </div>
         <div className="m-chart-wrap">
@@ -7158,7 +7158,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       {screen === 'net-chart' && <NetChartScreen />}
       {screen === 'mortgage-calc' && <MortgageCalculator />}
       {screen === 'time-tracking' && <TimeTrackingScreen />}
-      {screen === 'property-management' && <PropertyManagement uid={uid} onBack={() => setScreen('hub')} onLogoClick={handleLogoClick} backHandlerRef={pmBackHandlerRef} />}
+      {screen === 'property-management' && <PropertyManagement uid={uid} lang={lang} onBack={() => setScreen('hub')} onLogoClick={handleLogoClick} backHandlerRef={pmBackHandlerRef} />}
       {renderCatMgmt()}
       {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} userEmail={userEmail} />}
       {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}

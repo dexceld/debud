@@ -1,5 +1,6 @@
 ﻿import React, { useState, useEffect, useRef } from 'react'
 import { useFirebaseSync } from '../hooks/useFirebaseSync'
+import { tt, type Lang } from '../i18n/timeTracking'
 
 /* ─── Types ─────────────────────────────────────────────────── */
 export type Property = {
@@ -104,9 +105,10 @@ const getMonthsInRange = (start: string, end: string): string[] => {
 }
 
 /* ─── Component ──────────────────────────────────────────────── */
-type Props = { uid: string | null; onBack: () => void; onLogoClick?: () => void; backHandlerRef?: React.MutableRefObject<(() => boolean) | null> }
+type Props = { uid: string | null; lang?: Lang; onBack: () => void; onLogoClick?: () => void; backHandlerRef?: React.MutableRefObject<(() => boolean) | null> }
 
-export function PropertyManagement({ uid, onBack, onLogoClick, backHandlerRef }: Props) {
+export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, backHandlerRef }: Props) {
+  const t = (key: keyof typeof tt.he): string => (tt[lang] as typeof tt.he)[key] as string
   const lsKey = (k: string) =>
     uid ? `bva_${uid.slice(0,8)}_pm_${k}` : `bva_local_pm_${k}`
 
@@ -714,7 +716,7 @@ export function PropertyManagement({ uid, onBack, onLogoClick, backHandlerRef }:
         <button style={{ background:'none', border:'none', cursor:'pointer', padding:'0 4px', display:'flex', alignItems:'center', height:32 }} onClick={onLogoClick ?? onBack}>
           <img src="/Trn color.png" alt="חזור" style={{ height:22 }} />
         </button>
-        <span style={{ fontWeight:700, fontSize:17, flex:1 }}>🏠 נכסים</span>
+        <span style={{ fontWeight:700, fontSize:17, flex:1 }}>🏠 {t('tabProperties')}</span>
         <button type="button" onClick={() => { setDocSearchQuery(''); setPropView('docs') }}
           style={{ background:'#F5F3FF', border:'none', borderRadius:8, padding:'6px 10px', color:'#7C3AED', fontWeight:700, cursor:'pointer', fontSize:12, marginLeft:6 }}>
           📄 {docs.length > 0 ? docs.length : ''}
@@ -727,8 +729,8 @@ export function PropertyManagement({ uid, onBack, onLogoClick, backHandlerRef }:
         {properties.length===0 ? (
           <div style={{ textAlign:'center', padding:'60px 20px', color:'#9CA3AF' }}>
             <div style={{ fontSize:48, marginBottom:12 }}>🏠</div>
-            <div style={{ fontWeight:700, fontSize:16, color:'#374151', marginBottom:6 }}>אין נכסים עדיין</div>
-            <div style={{ fontSize:14 }}>לחץ "+ נכס" להתחלה</div>
+            <div style={{ fontWeight:700, fontSize:16, color:'#374151', marginBottom:6 }}>{t('noPropertiesYet')}</div>
+            <div style={{ fontSize:14 }}>{t('clickToAddProperty')}</div>
           </div>
         ) : properties.map(p => {
           const allPropTn = tenancies.filter(t=>t.propertyId===p.id)
@@ -761,9 +763,9 @@ export function PropertyManagement({ uid, onBack, onLogoClick, backHandlerRef }:
       </div>
       {properties.length>0 && (
         <div style={{ background:'white', borderTop:'1px solid #E5E7EB', padding:'12px 20px', display:'flex', justifyContent:'space-around', flexShrink:0 }}>
-          <div style={{ textAlign:'center' }}><div style={{ fontSize:18, fontWeight:700 }}>{properties.length}</div><div style={{ fontSize:11, color:'#6B7280' }}>נכסים</div></div>
-          <div style={{ textAlign:'center' }}><div style={{ fontSize:18, fontWeight:700, color:'#22C55E' }}>{fmtMoney(properties.reduce((s,p)=>s+p.monthlyRent,0))}</div><div style={{ fontSize:11, color:'#6B7280' }}>שכ"ד חודשי</div></div>
-          <div style={{ textAlign:'center' }}><div style={{ fontSize:18, fontWeight:700, color:'#6366F1' }}>{properties.filter(p=>tenancies.some(t=>t.propertyId===p.id&&getTenancyStatus(t)==='active')).length}</div><div style={{ fontSize:11, color:'#6B7280' }}>מושכרים</div></div>
+          <div style={{ textAlign:'center' }}><div style={{ fontSize:18, fontWeight:700 }}>{properties.length}</div><div style={{ fontSize:11, color:'#6B7280' }}>{t('propertiesCount')}</div></div>
+          <div style={{ textAlign:'center' }}><div style={{ fontSize:18, fontWeight:700, color:'#22C55E' }}>{fmtMoney(properties.reduce((s,p)=>s+p.monthlyRent,0))}</div><div style={{ fontSize:11, color:'#6B7280' }}>{t('monthlyRentKpi')}</div></div>
+          <div style={{ textAlign:'center' }}><div style={{ fontSize:18, fontWeight:700, color:'#6366F1' }}>{properties.filter(p=>tenancies.some(tn=>tn.propertyId===p.id&&getTenancyStatus(tn)==='active')).length}</div><div style={{ fontSize:11, color:'#6B7280' }}>{t('rentedCount')}</div></div>
         </div>
       )}
     </>
@@ -996,7 +998,7 @@ export function PropertyManagement({ uid, onBack, onLogoClick, backHandlerRef }:
           <button style={{ background:'none', border:'none', cursor:'pointer', padding:'0 4px', display:'flex', alignItems:'center', height:32 }} onClick={goToPmMain}>
             <img src="/Trn color.png" alt="חזור" style={{ height:22 }} />
           </button>
-          <span style={{ fontWeight:700, fontSize:17, flex:1 }}>👤 שוכרים</span>
+          <span style={{ fontWeight:700, fontSize:17, flex:1 }}>👤 {t('tabTenants')}</span>
           <button style={BTN_P} onClick={() => {
             setTenantFormId(null); setTenantForm({name:'',phone:'',email:'',extraPhones:[],notes:'',status:'lead',interestedPropertyId:null}); setTenantView('edit')
           }}>+ שוכר</button>
@@ -1005,7 +1007,7 @@ export function PropertyManagement({ uid, onBack, onLogoClick, backHandlerRef }:
           {tenants.length===0 ? (
             <div style={{ textAlign:'center', padding:'60px 20px', color:'#9CA3AF' }}>
               <div style={{ fontSize:48, marginBottom:12 }}>👤</div>
-              <div style={{ fontWeight:700, fontSize:16, color:'#374151' }}>אין שוכרים עדיין</div>
+              <div style={{ fontWeight:700, fontSize:16, color:'#374151' }}>{t('noTenantsYet')}</div>
             </div>
           ) : (['lead','active','past'] as Tenant['status'][]).map(status => {
             const group = tenants.filter(t=>t.status===status)
@@ -1072,7 +1074,7 @@ export function PropertyManagement({ uid, onBack, onLogoClick, backHandlerRef }:
           <button style={{ background:'none', border:'none', cursor:'pointer', padding:'0 4px', display:'flex', alignItems:'center', height:32 }} onClick={goToPmMain}>
             <img src="/Trn color.png" alt="חזור" style={{ height:22 }} />
           </button>
-          <span style={{ fontWeight:700, fontSize:17, flex:1 }}>✅ משימות</span>
+          <span style={{ fontWeight:700, fontSize:17, flex:1 }}>✅ {t('tabTasks')}</span>
           {open.length>0 && <span style={{ background:'#EF4444', color:'white', borderRadius:20, padding:'2px 10px', fontSize:12, fontWeight:700, marginLeft:4 }}>{open.length}</span>}
           <button style={BTN_P} onClick={() => {
             const title = prompt('כותרת המשימה')
@@ -1084,7 +1086,7 @@ export function PropertyManagement({ uid, onBack, onLogoClick, backHandlerRef }:
           {open.length===0 && (
             <div style={{ textAlign:'center', padding:'60px 20px', color:'#9CA3AF' }}>
               <div style={{ fontSize:48 }}>✅</div>
-              <div style={{ fontWeight:700, fontSize:16, color:'#374151', marginTop:12 }}>אין משימות פתוחות</div>
+              <div style={{ fontWeight:700, fontSize:16, color:'#374151', marginTop:12 }}>{t('noOpenTasks')}</div>
             </div>
           )}
           {GROUPS.map(g => {
@@ -1162,15 +1164,15 @@ export function PropertyManagement({ uid, onBack, onLogoClick, backHandlerRef }:
           <button style={{ background:'none', border:'none', cursor:'pointer', padding:'0 4px', display:'flex', alignItems:'center', height:32 }} onClick={goToPmMain}>
             <img src="/Trn color.png" alt="חזור" style={{ height:22 }} />
           </button>
-          <span style={{ fontWeight:700, fontSize:17, flex:1 }}>📊 דשבורד</span>
+          <span style={{ fontWeight:700, fontSize:17, flex:1 }}>📊 {t('tabDashboard')}</span>
         </div>
         <div style={SCROLL}>
           {/* KPI cards */}
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, marginBottom:16 }}>
             {[
-              { label:'שכ"ד חודשי', val:fmtMoney(totalMonthly), color:'#22C55E' },
-              { label:'שכ"ד שנתי',  val:fmtMoney(totalMonthly*12), color:'#6366F1' },
-              { label:'נכסים פנויים', val:String(vacant.length), color:vacant.length>0?'#EF4444':'#22C55E' },
+              { label: t('monthlyRentKpi'), val:fmtMoney(totalMonthly), color:'#22C55E' },
+              { label: t('annualRentKpi'),  val:fmtMoney(totalMonthly*12), color:'#6366F1' },
+              { label: t('vacantProperties'), val:String(vacant.length), color:vacant.length>0?'#EF4444':'#22C55E' },
             ].map(({label,val,color}) => (
               <div key={label} style={{ background:'white', borderRadius:12, padding:'12px 10px', border:'1px solid #E5E7EB', textAlign:'center' }}>
                 <div style={{ fontSize:16, fontWeight:700, color }}>{val}</div>
@@ -1181,7 +1183,7 @@ export function PropertyManagement({ uid, onBack, onLogoClick, backHandlerRef }:
 
           {/* Per-property income */}
           <div style={CARD}>
-            <div style={{ fontWeight:700, fontSize:14, marginBottom:12 }}>💰 הכנסות לפי נכס</div>
+            <div style={{ fontWeight:700, fontSize:14, marginBottom:12 }}>💰 {t('incomeByProperty')}</div>
             {properties.map(p => {
               const ct = rented.find(t=>t.propertyId===p.id)
               const ctn = ct ? tenants.find(t=>t.id===ct.tenantId) : null
@@ -1204,7 +1206,7 @@ export function PropertyManagement({ uid, onBack, onLogoClick, backHandlerRef }:
 
           {/* Gantt */}
           <div style={CARD}>
-            <div style={{ fontWeight:700, fontSize:14, marginBottom:12 }}>📅 לוח זמינות נכסים</div>
+            <div style={{ fontWeight:700, fontSize:14, marginBottom:12 }}>📅 {t('availabilityCalendar')}</div>
             <div style={{ overflowX:'auto' }}>
               <table style={{ borderCollapse:'collapse', minWidth:'100%', fontSize:11 }}>
                 <thead>
@@ -1258,10 +1260,10 @@ export function PropertyManagement({ uid, onBack, onLogoClick, backHandlerRef }:
      MAIN RENDER
   ════════════════════════════════════════ */
   const TABS = [
-    { id:'properties' as Tab, label:'נכסים',  icon:'🏠' },
-    { id:'tenants'    as Tab, label:'שוכרים', icon:'👤' },
-    { id:'tasks'      as Tab, label:'משימות', icon:'✅' },
-    { id:'dashboard'  as Tab, label:'דשבורד', icon:'📊' },
+    { id:'properties' as Tab, label: t('tabProperties'), icon:'🏠' },
+    { id:'tenants'    as Tab, label: t('tabTenants'),    icon:'👤' },
+    { id:'tasks'      as Tab, label: t('tabTasks'),      icon:'✅' },
+    { id:'dashboard'  as Tab, label: t('tabDashboard'),  icon:'📊' },
   ]
   const openTaskCount = tasks.filter(t=>!t.done).length
 
