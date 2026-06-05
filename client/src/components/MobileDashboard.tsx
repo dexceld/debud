@@ -7192,7 +7192,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       <QuickTimeEntryModal />
       <AddTimeEntryModal />
       {/* Global Floating Action Buttons */}
-      {showFabsTime && !quickTimeEntryOpen && !addTimeEntryOpen && !addClientOpen && !addEmployeeOpen && !bulkActionOpen && (
+      {(screen === 'time-tracking' || (screen === 'hub' && showFabsTime)) && !quickTimeEntryOpen && !addTimeEntryOpen && !addClientOpen && !addEmployeeOpen && !bulkActionOpen && (
         <div
           style={{ position: 'fixed', left: fabPos.x, top: fabPos.y, display: 'flex', flexDirection: 'column', gap: 10, zIndex: 100, touchAction: 'none' }}
           onTouchStart={(e) => {
