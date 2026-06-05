@@ -3527,14 +3527,14 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               onClick={startTimer}
               disabled={timerRunning}
             >
-              ▶ התחלה
+              ▶ {t('startLabel')}
             </button>
             <button
               className="m-timer-btn m-timer-stop"
               onClick={stopTimer}
               disabled={!timerRunning}
             >
-              ⏹ סיום
+              ⏹ {t('endLabel')}
             </button>
           </div>
 
@@ -6404,12 +6404,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               )}
               <div style={{borderTop: '1px solid #F3F4F6', margin: '12px 0'}} />
               <div style={{display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F3F4F6'}}>
-                <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>התחלה</div>
+                <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>{t('startLabel')}</div>
                 <button onClick={() => setDatePickerOpen(true)} style={{flex: 1, textAlign: 'right', border: 'none', background: 'none', fontSize: 17, fontWeight: 700, color: entryFormStartDate ? '#111827' : '#9CA3AF', cursor: 'pointer'}}>{entryFormStartDate || 'בחר תאריך'}</button>
                 <button onClick={() => { setTimePickerTarget('start'); setTimePickerOpen(true) }} style={{minWidth: 70, textAlign: 'left', border: 'none', background: 'none', fontSize: 17, fontWeight: 700, color: entryFormStartTime ? '#1d4ed8' : '#9CA3AF', cursor: 'pointer'}}>{entryFormStartTime || 'שעה'}</button>
               </div>
               <div style={{display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F3F4F6'}}>
-                <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>סיום</div>
+                <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>{t('endLabel')}</div>
                 <button onClick={() => setDatePickerOpen(true)} style={{flex: 1, textAlign: 'right', border: 'none', background: 'none', fontSize: 17, fontWeight: 700, color: entryFormEndDate ? '#111827' : '#9CA3AF', cursor: 'pointer'}}>{entryFormEndDate || 'בחר תאריך'}</button>
                 <button onClick={() => { setTimePickerTarget('end'); setTimePickerOpen(true) }} style={{minWidth: 70, textAlign: 'left', border: 'none', background: 'none', fontSize: 17, fontWeight: 700, color: entryFormEndTime ? '#1d4ed8' : '#9CA3AF', cursor: 'pointer'}}>{entryFormEndTime || 'שעה'}</button>
               </div>
@@ -6597,7 +6597,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
           {/* START row */}
           <div style={{display: 'flex', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #F3F4F6'}}>
-            <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>התחלה</div>
+            <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>{t('startLabel')}</div>
             <button onClick={() => { setDatePickerOpen(true); setFieldErrors(prev => ({...prev, date: false})) }}
               style={{flex: 1, textAlign: 'right', border: 'none', background: 'none', fontSize: 17, fontWeight: 700,
                 color: fieldErrors.date ? '#DC2626' : entryFormStartDate ? '#111827' : '#9CA3AF', cursor: 'pointer'}}>
@@ -6612,7 +6612,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
           {/* END row */}
           <div style={{display: 'flex', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #F3F4F6'}}>
-            <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>סיום</div>
+            <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>{t('endLabel')}</div>
             <button onClick={() => { setDatePickerOpen(true); setFieldErrors(prev => ({...prev, date: false})) }}
               style={{flex: 1, textAlign: 'right', border: 'none', background: 'none', fontSize: 17, fontWeight: 700,
                 color: entryFormEndDate ? '#111827' : '#9CA3AF', cursor: 'pointer'}}>
