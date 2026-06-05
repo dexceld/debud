@@ -1354,12 +1354,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             ⓘ {t('about')}
           </button>
           <button onClick={async () => {
-            if (!window.confirm(isLocalMode ? 'לצאת ממצב לקוח?' : 'להתנתק?')) return
+            if (!window.confirm(isLocalMode ? t('leaveLocalMode') : t('logoutConfirm'))) return
             if (isLocalMode) { localStorage.removeItem('bva_local_mode') }
             else { await flushAllSaves(); await new Promise(r => setTimeout(r, 500)); await signOutUser().catch(() => {}) }
             window.location.reload()
           }} style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}>
-            התנתק
+            {t('logout')}
           </button>
         </div>
         {successToast && <div className="m-save-toast"><span className="m-save-toast-icon">✓</span><span>{successToast}</span></div>}
@@ -4252,7 +4252,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
         </div>
-        <span className="m-hbtn-label">חדש</span>
+        <span className="m-hbtn-label">{t('newLabel')}</span>
       </button>
     )
 
@@ -6047,7 +6047,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               ₪{netPerHour.toFixed(2)}
             </div>
             <div style={{fontSize: 12, color: '#6B7280', marginTop: 1}}>
-              (תעריף {rate.toFixed(0)} + מע"מ {vat}% = ₪{grossPerHour.toFixed(2)} ברוטו, מינוס מס הכנסה {incomeTax}%)
+              {(tt[lang].calcBreakdown as (r:number,v:number,g:string,tax:number)=>string)(rate, vat, grossPerHour.toFixed(2), incomeTax)}
             </div>
           </div>
 
@@ -6999,18 +6999,18 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         <div className="m-overlay" onClick={closeModal} />
         <div className="m-top-sheet">
           <div className="m-sheet-header">
-            <h2>{editEmployeeId ? 'עריכת עובד' : 'עובד חדש'}</h2>
+            <h2>{editEmployeeId ? t('editEmployee') : t('newEmployee')}</h2>
             <button className="m-close-btn" onClick={closeModal}>✕</button>
           </div>
 
           <div className="m-mortgage-field">
-            <label>שם העובד</label>
+            <label>{t('employeeName')}</label>
             <input 
               ref={nameRef}
               type="text"
               defaultValue={employeeFormName}
               onBlur={e => setEmployeeFormName(e.target.value)}
-              placeholder="שם העובד"
+              placeholder={t('employeeName')}
             />
           </div>
 
@@ -7027,7 +7027,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           </div>
 
           <div className="m-mortgage-field">
-            <label>לקוחות מקושרים</label>
+            <label>{t('linkedClients')}</label>
             <div style={{marginTop: 8, maxHeight: '200px', overflow: 'auto', paddingRight: '4px'}}>
               {clients.length === 0 ? (
                 <div style={{fontSize: 14, color: '#999'}}>אין לקוחות עדיין</div>
