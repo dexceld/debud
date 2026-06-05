@@ -21,37 +21,61 @@ type Group = {
   icon: string
 }
 
-const initialGroups: Group[] = [
-  { id: 'g1', name: 'דיור',           color: '#E0F2FE', icon: '🏠' },
-  { id: 'g2', name: 'רכב',            color: '#FEF3C7', icon: '🚗' },
-  { id: 'g4', name: 'עלויות כלליות', color: '#FCE7F3', icon: '🛒' },
-  { id: 'g6', name: 'בריאות',         color: '#E0E7FF', icon: '🏥' },
-  { id: 'g5', name: 'הכנסות',         color: '#D1FAE5', icon: '💰' },
-]
+const initialGroups: Record<'he'|'en', Group[]> = {
+  he: [
+    { id: 'g1', name: 'דיור',           color: '#E0F2FE', icon: '🏠' },
+    { id: 'g2', name: 'רכב',            color: '#FEF3C7', icon: '🚗' },
+    { id: 'g4', name: 'עלויות כלליות', color: '#FCE7F3', icon: '🛒' },
+    { id: 'g6', name: 'בריאות',         color: '#E0E7FF', icon: '🏥' },
+    { id: 'g5', name: 'הכנסות',         color: '#D1FAE5', icon: '💰' },
+  ],
+  en: [
+    { id: 'g1', name: 'Housing',  color: '#E0F2FE', icon: '🏠' },
+    { id: 'g2', name: 'Car',      color: '#FEF3C7', icon: '🚗' },
+    { id: 'g4', name: 'General',  color: '#FCE7F3', icon: '🛒' },
+    { id: 'g6', name: 'Health',   color: '#E0E7FF', icon: '🏥' },
+    { id: 'g5', name: 'Income',   color: '#D1FAE5', icon: '💰' },
+  ],
+}
 
-const initialCategories: Category[] = [
-  // דיור
-  { id: 'c1', groupId: 'g1', name: 'משכנתא', budget: 4500 },
-  { id: 'c1b', groupId: 'g1', name: 'שכ"ד', budget: 0 },
-  { id: 'c1c', groupId: 'g1', name: 'מים', budget: 150 },
-  { id: 'c2', groupId: 'g1', name: 'ארנונה', budget: 450 },
-  { id: 'c3', groupId: 'g1', name: 'חשמל', budget: 450 },
-  { id: 'c3b', groupId: 'g1', name: 'גז', budget: 80 },
-  { id: 'c3c', groupId: 'g1', name: 'אינטרנט', budget: 100 },
-  { id: 'c3d', groupId: 'g1', name: 'דיסני פלוס', budget: 35 },
-  { id: 'c3e', groupId: 'g1', name: 'סלקום', budget: 200 },
-  // רכב
-  { id: 'c4', groupId: 'g2', name: 'דלק', budget: 2750 },
-  { id: 'c5', groupId: 'g2', name: 'טיפולים', budget: 112 },
-  // עלויות כלליות
-  { id: 'c20', groupId: 'g4', name: 'מזון', budget: 4000 },
-  { id: 'c21', groupId: 'g4', name: 'הלוואות', budget: 364 },
-  // בריאות
-  { id: 'c24', groupId: 'g6', name: 'ביטוח בריאות', budget: 400 },
-  { id: 'c25', groupId: 'g6', name: 'קופ"ח', budget: 120 },
-  // הכנסות
-  { id: 'c23', groupId: 'g5', name: 'משכורת', budget: -15000 },
-]
+const initialCategories: Record<'he'|'en', Category[]> = {
+  he: [
+    { id: 'c1',  groupId: 'g1', name: 'משכנתא',        budget: 4500  },
+    { id: 'c1b', groupId: 'g1', name: 'שכ"ד',           budget: 0     },
+    { id: 'c1c', groupId: 'g1', name: 'מים',             budget: 150   },
+    { id: 'c2',  groupId: 'g1', name: 'ארנונה',          budget: 450   },
+    { id: 'c3',  groupId: 'g1', name: 'חשמל',            budget: 450   },
+    { id: 'c3b', groupId: 'g1', name: 'גז',              budget: 80    },
+    { id: 'c3c', groupId: 'g1', name: 'אינטרנט',         budget: 100   },
+    { id: 'c3d', groupId: 'g1', name: 'דיסני פלוס',      budget: 35    },
+    { id: 'c3e', groupId: 'g1', name: 'סלקום',           budget: 200   },
+    { id: 'c4',  groupId: 'g2', name: 'דלק',             budget: 2750  },
+    { id: 'c5',  groupId: 'g2', name: 'טיפולים',         budget: 112   },
+    { id: 'c20', groupId: 'g4', name: 'מזון',             budget: 4000  },
+    { id: 'c21', groupId: 'g4', name: 'הלוואות',          budget: 364   },
+    { id: 'c24', groupId: 'g6', name: 'ביטוח בריאות',    budget: 400   },
+    { id: 'c25', groupId: 'g6', name: 'קופ"ח',            budget: 120   },
+    { id: 'c23', groupId: 'g5', name: 'משכורת',           budget: -15000 },
+  ],
+  en: [
+    { id: 'c1',  groupId: 'g1', name: 'Mortgage',        budget: 4500  },
+    { id: 'c1b', groupId: 'g1', name: 'Rent',             budget: 0     },
+    { id: 'c1c', groupId: 'g1', name: 'Water',            budget: 150   },
+    { id: 'c2',  groupId: 'g1', name: 'Property Tax',     budget: 450   },
+    { id: 'c3',  groupId: 'g1', name: 'Electricity',      budget: 450   },
+    { id: 'c3b', groupId: 'g1', name: 'Gas',              budget: 80    },
+    { id: 'c3c', groupId: 'g1', name: 'Internet',         budget: 100   },
+    { id: 'c3d', groupId: 'g1', name: 'Disney+',          budget: 35    },
+    { id: 'c3e', groupId: 'g1', name: 'Mobile',           budget: 200   },
+    { id: 'c4',  groupId: 'g2', name: 'Fuel',             budget: 2750  },
+    { id: 'c5',  groupId: 'g2', name: 'Maintenance',      budget: 112   },
+    { id: 'c20', groupId: 'g4', name: 'Groceries',        budget: 4000  },
+    { id: 'c21', groupId: 'g4', name: 'Loans',            budget: 364   },
+    { id: 'c24', groupId: 'g6', name: 'Health Insurance', budget: 400   },
+    { id: 'c25', groupId: 'g6', name: 'HMO',              budget: 120   },
+    { id: 'c23', groupId: 'g5', name: 'Salary',           budget: -15000 },
+  ],
+}
 
 const generateMonths = () => {
   const months: string[] = []
@@ -143,11 +167,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
   const [groups, setGroups] = useState<Group[]>(() => {
     const saved = localStorage.getItem(lsKey('groups'))
-    return saved ? JSON.parse(saved) : initialGroups
+    return saved ? JSON.parse(saved) : initialGroups[lang]
   })
   const [categories, setCategories] = useState<Category[]>(() => {
     const saved = localStorage.getItem(lsKey('categories'))
-    return saved ? JSON.parse(saved) : initialCategories
+    return saved ? JSON.parse(saved) : initialCategories[lang]
   })
   const [forecasts, setForecasts] = useState<Record<string, Record<string, number>>>(() => {
     const saved = localStorage.getItem(lsKey('forecasts'))
