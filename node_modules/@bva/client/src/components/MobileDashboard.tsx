@@ -1145,7 +1145,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <button className="m-accordion-header m-income-header" onClick={() => toggleGroup('g5')}>
               <div className="m-acc-left">
                 <span className="m-acc-arrow">{incomeExpanded ? '▾' : '▸'}</span>
-                <span className="m-acc-income-badge">הכנסות</span>
+                <span className="m-acc-income-badge">{t('incomeBadge')}</span>
               </div>
               <div className="m-acc-right">
                 <span className="m-acc-budget">&#x202A;{incomeBudget.toLocaleString()}&#x202C;</span>
@@ -1260,7 +1260,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
-          <span className="m-fab-inner-label">בפועל</span>
+          <span className="m-fab-inner-label">{t('actualLabel')}</span>
         </button>
         <button
           className="m-fab-glass forecast m-fab-with-label"
@@ -1273,7 +1273,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
           </svg>
-          <span className="m-fab-inner-label">תחזית</span>
+          <span className="m-fab-inner-label">{t('forecastLabel')}</span>
         </button>
       </div>
     )
@@ -1432,15 +1432,15 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           <div className="m-header-actions">
             <button className="m-hbtn m-hbtn-gear" onClick={() => setCatMgmtOpen(true)}>
               <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" /></svg>
-              <span className="m-hbtn-label">הגדרות</span>
+              <span className="m-hbtn-label">{t('settingsTitle')}</span>
             </button>
             <button className="m-hbtn" onClick={() => setFeedbackOpen(true)} title="שלח הערה">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-              <span className="m-hbtn-label">הערה</span>
+              <span className="m-hbtn-label">{t('noteBtn')}</span>
             </button>
             <button className="m-hbtn" onClick={() => setShowExitConfirm(true)} title="יציאה" style={{color: '#DC2626'}}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
-              <span className="m-hbtn-label">יציאה</span>
+              <span className="m-hbtn-label">{t('exitBtn')}</span>
             </button>
           </div>
         </div>
@@ -1448,9 +1448,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         {/* Sync error banner */}
         {!isLocalMode && syncStatus.includes('error') && (
           <div style={{margin:'8px 12px 0',padding:'10px 14px',background:'#FEF2F2',border:'1px solid #FECACA',borderRadius:10,direction:'rtl'}}>
-            <div style={{fontSize:13,fontWeight:600,color:'#DC2626',marginBottom:4}}>⚠️ בעיית סנכרון עם הענן</div>
-            <div style={{fontSize:11,color:'#7F1D1D',lineHeight:1.5}}>{syncError || 'הנתונים נשמרים מקומית בלבד'}</div>
-            <div style={{fontSize:10,color:'#9CA3AF',marginTop:4}}>הנתונים שלך שמורים במכשיר. הסנכרון יתחדש כשהבעיה תיפתר.</div>
+            <div style={{fontSize:13,fontWeight:600,color:'#DC2626',marginBottom:4}}>⚠️ {t('syncErrorTitle')}</div>
+            <div style={{fontSize:11,color:'#7F1D1D',lineHeight:1.5}}>{syncError || t('syncLocalOnly')}</div>
+            <div style={{fontSize:10,color:'#9CA3AF',marginTop:4}}>{t('syncWillResume')}</div>
           </div>
         )}
 
@@ -1697,7 +1697,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         {saveFeedback && (
           <div className="m-save-toast">
             <span className="m-save-toast-icon">✓</span>
-            <span>נשמר בהצלחה!</span>
+            <span>{t('savedSuccess')}</span>
           </div>
         )}
 
@@ -1807,7 +1807,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           /* History View */
           <div className="m-history-view" style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
             {forecastSnapshots.length === 0 ? (
-              <div className="m-history-empty">אין היסטוריית שמירות עדיין</div>
+              <div className="m-history-empty">{t('noHistoryYet')}</div>
             ) : (
               <>
                 {/* Navigation */}
@@ -1817,7 +1817,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     disabled={historyIdx >= forecastSnapshots.length - 1}
                     onClick={() => setHistoryIdx(prev => Math.min(prev + 1, forecastSnapshots.length - 1))}
                   >
-                    ← ישנים יותר
+                    ← {t('olderLabel')}
                   </button>
                   <span className="m-history-counter">
                     {historyIdx + 1} / {forecastSnapshots.length}
@@ -1827,17 +1827,17 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     disabled={historyIdx <= 0}
                     onClick={() => setHistoryIdx(prev => Math.max(prev - 1, 0))}
                   >
-                    חדשים יותר →
+                    {t('newerLabel')} →
                   </button>
                 </div>
                 
                 {/* Show last 3 snapshots starting from historyIdx */}
                 <div className="m-history-table">
                   <div className="m-history-header">
-                    <span className="m-history-h-col">חודש</span>
+                    <span className="m-history-h-col">{t('monthCol')}</span>
                     {forecastSnapshots.slice(historyIdx, historyIdx + 3).reverse().map((snap, i) => (
                       <span key={snap.date} className="m-history-h-col">
-                        {i === 0 ? 'אחרון' : `${i} קודם`}
+                        {i === 0 ? t('lastSnapshot') : (tt[lang].prevSnapshot as (n:number)=>string)(i)}
                         <small>{snap.label}</small>
                       </span>
                     ))}
@@ -1903,7 +1903,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <div className="m-month-nav-center">
               <span className={`m-month-nav-month ${isCurrentM ? 'current' : ''}`}>
                 {new Date(2000 + Number(vm.slice(3)), Number(vm.slice(0,2)) - 1).toLocaleString('he-IL', { month: 'long', year: 'numeric' })}
-                {isCurrentM && <span className="m-month-current-tag"> · חודש נוכחי</span>}
+                {isCurrentM && <span className="m-month-current-tag"> · {t('currentMonthLabel')}</span>}
               </span>
             </div>
             <button className="m-nav-btn" disabled={viewMonthIdx >= months.length - 1} onClick={() => navigateMonth('next')}>›</button>
@@ -1946,8 +1946,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 {cat.name}
                 {menuCatId === cat.id && (
                   <div className="m-cat-menu">
-                    <button onClick={() => setMenuCatId(null)}>✏️ עדכון שם</button>
-                    <button className="danger" onClick={() => deleteCategory(cat.id)}>🗑️ מחיקה</button>
+                    <button onClick={() => setMenuCatId(null)}>✏️ {t('renameAction')}</button>
+                    <button className="danger" onClick={() => deleteCategory(cat.id)}>🗑️ {t('deleteAction')}</button>
                   </div>
                 )}
               </div>
@@ -2063,7 +2063,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           {/* X-axis year label */}
           <div className="m-chart-x-label">{chartMonths[0]?.slice(3) === chartMonths[chartMonths.length-1]?.slice(3) ? '20' + chartMonths[0]?.slice(3) : '20' + chartMonths[0]?.slice(3) + ' - 20' + chartMonths[chartMonths.length-1]?.slice(3)}</div>
           {forecastSnapshots.length > 0 && (
-            <button className="m-clear-snapshots" onClick={() => setForecastSnapshots([])}>מחק ניתוחים שמורים</button>
+            <button className="m-clear-snapshots" onClick={() => setForecastSnapshots([])}>{t('deleteSnapshotsBtn')}</button>
           )}
         </div>
       </div>
@@ -2127,7 +2127,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       <div className="m-ob-section">
         <div className="m-ob-form">
             <div className="m-ob-row">
-              <label className="m-ob-label">חודש סגירה</label>
+              <label className="m-ob-label">{t('closingMonthLabel')}</label>
               <select className="m-ob-select" value={selMonth} onChange={e => setSelMonth(e.target.value)}>
                 {months.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
@@ -2142,10 +2142,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 onChange={e => setSelAmount(e.target.value)}
               />
             </div>
-            <p className="m-ob-hint">היתרה תהיה נקודת ההתחלה לחישוב יתרות הסגירה מהחודש הבא ואילך.</p>
+            <p className="m-ob-hint">{t('balanceHint')}</p>
             <div className="m-ob-actions">
               <button className="m-catmgmt-save-btn" onClick={save}>✓ שמור</button>
-              {openingBalance && <button className="m-catmgmt-cancel-btn" style={{color:'#DC2626',borderColor:'#FCA5A5'}} onClick={clear}>אפס יתרה</button>}
+              {openingBalance && <button className="m-catmgmt-cancel-btn" style={{color:'#DC2626',borderColor:'#FCA5A5'}} onClick={clear}>{t('resetBalance')}</button>}
             </div>
           </div>
       </div>
@@ -2225,7 +2225,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       <div className="m-catmgmt-screen">
         <div className="m-catmgmt-topbar">
           <button className="m-catmgmt-back" onClick={closeAll}>✕</button>
-          <span className="m-catmgmt-topbar-title">הגדרות</span>
+          <span className="m-catmgmt-topbar-title">{t('settingsTitle')}</span>
           <div className="m-logo-block" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); handleLogoClick() }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', height: '100%' }} title="דף הבית"><img src="/Trn color.png" alt="Dexcel" style={{ height: 29, maxHeight: '85%' }} /></div>
         </div>
         <div className="m-settings-menu">
@@ -2234,8 +2234,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
             </span>
             <div className="m-settings-info">
-              <span className="m-settings-title">ניהול קטגוריות</span>
-              <span className="m-settings-sub">{categories.length} סעיפים ב-{groups.length} קבוצות</span>
+              <span className="m-settings-title">{t('catMgmtTitle')}</span>
+              <span className="m-settings-sub">{(tt[lang].catMgmtSub as (c:number,g:number)=>string)(categories.length, groups.length)}</span>
             </div>
             <svg className="m-settings-chevron-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C4C9D4" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
@@ -2244,8 +2244,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
             </span>
             <div className="m-settings-info">
-              <span className="m-settings-title">יתרת פתיחה / סגירה</span>
-              <span className="m-settings-sub">{openingBalance ? `${openingBalance.month}: ${openingBalance.amount.toLocaleString()} ₪` : 'לא מוגדר'}</span>
+              <span className="m-settings-title">{t('balanceSettingsTitle')}</span>
+              <span className="m-settings-sub">{openingBalance ? `${openingBalance.month}: ${openingBalance.amount.toLocaleString()} ₪` : t('notSetLabel')}</span>
             </div>
             <svg className="m-settings-chevron-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C4C9D4" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
@@ -2254,8 +2254,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="21 15 21 19 3 19 3 15"/><polyline points="17 9 12 4 7 9"/><line x1="12" y1="4" x2="12" y2="15"/></svg>
             </span>
             <div className="m-settings-info">
-              <span className="m-settings-title">גיבוי ושחזור</span>
-              <span className="m-settings-sub">ייצוא וייבוא נתונים</span>
+              <span className="m-settings-title">{t('backupTitle')}</span>
+              <span className="m-settings-sub">{t('backupSub')}</span>
             </div>
             <svg className="m-settings-chevron-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C4C9D4" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
@@ -2274,8 +2274,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             </span>
             <div className="m-settings-info">
-              <span className="m-settings-title" style={{color: '#DC2626'}}>{isLocalMode ? 'יציאה ממצב לקוח' : 'התנתקות'}</span>
-              <span className="m-settings-sub">{userEmail || 'יציאה מהמערכת'}</span>
+              <span className="m-settings-title" style={{color: '#DC2626'}}>{isLocalMode ? t('leaveLocalModeTitle') : t('signOutTitle')}</span>
+              <span className="m-settings-sub">{userEmail || t('systemExitSub')}</span>
             </div>
           </button>
         </div>
@@ -2285,10 +2285,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     /* ── MODULES PAGE ── */
     if (!drillGid && settingsPage === 'modules') {
       const ALL_MODULES: { id: AppModule; label: string; icon: string; desc: string; color: string }[] = [
-        { id: 'family-budget', label: 'תקציב משפחתי', icon: '💰', desc: 'מעקב הוצאות, תחזית ובפועל', color: '#6366F1' },
-        { id: 'time-tracking', label: 'דיווחי שעות', icon: '⏱', desc: 'לקוחות, עובדים ודוחות', color: '#10B981' },
-        { id: 'mortgage-calc', label: 'מחשבון משכנתא', icon: '🏠', desc: 'חישוב החזרי משכנתא', color: '#764BA2' },
-        { id: 'property-management', label: 'ניהול נכסים', icon: '🏢', desc: 'שוכרים, חוזים ותשלומים', color: '#F97316' },
+        { id: 'family-budget', label: t('familyBudgetLabel'), icon: '💰', desc: t('familyBudgetDesc'), color: '#6366F1' },
+        { id: 'time-tracking', label: t('timeTrackingLabel'), icon: '⏱', desc: t('timeTrackingDesc'), color: '#10B981' },
+        { id: 'mortgage-calc', label: t('mortgageLabel'), icon: '🏠', desc: t('mortgageDesc'), color: '#764BA2' },
+        { id: 'property-management', label: t('propertyLabel'), icon: '🏢', desc: t('propertyDesc'), color: '#F97316' },
       ]
       const toggleModule = (id: AppModule) => {
         const next = enabledModules.includes(id)
@@ -2312,12 +2312,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         <div className="m-catmgmt-screen">
           <div className="m-catmgmt-topbar">
             <button className="m-catmgmt-back" onClick={() => setSettingsPage('main')}>‹ חזרה</button>
-            <span className="m-catmgmt-topbar-title">עולמות פעילים</span>
+            <span className="m-catmgmt-topbar-title">{t('activeModulesTitle')}</span>
             <div className="m-logo-block" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); handleLogoClick() }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', height: '100%' }}><img src="/Trn color.png" alt="Dexcel" style={{ height: 29, maxHeight: '85%' }} /></div>
           </div>
           <div style={{ padding: '16px', background: '#F9FAFB', flex: 1, overflowY: 'auto' }}>
             <div style={{ fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>
-              בחר אילו עולמות יוצגו ומה יהיה מסך הבית. לפחות עולם אחד חייב להיות פעיל.
+              {t('modulesHint')}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
               {ALL_MODULES.map(m => {
@@ -2341,7 +2341,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     {isEnabled && (
                       <button onClick={() => setHome(m.id)}
                         style={{ marginTop: 10, width: '100%', padding: '8px', borderRadius: 8, border: `1.5px solid ${isHome ? m.color : '#E5E7EB'}`, background: isHome ? m.color + '15' : 'white', color: isHome ? m.color : '#6B7280', fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                        {isHome ? '🏠 מסך בית נוכחי' : '☆ הגדר כמסך בית'}
+                        {isHome ? t('currentHomeScreenBtn') : t('setAsHomeScreenBtn')}
                       </button>
                     )}
                   </div>
@@ -2361,14 +2361,14 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       <div className="m-catmgmt-screen">
         <div className="m-catmgmt-topbar">
           <button className="m-catmgmt-back" onClick={() => setSettingsPage('main')}>‹ חזרה</button>
-          <span className="m-catmgmt-topbar-title">כפתורים צפים</span>
+          <span className="m-catmgmt-topbar-title">{t('floatingButtons')}</span>
           <div className="m-logo-block" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); handleLogoClick() }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', height: '100%' }}><img src="/Trn color.png" alt="Dexcel" style={{ height: 29, maxHeight: '85%' }} /></div>
         </div>
         <div className="m-settings-menu">
           {[
-            { label: 'עדכון בפועל + תחזית', sub: 'כפתורי תקציב בדף הבית', val: showFabsBudget, set: setShowFabsBudget, color: '#6366F1' },
-            { label: 'דיווח שעות', sub: 'כפתור דיווח מהיר בשעון', val: showFabsTime, set: setShowFabsTime, color: '#D97706' },
-            { label: 'Voice to Text', sub: 'מיקרופון לפקודות קוליות', val: showFabsVoice, set: setShowFabsVoice, color: '#7C3AED' },
+            { label: t('fabBudgetLabel'), sub: t('fabBudgetSub'), val: showFabsBudget, set: setShowFabsBudget, color: '#6366F1' },
+            { label: t('timeTrackingLabel'), sub: t('fabTimeSub'), val: showFabsTime, set: setShowFabsTime, color: '#D97706' },
+            { label: 'Voice to Text', sub: t('voiceSub'), val: showFabsVoice, set: setShowFabsVoice, color: '#7C3AED' },
           ].map(({ label, sub, val, set, color }) => (
             <button key={label} className="m-settings-row" onClick={() => set((p: boolean) => !p)}>
               <div className="m-settings-info">
@@ -2403,18 +2403,18 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       <div className="m-catmgmt-screen">
         <div className="m-catmgmt-topbar">
           <button className="m-catmgmt-back" onClick={() => setSettingsPage('main')}>‹ חזרה</button>
-          <span className="m-catmgmt-topbar-title">גיבוי ושחזור</span>
+          <span className="m-catmgmt-topbar-title">{t('backupTitle')}</span>
           <div className="m-logo-block" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); handleLogoClick() }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', height: '100%' }} title="דף הבית"><img src="/Trn color.png" alt="Dexcel" style={{ height: 29, maxHeight: '85%' }} /></div>
         </div>
         <div style={{padding:'20px 16px',display:'flex',flexDirection:'column',gap:12}}>
-          <p style={{margin:0,fontSize:13,color:'#6B7280',lineHeight:1.5}}>הנתונים שמורים בדפדפן. מומלץ לגבות לקובץ JSON ולשמור ב-Google Drive / iCloud.</p>
+          <p style={{margin:0,fontSize:13,color:'#6B7280',lineHeight:1.5}}>{t('backupHint')}</p>
           <button className="m-catmgmt-backup-btn" style={{width:'100%',padding:'14px'}} onClick={exportData}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            גיבוי — ייצוא לקובץ
+            {t('backupExport')}
           </button>
           <label className="m-catmgmt-backup-btn m-catmgmt-restore-btn" style={{width:'100%',padding:'14px',boxSizing:'border-box'}}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 5 17 10"/><line x1="12" y1="5" x2="12" y2="17"/></svg>
-            שחזור — ייבוא מקובץ
+            {t('backupImport')}
             <input type="file" accept=".json" style={{display:'none'}} onChange={e => { if (e.target.files?.[0]) importData(e.target.files[0]) }} />
           </label>
         </div>
@@ -2709,13 +2709,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <div className="m-qi-action-row">
                 <button className="m-qi-big-btn m-qi-big-replace" disabled={!inlineSheetAmount} onClick={() => saveActual(false)}>
                   <span className="m-qi-big-icon">✏️</span>
-                  <span className="m-qi-big-label">עדכון</span>
-                  <span className="m-qi-big-hint">מחליף סכום</span>
+                  <span className="m-qi-big-label">{t('updateAction')}</span>
+                  <span className="m-qi-big-hint">{t('replaceAmountHint')}</span>
                 </button>
                 <button className="m-qi-big-btn m-qi-big-add" disabled={!inlineSheetAmount} onClick={() => saveActual(true)}>
                   <span className="m-qi-big-icon">➕</span>
-                  <span className="m-qi-big-label">הוספה</span>
-                  <span className="m-qi-big-hint">מוסיף לקיים</span>
+                  <span className="m-qi-big-label">{t('addAction')}</span>
+                  <span className="m-qi-big-hint">{t('addToExistingHint')}</span>
                 </button>
               </div>
             </>
