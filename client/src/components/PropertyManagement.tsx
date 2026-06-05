@@ -109,6 +109,8 @@ type Props = { uid: string | null; lang?: Lang; onBack: () => void; onLogoClick?
 
 export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, backHandlerRef }: Props) {
   const t = (key: keyof typeof tt.he): string => (tt[lang] as typeof tt.he)[key] as string
+  const numLocale = lang === 'he' ? 'he-IL' : 'en-US'
+  const fmt = (n: number) => `₪${n.toLocaleString(numLocale, {maximumFractionDigits: 0})}`
   const lsKey = (k: string) =>
     uid ? `bva_${uid.slice(0,8)}_pm_${k}` : `bva_local_pm_${k}`
 
@@ -508,8 +510,8 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
               {p.notes && <div style={{ marginTop:4, fontSize:12, color:'#92400E' }}>📝 {p.notes}</div>}
             </div>
             <div style={{ textAlign:'left' }}>
-              <div style={{ fontWeight:700, fontSize:16, color:'#111827' }}>{fmtMoney(p.monthlyRent)}</div>
-              {p.deposit>0 && <div style={{ fontSize:11, color:'#6B7280' }}>פיקדון {fmtMoney(p.deposit)}</div>}
+              <div style={{ fontWeight:700, fontSize:16, color:'#111827' }}>{fmt(p.monthlyRent)}</div>
+              {p.deposit>0 && <div style={{ fontSize:11, color:'#6B7280' }}>פיקדון {fmt(p.deposit)}</div>}
             </div>
           </div>
 
@@ -579,9 +581,9 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
                             <>
                               {/* Financial summary strip */}
                               <div style={{ display:'flex', gap:6, marginBottom:10, flexWrap:'wrap', alignItems:'center' }}>
-                                <span style={{ fontSize:12, background:'#ECFDF5', color:'#059669', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>💳 {fmtMoney(t.monthlyRent||p.monthlyRent)}/חודש</span>
-                                {t.deposit ? <span style={{ fontSize:12, background:'#EFF6FF', color:'#1D4ED8', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>💰 פיקדון: {fmtMoney(t.deposit)}</span> : <span style={{ fontSize:12, background:'#F3F4F6', color:'#9CA3AF', borderRadius:8, padding:'4px 10px' }}>💰 פיקדון: לא הוגדר</span>}
-                                {t.renewalRent ? <span style={{ fontSize:12, background:'#FAF5FF', color:'#5B21B6', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>🔄 חידוש: {fmtMoney(t.renewalRent)}</span> : <span style={{ fontSize:12, background:'#F3F4F6', color:'#9CA3AF', borderRadius:8, padding:'4px 10px' }}>🔄 חידוש: לא הוגדר</span>}
+                                <span style={{ fontSize:12, background:'#ECFDF5', color:'#059669', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>💳 {fmt(t.monthlyRent||p.monthlyRent)}/חודש</span>
+                                {t.deposit ? <span style={{ fontSize:12, background:'#EFF6FF', color:'#1D4ED8', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>💰 פיקדון: {fmt(t.deposit)}</span> : <span style={{ fontSize:12, background:'#F3F4F6', color:'#9CA3AF', borderRadius:8, padding:'4px 10px' }}>💰 פיקדון: לא הוגדר</span>}
+                                {t.renewalRent ? <span style={{ fontSize:12, background:'#FAF5FF', color:'#5B21B6', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>🔄 חידוש: {fmt(t.renewalRent)}</span> : <span style={{ fontSize:12, background:'#F3F4F6', color:'#9CA3AF', borderRadius:8, padding:'4px 10px' }}>🔄 חידוש: לא הוגדר</span>}
                                 {t.hasOption && <span style={{ fontSize:11, background:'#FEF3C7', color:'#92400E', borderRadius:8, padding:'3px 8px', fontWeight:700 }}>⭐ אופציה</span>}
                               </div>
                               {/* Contact info */}
@@ -594,7 +596,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
                               {/* Checklist + inline WA */}
                               <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:14 }}>
                                 {([
-                                  {k:'depositPaid' as const, l:'פיקדון התקבל', waIcon:'💰', waBg:'#EFF6FF', waBc:'#BFDBFE', waC:'#1D4ED8', waMsg:`שלום ${t_tnt.name}, תזכורת להעברת פיקדון (${fmtMoney(t.deposit ?? p.deposit)}) עבור ${p.name}. תודה 🙏`},
+                                  {k:'depositPaid' as const, l:'פיקדון התקבל', waIcon:'💰', waBg:'#EFF6FF', waBc:'#BFDBFE', waC:'#1D4ED8', waMsg:`שלום ${t_tnt.name}, תזכורת להעברת פיקדון (${fmt(t.deposit ?? p.deposit)}) עבור ${p.name}. תודה 🙏`},
                                   {k:'checksDelivered' as const, l:"צ'קים / אסמכתא", waIcon:'📑', waBg:'#FFF7ED', waBc:'#FED7AA', waC:'#C2410C', waMsg:`שלום ${t_tnt.name}, תזכורת לשלוח צ'קים / אסמכתה עבור ${p.name}. תודה 🙏`},
                                   {k:'contractSigned' as const, l:'חוזה חתום', waIcon:'✍️', waBg:'#F0FDF4', waBc:'#BBF7D0', waC:'#15803D', waMsg:`שלום ${t_tnt.name}, אנא חתום על חוזה השכירות עבור ${p.name} ושלח חזרה. תודה 🙏`},
                                 ]).map(({k,l,waIcon,waBg,waBc,waC,waMsg}) => {
@@ -662,7 +664,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
                                           {isCurr && <span style={{ fontSize:10, color:'#6366F1', marginRight:6, background:'#EEF2FF', borderRadius:10, padding:'1px 6px' }}>נוכחי</span>}
                                         </div>
                                         {isCurr && (
-                                          <button type="button" onClick={() => t_tnt.phone ? sendWA(t_tnt.phone, `שלום ${t_tnt.name}, תזכורת לתשלום שכ"ד חודש ${monthLabel(m)} עבור ${p.name}: ${fmtMoney(t.monthlyRent||p.monthlyRent)}. תודה 🙏`) : alert('אין טלפון רשום')}
+                                          <button type="button" onClick={() => t_tnt.phone ? sendWA(t_tnt.phone, `שלום ${t_tnt.name}, תזכורת לתשלום שכ"ד חודש ${monthLabel(m)} עבור ${p.name}: ${fmt(t.monthlyRent||p.monthlyRent)}. תודה 🙏`) : alert('אין טלפון רשום')}
                                             style={{ background:'#F5F3FF', border:'1px solid #DDD6FE', color:'#7C3AED', borderRadius:7, padding:'5px 8px', fontWeight:700, cursor:'pointer', fontSize:14, flexShrink:0 }}>💬</button>
                                         )}
                                         <div style={{ display:'flex', gap:4 }}>
@@ -754,7 +756,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
                 )}
               </div>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                <span style={{ fontWeight:700, fontSize:15, color:'#111827' }}>{fmtMoney(p.monthlyRent)}/חודש</span>
+                <span style={{ fontWeight:700, fontSize:15, color:'#111827' }}>{fmt(p.monthlyRent)}/חודש</span>
                 <span style={{ fontSize:13, color:ctn?'#374151':'#9CA3AF' }}>{ctn ? `${ctn.name}${ctStatus==='future'?` (${t('legendFuture')})`:''}` : t('vacant')}</span>
               </div>
             </button>
@@ -764,7 +766,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
       {properties.length>0 && (
         <div style={{ background:'white', borderTop:'1px solid #E5E7EB', padding:'12px 20px', display:'flex', justifyContent:'space-around', flexShrink:0 }}>
           <div style={{ textAlign:'center' }}><div style={{ fontSize:18, fontWeight:700 }}>{properties.length}</div><div style={{ fontSize:11, color:'#6B7280' }}>{t('propertiesCount')}</div></div>
-          <div style={{ textAlign:'center' }}><div style={{ fontSize:18, fontWeight:700, color:'#22C55E' }}>{fmtMoney(properties.reduce((s,p)=>s+p.monthlyRent,0))}</div><div style={{ fontSize:11, color:'#6B7280' }}>{t('monthlyRentKpi')}</div></div>
+          <div style={{ textAlign:'center' }}><div style={{ fontSize:18, fontWeight:700, color:'#22C55E' }}>{fmt(properties.reduce((s,p)=>s+p.monthlyRent,0))}</div><div style={{ fontSize:11, color:'#6B7280' }}>{t('monthlyRentKpi')}</div></div>
           <div style={{ textAlign:'center' }}><div style={{ fontSize:18, fontWeight:700, color:'#6366F1' }}>{properties.filter(p=>tenancies.some(tn=>tn.propertyId===p.id&&getTenancyStatus(tn)==='active')).length}</div><div style={{ fontSize:11, color:'#6B7280' }}>{t('rentedCount')}</div></div>
         </div>
       )}
@@ -1170,8 +1172,8 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
           {/* KPI cards */}
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, marginBottom:16 }}>
             {[
-              { label: t('monthlyRentKpi'), val:fmtMoney(totalMonthly), color:'#22C55E' },
-              { label: t('annualRentKpi'),  val:fmtMoney(totalMonthly*12), color:'#6366F1' },
+              { label: t('monthlyRentKpi'), val:fmt(totalMonthly), color:'#22C55E' },
+              { label: t('annualRentKpi'),  val:fmt(totalMonthly*12), color:'#6366F1' },
               { label: t('vacantProperties'), val:String(vacant.length), color:vacant.length>0?'#EF4444':'#22C55E' },
             ].map(({label,val,color}) => (
               <div key={label} style={{ background:'white', borderRadius:12, padding:'12px 10px', border:'1px solid #E5E7EB', textAlign:'center' }}>
@@ -1196,7 +1198,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
                     <div style={{ fontSize:12, color:ctn?'#6B7280':'#EF4444' }}>{ctn ? ctn.name : t('vacant')}</div>
                   </div>
                   <div style={{ textAlign:'left' }}>
-                    <div style={{ fontWeight:700, fontSize:15, color:ctn?'#22C55E':'#EF4444' }}>{ctn ? fmtMoney(p.monthlyRent) : '₪0'}</div>
+                    <div style={{ fontWeight:700, fontSize:15, color:ctn?'#22C55E':'#EF4444' }}>{ctn ? fmt(p.monthlyRent) : '₪0'}</div>
                     {days!==null && <div style={{ fontSize:11, color:dc }}>{days<0?t('expired'):(tt[lang].daysToEnd as (n:number)=>string)(days)}</div>}
                   </div>
                 </div>

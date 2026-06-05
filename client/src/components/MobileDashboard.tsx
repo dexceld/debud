@@ -164,6 +164,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   // Prefix localStorage keys with uid so each account has separate data
   const lsKey = (key: string) => uid ? `${uid}:${key}` : key
   const t = (key: keyof typeof tt.he): string => (tt[lang] as typeof tt.he)[key] as string
+  const numLocale = lang === 'he' ? 'he-IL' : 'en-US'
 
   const [groups, setGroups] = useState<Group[]>(() => {
     const saved = localStorage.getItem(lsKey('groups'))
@@ -3362,7 +3363,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <div className="m-mortgage-result-value">
                 {mode === 'calc-years' 
                   ? `${result.toFixed(1)} ${t('yearsUnit')}`
-                  : `₪${result.toLocaleString('he-IL', {maximumFractionDigits: 0})}`
+                  : `₪${result.toLocaleString(numLocale, {maximumFractionDigits: 0})}`
                 }
               </div>
             </div>
@@ -3615,7 +3616,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                             </span>
                           )}
                           <div style={{textAlign: 'left', marginLeft: '12px', flexShrink: 0}}>
-                            <div style={{fontSize: 15, fontWeight: 700, color: '#111827'}}>₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
+                            <div style={{fontSize: 15, fontWeight: 700, color: '#111827'}}>₪{amount.toLocaleString(numLocale, {maximumFractionDigits: 0})}</div>
                             <div style={{fontSize: 14, color: '#6B7280', fontWeight: 600}}>{hours.toFixed(1)}h</div>
                           </div>
                         </div>
@@ -3648,7 +3649,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                               {status === 'paid' ? t('statusPaid') : status === 'invoiced' ? t('statusInvoiced') : t('statusPending')}
                             </span>
                           </div>
-                          <div style={{fontSize: 15, fontWeight: 700, color: '#7c3aed'}}>₪{charge.amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
+                          <div style={{fontSize: 15, fontWeight: 700, color: '#7c3aed'}}>₪{charge.amount.toLocaleString(numLocale, {maximumFractionDigits: 0})}</div>
                         </div>
                       )
                     }
@@ -3694,7 +3695,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   const totalHours = entries.reduce((sum, e) => sum + (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60), 0)
                   const totalAmount = entries.reduce((sum, e) => { const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60); return sum + h * client.hourlyRate * (1 + client.vatPercent / 100) }, 0)
                   const subject = `דיווח שעות - ${client.name}`
-                  let body = `דיווח שעות - ${client.name}\n\nסה"כ שעות: ${totalHours.toFixed(2)}\nסה"כ: ₪${totalAmount.toLocaleString('he-IL', {maximumFractionDigits:0})}\n\n`
+                  let body = `דיווח שעות - ${client.name}\n\nסה"כ שעות: ${totalHours.toFixed(2)}\nסה"כ: ₪${totalAmount.toLocaleString(numLocale, {maximumFractionDigits:0})}\n\n`
                   entries.forEach(e => { const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60); body += `${e.startDate} ${e.startTime}-${e.endTime} | ${h.toFixed(2)} שעות\n` })
                   window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
                   setClientShareOpen(false)
@@ -3899,7 +3900,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                       return {...e, employeePaidStatus: 'paid', employeePaymentAmount: undefined}
                     }))
                     clearEmpSelection()
-                    setSuccessToast(`₪${amt.toLocaleString('he-IL')} נשמר`); setTimeout(() => setSuccessToast(null), 2000)
+                    setSuccessToast(`₪${amt.toLocaleString(numLocale)} נשמר`); setTimeout(() => setSuccessToast(null), 2000)
                   }}}
                   style={{padding: '8px 12px', border: '1.5px solid #e5e7eb', borderRadius: 8, fontSize: 14, outline: 'none', direction: 'ltr'}}
                 />
@@ -3913,7 +3914,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     return {...e, employeePaidStatus: 'paid', employeePaymentAmount: undefined}
                   }))
                   clearEmpSelection()
-                  setSuccessToast(`₪${amt.toLocaleString('he-IL')} נשמר`); setTimeout(() => setSuccessToast(null), 2000)
+                  setSuccessToast(`₪${amt.toLocaleString(numLocale)} נשמר`); setTimeout(() => setSuccessToast(null), 2000)
                 }} style={{padding: '9px', border: 'none', borderRadius: 8, background: '#7c3aed', color: 'white', fontWeight: 700, fontSize: 15, cursor: 'pointer'}}>✓ שמור</button>
               </div>
             </div>
@@ -3957,8 +3958,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   </div>
                   <div>
                     <div style={{fontSize: 11, opacity: 0.9}}>{label} {t('reportsLabel')}</div>
-                    <div style={{fontSize: 20, fontWeight: 700}}>₪{cardAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
-                    {cardPaid > 0 && <div style={{fontSize: 10, opacity: 0.8}}>{t('statusPaid')}: ₪{cardPaid.toLocaleString('he-IL', {maximumFractionDigits: 0})} | {t('profitLabel')}: ₪{(cardAmount - cardPaid).toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>}
+                    <div style={{fontSize: 20, fontWeight: 700}}>₪{cardAmount.toLocaleString(numLocale, {maximumFractionDigits: 0})}</div>
+                    {cardPaid > 0 && <div style={{fontSize: 10, opacity: 0.8}}>{t('statusPaid')}: ₪{cardPaid.toLocaleString(numLocale, {maximumFractionDigits: 0})} | {t('profitLabel')}: ₪{(cardAmount - cardPaid).toLocaleString(numLocale, {maximumFractionDigits: 0})}</div>}
                   </div>
                 </div>
               </div>
@@ -4030,7 +4031,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                               {empPaid ? `✓ ${t('empPaid')}` : `⏳ ${t('empPending')}`}
                             </span>
                             {entry.employeeInvoiceNumber && <span style={{fontSize: 11, color: '#8b5cf6'}}>#{entry.employeeInvoiceNumber}</span>}
-                            {entry.employeePaymentAmount != null && <span style={{fontSize: 11, color: '#a78bfa', fontWeight: 700}}>💰 ₪{entry.employeePaymentAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})} סה"כ</span>}
+                            {entry.employeePaymentAmount != null && <span style={{fontSize: 11, color: '#a78bfa', fontWeight: 700}}>💰 ₪{entry.employeePaymentAmount.toLocaleString(numLocale, {maximumFractionDigits: 0})} סה"כ</span>}
                           </div>
                           <div style={{fontSize: 13, color: '#6B7280', marginTop: 4}}>
                             {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit', year: '2-digit'})}
@@ -4038,7 +4039,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                         </div>
                       </div>
                       <div style={{textAlign: 'left', flexShrink: 0}}>
-                        <div style={{fontSize: 15, fontWeight: 700, color: '#111827'}}>₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
+                        <div style={{fontSize: 15, fontWeight: 700, color: '#111827'}}>₪{amount.toLocaleString(numLocale, {maximumFractionDigits: 0})}</div>
                         <div style={{fontSize: 14, color: '#6B7280', fontWeight: 600}}>{hours.toFixed(1)}h</div>
                       </div>
                     </div>
@@ -4084,7 +4085,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   const totalHours = entries.reduce((sum, e) => sum + (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60), 0)
                   let totalAmount = 0; entries.forEach(e => { const c = clients.find(cl => cl.id === e.clientId); if (c) { const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60); totalAmount += h * c.hourlyRate * (1 + c.vatPercent/100) } })
                   const subject = `דיווח שעות - ${employee.name}`
-                  let body = `דיווח שעות - ${employee.name}\n\nסה"כ שעות: ${totalHours.toFixed(2)}\nסה"כ: ₪${totalAmount.toLocaleString('he-IL', {maximumFractionDigits:0})}\n\n`
+                  let body = `דיווח שעות - ${employee.name}\n\nסה"כ שעות: ${totalHours.toFixed(2)}\nסה"כ: ₪${totalAmount.toLocaleString(numLocale, {maximumFractionDigits:0})}\n\n`
                   entries.forEach(e => { const c = clients.find(cl => cl.id === e.clientId); const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60); body += `${e.startDate} | ${c?.name||''} | ${h.toFixed(2)} שעות\n` })
                   window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
                   setEmployeeShareOpen(false)
@@ -4663,25 +4664,25 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                         <div style={{padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 0}}>
                           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '9px 0', borderBottom: '1px solid #F3F4F6'}}>
                             <span style={{fontSize: 13, color: '#6B7280'}}>{t('revenueBeforeVAT')}</span>
-                            <span style={{fontSize: 16, fontWeight: 700, color: '#374151'}}>₪{revenueBeforeVAT.toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
+                            <span style={{fontSize: 16, fontWeight: 700, color: '#374151'}}>₪{revenueBeforeVAT.toLocaleString(numLocale, {maximumFractionDigits: 0})}</span>
                           </div>
                           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '9px 0', borderBottom: '1px solid #F3F4F6'}}>
                             <span style={{fontSize: 13, color: '#6B7280'}}>{t('revenueWithVAT')}</span>
-                            <span style={{fontSize: 16, fontWeight: 700, color: '#374151'}}>₪{revenueWithVAT.toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
+                            <span style={{fontSize: 16, fontWeight: 700, color: '#374151'}}>₪{revenueWithVAT.toLocaleString(numLocale, {maximumFractionDigits: 0})}</span>
                           </div>
                           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '11px 0 4px'}}>
                             <div>
                               <div style={{fontSize: 14, fontWeight: 700, color: netProfit >= 0 ? '#065F46' : '#DC2626'}}>{t('netProfit')}</div>
                               {(incomeTaxDeduction > 0 || employeePayments > 0) && (
                                 <div style={{fontSize: 11, color: '#9CA3AF', marginTop: 3}}>
-                                  {incomeTaxDeduction > 0 && `${t('taxLabel')} ₪${incomeTaxDeduction.toLocaleString('he-IL',{maximumFractionDigits:0})}`}
+                                  {incomeTaxDeduction > 0 && `${t('taxLabel')} ₪${incomeTaxDeduction.toLocaleString(numLocale,{maximumFractionDigits:0})}`}
                                   {incomeTaxDeduction > 0 && employeePayments > 0 && ' + '}
-                                  {employeePayments > 0 && `${t('employeesLabel')} ₪${employeePayments.toLocaleString('he-IL',{maximumFractionDigits:0})}`}
+                                  {employeePayments > 0 && `${t('employeesLabel')} ₪${employeePayments.toLocaleString(numLocale,{maximumFractionDigits:0})}`}
                                 </div>
                               )}
                             </div>
                             <span style={{fontSize: 22, fontWeight: 800, color: netProfit >= 0 ? '#065F46' : '#DC2626'}}>
-                              ₪{netProfit.toLocaleString('he-IL', {maximumFractionDigits: 0})}
+                              ₪{netProfit.toLocaleString(numLocale, {maximumFractionDigits: 0})}
                             </span>
                           </div>
                         </div>
@@ -4854,7 +4855,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     const totalHours = filtered.reduce((sum, e) => sum + (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60), 0)
                     let totalAmount = 0; filtered.forEach(e => { const client = clients.find(c => c.id === e.clientId); if (client) { const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60); totalAmount += h * client.hourlyRate * (1 + client.vatPercent/100) } })
                     const subject = `דיווח שעות - ${filtered.length} דיווחים`
-                    let body = `דיווח שעות\n\nסה"כ שעות: ${totalHours.toFixed(2)}\nסה"כ: ₪${totalAmount.toLocaleString('he-IL', {maximumFractionDigits:0})}\n\n`
+                    let body = `דיווח שעות\n\nסה"כ שעות: ${totalHours.toFixed(2)}\nסה"כ: ₪${totalAmount.toLocaleString(numLocale, {maximumFractionDigits:0})}\n\n`
                     filtered.forEach(e => { const client = clients.find(c => c.id === e.clientId); const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60); body += `${e.startDate} ${e.startTime}-${e.endTime} | ${client?.name} | ${h.toFixed(2)} שעות\n` })
                     window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
                     setReportsShareOpen(false)
@@ -4959,7 +4960,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           <span style={{fontSize: 16, fontWeight: 700, color: '#065F46'}}>{getPeriodLabel(key)}</span>
                           <div style={{display: 'flex', gap: 14, alignItems: 'center'}}>
                             {totalHours > 0 && <span style={{fontSize: 15, color: '#047857', fontWeight: 600}}>{totalHours.toFixed(1)}h</span>}
-                            <span style={{fontSize: 16, color: '#047857', fontWeight: 800}}>₪{totalAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</span>
+                            <span style={{fontSize: 16, color: '#047857', fontWeight: 800}}>₪{totalAmount.toLocaleString(numLocale, {maximumFractionDigits: 0})}</span>
                           </div>
                         </div>
 
@@ -5004,7 +5005,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                   </div>
                                 </div>
                                 <div style={{textAlign: 'left', flexShrink: 0}}>
-                                  <div style={{fontSize: 14, fontWeight: 700, color: '#059669'}}>₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
+                                  <div style={{fontSize: 14, fontWeight: 700, color: '#059669'}}>₪{amount.toLocaleString(numLocale, {maximumFractionDigits: 0})}</div>
                                   <div style={{fontSize: 17, fontWeight: 700, color: '#6B7280'}}>{hours.toFixed(1)}h</div>
                                 </div>
                               </div>
@@ -5043,7 +5044,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                   </div>
                                 </div>
                                 <div style={{textAlign: 'left', flexShrink: 0}}>
-                                  <div style={{fontSize: 14, fontWeight: 700, color: '#7c3aed'}}>₪{charge.amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
+                                  <div style={{fontSize: 14, fontWeight: 700, color: '#7c3aed'}}>₪{charge.amount.toLocaleString(numLocale, {maximumFractionDigits: 0})}</div>
                                   <div style={{fontSize: 11, color: '#9CA3AF'}}>חיוב</div>
                                 </div>
                               </div>
@@ -5124,7 +5125,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 const totalHours = filtered.reduce((sum, e) => sum + (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60), 0)
                 let totalAmount = 0; filtered.forEach(e => { const client = clients.find(c => c.id === e.clientId); if (client) { const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60); totalAmount += h * client.hourlyRate * (1 + client.vatPercent/100) } })
                 const subject = `חיובים - ${filtered.length} דיווחים`
-                let body = `חיובים\n\nסה"כ שעות: ${totalHours.toFixed(2)}\nסה"כ: ₪${totalAmount.toLocaleString('he-IL', {maximumFractionDigits:0})}\n\n`
+                let body = `חיובים\n\nסה"כ שעות: ${totalHours.toFixed(2)}\nסה"כ: ₪${totalAmount.toLocaleString(numLocale, {maximumFractionDigits:0})}\n\n`
                 filtered.forEach(e => { const client = clients.find(c => c.id === e.clientId); const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60); body += `${e.startDate} | ${client?.name||''} | ${h.toFixed(2)} שעות\n` })
                 window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
                 setSummaryShareOpen(false)
@@ -5400,7 +5401,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                       <div>
                         <div style={{fontSize: '11px', opacity: 0.9}}>{cardLabel}</div>
                         <div style={{fontSize: '20px', fontWeight: 700}}>
-                          ₪{cardAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
+                          ₪{cardAmount.toLocaleString(numLocale, {maximumFractionDigits: 0})}
                         </div>
                       </div>
                       <div style={{textAlign: 'center'}}>
@@ -5519,7 +5520,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                             </div>
                             <div style={{textAlign: 'left', marginLeft: 8}}>
                               <div style={{fontSize: 15, fontWeight: 700, color: '#111827'}}>
-                                ₪{amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
+                                ₪{amount.toLocaleString(numLocale, {maximumFractionDigits: 0})}
                               </div>
                               <div style={{fontSize: 14, color: '#6B7280', fontWeight: 600}}>{hours.toFixed(1)}h</div>
                             </div>
@@ -5577,7 +5578,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                               </div>
                               <div style={{textAlign: 'left', marginLeft: 8}}>
                                 <div style={{fontSize: 15, fontWeight: 700, color: '#7c3aed'}}>
-                                  ₪{charge.amount.toLocaleString('he-IL', {maximumFractionDigits: 0})}
+                                  ₪{charge.amount.toLocaleString(numLocale, {maximumFractionDigits: 0})}
                                 </div>
                                 <div style={{fontSize: 11, color: '#9CA3AF'}}>חיוב</div>
                               </div>
@@ -6419,7 +6420,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 <div style={{display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F3F4F6'}}>
                   <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>משך</div>
                   <div style={{flex: 1, fontSize: 17, fontWeight: 700, color: '#111827'}}>{calculatedHours.toFixed(1)} שעות</div>
-                  {calculatedAmount > 0 && <div style={{fontSize: 17, fontWeight: 700, color: '#10b981'}}>₪{calculatedAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>}
+                  {calculatedAmount > 0 && <div style={{fontSize: 17, fontWeight: 700, color: '#10b981'}}>₪{calculatedAmount.toLocaleString(numLocale, {maximumFractionDigits: 0})}</div>}
                 </div>
               )}
               {Array.isArray(employees) && employees.length > 0 && (
@@ -6666,7 +6667,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <div style={{display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F3F4F6'}}>
                 <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>משך</div>
                 <div style={{flex: 1, fontSize: 17, fontWeight: 700, color: '#111827'}}>{hrs.toFixed(1)} שעות</div>
-                {amt > 0 && <div style={{fontSize: 17, fontWeight: 700, color: '#10b981'}}>₪{amt.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>}
+                {amt > 0 && <div style={{fontSize: 17, fontWeight: 700, color: '#10b981'}}>₪{amt.toLocaleString(numLocale, {maximumFractionDigits: 0})}</div>}
               </div>
             )
           })()}
@@ -6906,7 +6907,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           }}>
             <div>
               <div style={{fontSize: 12, opacity: 0.85}}>סה"כ ברוטו של הסימון</div>
-              <div style={{fontSize: 22, fontWeight: 700}}>₪{sumGross.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
+              <div style={{fontSize: 22, fontWeight: 700}}>₪{sumGross.toLocaleString(numLocale, {maximumFractionDigits: 0})}</div>
             </div>
             <div style={{fontSize: 13, opacity: 0.9}}>{selectedEntryIds.length} דיווחים</div>
           </div>
