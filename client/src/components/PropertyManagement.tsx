@@ -547,7 +547,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
                               <span style={{ fontWeight:700, fontSize:13, color:sc, direction:'ltr' }}>{t.contractStart.split('-').reverse().map((x,i)=>i===2?x.slice(2):x).join('/')}</span>
                               <span style={{ color:'#9CA3AF', fontSize:12 }}>→</span>
                               <span style={{ fontWeight:700, fontSize:13, color:sc, direction:'ltr' }}>{t.contractEnd.split('-').reverse().map((x,i)=>i===2?x.slice(2):x).join('/')}</span>
-                              {days2!==null && st!=='past' && <span style={{ fontSize:11, color:'#9CA3AF' }}>· {days2<0?'פג תוקף':st==='future'?`בעוד ${Math.abs(daysLeft(t.contractStart))}י'`:`${days2}י' לסיום`}</span>}
+                              {days2!==null && st!=='past' && <span style={{ fontSize:11, color:'#9CA3AF' }}>· {days2<0?t('expired'):st==='future'?`בעוד ${Math.abs(daysLeft(t.contractStart))}י'`:(tt[lang].daysToEnd as (n:number)=>string)(days2)}</span>}
                             </div>
                           </div>
                           <div style={{ display:'flex', alignItems:'center', gap:6, flexShrink:0 }}>
@@ -749,13 +749,13 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
                 </div>
                 {days!==null && (
                   <span style={{ fontSize:11, background:urg+'20', color:urg, borderRadius:20, padding:'2px 8px', fontWeight:700, marginRight:8, whiteSpace:'nowrap' }}>
-                    {days<0 ? 'פג תוקף' : `${days}י'`}
+                    {days<0 ? t('expired') : `${days}י'`}
                   </span>
                 )}
               </div>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                 <span style={{ fontWeight:700, fontSize:15, color:'#111827' }}>{fmtMoney(p.monthlyRent)}/חודש</span>
-                <span style={{ fontSize:13, color:ctn?'#374151':'#9CA3AF' }}>{ctn ? `${ctn.name}${ctStatus==='future'?' (עתידי)':''}` : 'פנוי'}</span>
+                <span style={{ fontSize:13, color:ctn?'#374151':'#9CA3AF' }}>{ctn ? `${ctn.name}${ctStatus==='future'?` (${t('legendFuture')})`:''}` : t('vacant')}</span>
               </div>
             </button>
           )
@@ -806,7 +806,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
               <button type="button" onClick={() => saveDoc(pendingDocFile.file, pendingDocFile.tenancyId, pendingDocFile.propertyId, pendingDocType)}
                 style={{ flex:1, background:'#6366F1', color:'white', border:'none', borderRadius:8, padding:'8px', fontWeight:700, cursor:'pointer', fontSize:13 }}>שמור</button>
               <button type="button" onClick={() => setPendingDocFile(null)}
-                style={{ background:'#F3F4F6', border:'none', borderRadius:8, padding:'8px 14px', color:'#6B7280', fontWeight:600, cursor:'pointer', fontSize:13 }}>ביטול</button>
+                style={{ background:'#F3F4F6', border:'none', borderRadius:8, padding:'8px 14px', color:'#6B7280', fontWeight:600, cursor:'pointer', fontSize:13 }}>{t('cancel')}</button>
             </div>
           </div>
         )}
@@ -962,14 +962,14 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
           <label style={{ display:'block', marginBottom:12 }}>
             <span style={LBL}>סטטוס</span>
             <select style={INP} value={tenantForm.status} onChange={e=>setTenantForm(p=>({...p,status:e.target.value as any}))}>
-              <option value="lead">מתעניין / ליד</option>
-              <option value="active">שוכר פעיל</option>
-              <option value="past">שוכר לשעבר</option>
+              <option value="lead">{t('statusLead')}</option>
+              <option value="active">{t('statusActiveTenant')}</option>
+              <option value="past">{t('statusPastTenant')}</option>
             </select>
           </label>
           {tenantForm.status==='lead' && (
             <label style={{ display:'block', marginBottom:12 }}>
-              <span style={LBL}>מתעניין בנכס</span>
+              <span style={LBL}>{t('interestedInProperty')}</span>
               <select style={INP} value={tenantForm.interestedPropertyId||''} onChange={e=>setTenantForm(p=>({...p,interestedPropertyId:e.target.value||null}))}>
                 <option value="">בחר נכס...</option>
                 {properties.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
@@ -1028,8 +1028,8 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
                           <div style={{ fontWeight:700, fontSize:15, color:'#111827' }}>{t.name}</div>
                           {t.phone && <div style={{ fontSize:13, color:'#6B7280' }}>📞 {t.phone}</div>}
                           {t.email && <div style={{ fontSize:13, color:'#6B7280' }}>✉ {t.email}</div>}
-                          {intProp && <div style={{ fontSize:12, color:'#F59E0B', fontWeight:600, marginTop:4 }}>🔍 מתעניין ב: {intProp.name}</div>}
-                          {activeProp && <div style={{ fontSize:12, color:'#22C55E', fontWeight:600, marginTop:4 }}>🏠 שוכר ב: {activeProp.name} עד {activeTn?.contractEnd}</div>}
+                          {intProp && <div style={{ fontSize:12, color:'#F59E0B', fontWeight:600, marginTop:4 }}>🔍 {t('interestedIn')}: {intProp.name}</div>}
+                          {activeProp && <div style={{ fontSize:12, color:'#22C55E', fontWeight:600, marginTop:4 }}>🏠 {(tt[lang].tenantAt as (n:string,d:string)=>string)(activeProp.name, activeTn?.contractEnd||'')}</div>}
                           {t.notes && <div style={{ fontSize:12, color:'#9CA3AF', marginTop:4 }}>📝 {t.notes}</div>}
                         </div>
                         <button type="button" onClick={() => { setTenantFormId(t.id); setTenantForm({name:t.name,phone:t.phone,email:t.email,extraPhones:t.extraPhones,notes:t.notes,status:t.status,interestedPropertyId:t.interestedPropertyId}); setTenantView('edit') }}
@@ -1038,8 +1038,8 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
                       {t.phone && (
                         <div style={{ display:'flex', gap:8, marginTop:8 }}>
                           <button type="button" onClick={()=>sendWA(t.phone,`שלום ${t.name}, `)} style={{ flex:1, padding:'7px', background:'#F0FDF4', border:'1px solid #BBF7D0', borderRadius:8, color:'#15803D', fontWeight:600, cursor:'pointer', fontSize:12 }}>💬 WhatsApp</button>
-                          <button type="button" onClick={()=>{window.location.href=`tel:${t.phone}`}} style={{ flex:1, padding:'7px', background:'#F9FAFB', border:'1px solid #E5E7EB', borderRadius:8, color:'#374151', fontWeight:600, cursor:'pointer', fontSize:12 }}>📞 התקשר</button>
-                          {t.email && <button type="button" onClick={()=>{window.location.href=`mailto:${t.email}`}} style={{ flex:1, padding:'7px', background:'#EFF6FF', border:'1px solid #BFDBFE', borderRadius:8, color:'#1D4ED8', fontWeight:600, cursor:'pointer', fontSize:12 }}>✉ מייל</button>}
+                          <button type="button" onClick={()=>{window.location.href=`tel:${t.phone}`}} style={{ flex:1, padding:'7px', background:'#F9FAFB', border:'1px solid #E5E7EB', borderRadius:8, color:'#374151', fontWeight:600, cursor:'pointer', fontSize:12 }}>📞 {t('callAction')}</button>
+                          {t.email && <button type="button" onClick={()=>{window.location.href=`mailto:${t.email}`}} style={{ flex:1, padding:'7px', background:'#EFF6FF', border:'1px solid #BFDBFE', borderRadius:8, color:'#1D4ED8', fontWeight:600, cursor:'pointer', fontSize:12 }}>✉ {t('emailAction')}</button>}
                         </div>
                       )}
                     </div>
@@ -1064,9 +1064,9 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
     }
     const ICONS: Record<string,string> = { renewal:'🔄', deposit:'💰', checks:'📑', custom:'📌' }
     const GROUPS = [
-      { label:'🔴 דחוף — השבוע',   filter:(t:PMTask)=>urgency(t)===0 },
-      { label:'🟠 בקרוב — החודש', filter:(t:PMTask)=>urgency(t)===1 },
-      { label:'🟡 בהמשך',         filter:(t:PMTask)=>urgency(t)===2 },
+      { label:t('urgentThisWeek'),   filter:(t:PMTask)=>urgency(t)===0 },
+      { label:t('soonThisMonth'), filter:(t:PMTask)=>urgency(t)===1 },
+      { label:t('laterLabel'),         filter:(t:PMTask)=>urgency(t)===2 },
     ]
     return (
       <>
@@ -1080,7 +1080,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
             const title = prompt('כותרת המשימה')
             if (!title) return
             setTasks(prev=>[...prev,{id:Date.now().toString(),propertyId:'',tenantId:'',tenancyId:'',type:'custom',title,dueDate:todayStr(),done:false,doneAt:'',autoGenerated:false}])
-          }}>+ משימה</button>
+          }}>{t('addTask')}</button>
         </div>
         <div style={SCROLL}>
           {open.length===0 && (
@@ -1104,7 +1104,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
                       <div style={{ flex:1 }}>
                         <div style={{ fontWeight:700, fontSize:14 }}>{ICONS[t.type]} {t.title}</div>
                         {t.propertyId && <div style={{ fontSize:12, color:'#6B7280', marginTop:2 }}>🏠 {getPropName(t.propertyId)}{t.tenantId ? ` — ${getTenantName(t.tenantId)}` : ''}</div>}
-                        <div style={{ fontSize:11, color:'#9CA3AF', marginTop:2 }}>עד: {t.dueDate}</div>
+                        <div style={{ fontSize:11, color:'#9CA3AF', marginTop:2 }}>{t('untilLabel')} {t.dueDate}</div>
                       </div>
                       {tn?.phone && (
                         <button type="button" onClick={() => {
@@ -1115,7 +1115,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
                             custom:`שלום ${tn.name}, ${t.title}`,
                           }
                           sendWA(tn.phone, msgs[t.type] || msgs.custom)
-                        }} style={{ padding:'6px 10px', background:'#F0FDF4', border:'1px solid #BBF7D0', borderRadius:8, color:'#15803D', fontWeight:600, cursor:'pointer', fontSize:11, flexShrink:0 }}>שלח</button>
+                        }} style={{ padding:'6px 10px', background:'#F0FDF4', border:'1px solid #BBF7D0', borderRadius:8, color:'#15803D', fontWeight:600, cursor:'pointer', fontSize:11, flexShrink:0 }}>{t('sendAction')}</button>
                       )}
                     </div>
                   )
@@ -1125,7 +1125,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
           })}
           {done.length>0 && (
             <div style={{ marginBottom:16 }}>
-              <div style={{ fontSize:13, fontWeight:700, color:'#9CA3AF', marginBottom:8 }}>✅ הושלמו ({done.length})</div>
+              <div style={{ fontSize:13, fontWeight:700, color:'#9CA3AF', marginBottom:8 }}>{(tt[lang].completedCount as (n:number)=>string)(done.length)}</div>
               {done.slice(0,5).map(t => (
                 <div key={t.id} style={{ ...CARD, display:'flex', alignItems:'center', gap:10, padding:'10px 14px', opacity:0.6 }}>
                   <span style={{ fontSize:18 }}>✅</span>
@@ -1134,7 +1134,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
                     <div style={{ fontSize:11, color:'#9CA3AF' }}>{getPropName(t.propertyId)}</div>
                   </div>
                   <button type="button" onClick={()=>setTasks(prev=>prev.map(x=>x.id===t.id?{...x,done:false,doneAt:''}:x))}
-                    style={{ background:'none', border:'1px solid #E5E7EB', borderRadius:8, padding:'4px 8px', cursor:'pointer', fontSize:11, color:'#6B7280' }}>בטל</button>
+                    style={{ background:'none', border:'1px solid #E5E7EB', borderRadius:8, padding:'4px 8px', cursor:'pointer', fontSize:11, color:'#6B7280' }}>{t('undoAction')}</button>
                 </div>
               ))}
             </div>
@@ -1193,11 +1193,11 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
                 <div key={p.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 0', borderBottom:'1px solid #F3F4F6' }}>
                   <div>
                     <div style={{ fontWeight:600, fontSize:14 }}>{p.name}</div>
-                    <div style={{ fontSize:12, color:ctn?'#6B7280':'#EF4444' }}>{ctn ? ctn.name : 'פנוי'}</div>
+                    <div style={{ fontSize:12, color:ctn?'#6B7280':'#EF4444' }}>{ctn ? ctn.name : t('vacant')}</div>
                   </div>
                   <div style={{ textAlign:'left' }}>
                     <div style={{ fontWeight:700, fontSize:15, color:ctn?'#22C55E':'#EF4444' }}>{ctn ? fmtMoney(p.monthlyRent) : '₪0'}</div>
-                    {days!==null && <div style={{ fontSize:11, color:dc }}>{days<0?'פג תוקף':`${days}י' לסיום`}</div>}
+                    {days!==null && <div style={{ fontSize:11, color:dc }}>{days<0?t('expired'):(tt[lang].daysToEnd as (n:number)=>string)(days)}</div>}
                   </div>
                 </div>
               )
@@ -1211,7 +1211,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
               <table style={{ borderCollapse:'collapse', minWidth:'100%', fontSize:11 }}>
                 <thead>
                   <tr>
-                    <th style={{ textAlign:'right', padding:'4px 8px', color:'#6B7280', minWidth:70 }}>נכס</th>
+                    <th style={{ textAlign:'right', padding:'4px 8px', color:'#6B7280', minWidth:70 }}>{t('propertyCol')}</th>
                     {ganttMonths.map(m => (
                       <th key={m} style={{ padding:'4px 3px', color:m===cm?'#6366F1':'#9CA3AF', fontWeight:m===cm?700:400, minWidth:34, textAlign:'center', borderRight:'1px solid #F3F4F6', verticalAlign:'bottom' }}>
                         {m.slice(5)==='01' && <div style={{ fontSize:8, color:'#6366F1', fontWeight:800, lineHeight:1.2 }}>{m.slice(0,4)}</div>}
@@ -1243,11 +1243,11 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
                 </tbody>
               </table>
               <div style={{ display:'flex', gap:12, marginTop:8, fontSize:11, color:'#6B7280', flexWrap:'wrap' }}>
-                <span><span style={{ display:'inline-block', width:12, height:10, background:'#22C55E', borderRadius:2, marginLeft:4 }}/>מושכר פעיל</span>
-                <span><span style={{ display:'inline-block', width:12, height:10, background:'#A78BFA', borderRadius:2, marginLeft:4 }}/>עתידי</span>
-                <span><span style={{ display:'inline-block', width:12, height:10, background:'#9CA3AF', borderRadius:2, marginLeft:4 }}/>עבר</span>
-                <span><span style={{ display:'inline-block', width:12, height:10, background:'#FEE2E2', border:'1px solid #FECACA', borderRadius:2, marginLeft:4 }}/>פנוי</span>
-                <span>⚠ סיום חוזה בחודש זה</span>
+                <span><span style={{ display:'inline-block', width:12, height:10, background:'#22C55E', borderRadius:2, marginLeft:4 }}/>{t('legendActiveRented')}</span>
+                <span><span style={{ display:'inline-block', width:12, height:10, background:'#A78BFA', borderRadius:2, marginLeft:4 }}/>{t('legendFuture')}</span>
+                <span><span style={{ display:'inline-block', width:12, height:10, background:'#9CA3AF', borderRadius:2, marginLeft:4 }}/>{t('legendPast')}</span>
+                <span><span style={{ display:'inline-block', width:12, height:10, background:'#FEE2E2', border:'1px solid #FECACA', borderRadius:2, marginLeft:4 }}/>{t('vacant')}</span>
+                <span>⚠ {t('legendEnding')}</span>
               </div>
             </div>
           </div>

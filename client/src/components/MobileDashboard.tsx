@@ -2445,7 +2445,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             />
             <div className="m-catmgmt-edit-actions">
               <button className="m-catmgmt-save-btn" onClick={saveNewGroup} disabled={!newGroupName.trim()}>✓ צור</button>
-              <button className="m-catmgmt-cancel-btn" onClick={() => setAddingGroup(false)}>ביטול</button>
+              <button className="m-catmgmt-cancel-btn" onClick={() => setAddingGroup(false)}>{t('cancel')}</button>
             </div>
           </div>
         )}
@@ -2470,7 +2470,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   />
                   <div className="m-catmgmt-edit-actions">
                     <button className="m-catmgmt-save-btn" onClick={() => saveRenameGroup(g.id)} disabled={!catMgmtRenameGroupVal.trim()}>✓ שמור</button>
-                    <button className="m-catmgmt-cancel-btn" onClick={() => setCatMgmtRenamingGroupId(null)}>ביטול</button>
+                    <button className="m-catmgmt-cancel-btn" onClick={() => setCatMgmtRenamingGroupId(null)}>{t('cancel')}</button>
                   </div>
                 </div>
               )
@@ -2533,7 +2533,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             />
             <div className="m-catmgmt-edit-actions">
               <button className="m-catmgmt-save-btn" onClick={saveNewItem} disabled={!newItemName.trim()}>✓ הוסף</button>
-              <button className="m-catmgmt-cancel-btn" onClick={() => setAddingItem(false)}>ביטול</button>
+              <button className="m-catmgmt-cancel-btn" onClick={() => setAddingItem(false)}>{t('cancel')}</button>
             </div>
           </div>
         )}
@@ -2559,7 +2559,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     />
                     <div className="m-catmgmt-edit-actions" style={{marginTop:8}}>
                       <button className="m-catmgmt-save-btn" onClick={() => saveRename(cat.id)} disabled={!renameVal.trim()}>✓ שמור</button>
-                      <button className="m-catmgmt-cancel-btn" onClick={() => setRenamingCatId(null)}>ביטול</button>
+                      <button className="m-catmgmt-cancel-btn" onClick={() => setRenamingCatId(null)}>{t('cancel')}</button>
                     </div>
                   </>
                 ) : (
@@ -2886,7 +2886,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               />
               <div className="m-qi-edit-actions">
                 <button className="m-qi-edit-save" onClick={saveEditName} disabled={!editName.trim()}>שמור</button>
-                <button className="m-qi-edit-cancel" onClick={() => setEditingCatId(null)}>ביטול</button>
+                <button className="m-qi-edit-cancel" onClick={() => setEditingCatId(null)}>{t('cancel')}</button>
               </div>
             </div>
           )}
@@ -2953,7 +2953,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               )}
               <div style={{display:'flex',gap:8}}>
                 <button className="m-btn-primary" style={{flex:1}} onClick={() => { addNewCategoryAndUpdate() }}>צור והוסף ✓</button>
-                <button className="m-catmgmt-cancel-btn" onClick={() => { setPanelCatId(null); savedAmountRef.current = '' }}>ביטול</button>
+                <button className="m-catmgmt-cancel-btn" onClick={() => { setPanelCatId(null); savedAmountRef.current = '' }}>{t('cancel')}</button>
               </div>
             </div>
           )}
@@ -3151,7 +3151,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     disabled={!amt}
                     onClick={() => doSaveForecast(cat)}
                   >✓ אשר עדכון תחזית</button>
-                  <button className="m-fc-cancel-btn" onClick={() => setPanelCatId(null)}>ביטול</button>
+                  <button className="m-fc-cancel-btn" onClick={() => setPanelCatId(null)}>{t('cancel')}</button>
                 </div>
               </>
             )
@@ -3741,7 +3741,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                       background: '#FEF2F2', border: '1.5px solid #FECACA', color: '#DC2626',
                       fontSize: 13, fontWeight: 700, cursor: 'pointer'}}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-                    איפוס
+                    {t('reset')}
                   </button>
                 </div>
 
@@ -3749,10 +3749,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>{t('billingStatusLabel')}</div>
                   <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8}}>
                     {[
-                      {key: 'all', label: 'הכל', color: 'white', bg: '#374151'},
-                      {key: 'pending', label: '⏳ ממתין', color: '#92400e', bg: '#fef3c7'},
-                      {key: 'invoiced', label: '📄 חויב', color: '#1e40af', bg: '#dbeafe'},
-                      {key: 'paid', label: '✅ שולם', color: '#166534', bg: '#dcfce7'}
+                      {key: 'all', label: t('all'), color: 'white', bg: '#374151'},
+                      {key: 'pending', label: `⏳ ${t('statusPending')}`, color: '#92400e', bg: '#fef3c7'},
+                      {key: 'invoiced', label: `📄 ${t('statusInvoiced')}`, color: '#1e40af', bg: '#dbeafe'},
+                      {key: 'paid', label: `✅ ${t('statusPaid')}`, color: '#166534', bg: '#dcfce7'}
                     ].map(s => (
                       <button key={s.key} type="button"
                         onClick={() => setTempClientStatus(s.key as any)}
@@ -3923,7 +3923,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           {employeeHeaderStatusOpen && (
             <div style={{position: 'relative', height: 0, zIndex: 200}}>
               <div style={{position: 'absolute', top: 4, left: 8, background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 12, padding: '6px', display: 'flex', flexDirection: 'column', gap: 4, boxShadow: '0 4px 16px rgba(0,0,0,0.15)', minWidth: 130}}>
-                {([{s:'pending',label:'⏳ ממתין',bg:'#fef3c7',color:'#92400e'},{s:'paid',label:'✅ שולם',bg:'#dcfce7',color:'#166634'}] as {s:string,label:string,bg:string,color:string}[]).map(({s,label,bg,color}) => (
+                {([{s:'pending',label:`⏳ ${t('statusPending')}`,bg:'#fef3c7',color:'#92400e'},{s:'paid',label:`✅ ${t('statusPaid')}`,bg:'#dcfce7',color:'#166634'}] as {s:string,label:string,bg:string,color:string}[]).map(({s,label,bg,color}) => (
                   <button key={s} onClick={() => {
                     setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) && e.employeeId ? {...e, employeePaidStatus: s as any} : e))
                     setEmployeeSelectedIds([]); setEmployeeHeaderStatusOpen(false)
@@ -3947,18 +3947,18 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               if (c) cardAmount += calculateHours(e) * c.hourlyRate * (1 + c.vatPercent / 100)
               if (e.employeePaymentAmount != null) cardPaid += e.employeePaymentAmount
             })
-            const label = employeeSelectedIds.length > 0 ? `נבחרו ${employeeSelectedIds.length}` : `סה"כ ${employeeEntries.length}`
+            const label = employeeSelectedIds.length > 0 ? (tt[lang].selected as (n:number)=>string)(employeeSelectedIds.length) : (tt[lang].total as (n:number)=>string)(employeeEntries.length)
             return (
               <div style={{margin: '0 16px 8px', background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)', borderRadius: 10, padding: '10px 12px', color: 'white'}}>
                 <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                   <div style={{textAlign: 'center'}}>
                     <div style={{fontSize: 18, fontWeight: 700}}>{cardHours.toFixed(1)}</div>
-                    <div style={{fontSize: 10, opacity: 0.8}}>שעות</div>
+                    <div style={{fontSize: 10, opacity: 0.8}}>{t('fabHoursShort')}</div>
                   </div>
                   <div>
-                    <div style={{fontSize: 11, opacity: 0.9}}>{label} דיווחים</div>
+                    <div style={{fontSize: 11, opacity: 0.9}}>{label} {t('reportsLabel')}</div>
                     <div style={{fontSize: 20, fontWeight: 700}}>₪{cardAmount.toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>
-                    {cardPaid > 0 && <div style={{fontSize: 10, opacity: 0.8}}>שולם: ₪{cardPaid.toLocaleString('he-IL', {maximumFractionDigits: 0})} | רווח: ₪{(cardAmount - cardPaid).toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>}
+                    {cardPaid > 0 && <div style={{fontSize: 10, opacity: 0.8}}>{t('statusPaid')}: ₪{cardPaid.toLocaleString('he-IL', {maximumFractionDigits: 0})} | {t('profitLabel')}: ₪{(cardAmount - cardPaid).toLocaleString('he-IL', {maximumFractionDigits: 0})}</div>}
                   </div>
                 </div>
               </div>
@@ -3974,7 +3974,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             {employeeEntries.length === 0 ? (
               <div className="m-empty-state">
                 <div style={{fontSize: 48, marginBottom: 16}}>📋</div>
-                <div>אין דיווחים לעובד זה בתקופה שנבחרה</div>
+                <div>{t('noEntriesForPeriod')}</div>
               </div>
             ) : (
               <>
@@ -4135,7 +4135,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     <button onClick={() => { setTimeEntries(prev => prev.map(e => employeeSelectedIds.includes(e.id) ? {...e, employeePaidStatus: 'pending', employeePaymentAmount: undefined} : e)); setEmployeeSelectedIds([]); setEmployeeStatusFilter('all'); setEmployeeStatusPickerOpen(false) }}
                       style={{padding: '16px', fontSize: 16, border: 'none', background: 'white', borderBottom: '1px solid #E5E7EB', color: '#92400e', fontWeight: 600, cursor: 'pointer', textAlign: 'right', display: 'flex', alignItems: 'center', gap: 12}}>
                       <span style={{fontSize: 24}}>⏳</span>
-                      <span>ממתין לתשלום</span>
+                      <span>{t('pendingPayment')}</span>
                     </button>
                     <button onClick={() => {
                       const amt = parseFloat(bulkEmployeePaymentAmount)
@@ -4204,13 +4204,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 </div>
 
                 <div style={{marginBottom: 20}}>
-                  <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 10}}>סטטוס גביה</div>
+                  <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 10}}>{t('billingStatusLabel')}</div>
                   <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8}}>
                     {[
-                      {key: 'all', label: 'הכל', color: 'white', bg: '#374151'},
-                      {key: 'pending', label: '⏳ ממתין', color: '#92400e', bg: '#fef3c7'},
-                      {key: 'invoiced', label: '📄 חויב', color: '#1e40af', bg: '#dbeafe'},
-                      {key: 'paid', label: '✅ שולם', color: '#166534', bg: '#dcfce7'}
+                      {key: 'all', label: t('all'), color: 'white', bg: '#374151'},
+                      {key: 'pending', label: `⏳ ${t('statusPending')}`, color: '#92400e', bg: '#fef3c7'},
+                      {key: 'invoiced', label: `📄 ${t('statusInvoiced')}`, color: '#1e40af', bg: '#dbeafe'},
+                      {key: 'paid', label: `✅ ${t('statusPaid')}`, color: '#166534', bg: '#dcfce7'}
                     ].map(s => (
                       <button key={s.key} type="button"
                         onClick={() => setTempEmployeeStatus(s.key as any)}
@@ -4226,12 +4226,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 </div>
 
                 <div style={{marginBottom: 24}}>
-                  <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 10}}>סטטוס תשלום</div>
+                  <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 10}}>{t('paymentStatus')}</div>
                   <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8}}>
                     {[
-                      {key: 'all', label: 'הכל', color: 'white', bg: '#374151'},
-                      {key: 'pending', label: '⏳ ממתין', color: '#92400e', bg: '#fef3c7'},
-                      {key: 'paid', label: '✅ שולם', color: '#166534', bg: '#dcfce7'}
+                      {key: 'all', label: t('all'), color: 'white', bg: '#374151'},
+                      {key: 'pending', label: `⏳ ${t('statusPending')}`, color: '#92400e', bg: '#fef3c7'},
+                      {key: 'paid', label: `✅ ${t('statusPaid')}`, color: '#166534', bg: '#dcfce7'}
                     ].map(s => (
                       <button key={s.key} type="button"
                         onClick={() => setTempEmployeePaymentStatus(s.key as any)}
