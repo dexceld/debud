@@ -1257,12 +1257,32 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
   // --- HUB SCREEN (module launcher) ---
   const HubScreen = () => {
-    const HUB_MODULES: { id: AppModule; label: string; icon: string; dest: Screen; bg: string; desc: string }[] = [
-      { id: 'family-budget',       label: t('familyBudgetLabel'), icon: '💰', dest: 'home',                bg: 'linear-gradient(135deg,#6366F1,#8B5CF6)', desc: t('familyBudgetDesc') },
-      { id: 'time-tracking',       label: t('timeTrackingLabel'), icon: '⏱',  dest: 'time-tracking', bg: 'linear-gradient(135deg,#10B981,#059669)', desc: t('timeTrackingDesc') },
-      { id: 'mortgage-calc',       label: t('mortgageLabel'), icon: '🏠', dest: 'mortgage-calc', bg: 'linear-gradient(135deg,#667EEA,#764BA2)', desc: t('mortgageDesc') },
-      { id: 'property-management', label: t('propertyLabel'), icon: '🏢', dest: 'property-management', bg: 'linear-gradient(135deg,#F59E0B,#D97706)', desc: t('propertyDesc') },
+    const [lpTimer, setLpTimer] = useState<ReturnType<typeof setTimeout> | null>(null)
+    const HUB_MODULES: { id: AppModule; label: string; icon: string; dest: Screen; bg: string }[] = [
+      { id: 'family-budget',       label: t('familyBudgetLabel'), icon: '💰', dest: 'home',                bg: 'linear-gradient(135deg,#6366F1,#8B5CF6)' },
+      { id: 'time-tracking',       label: t('timeTrackingLabel'), icon: '⏱',  dest: 'time-tracking',       bg: 'linear-gradient(135deg,#10B981,#059669)' },
+      { id: 'mortgage-calc',       label: t('mortgageLabel'),     icon: '🏠', dest: 'mortgage-calc',        bg: 'linear-gradient(135deg,#667EEA,#764BA2)' },
+      { id: 'property-management', label: t('propertyLabel'),     icon: '🏢', dest: 'property-management',  bg: 'linear-gradient(135deg,#F59E0B,#D97706)' },
     ]
+
+    const startLp = (id: AppModule) => {
+      const timer = setTimeout(() => {
+        const isEnabled = enabledModules.includes(id)
+        if (isEnabled && enabledModules.length <= 1) {
+          setSuccessToast('⚠️ חייב להישאר לפחות עולם אחד פעיל'); setTimeout(() => setSuccessToast(null), 2500); return
+        }
+        const next = isEnabled ? enabledModules.filter(m => m !== id) : [...enabledModules, id]
+        setEnabledModules(next)
+        localStorage.setItem(lsKey('enabled_modules'), JSON.stringify(next))
+        if (!next.includes(defaultModule)) { setDefaultModule(next[0]); localStorage.setItem(lsKey('default_module'), next[0]) }
+        const mod = HUB_MODULES.find(m => m.id === id)
+        setSuccessToast(isEnabled ? `🔴 ${mod?.label} הוסר` : `✅ ${mod?.label} הופעל`)
+        setTimeout(() => setSuccessToast(null), 2500)
+      }, 600)
+      setLpTimer(timer)
+    }
+    const cancelLp = () => { if (lpTimer) { clearTimeout(lpTimer); setLpTimer(null) } }
+
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', background: 'linear-gradient(180deg,#EEF2FF 0%,#F9FAFB 100%)' }}>
         <div style={{ padding: '20px 20px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
@@ -1272,8 +1292,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               {(['he', 'en'] as Lang[]).map(l => (
                 <button key={l} onClick={() => onLangChange(l)} style={{
                   padding: '4px 10px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700,
-                  background: lang === l ? '#6366F1' : '#E5E7EB',
-                  color: lang === l ? 'white' : '#6B7280',
+                  background: lang === l ? '#6366F1' : '#E5E7EB', color: lang === l ? 'white' : '#6B7280',
                 }}>{l === 'he' ? 'עב' : 'EN'}</button>
               ))}
             </div>
@@ -1282,27 +1301,34 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         <div style={{ flex: 1, padding: '8px 16px 16px', display: 'flex', flexDirection: 'column', overflowY: 'auto', justifyContent: 'center' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
             {HUB_MODULES.map(m => {
+              const isEnabled = enabledModules.includes(m.id)
               const isDefault = defaultModule === m.id
               return (
-                <div key={m.id} style={{ display: 'flex', flexDirection: 'column', borderRadius: 20, overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.12)' }}>
-                  <button onClick={() => setScreen(m.dest)}
-                    style={{ flex: 1, padding: '22px 14px 16px', background: m.bg, border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textAlign: 'center' }}>
+                <div key={m.id}
+                  onTouchStart={() => startLp(m.id)} onTouchEnd={cancelLp} onTouchCancel={cancelLp}
+                  onMouseDown={() => startLp(m.id)} onMouseUp={cancelLp} onMouseLeave={cancelLp}
+                  style={{ display: 'flex', flexDirection: 'column', borderRadius: 20, overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.12)', opacity: isEnabled ? 1 : 0.42, transition: 'opacity 0.2s', userSelect: 'none' }}>
+                  <button
+                    onClick={() => { if (!isEnabled) { setSuccessToast('לחיצה ארוכה להפעלה'); setTimeout(() => setSuccessToast(null), 2000) } else { setScreen(m.dest) } }}
+                    style={{ flex: 1, padding: '22px 14px 16px', background: isEnabled ? m.bg : 'linear-gradient(135deg,#9CA3AF,#6B7280)', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textAlign: 'center', WebkitUserSelect: 'none' }}>
                     <span style={{ fontSize: 44 }}>{m.icon}</span>
                     <span style={{ fontSize: 16, fontWeight: 800, color: 'white', lineHeight: 1.25 }}>{m.label}</span>
                   </button>
-                  <button onClick={() => {
-                      setDefaultModule(m.id)
-                      localStorage.setItem(lsKey('default_module'), m.id)
-                      setSuccessToast(`⭐ ${m.label} הוגדר כמסך בית`); setTimeout(() => setSuccessToast(null), 2500)
-                    }}
-                    style={{ padding: '10px', background: isDefault ? '#FFFBEB' : 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: isDefault ? '#D97706' : '#9CA3AF', borderTop: '1px solid #F3F4F6' }}>
-                    {isDefault ? '⭐ מסך בית' : '☆ הגדר כבית'}
-                  </button>
+                  {isEnabled ? (
+                    <button onClick={() => { setDefaultModule(m.id); localStorage.setItem(lsKey('default_module'), m.id); setSuccessToast(`⭐ ${m.label} הוגדר כמסך בית`); setTimeout(() => setSuccessToast(null), 2500) }}
+                      style={{ padding: '10px', background: isDefault ? '#FFFBEB' : 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: isDefault ? '#D97706' : '#9CA3AF', borderTop: '1px solid #F3F4F6' }}>
+                      {isDefault ? '⭐ מסך בית' : '☆ הגדר כבית'}
+                    </button>
+                  ) : (
+                    <div style={{ padding: '8px', background: '#F9FAFB', borderTop: '1px solid #F3F4F6', textAlign: 'center', fontSize: 11, color: '#9CA3AF', fontWeight: 600 }}>
+                      לחץ לחיצה ארוכה להפעלה
+                    </div>
+                  )}
                 </div>
               )
             })}
           </div>
-          {/* FABs toggles — right below the module cards */}
+          {/* FABs toggles */}
           <div style={{ background: 'white', borderRadius: 14, padding: '10px 14px', border: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 12, color: '#6B7280', fontWeight: 700, flexShrink: 0 }}>⚡ כפתורים צפים</span>
             <div style={{ display: 'flex', gap: 8, flex: 1 }}>
@@ -1312,11 +1338,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 { label: 'קול', val: showFabsVoice, set: setShowFabsVoice, color: '#7C3AED' },
               ] as { label: string; val: boolean; set: React.Dispatch<React.SetStateAction<boolean>>; color: string }[]).map(({ label, val, set, color }) => (
                 <button key={label} type="button" onClick={() => set(p => !p)}
-                  style={{ flex: 1, padding: '7px 4px', borderRadius: 10,
-                    border: `1.5px solid ${val ? color : '#E5E7EB'}`,
-                    background: val ? color + '18' : '#F9FAFB',
-                    color: val ? color : '#9CA3AF',
-                    fontWeight: 700, fontSize: 11, cursor: 'pointer', transition: 'all 0.15s' }}>
+                  style={{ flex: 1, padding: '7px 4px', borderRadius: 10, border: `1.5px solid ${val ? color : '#E5E7EB'}`, background: val ? color + '18' : '#F9FAFB', color: val ? color : '#9CA3AF', fontWeight: 700, fontSize: 11, cursor: 'pointer', transition: 'all 0.15s' }}>
                   {label}
                 </button>
               ))}
@@ -1328,15 +1350,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             ? <img src={userPhoto} alt="" style={{ width: 26, height: 26, borderRadius: '50%' }} referrerPolicy="no-referrer" />
             : <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#6366F1', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{isLocalMode ? '👤' : userEmail?.[0]?.toUpperCase() || '?'}</div>}
           <span style={{ fontSize: 12, color: '#6B7280', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userEmail}</span>
+          <button onClick={() => setAboutOpen(true)} style={{ background: '#F3E8FF', border: '1px solid #E9D5FF', color: '#7C3AED', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}>
+            ⓘ אודות
+          </button>
           <button onClick={async () => {
             if (!window.confirm(isLocalMode ? 'לצאת ממצב לקוח?' : 'להתנתק?')) return
-            if (isLocalMode) {
-              localStorage.removeItem('bva_local_mode')
-            } else {
-              await flushAllSaves()
-              await new Promise(r => setTimeout(r, 500))
-              await signOutUser().catch(() => {})
-            }
+            if (isLocalMode) { localStorage.removeItem('bva_local_mode') }
+            else { await flushAllSaves(); await new Promise(r => setTimeout(r, 500)); await signOutUser().catch(() => {}) }
             window.location.reload()
           }} style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}>
             התנתק
@@ -1400,9 +1420,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </button>
           </div>
         </div>
-
-        {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} userEmail={userEmail} />}
-        {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}
 
         {/* Sync error banner */}
         {!isLocalMode && syncStatus.includes('error') && (
@@ -2215,26 +2232,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <div className="m-settings-info">
               <span className="m-settings-title">גיבוי ושחזור</span>
               <span className="m-settings-sub">ייצוא וייבוא נתונים</span>
-            </div>
-            <svg className="m-settings-chevron-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C4C9D4" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
-          <button className="m-settings-row" onClick={() => setAboutOpen(true)}>
-            <span className="m-settings-icon-wrap" style={{background:'#F3E8FF'}}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A855F7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-            </span>
-            <div className="m-settings-info">
-              <span className="m-settings-title">אודות</span>
-              <span className="m-settings-sub">BVA Budget ו-Dexcel</span>
-            </div>
-            <svg className="m-settings-chevron-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C4C9D4" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
-          <button className="m-settings-row" onClick={() => setSettingsPage('modules')}>
-            <span className="m-settings-icon-wrap" style={{background:'#FFF7ED'}}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="6" height="6" rx="1"/><rect x="9" y="3" width="6" height="6" rx="1"/><rect x="16" y="3" width="6" height="6" rx="1"/><rect x="2" y="10" width="6" height="6" rx="1"/><rect x="9" y="10" width="6" height="6" rx="1"/><rect x="16" y="10" width="6" height="6" rx="1"/></svg>
-            </span>
-            <div className="m-settings-info">
-              <span className="m-settings-title">עולמות פעילים</span>
-              <span className="m-settings-sub">{enabledModules.length} פעילים · בית: {({'family-budget':'תקציב','time-tracking':'שעות','mortgage-calc':'משכנתא','property-management':'נכסים'} as Record<AppModule,string>)[defaultModule]}</span>
             </div>
             <svg className="m-settings-chevron-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C4C9D4" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
@@ -7163,6 +7160,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       {screen === 'time-tracking' && <TimeTrackingScreen />}
       {screen === 'property-management' && <PropertyManagement uid={uid} onBack={() => setScreen('hub')} onLogoClick={handleLogoClick} backHandlerRef={pmBackHandlerRef} />}
       {renderCatMgmt()}
+      {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} userEmail={userEmail} />}
+      {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}
       <InlineSheet />
       <AddClientModal />
       <AddChargeModal />
