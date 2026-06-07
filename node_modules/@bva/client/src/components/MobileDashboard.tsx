@@ -1375,6 +1375,9 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             ? <img src={userPhoto} alt="" style={{ width: 26, height: 26, borderRadius: '50%' }} referrerPolicy="no-referrer" />
             : <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#6366F1', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{isLocalMode ? '👤' : userEmail?.[0]?.toUpperCase() || '?'}</div>}
           <span style={{ fontSize: 12, color: '#6B7280', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userEmail}</span>
+          <button onClick={() => setFeedbackOpen(true)} style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', color: '#1D4ED8', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}>
+            💬 {t('noteBtn')}
+          </button>
           <button onClick={() => setAboutOpen(true)} style={{ background: '#F3E8FF', border: '1px solid #E9D5FF', color: '#7C3AED', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}>
             ⓘ {t('about')}
           </button>

@@ -25,6 +25,22 @@ export function FeedbackModal({ onClose, userEmail }: { onClose: () => void; use
       // Even on timeout, the write is queued locally and will sync when online
       console.log('Feedback queued or sent:', err)
     }
+    // Also send email notification
+    try {
+      await fetch('https://formsubmit.co/ajax/dikla@dexcel.co.il', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          _subject: `פידבק BVA — דירוג ${rating}/5`,
+          message: feedback,
+          rating: String(rating),
+          user: userEmail,
+          _template: 'table',
+        }),
+      })
+    } catch {
+      // Email delivery is best-effort; Firestore copy is the source of truth
+    }
     setLoading(false)
     setSent(true)
     setTimeout(() => onClose(), 1500)
