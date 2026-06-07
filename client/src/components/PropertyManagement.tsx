@@ -549,7 +549,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
                               <span style={{ fontWeight:700, fontSize:13, color:sc, direction:'ltr' }}>{t.contractStart.split('-').reverse().map((x,i)=>i===2?x.slice(2):x).join('/')}</span>
                               <span style={{ color:'#9CA3AF', fontSize:12 }}>→</span>
                               <span style={{ fontWeight:700, fontSize:13, color:sc, direction:'ltr' }}>{t.contractEnd.split('-').reverse().map((x,i)=>i===2?x.slice(2):x).join('/')}</span>
-                              {days2!==null && st!=='past' && <span style={{ fontSize:11, color:'#9CA3AF' }}>· {days2<0?t('expired'):st==='future'?`בעוד ${Math.abs(daysLeft(t.contractStart))}י'`:(tt[lang].daysToEnd as (n:number)=>string)(days2)}</span>}
+                              {days2!==null && st!=='past' && <span style={{ fontSize:11, color:'#9CA3AF' }}>· {days2<0?(tt[lang] as typeof tt.he).expired:st==='future'?`בעוד ${Math.abs(daysLeft(t.contractStart))}י'`:(tt[lang].daysToEnd as (n:number)=>string)(days2)}</span>}
                             </div>
                           </div>
                           <div style={{ display:'flex', alignItems:'center', gap:6, flexShrink:0 }}>
@@ -1019,29 +1019,29 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
                 <div style={{ fontSize:12, fontWeight:700, color:STATUS_COLORS[status], marginBottom:8, padding:'0 4px' }}>
                   {STATUS_LABELS[status]} ({group.length})
                 </div>
-                {group.map(t => {
-                  const intProp = t.interestedPropertyId ? properties.find(p=>p.id===t.interestedPropertyId) : null
-                  const activeTn = tenancies.find(tn=>tn.tenantId===t.id&&tn.isCurrent)
+                {group.map(tnt => {
+                  const intProp = tnt.interestedPropertyId ? properties.find(p=>p.id===tnt.interestedPropertyId) : null
+                  const activeTn = tenancies.find(tn=>tn.tenantId===tnt.id&&tn.isCurrent)
                   const activeProp = activeTn ? properties.find(p=>p.id===activeTn.propertyId) : null
                   return (
-                    <div key={t.id} style={CARD}>
+                    <div key={tnt.id} style={CARD}>
                       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:6 }}>
                         <div style={{ flex:1 }}>
-                          <div style={{ fontWeight:700, fontSize:15, color:'#111827' }}>{t.name}</div>
-                          {t.phone && <div style={{ fontSize:13, color:'#6B7280' }}>📞 {t.phone}</div>}
-                          {t.email && <div style={{ fontSize:13, color:'#6B7280' }}>✉ {t.email}</div>}
+                          <div style={{ fontWeight:700, fontSize:15, color:'#111827' }}>{tnt.name}</div>
+                          {tnt.phone && <div style={{ fontSize:13, color:'#6B7280' }}>📞 {tnt.phone}</div>}
+                          {tnt.email && <div style={{ fontSize:13, color:'#6B7280' }}>✉ {tnt.email}</div>}
                           {intProp && <div style={{ fontSize:12, color:'#F59E0B', fontWeight:600, marginTop:4 }}>🔍 {t('interestedIn')}: {intProp.name}</div>}
                           {activeProp && <div style={{ fontSize:12, color:'#22C55E', fontWeight:600, marginTop:4 }}>🏠 {(tt[lang].tenantAt as (n:string,d:string)=>string)(activeProp.name, activeTn?.contractEnd||'')}</div>}
-                          {t.notes && <div style={{ fontSize:12, color:'#9CA3AF', marginTop:4 }}>📝 {t.notes}</div>}
+                          {tnt.notes && <div style={{ fontSize:12, color:'#9CA3AF', marginTop:4 }}>📝 {tnt.notes}</div>}
                         </div>
-                        <button type="button" onClick={() => { setTenantFormId(t.id); setTenantForm({name:t.name,phone:t.phone,email:t.email,extraPhones:t.extraPhones,notes:t.notes,status:t.status,interestedPropertyId:t.interestedPropertyId}); setTenantView('edit') }}
+                        <button type="button" onClick={() => { setTenantFormId(tnt.id); setTenantForm({name:tnt.name,phone:tnt.phone,email:tnt.email,extraPhones:tnt.extraPhones,notes:tnt.notes,status:tnt.status,interestedPropertyId:tnt.interestedPropertyId}); setTenantView('edit') }}
                           style={{ background:'#F3F4F6', border:'none', borderRadius:8, padding:'4px 10px', fontWeight:600, cursor:'pointer', fontSize:12, color:'#374151', flexShrink:0, marginRight:8 }}>ערוך</button>
                       </div>
-                      {t.phone && (
+                      {tnt.phone && (
                         <div style={{ display:'flex', gap:8, marginTop:8 }}>
-                          <button type="button" onClick={()=>sendWA(t.phone,`שלום ${t.name}, `)} style={{ flex:1, padding:'7px', background:'#F0FDF4', border:'1px solid #BBF7D0', borderRadius:8, color:'#15803D', fontWeight:600, cursor:'pointer', fontSize:12 }}>💬 WhatsApp</button>
-                          <button type="button" onClick={()=>{window.location.href=`tel:${t.phone}`}} style={{ flex:1, padding:'7px', background:'#F9FAFB', border:'1px solid #E5E7EB', borderRadius:8, color:'#374151', fontWeight:600, cursor:'pointer', fontSize:12 }}>📞 {t('callAction')}</button>
-                          {t.email && <button type="button" onClick={()=>{window.location.href=`mailto:${t.email}`}} style={{ flex:1, padding:'7px', background:'#EFF6FF', border:'1px solid #BFDBFE', borderRadius:8, color:'#1D4ED8', fontWeight:600, cursor:'pointer', fontSize:12 }}>✉ {t('emailAction')}</button>}
+                          <button type="button" onClick={()=>sendWA(tnt.phone,`שלום ${tnt.name}, `)} style={{ flex:1, padding:'7px', background:'#F0FDF4', border:'1px solid #BBF7D0', borderRadius:8, color:'#15803D', fontWeight:600, cursor:'pointer', fontSize:12 }}>💬 WhatsApp</button>
+                          <button type="button" onClick={()=>{window.location.href=`tel:${tnt.phone}`}} style={{ flex:1, padding:'7px', background:'#F9FAFB', border:'1px solid #E5E7EB', borderRadius:8, color:'#374151', fontWeight:600, cursor:'pointer', fontSize:12 }}>📞 {t('callAction')}</button>
+                          {tnt.email && <button type="button" onClick={()=>{window.location.href=`mailto:${tnt.email}`}} style={{ flex:1, padding:'7px', background:'#EFF6FF', border:'1px solid #BFDBFE', borderRadius:8, color:'#1D4ED8', fontWeight:600, cursor:'pointer', fontSize:12 }}>✉ {t('emailAction')}</button>}
                         </div>
                       )}
                     </div>
@@ -1097,26 +1097,26 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
             return (
               <div key={g.label} style={{ marginBottom:16 }}>
                 <div style={{ fontSize:13, fontWeight:700, color:'#374151', marginBottom:8 }}>{g.label}</div>
-                {group.map(t => {
-                  const tn = t.tenantId ? tenants.find(x=>x.id===t.tenantId) : null
+                {group.map(tsk => {
+                  const tn = tsk.tenantId ? tenants.find(x=>x.id===tsk.tenantId) : null
                   return (
-                    <div key={t.id} style={{ ...CARD, display:'flex', alignItems:'flex-start', gap:10, padding:'12px 14px' }}>
-                      <button type="button" onClick={() => setTasks(prev=>prev.map(x=>x.id===t.id?{...x,done:true,doneAt:todayStr()}:x))}
+                    <div key={tsk.id} style={{ ...CARD, display:'flex', alignItems:'flex-start', gap:10, padding:'12px 14px' }}>
+                      <button type="button" onClick={() => setTasks(prev=>prev.map(x=>x.id===tsk.id?{...x,done:true,doneAt:todayStr()}:x))}
                         style={{ width:24, height:24, borderRadius:'50%', border:'2px solid #D1D5DB', background:'white', cursor:'pointer', flexShrink:0, marginTop:2, fontSize:13, display:'flex', alignItems:'center', justifyContent:'center' }}>☐</button>
                       <div style={{ flex:1 }}>
-                        <div style={{ fontWeight:700, fontSize:14 }}>{ICONS[t.type]} {t.title}</div>
-                        {t.propertyId && <div style={{ fontSize:12, color:'#6B7280', marginTop:2 }}>🏠 {getPropName(t.propertyId)}{t.tenantId ? ` — ${getTenantName(t.tenantId)}` : ''}</div>}
-                        <div style={{ fontSize:11, color:'#9CA3AF', marginTop:2 }}>{t('untilLabel')} {t.dueDate}</div>
+                        <div style={{ fontWeight:700, fontSize:14 }}>{ICONS[tsk.type]} {tsk.title}</div>
+                        {tsk.propertyId && <div style={{ fontSize:12, color:'#6B7280', marginTop:2 }}>🏠 {getPropName(tsk.propertyId)}{tsk.tenantId ? ` — ${getTenantName(tsk.tenantId)}` : ''}</div>}
+                        <div style={{ fontSize:11, color:'#9CA3AF', marginTop:2 }}>{t('untilLabel')} {tsk.dueDate}</div>
                       </div>
                       {tn?.phone && (
                         <button type="button" onClick={() => {
                           const msgs: Record<string,string> = {
-                            renewal:`שלום ${tn.name}, תזכורת לחידוש חוזה עבור ${getPropName(t.propertyId)}. 🙏`,
-                            deposit:`שלום ${tn.name}, תזכורת להעברת פיקדון עבור ${getPropName(t.propertyId)}. 🙏`,
-                            checks:`שלום ${tn.name}, תזכורת לשלוח צ'קים עבור ${getPropName(t.propertyId)}. 🙏`,
-                            custom:`שלום ${tn.name}, ${t.title}`,
+                            renewal:`שלום ${tn.name}, תזכורת לחידוש חוזה עבור ${getPropName(tsk.propertyId)}. 🙏`,
+                            deposit:`שלום ${tn.name}, תזכורת להעברת פיקדון עבור ${getPropName(tsk.propertyId)}. 🙏`,
+                            checks:`שלום ${tn.name}, תזכורת לשלוח צ'קים עבור ${getPropName(tsk.propertyId)}. 🙏`,
+                            custom:`שלום ${tn.name}, ${tsk.title}`,
                           }
-                          sendWA(tn.phone, msgs[t.type] || msgs.custom)
+                          sendWA(tn.phone, msgs[tsk.type] || msgs.custom)
                         }} style={{ padding:'6px 10px', background:'#F0FDF4', border:'1px solid #BBF7D0', borderRadius:8, color:'#15803D', fontWeight:600, cursor:'pointer', fontSize:11, flexShrink:0 }}>{t('sendAction')}</button>
                       )}
                     </div>
@@ -1128,14 +1128,14 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
           {done.length>0 && (
             <div style={{ marginBottom:16 }}>
               <div style={{ fontSize:13, fontWeight:700, color:'#9CA3AF', marginBottom:8 }}>{(tt[lang].completedCount as (n:number)=>string)(done.length)}</div>
-              {done.slice(0,5).map(t => (
-                <div key={t.id} style={{ ...CARD, display:'flex', alignItems:'center', gap:10, padding:'10px 14px', opacity:0.6 }}>
+              {done.slice(0,5).map(tsk => (
+                <div key={tsk.id} style={{ ...CARD, display:'flex', alignItems:'center', gap:10, padding:'10px 14px', opacity:0.6 }}>
                   <span style={{ fontSize:18 }}>✅</span>
                   <div style={{ flex:1 }}>
-                    <div style={{ fontWeight:600, fontSize:13, textDecoration:'line-through' }}>{t.title}</div>
-                    <div style={{ fontSize:11, color:'#9CA3AF' }}>{getPropName(t.propertyId)}</div>
+                    <div style={{ fontWeight:600, fontSize:13, textDecoration:'line-through' }}>{tsk.title}</div>
+                    <div style={{ fontSize:11, color:'#9CA3AF' }}>{getPropName(tsk.propertyId)}</div>
                   </div>
-                  <button type="button" onClick={()=>setTasks(prev=>prev.map(x=>x.id===t.id?{...x,done:false,doneAt:''}:x))}
+                  <button type="button" onClick={()=>setTasks(prev=>prev.map(x=>x.id===tsk.id?{...x,done:false,doneAt:''}:x))}
                     style={{ background:'none', border:'1px solid #E5E7EB', borderRadius:8, padding:'4px 8px', cursor:'pointer', fontSize:11, color:'#6B7280' }}>{t('undoAction')}</button>
                 </div>
               ))}
