@@ -5167,13 +5167,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
                   {/* Client Section */}
                   <div style={{marginBottom: 20}}>
-                    <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>לקוח</div>
+                    <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>{t('clientFilter')}</div>
                     <select
                       value={tempSummaryClient}
                       onChange={e => setTempSummaryClient(e.target.value)}
                       style={{width: '100%', padding: '12px 16px', border: '1px solid #E5E7EB', borderRadius: 12, fontSize: 14}}
                     >
-                      <option value="all">כל הלקוחות</option>
+                      <option value="all">{t('allClients')}</option>
                       {clients.map(c => (
                         <option key={c.id} value={c.id}>{c.name}</option>
                       ))}
@@ -5182,13 +5182,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
                   {/* Status Section */}
                   <div style={{marginBottom: 24}}>
-                    <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>סטטוס חיוב</div>
+                    <div style={{fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12}}>{t('billingStatus')}</div>
                     <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8}}>
                       {([
-                        {key: 'all', label: 'הכל', color: 'white', bg: '#374151'},
-                        {key: 'pending', label: '⏳ ממתין', color: '#92400e', bg: '#fef3c7'},
-                        {key: 'invoiced', label: '📄 חויב', color: '#1e40af', bg: '#dbeafe'},
-                        {key: 'paid', label: '✅ שולם', color: '#166534', bg: '#dcfce7'}
+                        {key: 'all', label: t('all'), color: 'white', bg: '#374151'},
+                        {key: 'pending', label: `⏳ ${t('statusPending')}`, color: '#92400e', bg: '#fef3c7'},
+                        {key: 'invoiced', label: `📄 ${t('statusInvoiced')}`, color: '#1e40af', bg: '#dbeafe'},
+                        {key: 'paid', label: `✅ ${t('statusPaid')}`, color: '#166534', bg: '#dcfce7'}
                       ] as {key:string,label:string,color:string,bg:string}[]).map(s => (
                         <button key={s.key} type="button"
                           onClick={() => setTempSummaryStatus(s.key)}
@@ -5409,7 +5409,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                       </div>
                       <div style={{textAlign: 'center'}}>
                         <div style={{fontSize: '18px', fontWeight: 700}}>{cardHours.toFixed(1)}</div>
-                        <div style={{fontSize: '10px', opacity: 0.8}}>שעות</div>
+                        <div style={{fontSize: '10px', opacity: 0.8}}>{t('fabHoursShort')}</div>
                       </div>
                     </div>
                   </div>
@@ -5448,15 +5448,15 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                             <div style={{position: 'absolute', inset: 0, display: 'flex', alignItems: 'stretch', justifyContent: 'flex-start'}}>
                               <button onClick={() => { setTimeEntries(prev => prev.map(e => e.id === entry.id ? {...e, billingStatus: 'pending'} : e)); setSwipedEntryId(null) }}
                                 style={{width: 72, background: '#f59e0b', color: 'white', border: 'none', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2}}>
-                                <span style={{fontSize: 18}}>⏳</span>ממתין
+                                <span style={{fontSize: 18}}>⏳</span>{t('statusPending')}
                               </button>
                               <button onClick={() => { setTimeEntries(prev => prev.map(e => e.id === entry.id ? {...e, billingStatus: 'invoiced'} : e)); setSwipedEntryId(null) }}
                                 style={{width: 72, background: '#3b82f6', color: 'white', border: 'none', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2}}>
-                                <span style={{fontSize: 18}}>📄</span>חויב
+                                <span style={{fontSize: 18}}>📄</span>{t('statusInvoiced')}
                               </button>
                               <button onClick={() => { setTimeEntries(prev => prev.map(e => e.id === entry.id ? {...e, billingStatus: 'paid'} : e)); setSwipedEntryId(null) }}
                                 style={{width: 72, background: '#10b981', color: 'white', border: 'none', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2}}>
-                                <span style={{fontSize: 18}}>✅</span>שולם
+                                <span style={{fontSize: 18}}>✅</span>{t('statusPaid')}
                               </button>
                             </div>
                             {/* Row */}
@@ -5515,7 +5515,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                     color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e',
                                     fontWeight: 600
                                   }}>
-                                    {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
+                                    {status === 'paid' ? t('statusPaid') : status === 'invoiced' ? t('statusInvoiced') : t('statusPending')}
                                   </span>
                                   {entry.invoiceNumber && <span style={{color: '#3b82f6'}}>• #{entry.invoiceNumber}</span>}
                                 </div>
@@ -5574,7 +5574,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                   <div style={{fontSize: 13, color: '#6B7280', marginTop: 4}}>
                                     {new Date(charge.date).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit', year: '2-digit'})}
                                     <span style={{marginRight: 8, padding: '2px 6px', borderRadius: 4, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e', fontSize: 11, fontWeight: 600}}>
-                                      {status === 'paid' ? 'שולם' : status === 'invoiced' ? 'חויב' : 'ממתין'}
+                                      {status === 'paid' ? t('statusPaid') : status === 'invoiced' ? t('statusInvoiced') : t('statusPending')}
                                     </span>
                                   </div>
                                 </div>
@@ -5583,7 +5583,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                 <div style={{fontSize: 15, fontWeight: 700, color: '#7c3aed'}}>
                                   ₪{charge.amount.toLocaleString(numLocale, {maximumFractionDigits: 0})}
                                 </div>
-                                <div style={{fontSize: 11, color: '#9CA3AF'}}>חיוב</div>
+                                <div style={{fontSize: 11, color: '#9CA3AF'}}>{t('chargeLabel')}</div>
                               </div>
                             </div>
                           )
