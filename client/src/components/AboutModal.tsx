@@ -124,7 +124,7 @@ export function AboutModal({ onClose }: { onClose: () => void }) {
 
           {/* ── Apps section ── */}
           <div style={{ fontSize: 13, fontWeight: 800, color: '#6B7280', marginBottom: 12, textAlign: 'center', letterSpacing: 0.5 }}>
-            הכלים שלנו
+            אפליקציות לדוגמה
           </div>
 
           {/* Property Management */}
