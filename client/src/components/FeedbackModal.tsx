@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../firebase'
 
+const WA_PHONE = '972587087090'
+const WA_APIKEY = '' // TODO: paste CallMeBot API key here after activation
+
 export function FeedbackModal({ onClose, userEmail }: { onClose: () => void; userEmail: string }) {
   const [feedback, setFeedback] = useState('')
   const [rating, setRating] = useState(5)
@@ -25,21 +28,14 @@ export function FeedbackModal({ onClose, userEmail }: { onClose: () => void; use
       // Even on timeout, the write is queued locally and will sync when online
       console.log('Feedback queued or sent:', err)
     }
-    // Also send email notification
-    try {
-      await fetch('https://formsubmit.co/ajax/dikla@dexcel.co.il', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({
-          _subject: `פידבק BVA — דירוג ${rating}/5`,
-          message: feedback,
-          rating: String(rating),
-          user: userEmail,
-          _template: 'table',
-        }),
-      })
-    } catch {
-      // Email delivery is best-effort; Firestore copy is the source of truth
+    // Send WhatsApp notification via CallMeBot
+    if (WA_APIKEY) {
+      try {
+        const text = encodeURIComponent(`📲 פידבק BVA\n⭐ דירוג: ${rating}/5\n👤 משתמש: ${userEmail}\n📝 ${feedback}`)
+        await fetch(`https://api.callmebot.com/whatsapp.php?phone=${WA_PHONE}&text=${text}&apikey=${WA_APIKEY}`)
+      } catch {
+        // best-effort
+      }
     }
     setLoading(false)
     setSent(true)
