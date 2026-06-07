@@ -1391,6 +1391,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           </button>
         </div>
         {successToast && <div className="m-save-toast"><span className="m-save-toast-icon">✓</span><span>{successToast}</span></div>}
+        {showFabsBudget && <DraggableFABs />}
       </div>
     )
   }
