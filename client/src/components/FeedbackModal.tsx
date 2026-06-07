@@ -2,9 +2,6 @@ import { useState } from 'react'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../firebase'
 
-const WA_PHONE = '972587087090'
-const WA_APIKEY = '' // TODO: paste CallMeBot API key here after activation
-
 export function FeedbackModal({ onClose, userEmail }: { onClose: () => void; userEmail: string }) {
   const [feedback, setFeedback] = useState('')
   const [rating, setRating] = useState(5)
@@ -27,15 +24,6 @@ export function FeedbackModal({ onClose, userEmail }: { onClose: () => void; use
     } catch (err) {
       // Even on timeout, the write is queued locally and will sync when online
       console.log('Feedback queued or sent:', err)
-    }
-    // Send WhatsApp notification via CallMeBot
-    if (WA_APIKEY) {
-      try {
-        const text = encodeURIComponent(`📲 פידבק BVA\n⭐ דירוג: ${rating}/5\n👤 משתמש: ${userEmail}\n📝 ${feedback}`)
-        await fetch(`https://api.callmebot.com/whatsapp.php?phone=${WA_PHONE}&text=${text}&apikey=${WA_APIKEY}`)
-      } catch {
-        // best-effort
-      }
     }
     setLoading(false)
     setSent(true)
