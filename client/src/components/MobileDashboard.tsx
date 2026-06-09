@@ -136,6 +136,7 @@ type TimeEntry = {
   startTime: string // HH:MM
   endTime: string // HH:MM
   notes: string
+  manualAmount?: number // סכום ידני לחיוב (מבטל חישוב שעות × תעריף)
   billingStatus?: 'pending' | 'invoiced' | 'paid' // סטטוס חיוב ללקוח
   invoiceNumber?: string // מספר חשבונית ללקוח
   employeePaidStatus?: 'pending' | 'paid' // סטטוס תשלום לעובד
@@ -319,6 +320,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [entryFormStartTime, setEntryFormStartTime] = useState('')
   const [entryFormEndTime, setEntryFormEndTime] = useState('')
   const [entryFormNotes, setEntryFormNotes] = useState('')
+  const [entryFormManualAmount, setEntryFormManualAmount] = useState('')
   const [entryFormEmployeeId, setEntryFormEmployeeId] = useState<string>('self')
   const [entryFormClientId, setEntryFormClientId] = useState<string>('')
   const [addEmployeeOpen, setAddEmployeeOpen] = useState(false)
@@ -3411,6 +3413,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       const end = new Date(`${entry.endDate}T${entry.endTime}`)
       return (end.getTime() - start.getTime()) / (1000 * 60 * 60)
     }
+    const calculateAmount = (entry: TimeEntry, client: Client): number => {
+      if (entry.manualAmount !== undefined) return entry.manualAmount
+      const hours = calculateHours(entry)
+      return hours * client.hourlyRate * (1 + client.vatPercent / 100)
+    }
 
 
     // Persistent timer banner — defined here so both selected-client and main views can use it
@@ -3589,7 +3596,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     if (item.type === 'entry') {
                       const entry = item.data
                       const hours = calculateHours(entry)
-                      const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100)
+                      const amount = calculateAmount(entry, client)
                       const status = entry.billingStatus || 'pending'
                       const openEntryEdit = () => {
                         setEntryFormStartDate(entry.startDate)
@@ -3597,6 +3604,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                         setEntryFormStartTime(entry.startTime)
                         setEntryFormEndTime(entry.endTime)
                         setEntryFormNotes(entry.notes || '')
+                        setEntryFormManualAmount(entry.manualAmount != null ? String(entry.manualAmount) : '')
                         setEntryFormEmployeeId(entry.employeeId || 'self')
                         setEntryFormClientId(entry.clientId)
                         setEditEntryId(entry.id)
@@ -3949,7 +3957,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             let cardPaid = 0
             displayEntries.forEach(e => {
               const c = clients.find(cl => cl.id === e.clientId)
-              if (c) cardAmount += calculateHours(e) * c.hourlyRate * (1 + c.vatPercent / 100)
+              if (c) cardAmount += calculateAmount(e, c)
               if (e.employeePaymentAmount != null) cardPaid += e.employeePaymentAmount
             })
             const label = employeeSelectedIds.length > 0 ? (tt[lang].selected as (n:number)=>string)(employeeSelectedIds.length) : (tt[lang].total as (n:number)=>string)(employeeEntries.length)
@@ -3987,7 +3995,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   const client = clients.find(c => c.id === entry.clientId)
                   if (!client) return null
                   const hours = calculateHours(entry)
-                  const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100)
+                  const amount = calculateAmount(entry, client)
                   const status = entry.billingStatus || 'pending'
                   const empPaid = entry.employeePaidStatus === 'paid'
                   const isSelected = employeeSelectedIds.includes(entry.id)
@@ -4008,6 +4016,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                         setEntryFormStartTime(entry.startTime)
                         setEntryFormEndTime(entry.endTime)
                         setEntryFormNotes(entry.notes || '')
+                        setEntryFormManualAmount(entry.manualAmount != null ? String(entry.manualAmount) : '')
                         setEntryFormEmployeeId(entry.employeeId || 'self')
                         setEntryFormClientId(entry.clientId)
                         setEditEntryId(entry.id)
@@ -4646,9 +4655,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                       const client = clients.find(c => c.id === e.clientId)
                       if (!client) return
                       const h = calculateHours(e)
-                      const rev = h * client.hourlyRate
+                      const totalAmt = calculateAmount(e, client)
+                      const rev = client.vatPercent > 0 ? totalAmt / (1 + client.vatPercent / 100) : totalAmt
                       revenueBeforeVAT += rev
-                      revenueWithVAT += rev * (1 + client.vatPercent / 100)
+                      revenueWithVAT += totalAmt
                       incomeTaxDeduction += rev * (client.incomeTaxPercent / 100)
                       if (e.employeePaymentAmount != null) employeePayments += e.employeePaymentAmount
                       if (!clientMap[e.clientId]) clientMap[e.clientId] = {name: client.name, hours: 0, revenue: 0}
@@ -4953,7 +4963,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     let totalAmount = 0
                     entries.forEach(e => {
                       const client = clients.find(c => c.id === e.clientId)
-                      if (client) totalAmount += calculateHours(e) * client.hourlyRate * (1 + client.vatPercent / 100)
+                      if (client) totalAmount += calculateAmount(e, client)
                     })
                     charges.forEach(c => { totalAmount += c.amount })
 
@@ -4982,7 +4992,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                 const client = clients.find(c => c.id === entry.clientId)
                                 if (!client) return null
                                 const hours = calculateHours(entry)
-                                const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100)
+                                const amount = calculateAmount(entry, client)
                                 const status = entry.billingStatus || 'pending'
                                 return (
                                   <div key={entry.id}
@@ -4992,6 +5002,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                                       setEntryFormStartTime(entry.startTime)
                                       setEntryFormEndTime(entry.endTime)
                                       setEntryFormNotes(entry.notes || '')
+                                      setEntryFormManualAmount(entry.manualAmount != null ? String(entry.manualAmount) : '')
                                       setEntryFormEmployeeId(entry.employeeId || 'self')
                                       setEntryFormClientId(entry.clientId)
                                       setEditEntryId(entry.id)
@@ -5354,7 +5365,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               let totalAmount = 0
               filteredTimeEntries.forEach(e => {
                 const client = clients.find(c => c.id === e.clientId)
-                if (client) totalAmount += calculateHours(e) * client.hourlyRate * (1 + client.vatPercent / 100)
+                if (client) totalAmount += calculateAmount(e, client)
               })
               // Add charge amounts
               filteredChargeEntries.forEach(c => { totalAmount += c.amount })
@@ -5365,7 +5376,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               let selAmount = 0
               selectedEntries.forEach(e => {
                 const client = clients.find(c => c.id === e.clientId)
-                if (client) selAmount += calculateHours(e) * client.hourlyRate * (1 + client.vatPercent / 100)
+                if (client) selAmount += calculateAmount(e, client)
               })
 
               const cardHours = (selectedEntryIds.length > 0 || selectedChargeIds.length > 0) ? selHours : totalHours
@@ -5425,7 +5436,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           const client = clients.find(c => c.id === entry.clientId)
                           if (!client) return null
                           const hours = calculateHours(entry)
-                          const amount = hours * client.hourlyRate * (1 + client.vatPercent / 100)
+                          const amount = calculateAmount(entry, client)
                           const status = entry.billingStatus || 'pending'
                           const statusColor = status === 'paid' ? '#10b981' : status === 'invoiced' ? '#3b82f6' : '#f59e0b'
                           const isSelected = selectedEntryIds.includes(entry.id)
@@ -5437,6 +5448,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                             setEntryFormStartTime(entry.startTime)
                             setEntryFormEndTime(entry.endTime)
                             setEntryFormNotes(entry.notes || '')
+                            setEntryFormManualAmount(entry.manualAmount != null ? String(entry.manualAmount) : '')
                             setEntryFormEmployeeId(entry.employeeId || 'self')
                             setEntryFormClientId(entry.clientId)
                             setEditEntryId(entry.id)
@@ -6519,6 +6531,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       setEntryFormStartTime('')
       setEntryFormEndTime('')
       setEntryFormNotes('')
+      setEntryFormManualAmount('')
       setEntryFormEmployeeId('self')
       setEntryFormClientId('')
     }
@@ -6535,6 +6548,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         return
       }
       setFieldErrors({})
+      const manualAmountVal = entryFormManualAmount !== '' ? parseFloat(entryFormManualAmount) : undefined
       if (editEntryId) {
         setTimeEntries(prev => prev.map(en =>
           en.id === editEntryId
@@ -6546,7 +6560,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 endDate: entryFormEndDate,
                 startTime: entryFormStartTime,
                 endTime: entryFormEndTime,
-                notes: entryFormNotes
+                notes: entryFormNotes,
+                manualAmount: manualAmountVal
               }
             : en
         ))
@@ -6559,7 +6574,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           endDate: entryFormEndDate,
           startTime: entryFormStartTime,
           endTime: entryFormEndTime,
-          notes: entryFormNotes
+          notes: entryFormNotes,
+          manualAmount: manualAmountVal
         }
         setTimeEntries(prev => [...prev, entry])
       }
@@ -6657,7 +6673,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             />
           )}
 
-          {/* Duration + Amount inline */}
+          {/* Duration + Manual Amount */}
           {(() => {
             if (!entryFormStartDate || !entryFormEndDate || !entryFormStartTime || !entryFormEndTime) return null
             const start = new Date(`${entryFormStartDate}T${entryFormStartTime}`)
@@ -6666,13 +6682,23 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             if (hrs <= 0) return null
             const cid = entryFormClientId || selectedClientId
             const cl = clients.find(c => c && c.id === cid)
-            const amt = cl && cl.hourlyRate ? hrs * cl.hourlyRate * (1 + (cl.vatPercent || 0) / 100) : 0
+            const calcAmt = cl && cl.hourlyRate ? hrs * cl.hourlyRate * (1 + (cl.vatPercent || 0) / 100) : 0
             return (
-              <div style={{display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F3F4F6'}}>
-                <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>משך</div>
-                <div style={{flex: 1, fontSize: 17, fontWeight: 700, color: '#111827'}}>{hrs.toFixed(1)} שעות</div>
-                {amt > 0 && <div style={{fontSize: 17, fontWeight: 700, color: '#10b981'}}>₪{amt.toLocaleString(numLocale, {maximumFractionDigits: 0})}</div>}
-              </div>
+              <>
+                <div style={{display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F3F4F6'}}>
+                  <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>משך</div>
+                  <div style={{flex: 1, fontSize: 17, fontWeight: 700, color: '#111827'}}>{hrs.toFixed(1)} שעות</div>
+                </div>
+                <div style={{display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F3F4F6'}}>
+                  <div style={{width: 70, fontSize: 11, color: '#9CA3AF', fontWeight: 700, letterSpacing: 1}}>סכום</div>
+                  <input type="number" inputMode="decimal"
+                    value={entryFormManualAmount}
+                    onChange={ev => setEntryFormManualAmount(ev.target.value)}
+                    placeholder={calcAmt > 0 ? `${calcAmt.toLocaleString(numLocale, {maximumFractionDigits:0})} (לפי תעריף)` : 'סכום ידני (₪)'}
+                    style={{flex:1, border:'none', background:'none', fontSize:17, fontWeight:700, color: entryFormManualAmount !== '' ? '#10b981' : '#9CA3AF', outline:'none', textAlign:'right', direction:'ltr'}} />
+                  {entryFormManualAmount !== '' && <button type="button" onClick={() => setEntryFormManualAmount('')} style={{background:'none', border:'none', color:'#9CA3AF', cursor:'pointer', fontSize:16, padding:'0 4px'}}>↺</button>}
+                </div>
+              </>
             )
           })()}
 
