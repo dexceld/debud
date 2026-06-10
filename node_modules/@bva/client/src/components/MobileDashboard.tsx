@@ -4351,9 +4351,27 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           ) : (
             <>
               <DexcelLogo />
-              <h1 className="m-title">{employeeMode ? `${t('hello')} ${employeeMode.name}` : t('title')}</h1>
+              {employeeMode && <h1 className="m-title">{`${t('hello')} ${employeeMode.name}`}</h1>}
               <div className="m-header-actions">
-                {timeTrackingTab === 'clients' && !employeeMode && renderHeaderNewBtn(openNewClientForm, t('newClient'))}
+                {timeTrackingTab === 'clients' && !employeeMode && (
+                  <>
+                    <button type="button" className="m-hbtn" onClick={() => {
+                      const today = new Date().toISOString().split('T')[0]
+                      const now = new Date().toTimeString().slice(0, 5)
+                      setEntryFormStartDate(today); setEntryFormEndDate(today)
+                      setEntryFormStartTime(now); setEntryFormEndTime(now)
+                      setEntryFormNotes(''); setEntryFormManualAmount('')
+                      setEntryFormEmployeeId('self'); setEntryFormClientId('')
+                      setEditEntryId(null); setAddTimeEntryOpen(true)
+                    }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                      </svg>
+                      <span className="m-hbtn-label">{lang==='he' ? 'דיווח חדש' : 'New entry'}</span>
+                    </button>
+                    {renderHeaderNewBtn(openNewClientForm, t('newClient'))}
+                  </>
+                )}
                 {timeTrackingTab === 'employees' && renderHeaderNewBtn(openNewEmployeeForm, t('newEmployee'))}
                 {timeTrackingTab === 'summary' && !employeeMode && (
                   <button type="button" className="m-hbtn" title={t('selectAll')}
@@ -4424,7 +4442,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             className={`m-time-tab ${timeTrackingTab === 'clients' ? 'active' : ''}`}
             onClick={() => setTimeTrackingTab('clients')}
           >
-            {t('tabClients')}
+            {lang==='he' ? 'דיווחים' : 'Reports'}
           </button>
           {!employeeMode && (
             <>
@@ -4607,7 +4625,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                         const status = entry.billingStatus || 'pending'
                         const statusColor = status === 'paid' ? '#059669' : status === 'invoiced' ? '#1d4ed8' : '#92400e'
                         const statusBg = status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7'
-                        const statusLabel = status === 'paid' ? t('paid') : status === 'invoiced' ? t('invoiced') : t('pending')
+                        const statusLabel = status === 'paid' ? t('statusPaid') : status === 'invoiced' ? t('statusInvoiced') : t('statusPending')
                         return (
                           <div key={entry.id}
                             onClick={() => {
@@ -4700,6 +4718,99 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         {/* Tab 3: Reports */}
         {timeTrackingTab === 'reports' && (
           <div style={{flex: 1, overflowY: 'auto', padding: '12px 0 100px'}}>
+
+            {/* ── Financial Forecast Card ── */}
+            {(() => {
+              const PIE_COLORS = ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#84cc16','#ec4899','#6366f1']
+              const clientList = clients
+              const clientAmounts = clientList
+                .map((client, idx) => {
+                  const unpaid = timeEntries.filter(e => e.clientId === client.id && (e.billingStatus || 'pending') !== 'paid')
+                  const amount = unpaid.reduce((s, e) => s + calculateAmount(e, client), 0)
+                  return {id: client.id, name: client.name, amount, color: PIE_COLORS[idx % PIE_COLORS.length]}
+                })
+                .filter(c => c.amount > 0)
+                .sort((a, b) => b.amount - a.amount)
+
+              const totalToCollect = clientAmounts.reduce((s, c) => s + c.amount, 0)
+
+              // Employee entries not yet paid (to employees)
+              const empPendingEntries = timeEntries.filter(e => e.employeeId && (e.employeePaidStatus || 'pending') !== 'paid')
+              const empPendingCount = empPendingEntries.length
+
+              // Employee payments already recorded
+              const empPaidTotal = timeEntries
+                .filter(e => e.employeePaymentAmount != null)
+                .reduce((s, e) => s + (e.employeePaymentAmount || 0), 0)
+
+              if (totalToCollect === 0 && empPaidTotal === 0 && empPendingCount === 0) return null
+
+              const netExpected = totalToCollect - empPaidTotal
+              const bottomCols = [true, empPendingCount > 0, true].filter(Boolean).length
+
+              return (
+                <div style={{margin:'0 16px 14px', background:'white', borderRadius:14, border:'1px solid #E5E7EB', overflow:'hidden', boxShadow:'0 2px 10px rgba(0,0,0,0.07)'}}>
+                  {/* Header */}
+                  <div style={{background:'#0f172a', padding:'9px 14px', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                    <span style={{fontSize:13, fontWeight:700, color:'white'}}>📊 {lang==='he' ? 'תחזית הכנסות' : 'Revenue Forecast'}</span>
+                    <span style={{fontSize:11, color:'#94a3b8'}}>{lang==='he' ? 'ממתין + חויב' : 'Pending + Invoiced'}</span>
+                  </div>
+
+                  {/* Stacked bar – to collect */}
+                  {totalToCollect > 0 && (
+                    <div style={{padding:'12px 14px', borderBottom:'1px solid #F3F4F6'}}>
+                      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:7}}>
+                        <span style={{fontSize:12, fontWeight:600, color:'#374151'}}>{lang==='he' ? '💰 צפוי לגבות' : '💰 To collect'}</span>
+                        <span style={{fontSize:16, fontWeight:800, color:'#1d4ed8'}}>₪{totalToCollect.toLocaleString(numLocale, {maximumFractionDigits:0})}</span>
+                      </div>
+                      {/* Stacked bar */}
+                      <div style={{height:20, borderRadius:10, overflow:'hidden', display:'flex', marginBottom:8, background:'#F3F4F6'}}>
+                        {clientAmounts.map(ca => (
+                          <div key={ca.id}
+                            style={{width:`${(ca.amount/totalToCollect*100).toFixed(1)}%`, background:ca.color, minWidth:ca.amount>0?3:0}}
+                            title={`${ca.name}: ₪${ca.amount.toLocaleString()}`}
+                          />
+                        ))}
+                      </div>
+                      {/* Legend */}
+                      <div style={{display:'flex', flexWrap:'wrap', gap:'4px 12px'}}>
+                        {clientAmounts.map(ca => (
+                          <div key={ca.id} style={{display:'flex', alignItems:'center', gap:5}}>
+                            <div style={{width:9, height:9, borderRadius:'50%', background:ca.color, flexShrink:0}} />
+                            <span style={{fontSize:11, color:'#374151', whiteSpace:'nowrap'}}>
+                              {ca.name} <span style={{color:'#6B7280', fontWeight:600}}>₪{ca.amount.toLocaleString(numLocale, {maximumFractionDigits:0})}</span>
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* KPI row: employee costs + net */}
+                  <div style={{display:'grid', gridTemplateColumns:`repeat(${bottomCols},1fr)`, padding:'10px 0'}}>
+                    <div style={{textAlign:'center', padding:'0 10px', borderLeft:'1px solid #F3F4F6'}}>
+                      <div style={{fontSize:10, color:'#9CA3AF', marginBottom:2, fontWeight:600}}>{lang==='he' ? 'שולם לעובדים' : 'Paid to employees'}</div>
+                      <div style={{fontSize:14, fontWeight:700, color:'#ef4444'}}>
+                        {empPaidTotal > 0 ? `₪${empPaidTotal.toLocaleString(numLocale,{maximumFractionDigits:0})}` : '—'}
+                      </div>
+                    </div>
+                    {empPendingCount > 0 && (
+                      <div style={{textAlign:'center', padding:'0 10px', borderLeft:'1px solid #F3F4F6'}}>
+                        <div style={{fontSize:10, color:'#9CA3AF', marginBottom:2, fontWeight:600}}>{lang==='he' ? 'עובדים ממתינים' : 'Emp. pending'}</div>
+                        <div style={{fontSize:14, fontWeight:700, color:'#f59e0b'}}>{empPendingCount} {lang==='he' ? 'דיווחים' : 'entries'}</div>
+                      </div>
+                    )}
+                    <div style={{textAlign:'center', padding:'0 10px', borderLeft:'1px solid #F3F4F6'}}>
+                      <div style={{fontSize:10, color:'#9CA3AF', marginBottom:2, fontWeight:600}}>{lang==='he' ? 'נטו מוערך' : 'Net estimate'}</div>
+                      <div style={{fontSize:14, fontWeight:800, color: netExpected >= 0 ? '#059669' : '#ef4444'}}>
+                        ₪{netExpected.toLocaleString(numLocale, {maximumFractionDigits:0})}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
+            })()}
+
             {/* Period selector */}
             <div style={{padding: '0 16px 14px'}}>
               <select
