@@ -4300,7 +4300,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
         </div>
-        <span className="m-hbtn-label">{t('newLabel')}</span>
+        <span className="m-hbtn-label">{title}</span>
       </button>
     )
 
@@ -4722,17 +4722,25 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             {/* ── Financial Forecast Card ── */}
             {(() => {
               const PIE_COLORS = ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#84cc16','#ec4899','#6366f1']
-              const clientList = clients
-              const clientAmounts = clientList
+
+              // Compute per-client WITH-VAT amounts (for bar) AND aggregate before-VAT + income-tax
+              let totalWithVAT = 0, totalBeforeVAT = 0, totalIncomeTax = 0
+              const clientAmounts = clients
                 .map((client, idx) => {
                   const unpaid = timeEntries.filter(e => e.clientId === client.id && (e.billingStatus || 'pending') !== 'paid')
-                  const amount = unpaid.reduce((s, e) => s + calculateAmount(e, client), 0)
-                  return {id: client.id, name: client.name, amount, color: PIE_COLORS[idx % PIE_COLORS.length]}
+                  let withVAT = 0
+                  unpaid.forEach(e => {
+                    const amt = calculateAmount(e, client)
+                    const rev = client.vatPercent > 0 ? amt / (1 + client.vatPercent / 100) : amt
+                    withVAT += amt
+                    totalWithVAT += amt
+                    totalBeforeVAT += rev
+                    totalIncomeTax += rev * (client.incomeTaxPercent / 100)
+                  })
+                  return {id: client.id, name: client.name, amount: withVAT, color: PIE_COLORS[idx % PIE_COLORS.length]}
                 })
                 .filter(c => c.amount > 0)
                 .sort((a, b) => b.amount - a.amount)
-
-              const totalToCollect = clientAmounts.reduce((s, c) => s + c.amount, 0)
 
               // Employee entries not yet paid (to employees)
               const empPendingEntries = timeEntries.filter(e => e.employeeId && (e.employeePaidStatus || 'pending') !== 'paid')
@@ -4743,10 +4751,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 .filter(e => e.employeePaymentAmount != null)
                 .reduce((s, e) => s + (e.employeePaymentAmount || 0), 0)
 
-              if (totalToCollect === 0 && empPaidTotal === 0 && empPendingCount === 0) return null
+              if (totalWithVAT === 0 && empPaidTotal === 0 && empPendingCount === 0) return null
 
-              const netExpected = totalToCollect - empPaidTotal
-              const bottomCols = [true, empPendingCount > 0, true].filter(Boolean).length
+              // Net = before-VAT revenue minus income-tax and recorded employee costs (consistent with period cards)
+              const netExpected = totalBeforeVAT - totalIncomeTax - empPaidTotal
+              const hasVAT = totalWithVAT > totalBeforeVAT + 0.5
+              const hasDeductions = totalIncomeTax > 0 || empPaidTotal > 0
+              const bottomCols = [hasDeductions, empPendingCount > 0, true].filter(Boolean).length
 
               return (
                 <div style={{margin:'0 16px 14px', background:'white', borderRadius:14, border:'1px solid #E5E7EB', overflow:'hidden', boxShadow:'0 2px 10px rgba(0,0,0,0.07)'}}>
@@ -4756,24 +4767,24 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     <span style={{fontSize:11, color:'#94a3b8'}}>{lang==='he' ? 'ממתין + חויב' : 'Pending + Invoiced'}</span>
                   </div>
 
-                  {/* Stacked bar – to collect */}
-                  {totalToCollect > 0 && (
+                  {/* Stacked bar – to collect WITH VAT */}
+                  {totalWithVAT > 0 && (
                     <div style={{padding:'12px 14px', borderBottom:'1px solid #F3F4F6'}}>
                       <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:7}}>
-                        <span style={{fontSize:12, fontWeight:600, color:'#374151'}}>{lang==='he' ? '💰 צפוי לגבות' : '💰 To collect'}</span>
-                        <span style={{fontSize:16, fontWeight:800, color:'#1d4ed8'}}>₪{totalToCollect.toLocaleString(numLocale, {maximumFractionDigits:0})}</span>
+                        <span style={{fontSize:12, fontWeight:600, color:'#374151'}}>{lang==='he' ? '💰 צפוי לגבות (כולל מע"מ)' : '💰 To collect (incl. VAT)'}</span>
+                        <span style={{fontSize:16, fontWeight:800, color:'#1d4ed8'}}>₪{totalWithVAT.toLocaleString(numLocale, {maximumFractionDigits:0})}</span>
                       </div>
                       {/* Stacked bar */}
                       <div style={{height:20, borderRadius:10, overflow:'hidden', display:'flex', marginBottom:8, background:'#F3F4F6'}}>
                         {clientAmounts.map(ca => (
                           <div key={ca.id}
-                            style={{width:`${(ca.amount/totalToCollect*100).toFixed(1)}%`, background:ca.color, minWidth:ca.amount>0?3:0}}
+                            style={{width:`${(ca.amount/totalWithVAT*100).toFixed(1)}%`, background:ca.color, minWidth:ca.amount>0?3:0}}
                             title={`${ca.name}: ₪${ca.amount.toLocaleString()}`}
                           />
                         ))}
                       </div>
                       {/* Legend */}
-                      <div style={{display:'flex', flexWrap:'wrap', gap:'4px 12px'}}>
+                      <div style={{display:'flex', flexWrap:'wrap', gap:'4px 12px', marginBottom: hasVAT ? 6 : 0}}>
                         {clientAmounts.map(ca => (
                           <div key={ca.id} style={{display:'flex', alignItems:'center', gap:5}}>
                             <div style={{width:9, height:9, borderRadius:'50%', background:ca.color, flexShrink:0}} />
@@ -4783,17 +4794,31 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           </div>
                         ))}
                       </div>
+                      {/* Before-VAT sub-line */}
+                      {hasVAT && (
+                        <div style={{display:'flex', justifyContent:'space-between', paddingTop:6, borderTop:'1px dashed #E5E7EB'}}>
+                          <span style={{fontSize:11, color:'#9CA3AF'}}>{lang==='he' ? 'לפני מע"מ' : 'Before VAT'}</span>
+                          <span style={{fontSize:12, fontWeight:600, color:'#6B7280'}}>₪{totalBeforeVAT.toLocaleString(numLocale, {maximumFractionDigits:0})}</span>
+                        </div>
+                      )}
                     </div>
                   )}
 
-                  {/* KPI row: employee costs + net */}
+                  {/* KPI row: deductions | employee pending | net after VAT & tax */}
                   <div style={{display:'grid', gridTemplateColumns:`repeat(${bottomCols},1fr)`, padding:'10px 0'}}>
-                    <div style={{textAlign:'center', padding:'0 10px', borderLeft:'1px solid #F3F4F6'}}>
-                      <div style={{fontSize:10, color:'#9CA3AF', marginBottom:2, fontWeight:600}}>{lang==='he' ? 'שולם לעובדים' : 'Paid to employees'}</div>
-                      <div style={{fontSize:14, fontWeight:700, color:'#ef4444'}}>
-                        {empPaidTotal > 0 ? `₪${empPaidTotal.toLocaleString(numLocale,{maximumFractionDigits:0})}` : '—'}
+                    {hasDeductions && (
+                      <div style={{textAlign:'center', padding:'0 10px', borderLeft:'1px solid #F3F4F6'}}>
+                        <div style={{fontSize:10, color:'#9CA3AF', marginBottom:2, fontWeight:600}}>{lang==='he' ? 'ניכויים (מס + עובדים)' : 'Deductions (tax + emp)'}</div>
+                        <div style={{fontSize:13, fontWeight:700, color:'#ef4444'}}>
+                          ₪{(totalIncomeTax + empPaidTotal).toLocaleString(numLocale,{maximumFractionDigits:0})}
+                        </div>
+                        {totalIncomeTax > 0 && empPaidTotal > 0 && (
+                          <div style={{fontSize:9, color:'#9CA3AF', marginTop:1}}>
+                            {lang==='he' ? `מס ₪${Math.round(totalIncomeTax).toLocaleString(numLocale)} · עובדים ₪${empPaidTotal.toLocaleString(numLocale)}` : `tax ₪${Math.round(totalIncomeTax).toLocaleString(numLocale)} · emp ₪${empPaidTotal.toLocaleString(numLocale)}`}
+                          </div>
+                        )}
                       </div>
-                    </div>
+                    )}
                     {empPendingCount > 0 && (
                       <div style={{textAlign:'center', padding:'0 10px', borderLeft:'1px solid #F3F4F6'}}>
                         <div style={{fontSize:10, color:'#9CA3AF', marginBottom:2, fontWeight:600}}>{lang==='he' ? 'עובדים ממתינים' : 'Emp. pending'}</div>
@@ -4801,7 +4826,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                       </div>
                     )}
                     <div style={{textAlign:'center', padding:'0 10px', borderLeft:'1px solid #F3F4F6'}}>
-                      <div style={{fontSize:10, color:'#9CA3AF', marginBottom:2, fontWeight:600}}>{lang==='he' ? 'נטו מוערך' : 'Net estimate'}</div>
+                      <div style={{fontSize:10, color:'#9CA3AF', marginBottom:2, fontWeight:600}}>{lang==='he' ? 'נטו (אחרי מע"מ ומס)' : 'Net (after VAT & tax)'}</div>
                       <div style={{fontSize:14, fontWeight:800, color: netExpected >= 0 ? '#059669' : '#ef4444'}}>
                         ₪{netExpected.toLocaleString(numLocale, {maximumFractionDigits:0})}
                       </div>
@@ -4951,7 +4976,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           </div>
                           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '11px 0 4px'}}>
                             <div>
-                              <div style={{fontSize: 14, fontWeight: 700, color: netProfit >= 0 ? '#065F46' : '#DC2626'}}>{t('netProfit')}</div>
+                              <div style={{fontSize: 14, fontWeight: 700, color: netProfit >= 0 ? '#065F46' : '#DC2626'}}>{lang==='he' ? 'נטו (אחרי מע"מ ומס הכנסה)' : 'Net (after VAT & tax)'}</div>
                               {(incomeTaxDeduction > 0 || employeePayments > 0) && (
                                 <div style={{fontSize: 11, color: '#9CA3AF', marginTop: 3}}>
                                   {incomeTaxDeduction > 0 && `${t('taxLabel')} ₪${incomeTaxDeduction.toLocaleString(numLocale,{maximumFractionDigits:0})}`}
