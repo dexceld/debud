@@ -1556,7 +1556,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <React.Fragment key={g.id}>
                 <button className={`m-home-group-row ${isIncome ? 'income-row' : ''}`} onClick={() => toggleGroup(g.id)}>
                   <span className="m-home-group-arrow">{isOpen ? '▾' : '▸'}</span>
-                  <span className="m-home-group-name">{g.name}</span>
+                  <span className="m-home-group-name">{getGroupName(g, lang)}</span>
                   <span className="m-home-group-actual">&#x202A;{ga.toLocaleString()}&#x202C;</span>
                   <span className="m-home-group-budget">&#x202A;{gb.toLocaleString()}&#x202C;</span>
                 </button>
@@ -1564,7 +1564,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   const b = getForecastValue(cat, vm), a = getActualValue(cat.id, vm)
                   return (
                     <div key={cat.id} className="m-home-cat-row" style={{display:'flex',alignItems:'center'}}>
-                      <span className="m-home-cat-name" style={{cursor:'pointer',flex:1}} onClick={() => openUpdate(cat, currentMonth)}>{cat.name}</span>
+                      <span className="m-home-cat-name" style={{cursor:'pointer',flex:1}} onClick={() => openUpdate(cat, currentMonth)}>{getCatName(cat, lang)}</span>
                       <span className={`m-home-group-actual ${a !== null ? 'blue' : ''}`} style={{cursor:'pointer'}} onClick={() => openUpdate(cat, vm)}>&#x202A;{Math.abs(a ?? b).toLocaleString()}&#x202C;</span>
                       <span className="m-home-group-budget">&#x202A;{b.toLocaleString()}&#x202C;</span>
                     </div>
@@ -1612,7 +1612,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <React.Fragment key={g.id}>
                 <button className={`m-home-group-row ${isIncome ? 'income-row' : ''}`} onClick={() => toggleGroup(g.id)}>
                   <span className="m-home-group-arrow">{isOpen ? '▾' : '▸'}</span>
-                  <span className="m-mm-name">{g.name}</span>
+                  <span className="m-mm-name">{getGroupName(g, lang)}</span>
                   <div className="m-mm-header-months scrollable">
                     {monthCols.map(m => {
                       const tot = gc.reduce((s,c) => { const a=getActualValue(c.id,m); return s+(a!==null?a:getForecastValue(c,m)) }, 0)
@@ -1633,7 +1633,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 }).map(cat => (
                   <div key={cat.id} className="m-home-cat-row" style={{display:'flex',alignItems:'center',padding:'6px 6px 6px 4px',borderBottom:'1px solid #F3F4F6'}}>
                     <span className="m-home-group-arrow-spacer"></span>
-                    <span className="m-mm-name" style={{cursor:'pointer'}} onClick={() => openUpdate(cat, currentMonth)}>{cat.name}</span>
+                    <span className="m-mm-name" style={{cursor:'pointer'}} onClick={() => openUpdate(cat, currentMonth)}>{getCatName(cat, lang)}</span>
                     <div className="m-mm-header-months scrollable">
                       {monthCols.map(m => {
                         const a = getActualValue(cat.id, m), b = getForecastValue(cat, m)
@@ -1942,7 +1942,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       <div className="m-screen">
         <div className="m-header">
           <DexcelLogo />
-          <span className="m-header-title">{group ? group.name : t('allExpenses')}</span>
+          <span className="m-header-title">{group ? getGroupName(group, lang) : t('allExpenses')}</span>
           <div style={{ width: 40 }} />
         </div>
 
@@ -1960,7 +1960,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 onTouchStart={() => handleLongPressStart(cat.id)}
                 onTouchEnd={handleLongPressEnd}
               >
-                {cat.name}
+                {getCatName(cat, lang)}
                 {menuCatId === cat.id && (
                   <div className="m-cat-menu">
                     <button onClick={() => setMenuCatId(null)}>✏️ {t('renameAction')}</button>
@@ -2502,8 +2502,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               >
                 <span className="m-catmgmt-group-icon">{g.icon}</span>
                 <div className="m-catmgmt-group-info">
-                  <span className="m-catmgmt-group-name-lg">{g.name}</span>
-                  <span className="m-catmgmt-group-count">{items.length} פריטים</span>
+                  <span className="m-catmgmt-group-name-lg">{getGroupName(g, lang)}</span>
+                  <span className="m-catmgmt-group-count">{items.length} {lang==='he' ? 'פריטים' : 'items'}</span>
                 </div>
                 <button className="m-catmgmt-rename-btn" onClick={e => { e.stopPropagation(); setCatMgmtRenameGroupVal(g.name); setCatMgmtRenamingGroupId(g.id) }}>✏️</button>
                 <button className="m-catmgmt-delete-btn" onClick={e => { e.stopPropagation(); if (g.id === 'g5') { setErrorToast('לא ניתן למחוק את קטגוריית ההכנסות'); setTimeout(() => setErrorToast(null), 3000); return; } if (items.length > 0) { setErrorToast('לא ניתן למחוק קטגוריה שיש בה סעיפים'); setTimeout(() => setErrorToast(null), 3000); return; } setGroups(prev => prev.filter(gr => gr.id !== g.id)); setGroupOrder(prev => prev.filter(id => id !== g.id)); setDeleteToast(g.name); setTimeout(() => setDeleteToast(null), 2500) }}>🗑</button>
@@ -2526,15 +2526,15 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       <div className="m-catmgmt-screen">
         {/* Header */}
         <div className="m-catmgmt-topbar" style={{ background: accent }}>
-          <button className="m-catmgmt-back" onClick={goBack}>‹ חזרה</button>
-          <span className="m-catmgmt-topbar-title">{group.icon} {group.name}</span>
+          <button className="m-catmgmt-back" onClick={goBack}>‹ {lang==='he' ? 'חזרה' : 'Back'}</button>
+          <span className="m-catmgmt-topbar-title">{group.icon} {getGroupName(group, lang)}</span>
           <div className="m-logo-block" onClick={() => { setCatMgmtOpen(false); setCatMgmtDrillGid(null); setSettingsPage('main'); handleLogoClick() }} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', height: '100%' }} title="דף הבית"><img src="/Trn color.png" alt="Dexcel" style={{ height: 29, maxHeight: '85%' }} /></div>
         </div>
 
         {/* Add new button */}
         <button className="m-catmgmt-add-row" onClick={() => { setAddingItem(true); setRenamingCatId(null) }}>
           <span className="m-catmgmt-add-plus">＋</span>
-          <span className="m-catmgmt-add-label">סעיף חדש ב{group.name}</span>
+          <span className="m-catmgmt-add-label">{lang==='he' ? `סעיף חדש ב${getGroupName(group, lang)}` : `New item in ${getGroupName(group, lang)}`}</span>
         </button>
 
         {/* Add new form */}
@@ -2543,13 +2543,13 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <input
               ref={addRef}
               className="m-catmgmt-edit-input"
-              placeholder="שם סעיף חדש..."
+              placeholder={lang==='he' ? 'שם סעיף חדש...' : 'New item name...'}
               value={newItemName}
               onChange={e => setNewItemName(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') saveNewItem(); if (e.key === 'Escape') setAddingItem(false) }}
             />
             <div className="m-catmgmt-edit-actions">
-              <button className="m-catmgmt-save-btn" onClick={saveNewItem} disabled={!newItemName.trim()}>✓ הוסף</button>
+              <button className="m-catmgmt-save-btn" onClick={saveNewItem} disabled={!newItemName.trim()}>✓ {lang==='he' ? 'הוסף' : 'Add'}</button>
               <button className="m-catmgmt-cancel-btn" onClick={() => setAddingItem(false)}>{t('cancel')}</button>
             </div>
           </div>
@@ -2558,7 +2558,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         {/* Items */}
         <div className="m-catmgmt-list">
           {items.length === 0 && (
-            <div className="m-catmgmt-empty">אין סעיפים בקטגוריה זו</div>
+            <div className="m-catmgmt-empty">{lang==='he' ? 'אין סעיפים בקטגוריה זו' : 'No items in this category'}</div>
           )}
           {items.map(cat => {
             const isRenaming = renamingCatId === cat.id
@@ -2575,7 +2575,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                       onKeyDown={e => { if (e.key === 'Enter') saveRename(cat.id); if (e.key === 'Escape') setRenamingCatId(null) }}
                     />
                     <div className="m-catmgmt-edit-actions" style={{marginTop:8}}>
-                      <button className="m-catmgmt-save-btn" onClick={() => saveRename(cat.id)} disabled={!renameVal.trim()}>✓ שמור</button>
+                      <button className="m-catmgmt-save-btn" onClick={() => saveRename(cat.id)} disabled={!renameVal.trim()}>✓ {lang==='he' ? 'שמור' : 'Save'}</button>
                       <button className="m-catmgmt-cancel-btn" onClick={() => setRenamingCatId(null)}>{t('cancel')}</button>
                     </div>
                   </>
@@ -2583,8 +2583,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   <>
                     <button className="m-catmgmt-rename-btn" onClick={e => { e.stopPropagation(); setRenamingCatId(cat.id); setRenameVal(cat.name); setAddingItem(false) }}>✎</button>
                     <div className="m-catmgmt-item-dot" style={{ background: accent }} />
-                    <span className="m-catmgmt-cat-name">{cat.name}</span>
-                    <button className="m-catmgmt-delete-btn" onClick={e => { e.stopPropagation(); const name = cat.name; setCategories(prev => prev.filter(c => c.id !== cat.id)); setActuals(prev => { const n = {...prev}; delete n[cat.id]; return n }); setDeleteToast(name); setTimeout(() => setDeleteToast(null), 2500) }}>🗑</button>
+                    <span className="m-catmgmt-cat-name">{getCatName(cat, lang)}</span>
+                    <button className="m-catmgmt-delete-btn" onClick={e => { e.stopPropagation(); const name = getCatName(cat, lang); setCategories(prev => prev.filter(c => c.id !== cat.id)); setActuals(prev => { const n = {...prev}; delete n[cat.id]; return n }); setDeleteToast(name); setTimeout(() => setDeleteToast(null), 2500) }}>🗑</button>
                   </>
                 )}
               </div>
