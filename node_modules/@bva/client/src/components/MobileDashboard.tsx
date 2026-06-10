@@ -77,6 +77,15 @@ const initialCategories: Record<'he'|'en', Category[]> = {
   ],
 }
 
+const getCatName = (cat: Category, lang: 'he'|'en'): string => {
+  const localized = initialCategories[lang].find(c => c.id === cat.id)
+  return localized ? localized.name : cat.name
+}
+const getGroupName = (group: Group, lang: 'he'|'en'): string => {
+  const localized = initialGroups[lang].find(g => g.id === group.id)
+  return localized ? localized.name : group.name
+}
+
 const generateMonths = () => {
   const months: string[] = []
   const now = new Date()
@@ -1162,7 +1171,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   const b = getForecastValue(cat, vm), a = getActualValue(cat.id, vm), d = (a ?? b) - b
                   return (
                     <button key={cat.id} className="m-acc-row" onClick={() => openUpdate(cat, vm)}>
-                      <span className="m-acc-cat-name">{cat.name}</span>
+                      <span className="m-acc-cat-name">{getCatName(cat, lang)}</span>
                       <span className="m-acc-col-val muted">&#x202A;{b.toLocaleString()}&#x202C;</span>
                       <span className={`m-acc-col-val ${a !== null ? 'blue' : 'muted'}`}>&#x202A;{(a ?? b).toLocaleString()}&#x202C;</span>
                       <span className={`m-acc-col-val ${d > 0 ? 'under' : d < 0 ? 'over' : 'even'}`}>{d !== 0 ? `‎${d > 0 ? '+' : ''}${d.toLocaleString()}` : '—'}</span>
@@ -1183,7 +1192,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 <button className="m-accordion-header" onClick={() => toggleGroup(g.id)}>
                   <div className="m-acc-left">
                     <span className="m-acc-arrow">{expanded ? '▾' : '▸'}</span>
-                    <span className="m-acc-name">{g.name}</span>
+                    <span className="m-acc-name">{getGroupName(g, lang)}</span>
                   </div>
                   <div className="m-acc-right">
                     <span className="m-acc-budget">&#x202A;{gb.toLocaleString()}&#x202C;</span>
@@ -1203,7 +1212,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                       const b = getForecastValue(cat, vm), a = getActualValue(cat.id, vm), d = (a ?? b) - b
                       return (
                         <button key={cat.id} className="m-acc-row" onClick={() => openUpdate(cat, vm)}>
-                          <span className="m-acc-cat-name">{cat.name}</span>
+                          <span className="m-acc-cat-name">{getCatName(cat, lang)}</span>
                           <span className="m-acc-col-val muted">&#x202A;{b.toLocaleString()}&#x202C;</span>
                           <span className={`m-acc-col-val ${a !== null ? 'blue' : 'muted'}`}>&#x202A;{(a ?? b).toLocaleString()}&#x202C;</span>
                           <span className={`m-acc-col-val ${d > 0 ? 'over' : d < 0 ? 'under' : 'even'}`}>{d !== 0 ? `‎${d > 0 ? '+' : ''}${d.toLocaleString()}` : '—'}</span>
@@ -2025,7 +2034,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
         <div className="m-chart-wrap">
           <div className="m-chart-legend">
             <span className="m-legend-line" style={{background:'#7C3AED'}} />
-            <span className="m-legend-label">תחזית נוכחית</span>
+            <span className="m-legend-label">{t('currentForecast')}</span>
             {forecastSnapshots.map((s, i) => (
               <React.Fragment key={i}>
                 <span className="m-legend-line" style={{background: snapshotColors[i % 4], opacity: 0.5}} />
@@ -2648,10 +2657,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           {/* Cat name + group + close */}
           <div className="m-is-cat-header">
             <div className="m-is-cat-header-row">
-              <span className="m-is-cat-name">{cat.name}</span>
+              <span className="m-is-cat-name">{getCatName(cat, lang)}</span>
               <button className="m-is-close-btn" onClick={close}>✕</button>
             </div>
-            <span className="m-is-cat-sub">{group?.name}{actual !== null ? ` · בפועל: ${actual.toLocaleString()}` : ''} · תחזית: {forecast.toLocaleString()}</span>
+            <span className="m-is-cat-sub">{group ? getGroupName(group, lang) : ''}{actual !== null ? ` · ${t('actualLabel')}: ${actual.toLocaleString()}` : ''} · {t('forecastLabel')}: {forecast.toLocaleString()}</span>
           </div>
 
           {/* Amount + month */}
@@ -2659,7 +2668,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             <input
               ref={inputRef}
               type="number" inputMode="numeric"
-              placeholder="סכום..."
+              placeholder={t('amountPlaceholderBudget')}
               value={inlineSheetAmount}
               onChange={e => setInlineSheetAmount(e.target.value)}
               className="m-qi-global-amount"
@@ -2676,35 +2685,35 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               <div className="m-qi-forever-row">
                 <label className="m-qi-checkbox-row" style={{marginBottom:0}}>
                   <input type="checkbox" checked={forecastEnd === ''} onChange={e => setForecastEnd(e.target.checked ? '' : month)} />
-                  <span>לנצח</span>
+                  <span>{t('forever')}</span>
                 </label>
                 {forecastEnd !== '' && (
                   <>
-                    <span className="m-qi-until-label">עד:</span>
+                    <span className="m-qi-until-label">{t('untilLabel')}</span>
                     <select value={forecastEnd} onChange={e => setForecastEnd(e.target.value)} className="m-sheet-select-sm">
                       {months.filter((_, i) => i >= startIdx).map(m => <option key={m} value={m}>{m}</option>)}
                     </select>
                   </>
                 )}
               </div>
-              <button className="m-qi-forecast-save-btn" disabled={!inlineSheetAmount} onClick={saveForecast}>📅 עדכן תחזית</button>
+              <button className="m-qi-forecast-save-btn" disabled={!inlineSheetAmount} onClick={saveForecast}>📅 {t('updateForecastBtn')}</button>
             </>
           ) : (
             <>
               <label className="m-qi-checkbox-row">
                 <input type="checkbox" checked={alsoForecast} onChange={e => setAlsoForecast(e.target.checked)} />
-                <span>עדכן גם תחזית קדימה</span>
+                <span>{t('alsoUpdateForecast')}</span>
               </label>
               {alsoForecast && (
                 <div className="m-qi-forecast-sub">
                   <div className="m-qi-forever-row">
                     <label className="m-qi-checkbox-row" style={{marginBottom:0}}>
                       <input type="checkbox" checked={forecastEnd === ''} onChange={e => setForecastEnd(e.target.checked ? '' : month)} />
-                      <span>לנצח</span>
+                      <span>{t('forever')}</span>
                     </label>
                     {forecastEnd !== '' && (
                       <>
-                        <span className="m-qi-until-label">עד:</span>
+                        <span className="m-qi-until-label">{t('untilLabel')}</span>
                         <select value={forecastEnd} onChange={e => setForecastEnd(e.target.value)} className="m-sheet-select-sm">
                           {months.filter((_, i) => i >= startIdx).map(m => <option key={m} value={m}>{m}</option>)}
                         </select>
@@ -2883,7 +2892,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           {/* Edit name inline panel */}
           {editingCatId && (
             <div className="m-qi-edit-panel">
-              <span className="m-qi-edit-label">עריכת שם קטגוריה</span>
+              <span className="m-qi-edit-label">{t('editCatName')}</span>
               <input
                 className="m-qi-edit-input"
                 value={editName}
@@ -2892,14 +2901,14 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 autoFocus
               />
               <div className="m-qi-edit-actions">
-                <button className="m-qi-edit-save" onClick={saveEditName} disabled={!editName.trim()}>שמור</button>
+                <button className="m-qi-edit-save" onClick={saveEditName} disabled={!editName.trim()}>{t('save')}</button>
                 <button className="m-qi-edit-cancel" onClick={() => setEditingCatId(null)}>{t('cancel')}</button>
               </div>
             </div>
           )}
           <div className="m-quick-topbar">
             <button className="m-quick-close" onClick={doClose}>✕</button>
-            <span className="m-quick-topbar-title">{quickForecastOnly ? 'עדכון תחזית' : 'עדכון בפועל'}</span>
+            <span className="m-quick-topbar-title">{quickForecastOnly ? t('updateForecastTitle') : t('updateActualTitle')}</span>
             <span style={{width:36}} />
           </div>
 
@@ -2916,7 +2925,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   const firstExpense = allExpenseGroups[0]?.id ?? 'g4'
                   setQuickNewGroupId(firstExpense)
                 }}
-                style={{flex:1}}>הוצאות</button>
+                style={{flex:1}}>{t('expensesTab')}</button>
               <button
                 className={`m-qi-tab-pill ${activeTab === 'income' ? 'active' : ''}`}
                 onClick={() => {
@@ -2926,7 +2935,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   // Ensure new-item default group matches the selected tab
                   setQuickNewGroupId('g5')
                 }}
-                style={{flex:1}}>הכנסות</button>
+                style={{flex:1}}>{t('incomeTab')}</button>
             </div>
             {panelCatId !== '__new__' && (
               <button className="m-qi-new-cat-inline-btn" onClick={() => {
@@ -2938,28 +2947,28 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 setQuickNewName('')
                 quickNewNameRef.current = ''
                 setTimeout(() => newNameRef.current?.focus(), 200)
-              }}>סעיף חדש +</button>
+              }}>{t('newItemBtn')}</button>
             )}
           </div>
 
           {/* New category form — shown at top so keyboard doesn't hide it */}
           {panelCatId === '__new__' && (
             <div className="m-new-cat-box m-new-cat-box-top">
-              <div className="m-new-cat-title">סעיף חדש</div>
+              <div className="m-new-cat-title">{t('newItem')}</div>
               <input
                 ref={newNameRef}
                 className="m-qi-amount-input"
-                placeholder="שם הסעיף..."
+                placeholder={t('newItemPlaceholder')}
                 defaultValue={quickNewNameRef.current}
                 onChange={e => { quickNewNameRef.current = e.target.value }}
               />
               {activeTab === 'expense' && (
                 <select className="m-sheet-select" value={quickNewGroupId} onChange={e => setQuickNewGroupId(e.target.value)}>
-                  {allExpenseGroups.filter((g,i,arr) => arr.findIndex(x=>x.id===g.id)===i).map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+                  {allExpenseGroups.filter((g,i,arr) => arr.findIndex(x=>x.id===g.id)===i).map(g => <option key={g.id} value={g.id}>{getGroupName(g, lang)}</option>)}
                 </select>
               )}
               <div style={{display:'flex',gap:8}}>
-                <button className="m-btn-primary" style={{flex:1}} onClick={() => { addNewCategoryAndUpdate() }}>צור והוסף ✓</button>
+                <button className="m-btn-primary" style={{flex:1}} onClick={() => { addNewCategoryAndUpdate() }}>{t('createAndAdd')}</button>
                 <button className="m-catmgmt-cancel-btn" onClick={() => { setPanelCatId(null); savedAmountRef.current = '' }}>{t('cancel')}</button>
               </div>
             </div>
@@ -3063,11 +3072,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                       {cardDx > 0 ? (
                         <>
                           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                          <span>תוספת</span>
+                          <span>{t('addReveal')}</span>
                         </>
                       ) : (
                         <>
-                          <span>עדכון</span>
+                          <span>{t('updateReveal')}</span>
                           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                         </>
                       )}
@@ -3113,8 +3122,8 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                       }
                     }
                   }}>
-                    <span className="m-quick-item-name">{cat.name}</span>
-                    <span className="m-qi-group-label-sm">{group?.icon} {group?.name}</span>
+                    <span className="m-quick-item-name">{getCatName(cat, lang)}</span>
+                    <span className="m-qi-group-label-sm">{group?.icon} {group ? getGroupName(group, lang) : ''}</span>
                     {!quickForecastOnly && <span className="m-qi-chevron">›</span>}
                   </button>
 
@@ -3135,20 +3144,20 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                 <div className="m-overlay" onClick={() => setPanelCatId(null)} />
                 <div className="m-forecast-confirm-sheet">
                   <div className="m-fc-header">
-                    <span className="m-fc-cat-name">{cat.name}</span>
+                    <span className="m-fc-cat-name">{getCatName(cat, lang)}</span>
                     <span className="m-fc-amount">{amt ? `₪${Number(amt).toLocaleString()}` : '—'}</span>
                   </div>
                   <div className="m-fc-range-row">
                     <div className="m-fc-range-item">
-                      <label className="m-fc-label">מחודש</label>
+                      <label className="m-fc-label">{t('fromMonth')}</label>
                       <select value={panelMonth} onChange={e => setPanelMonth(e.target.value)} className="m-fc-select">
                         {months.map(m => <option key={m} value={m}>{m}</option>)}
                       </select>
                     </div>
                     <div className="m-fc-range-item">
-                      <label className="m-fc-label">עד חודש</label>
+                      <label className="m-fc-label">{t('toMonth')}</label>
                       <select value={panelForecastEnd} onChange={e => setPanelForecastEnd(e.target.value)} className="m-fc-select">
-                        <option value="">לנצח ♾</option>
+                        <option value="">{t('foreverOption')}</option>
                         {months.filter((_, i) => i >= months.indexOf(panelMonth)).map(m => <option key={m} value={m}>{m}</option>)}
                       </select>
                     </div>
@@ -3157,7 +3166,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     className="m-fc-confirm-btn"
                     disabled={!amt}
                     onClick={() => doSaveForecast(cat)}
-                  >✓ אשר עדכון תחזית</button>
+                  >{t('confirmForecastUpdate')}</button>
                   <button className="m-fc-cancel-btn" onClick={() => setPanelCatId(null)}>{t('cancel')}</button>
                 </div>
               </>
