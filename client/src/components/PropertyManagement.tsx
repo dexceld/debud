@@ -74,9 +74,9 @@ const daysBetween = (a: string, b: string) =>
   Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000)
 const daysLeft = (end: string) => daysBetween(todayStr(), end)
 const fmtMoney = (n: number) => `₪${n.toLocaleString()}`
-const monthLabel = (ym: string) => {
+const monthLabel = (ym: string, lang: 'he'|'en' = 'he') => {
   const [y, m] = ym.split('-').map(Number)
-  return ['','ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'][m] + ' ' + y
+  return new Date(y, m-1, 1).toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-US', { month: 'long', year: 'numeric' })
 }
 const currYM = () => {
   const d = new Date()
@@ -205,7 +205,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000) }
 
-  const DOC_TYPE_LABEL: Record<TenancyDoc['type'],string> = { contract:'חוזה', renewal:'חידוש', receipt:'אסמכתא', other:'אחר' }
+  const DOC_TYPE_LABEL: Record<TenancyDoc['type'],string> = { contract:t('docTypeContract'), renewal:t('docTypeRenewal'), receipt:t('docTypeReceipt'), other:t('docTypeOther') }
   const DOC_TYPE_COLOR: Record<TenancyDoc['type'],string> = { contract:'#6366F1', renewal:'#10B981', receipt:'#F59E0B', other:'#6B7280' }
   const DOC_TYPE_ICON:  Record<TenancyDoc['type'],string> = { contract:'📄', renewal:'🔄', receipt:'🧾', other:'📎' }
 
@@ -309,18 +309,18 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
     <div style={{ display:'flex', flexDirection:'column', height:'100dvh', background:'#F9FAFB' }}>
       <div style={HDR}>
         <button style={BACK} onClick={() => setPropView(propFormId ? 'detail' : 'list')}>‹</button>
-        <span style={{ fontWeight:700, fontSize:17, flex:1 }}>{propFormId ? 'עריכת נכס' : 'נכס חדש'}</span>
+        <span style={{ fontWeight:700, fontSize:17, flex:1 }}>{propFormId ? t('editPropTitle') : t('addPropertyBtn')}</span>
         <button style={BTN_P} onClick={() => {
           if (!propForm.name.trim()) return
           if (propFormId) setProperties(prev => prev.map(p => p.id===propFormId ? {...propForm,id:propFormId} : p))
           else setProperties(prev => [...prev, {...propForm,id:Date.now().toString()}])
           setPropView('list'); showToast('✓ נשמר')
-        }}>שמור</button>
+        }}>{t('save')}</button>
       </div>
       <div style={SCROLL}>
         {(['name','address'] as const).map(f => (
           <label key={f} style={{ display:'block', marginBottom:12 }}>
-            <span style={LBL}>{f==='name' ? 'שם קצר לנכס' : 'כתובת מלאה'}</span>
+            <span style={LBL}>{f==='name' ? (lang==='en'?'Short name':'שם קצר לנכס') : (lang==='en'?'Full address':'כתובת מלאה')}</span>
             <input style={INP} value={(propForm as any)[f]}
               onChange={e => setPropForm(p=>({...p,[f]:e.target.value}))}
               placeholder={f==='name'?'דירה ת"א':'רחוב הרצל 5'} />
@@ -328,18 +328,18 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
         ))}
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12 }}>
           <label>
-            <span style={LBL}>שכ"ד חודשי (₪)</span>
+            <span style={LBL}>{t('monthlyRentLabel')}</span>
             <input style={INP} type="number" value={propForm.monthlyRent||''}
               onChange={e=>setPropForm(p=>({...p,monthlyRent:Number(e.target.value)}))} />
           </label>
           <label>
-            <span style={LBL}>פיקדון (₪)</span>
+            <span style={LBL}>{t('depositAmountLabel')}</span>
             <input style={INP} type="number" value={propForm.deposit||''}
               onChange={e=>setPropForm(p=>({...p,deposit:Number(e.target.value)}))} />
           </label>
         </div>
         <label style={{ display:'block', marginBottom:12 }}>
-          <span style={LBL}>הערות</span>
+          <span style={LBL}>{t('notes')}</span>
           <textarea style={{...INP,resize:'none'}} value={propForm.notes}
             onChange={e=>setPropForm(p=>({...p,notes:e.target.value}))} rows={3}/>
         </label>
@@ -349,7 +349,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
             setTenancies(prev=>prev.filter(t=>t.propertyId!==propFormId))
             setPropView('list'); showToast('נמחק')
           }} style={{ width:'100%', padding:12, background:'#FEF2F2', border:'1px solid #FECACA', borderRadius:10, color:'#DC2626', fontWeight:600, cursor:'pointer' }}>
-            🗑 מחק נכס
+            🗑 {lang==='en'?'Delete property':'מחק נכס'}
           </button>
         )}
       </div>
@@ -360,7 +360,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
     <div style={{ display:'flex', flexDirection:'column', height:'100dvh', background:'#F9FAFB' }}>
       <div style={HDR}>
         <button style={BACK} onClick={() => setPropView('detail')}>‹</button>
-        <span style={{ fontWeight:700, fontSize:17, flex:1 }}>{selTenancyId ? 'עריכת שכירות' : 'קישור שוכר לנכס'}</span>
+        <span style={{ fontWeight:700, fontSize:17, flex:1 }}>{selTenancyId ? t('editTenancyTitle') : t('linkTenantTitle')}</span>
         <button style={BTN_P} onClick={() => {
           if (!tenancyForm.tenantId || !tenancyForm.contractStart) return
           if (!tenancyForm.contractStart || !tenancyForm.contractEnd) { alert('חסרים תאריכי חוזה'); return }
@@ -390,56 +390,56 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
             setTenantForm({name:'',phone:'',email:'',extraPhones:[],notes:'',status:'active',interestedPropertyId:selPropId})
             setTenantFormId(null); setPropView('addTenant')
           }} style={{ background:'#EFF6FF', border:'1px solid #BFDBFE', borderRadius:10, padding:'8px 16px', color:'#1D4ED8', fontWeight:600, cursor:'pointer', fontSize:13 }}>
-            + הוסף שוכר חדש
+            {t('addNewTenant')}
           </button>
         </div>
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12 }}>
           <label>
-            <span style={LBL}>תחילת חוזה</span>
+            <span style={LBL}>{t('contractStartLabel')}</span>
             <input style={INP} type="date" value={tenancyForm.contractStart}
               onChange={e=>setTenancyForm(f=>({...f,contractStart:e.target.value}))} />
           </label>
           <label>
-            <span style={LBL}>סוף חוזה</span>
+            <span style={LBL}>{t('contractEndLabel')}</span>
             <input style={INP} type="date" value={tenancyForm.contractEnd}
               onChange={e=>setTenancyForm(f=>({...f,contractEnd:e.target.value}))} />
           </label>
         </div>
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, marginBottom:12 }}>
           <label>
-            <span style={LBL}>שכ"ד חודשי (₪)</span>
+            <span style={LBL}>{t('monthlyRentLabel')}</span>
             <input style={INP} type="number" value={tenancyForm.monthlyRent||''}
               onChange={e=>setTenancyForm(f=>({...f,monthlyRent:Number(e.target.value)}))} />
           </label>
           <label>
-            <span style={LBL}>פיקדון (₪)</span>
+            <span style={LBL}>{t('depositAmountLabel')}</span>
             <input style={INP} type="number" value={(tenancyForm as any).deposit||''}
               onChange={e=>setTenancyForm(f=>({...f,deposit:Number(e.target.value)}))} />
           </label>
           <label>
-            <span style={LBL}>שכ"ד חידוש (₪)</span>
+            <span style={LBL}>{t('renewalRentLabel')}</span>
             <input style={INP} type="number" value={tenancyForm.renewalRent||''}
               onChange={e=>setTenancyForm(f=>({...f,renewalRent:Number(e.target.value)||undefined}))} />
           </label>
         </div>
         <label style={{ display:'block', marginBottom:12 }}>
-          <span style={LBL}>אמצעי תשלום</span>
+          <span style={LBL}>{t('paymentMethodLabel')}</span>
           <select style={INP} value={tenancyForm.paymentMethod}
             onChange={e=>setTenancyForm(f=>({...f,paymentMethod:e.target.value as any}))}>
-            <option value="">בחר...</option>
-            <option value="checks">המחאות</option>
-            <option value="bank">העברה בנקאית</option>
-            <option value="cash">מזומן</option>
+            <option value="">{t('paymentMethodSelect')}</option>
+            <option value="checks">{t('paymentChecks')}</option>
+            <option value="bank">{t('paymentBank')}</option>
+            <option value="cash">{t('paymentCash')}</option>
           </select>
         </label>
         <div style={{ background:'white', borderRadius:12, padding:14, border:'1px solid #E5E7EB', display:'flex', flexDirection:'column', gap:10 }}>
-          <div style={{ fontWeight:700, fontSize:13, color:'#374151', marginBottom:4 }}>✅ סטטוס</div>
+          <div style={{ fontWeight:700, fontSize:13, color:'#374151', marginBottom:4 }}>{t('statusSection')}</div>
           {([
-            {k:'depositPaid',l:'פיקדון התקבל'},
-            {k:'checksDelivered',l:"צ'קים / אסמכתה התקבלה"},
-            {k:'contractSigned',l:'חוזה חתום'},
-            {k:'isCurrent',l:'שכירות פעילה'},
-            {k:'hasOption',l:'יש אופציה (אופשיית חידוש לשוכר)'},
+            {k:'depositPaid',l:t('depositReceived')},
+            {k:'checksDelivered',l:t('checksReceived')},
+            {k:'contractSigned',l:t('contractSignedLabel')},
+            {k:'isCurrent',l:t('tenancyActiveLabel')},
+            {k:'hasOption',l:t('hasOptionLabel')},
           ] as const).map(({k,l}) => (
             <label key={k} style={{ display:'flex', alignItems:'center', gap:10, cursor:'pointer' }}>
               <input type="checkbox" checked={(tenancyForm as any)[k]}
@@ -456,20 +456,20 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
     <div style={{ display:'flex', flexDirection:'column', height:'100dvh', background:'#F9FAFB' }}>
       <div style={HDR}>
         <button style={BACK} onClick={() => setPropView('editTenancy')}>‹</button>
-        <span style={{ fontWeight:700, fontSize:17, flex:1 }}>שוכר חדש</span>
+        <span style={{ fontWeight:700, fontSize:17, flex:1 }}>{t('newTenantTitle')}</span>
         <button style={BTN_P} onClick={() => {
           if (!tenantForm.name.trim()) return
           const id = Date.now().toString()
           setTenants(prev => [...prev, {...tenantForm, id}])
           setTenancyForm(f => ({...f, tenantId:id}))
           setPropView('editTenancy'); showToast('✓ שוכר נוצר')
-        }}>שמור</button>
+        }}>{t('save')}</button>
       </div>
       <div style={SCROLL}>
-        {([{f:'name',l:'שם מלא',t:'text'},{f:'phone',l:'טלפון',t:'tel'},{f:'email',l:'דוא"ל',t:'email'}] as const).map(({f,l,t}) => (
+        {([{f:'name',l:t('fullName'),tp:'text'},{f:'phone',l:t('phoneLabel'),tp:'tel'},{f:'email',l:t('emailLabel'),tp:'email'}] as const).map(({f,l,tp}) => (
           <label key={f} style={{ display:'block', marginBottom:12 }}>
             <span style={LBL}>{l}</span>
-            <input style={INP} type={t} value={(tenantForm as any)[f]}
+            <input style={INP} type={tp} value={(tenantForm as any)[f]}
               onChange={e=>setTenantForm(p=>({...p,[f]:e.target.value}))} />
           </label>
         ))}
@@ -482,7 +482,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
     const p = selProp
     const ym = currYM()
     const STATUS_COLOR: Record<string,string> = { active:'#22C55E', future:'#6366F1', past:'#9CA3AF' }
-    const STATUS_LABEL: Record<string,string>  = { active:'פעיל', future:'עתידי', past:'עבר' }
+    const STATUS_LABEL: Record<string,string>  = { active:t('tenancyStatusActive'), future:t('tenancyStatusFuture'), past:t('tenancyStatusPast') }
     const PMT_COLOR = (s?: string) => s==='paid'?'#22C55E':s==='late'?'#EF4444':'#F59E0B'
     const handleBack = () => {
       if (selViewTenancyId) setSelViewTenancyId(null)
@@ -511,45 +511,45 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
             </div>
             <div style={{ textAlign:'left' }}>
               <div style={{ fontWeight:700, fontSize:16, color:'#111827' }}>{fmt(p.monthlyRent)}</div>
-              {p.deposit>0 && <div style={{ fontSize:11, color:'#6B7280' }}>פיקדון {fmt(p.deposit)}</div>}
+              {p.deposit>0 && <div style={{ fontSize:11, color:'#6B7280' }}>{t('depositLabel')} {fmt(p.deposit)}</div>}
             </div>
           </div>
 
           {/* ── Tenancy accordion ── */}
           <div style={CARD}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
-              <div style={{ fontWeight:700, fontSize:14 }}>📅 תקופות שכירות</div>
+              <div style={{ fontWeight:700, fontSize:14 }}>📅 {t('tenancyPeriods')}</div>
               <button type="button" onClick={() => {
                 setSelTenancyId(null)
                 setTenancyForm({propertyId:p.id,tenantId:'',contractStart:'',contractEnd:'',monthlyRent:p.monthlyRent,deposit:p.deposit||0,renewalRent:0,depositPaid:false,paymentMethod:'',checksDelivered:false,contractSigned:false,isCurrent:true,hasOption:false})
                 setPropView('editTenancy')
-              }} style={{ background:'#6366F1', color:'white', border:'none', borderRadius:8, padding:'5px 12px', fontWeight:700, cursor:'pointer', fontSize:12 }}>+ הוסף תקופה</button>
+              }} style={{ background:'#6366F1', color:'white', border:'none', borderRadius:8, padding:'5px 12px', fontWeight:700, cursor:'pointer', fontSize:12 }}>{t('addPeriod')}</button>
             </div>
 
             {propTenancies.length === 0 ? (
-              <div style={{ textAlign:'center', padding:'16px', color:'#9CA3AF', fontSize:13 }}>אין תקופות שכירות — לחץ "הוסף תקופה"</div>
+              <div style={{ textAlign:'center', padding:'16px', color:'#9CA3AF', fontSize:13 }}>{t('noTenancyPeriods')}</div>
             ) : (
               <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                {propTenancies.map(t => {
-                  const st    = getTenancyStatus(t)
+                {propTenancies.map(tn => {
+                  const st    = getTenancyStatus(tn)
                   const sc    = STATUS_COLOR[st]
-                  const t_tnt = tenants.find(x => x.id===t.tenantId)
-                  const days2 = t.contractEnd ? daysLeft(t.contractEnd) : null
-                  const isOpen = selViewTenancyId === t.id
+                  const t_tnt = tenants.find(x => x.id===tn.tenantId)
+                  const days2 = tn.contractEnd ? daysLeft(tn.contractEnd) : null
+                  const isOpen = selViewTenancyId === tn.id
                   return (
-                    <div key={t.id} style={{ borderRadius:14, overflow:'hidden', border:`2px solid ${isOpen ? sc : '#E5E7EB'}`, background:'white' }}>
+                    <div key={tn.id} style={{ borderRadius:14, overflow:'hidden', border:`2px solid ${isOpen ? sc : '#E5E7EB'}`, background:'white' }}>
 
                       {/* ── Card header (contract title row) ── */}
                       <div style={{ display:'flex', alignItems:'stretch', background:isOpen ? sc+'14' : 'white' }}>
-                        <button type="button" onClick={() => setSelViewTenancyId(isOpen ? null : t.id)}
+                        <button type="button" onClick={() => setSelViewTenancyId(isOpen ? null : tn.id)}
                           style={{ flex:1, background:'none', border:'none', padding:'12px 14px', cursor:'pointer', textAlign:'right', display:'flex', alignItems:'center', gap:10 }}>
                           <div style={{ flex:1, minWidth:0 }}>
                             <div style={{ fontWeight:800, fontSize:15, color:'#111827', marginBottom:3 }}>{t_tnt?.name || '—'}</div>
                             <div style={{ display:'flex', alignItems:'center', gap:5, flexWrap:'wrap' }}>
-                              <span style={{ fontWeight:700, fontSize:13, color:sc, direction:'ltr' }}>{t.contractStart.split('-').reverse().map((x,i)=>i===2?x.slice(2):x).join('/')}</span>
+                              <span style={{ fontWeight:700, fontSize:13, color:sc, direction:'ltr' }}>{tn.contractStart.split('-').reverse().map((x,i)=>i===2?x.slice(2):x).join('/')}</span>
                               <span style={{ color:'#9CA3AF', fontSize:12 }}>→</span>
-                              <span style={{ fontWeight:700, fontSize:13, color:sc, direction:'ltr' }}>{t.contractEnd.split('-').reverse().map((x,i)=>i===2?x.slice(2):x).join('/')}</span>
-                              {days2!==null && st!=='past' && <span style={{ fontSize:11, color:'#9CA3AF' }}>· {days2<0?(tt[lang] as typeof tt.he).expired:st==='future'?`בעוד ${Math.abs(daysLeft(t.contractStart))}י'`:(tt[lang].daysToEnd as (n:number)=>string)(days2)}</span>}
+                              <span style={{ fontWeight:700, fontSize:13, color:sc, direction:'ltr' }}>{tn.contractEnd.split('-').reverse().map((x,i)=>i===2?x.slice(2):x).join('/')}</span>
+                              {days2!==null && st!=='past' && <span style={{ fontSize:11, color:'#9CA3AF' }}>· {days2<0?t('expired'):st==='future'?(tt[lang].inDays as (n:number)=>string)(Math.abs(daysLeft(tn.contractStart))):(tt[lang].daysToEnd as (n:number)=>string)(days2)}</span>}
                             </div>
                           </div>
                           <div style={{ display:'flex', alignItems:'center', gap:6, flexShrink:0 }}>
@@ -560,13 +560,13 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
                         {/* Edit + Delete in header */}
                         <div style={{ display:'flex', alignItems:'center', gap:2, padding:'0 8px', borderRight:`1px solid ${sc}30` }}>
                           <button type="button" title="ערוך הסכם" onClick={() => {
-                            setSelTenancyId(t.id)
-                            setTenancyForm({propertyId:t.propertyId,tenantId:t.tenantId,contractStart:t.contractStart,contractEnd:t.contractEnd,monthlyRent:t.monthlyRent,deposit:t.deposit||0,renewalRent:t.renewalRent||0,depositPaid:t.depositPaid,paymentMethod:t.paymentMethod,checksDelivered:t.checksDelivered,contractSigned:t.contractSigned,isCurrent:t.isCurrent,hasOption:t.hasOption||false})
+                            setSelTenancyId(tn.id)
+                            setTenancyForm({propertyId:tn.propertyId,tenantId:tn.tenantId,contractStart:tn.contractStart,contractEnd:tn.contractEnd,monthlyRent:tn.monthlyRent,deposit:tn.deposit||0,renewalRent:tn.renewalRent||0,depositPaid:tn.depositPaid,paymentMethod:tn.paymentMethod,checksDelivered:tn.checksDelivered,contractSigned:tn.contractSigned,isCurrent:tn.isCurrent,hasOption:tn.hasOption||false})
                             setPropView('editTenancy')
                           }} style={{ background:'none', border:'none', borderRadius:8, padding:'6px 8px', cursor:'pointer', fontSize:18, lineHeight:1 }}>✏️</button>
                           <button type="button" title="מחק הסכם" onClick={() => {
                             if (!window.confirm(`למחוק את ההסכם עם ${t_tnt?.name||'השוכר'}? פעולה זו אינה הפיכה.`)) return
-                            setTenancies(prev => prev.filter(x => x.id !== t.id))
+                            setTenancies(prev => prev.filter(x => x.id !== tn.id))
                             setSelViewTenancyId(null)
                           }} style={{ background:'none', border:'none', borderRadius:8, padding:'6px 8px', cursor:'pointer', fontSize:18, lineHeight:1 }}>🗑️</button>
                         </div>
@@ -576,15 +576,15 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
                       {isOpen && (
                         <div style={{ borderTop:`2px solid ${sc}30`, padding:'14px' }}>
                           {!t_tnt ? (
-                            <div style={{ textAlign:'center', color:'#9CA3AF', fontSize:13, padding:'10px 0' }}>שוכר לא נמצא — ערוך את התקופה</div>
+                            <div style={{ textAlign:'center', color:'#9CA3AF', fontSize:13, padding:'10px 0' }}>{t('tenantNotFound')}</div>
                           ) : (
                             <>
                               {/* Financial summary strip */}
                               <div style={{ display:'flex', gap:6, marginBottom:10, flexWrap:'wrap', alignItems:'center' }}>
-                                <span style={{ fontSize:12, background:'#ECFDF5', color:'#059669', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>💳 {fmt(t.monthlyRent||p.monthlyRent)}/חודש</span>
-                                {t.deposit ? <span style={{ fontSize:12, background:'#EFF6FF', color:'#1D4ED8', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>💰 פיקדון: {fmt(t.deposit)}</span> : <span style={{ fontSize:12, background:'#F3F4F6', color:'#9CA3AF', borderRadius:8, padding:'4px 10px' }}>💰 פיקדון: לא הוגדר</span>}
-                                {t.renewalRent ? <span style={{ fontSize:12, background:'#FAF5FF', color:'#5B21B6', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>🔄 חידוש: {fmt(t.renewalRent)}</span> : <span style={{ fontSize:12, background:'#F3F4F6', color:'#9CA3AF', borderRadius:8, padding:'4px 10px' }}>🔄 חידוש: לא הוגדר</span>}
-                                {t.hasOption && <span style={{ fontSize:11, background:'#FEF3C7', color:'#92400E', borderRadius:8, padding:'3px 8px', fontWeight:700 }}>⭐ אופציה</span>}
+                                <span style={{ fontSize:12, background:'#ECFDF5', color:'#059669', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>💳 {fmt(tn.monthlyRent||p.monthlyRent)}{t('perMonth')}</span>
+                                {tn.deposit ? <span style={{ fontSize:12, background:'#EFF6FF', color:'#1D4ED8', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>💰 {t('depositLabel')}: {fmt(tn.deposit)}</span> : <span style={{ fontSize:12, background:'#F3F4F6', color:'#9CA3AF', borderRadius:8, padding:'4px 10px' }}>💰 {t('depositLabel')}: {t('depositNotSet')}</span>}
+                                {tn.renewalRent ? <span style={{ fontSize:12, background:'#FAF5FF', color:'#5B21B6', borderRadius:8, padding:'4px 10px', fontWeight:600 }}>🔄 {t('renewalLabel')}: {fmt(tn.renewalRent)}</span> : <span style={{ fontSize:12, background:'#F3F4F6', color:'#9CA3AF', borderRadius:8, padding:'4px 10px' }}>🔄 {t('renewalLabel')}: {t('depositNotSet')}</span>}
+                                {tn.hasOption && <span style={{ fontSize:11, background:'#FEF3C7', color:'#92400E', borderRadius:8, padding:'3px 8px', fontWeight:700 }}>⭐ {t('optionLabel')}</span>}
                               </div>
                               {/* Contact info */}
                               {(t_tnt.phone || t_tnt.email) && (
@@ -596,25 +596,25 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
                               {/* Checklist + inline WA */}
                               <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:14 }}>
                                 {([
-                                  {k:'depositPaid' as const, l:'פיקדון התקבל', waIcon:'💰', waBg:'#EFF6FF', waBc:'#BFDBFE', waC:'#1D4ED8', waMsg:`שלום ${t_tnt.name}, תזכורת להעברת פיקדון (${fmt(t.deposit ?? p.deposit)}) עבור ${p.name}. תודה 🙏`},
-                                  {k:'checksDelivered' as const, l:"צ'קים / אסמכתא", waIcon:'📑', waBg:'#FFF7ED', waBc:'#FED7AA', waC:'#C2410C', waMsg:`שלום ${t_tnt.name}, תזכורת לשלוח צ'קים / אסמכתה עבור ${p.name}. תודה 🙏`},
-                                  {k:'contractSigned' as const, l:'חוזה חתום', waIcon:'✍️', waBg:'#F0FDF4', waBc:'#BBF7D0', waC:'#15803D', waMsg:`שלום ${t_tnt.name}, אנא חתום על חוזה השכירות עבור ${p.name} ושלח חזרה. תודה 🙏`},
+                                  {k:'depositPaid' as const, l:t('depositReceived'), waIcon:'💰', waBg:'#EFF6FF', waBc:'#BFDBFE', waC:'#1D4ED8', waMsg:`שלום ${t_tnt.name}, תזכורת להעברת פיקדון (${fmt(tn.deposit ?? p.deposit)}) עבור ${p.name}. תודה 🙏`},
+                                  {k:'checksDelivered' as const, l:t('checksReceived'), waIcon:'📑', waBg:'#FFF7ED', waBc:'#FED7AA', waC:'#C2410C', waMsg:`שלום ${t_tnt.name}, תזכורת לשלוח צ'קים / אסמכתה עבור ${p.name}. תודה 🙏`},
+                                  {k:'contractSigned' as const, l:t('contractSignedLabel'), waIcon:'✍️', waBg:'#F0FDF4', waBc:'#BBF7D0', waC:'#15803D', waMsg:`שלום ${t_tnt.name}, אנא חתום על חוזה השכירות עבור ${p.name} ושלח חזרה. תודה 🙏`},
                                 ]).map(({k,l,waIcon,waBg,waBc,waC,waMsg}) => {
-                                  const val = t[k]
+                                  const val = tn[k]
                                   return (
                                     <div key={k} style={{ display:'flex', alignItems:'center', gap:8 }}>
-                                      <button type="button" onClick={() => updateTenancy(t.id,{[k]:!val} as any)}
+                                      <button type="button" onClick={() => updateTenancy(tn.id,{[k]:!val} as any)}
                                         style={{ flex:1, display:'flex', alignItems:'center', gap:10, background:val?'#F0FDF4':'white', border:val?'1px solid #BBF7D0':'1px solid #E5E7EB', borderRadius:8, padding:'8px 12px', cursor:'pointer', textAlign:'right' }}>
                                         <span style={{ fontSize:18, color:val?'#16A34A':'#9CA3AF' }}>{val?'✅':'☐'}</span>
                                         <span style={{ fontSize:13, fontWeight:600, color:val?'#15803D':'#374151' }}>{l}</span>
                                       </button>
-                                      <button type="button" onClick={() => t_tnt.phone ? (k==='contractSigned' ? shareDocWA(t_tnt.phone, waMsg, 'contract', t.id) : sendWA(t_tnt.phone, waMsg)) : alert('אין טלפון רשום')}
+                                      <button type="button" onClick={() => t_tnt.phone ? (k==='contractSigned' ? shareDocWA(t_tnt.phone, waMsg, 'contract', tn.id) : sendWA(t_tnt.phone, waMsg)) : alert('אין טלפון רשום')}
                                         style={{ background:waBg, border:`1px solid ${waBc}`, color:waC, borderRadius:8, padding:'8px 12px', fontWeight:700, cursor:'pointer', fontSize:16, flexShrink:0 }}>{waIcon}</button>
                                       {k==='contractSigned' && (
                                         <button type="button" title="צרף חוזה" onClick={() => {
                                           if (!docInputRef.current) return
-                                          docInputRef.current.setAttribute('data-tid', t.id)
-                                          docInputRef.current.setAttribute('data-pid', t.propertyId)
+                                          docInputRef.current.setAttribute('data-tid', tn.id)
+                                          docInputRef.current.setAttribute('data-pid', tn.propertyId)
                                           setPendingDocType('contract')
                                           docInputRef.current.click()
                                         }} style={{ background:'#F5F3FF', border:'1px solid #DDD6FE', color:'#7C3AED', borderRadius:8, padding:'8px 10px', fontWeight:700, cursor:'pointer', fontSize:15, flexShrink:0 }}>📎</button>
@@ -622,22 +622,22 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
                                     </div>
                                   )
                                 })}
-                                {/* חידוש חוזה — indicator row + WA */}
+                                {/* Contract renewal — indicator row + WA */}
                                 {(() => {
-                                  const hasRenewal = tasks.some(tk => tk.tenancyId===t.id && tk.type==='renewal' && !tk.done)
+                                  const hasRenewal = tasks.some(tk => tk.tenancyId===tn.id && tk.type==='renewal' && !tk.done)
                                   return (
                                     <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                                       <div style={{ flex:1, display:'flex', alignItems:'center', gap:8, background:hasRenewal?'#FAF5FF':'white', border:`1px solid ${hasRenewal?'#DDD6FE':'#E5E7EB'}`, borderRadius:8, padding:'8px 10px' }}>
                                         <span style={{ fontSize:18, flexShrink:0 }}>{hasRenewal?'🔄':'○'}</span>
-                                        <span style={{ fontSize:13, fontWeight:600, color:hasRenewal?'#5B21B6':'#374151', flexShrink:0 }}>חידוש חוזה</span>
-                                        {hasRenewal && <span style={{ fontSize:10, background:'#7C3AED20', color:'#7C3AED', borderRadius:10, padding:'1px 5px', fontWeight:700, flexShrink:0 }}>משימה פתוחה</span>}
+                                        <span style={{ fontSize:13, fontWeight:600, color:hasRenewal?'#5B21B6':'#374151', flexShrink:0 }}>{t('contractRenewal')}</span>
+                                        {hasRenewal && <span style={{ fontSize:10, background:'#7C3AED20', color:'#7C3AED', borderRadius:10, padding:'1px 5px', fontWeight:700, flexShrink:0 }}>{t('openTask')}</span>}
                                       </div>
-                                      <button type="button" onClick={() => t_tnt.phone ? shareDocWA(t_tnt.phone, `שלום ${t_tnt.name}, תזכורת לחידוש חוזה השכירות עבור ${p.name}. החוזה מסתיים ב-${t.contractEnd}. האם ברצונך לחדש? 🙏`, 'renewal', t.id) : alert('אין טלפון רשום')}
+                                      <button type="button" onClick={() => t_tnt.phone ? shareDocWA(t_tnt.phone, `שלום ${t_tnt.name}, תזכורת לחידוש חוזה השכירות עבור ${p.name}. החוזה מסתיים ב-${tn.contractEnd}. האם ברצונך לחדש? 🙏`, 'renewal', tn.id) : alert('אין טלפון רשום')}
                                         style={{ background:'#F5F3FF', border:'1px solid #DDD6FE', color:'#7C3AED', borderRadius:8, padding:'8px 12px', fontWeight:700, cursor:'pointer', fontSize:16, flexShrink:0 }}>🔄</button>
                                       <button type="button" title="צרף חידוש" onClick={() => {
                                         if (!docInputRef.current) return
-                                        docInputRef.current.setAttribute('data-tid', t.id)
-                                        docInputRef.current.setAttribute('data-pid', t.propertyId)
+                                        docInputRef.current.setAttribute('data-tid', tn.id)
+                                        docInputRef.current.setAttribute('data-pid', tn.propertyId)
                                         setPendingDocType('renewal')
                                         docInputRef.current.click()
                                       }} style={{ background:'#F0FDF4', border:'1px solid #BBF7D0', color:'#15803D', borderRadius:8, padding:'8px 10px', fontWeight:700, cursor:'pointer', fontSize:15, flexShrink:0 }}>📎</button>
@@ -647,30 +647,30 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
                               </div>
 
                               {/* Documents */}
-                              {renderDocSection(t)}
+                              {renderDocSection(tn)}
 
                               {/* Payment tracker */}
                               <div style={{ borderTop:'1px solid #F3F4F6', paddingTop:12, marginBottom:14 }}>
-                                <div style={{ fontWeight:700, fontSize:13, marginBottom:10, color:'#374151' }}>💳 מעקב תשלומים</div>
+                                <div style={{ fontWeight:700, fontSize:13, marginBottom:10, color:'#374151' }}>💳 {t('paymentTracker')}</div>
                                 <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-                                  {getMonthsInRange(t.contractStart, t.contractEnd).map(m => {
-                                    const status = t.payments?.[m]
+                                  {getMonthsInRange(tn.contractStart, tn.contractEnd).map(m => {
+                                    const status = tn.payments?.[m]
                                     const isCurr = m === ym
                                     const isFuture = m > ym
                                     return (
                                       <div key={m} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 10px', borderRadius:10, background:isCurr?'#EFF6FF':'#F9FAFB', border:isCurr?'1.5px solid #BFDBFE':'1px solid #F3F4F6' }}>
                                         <div style={{ flex:1 }}>
-                                          <span style={{ fontWeight:isCurr?800:600, fontSize:13, color:isCurr?'#1D4ED8':'#374151' }}>{monthLabel(m)}</span>
-                                          {isCurr && <span style={{ fontSize:10, color:'#6366F1', marginRight:6, background:'#EEF2FF', borderRadius:10, padding:'1px 6px' }}>נוכחי</span>}
+                                          <span style={{ fontWeight:isCurr?800:600, fontSize:13, color:isCurr?'#1D4ED8':'#374151' }}>{monthLabel(m, lang)}</span>
+                                          {isCurr && <span style={{ fontSize:10, color:'#6366F1', marginRight:6, background:'#EEF2FF', borderRadius:10, padding:'1px 6px' }}>{t('currentBadge')}</span>}
                                         </div>
                                         {isCurr && (
-                                          <button type="button" onClick={() => t_tnt.phone ? sendWA(t_tnt.phone, `שלום ${t_tnt.name}, תזכורת לתשלום שכ"ד חודש ${monthLabel(m)} עבור ${p.name}: ${fmt(t.monthlyRent||p.monthlyRent)}. תודה 🙏`) : alert('אין טלפון רשום')}
+                                          <button type="button" onClick={() => t_tnt.phone ? sendWA(t_tnt.phone, `שלום ${t_tnt.name}, תזכורת לתשלום שכ"ד חודש ${monthLabel(m, lang)} עבור ${p.name}: ${fmt(tn.monthlyRent||p.monthlyRent)}. תודה 🙏`) : alert('אין טלפון רשום')}
                                             style={{ background:'#F5F3FF', border:'1px solid #DDD6FE', color:'#7C3AED', borderRadius:7, padding:'5px 8px', fontWeight:700, cursor:'pointer', fontSize:14, flexShrink:0 }}>💬</button>
                                         )}
                                         <div style={{ display:'flex', gap:4 }}>
                                           {(['paid','pending','late'] as const).map(s => (
                                             <button key={s} type="button"
-                                              onClick={() => updateTenancy(t.id, {payments:{...t.payments,[m]:s}})}
+                                              onClick={() => updateTenancy(tn.id, {payments:{...tn.payments,[m]:s}})}
                                               style={{ padding:'5px 8px', borderRadius:7, border:'none', cursor:'pointer', fontSize:11, fontWeight:700,
                                                 background:status===s?(s==='paid'?'#22C55E':s==='late'?'#EF4444':'#F59E0B'):(isFuture?'#F3F4F6':'#E5E7EB'),
                                                 color:status===s?'white':(isFuture?'#D1D5DB':'#6B7280') }}>
@@ -678,7 +678,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
                                             </button>
                                           ))}
                                           {status && <span style={{ fontSize:11, color:PMT_COLOR(status), fontWeight:700, padding:'4px 0', minWidth:32, textAlign:'center' }}>
-                                            {status==='paid'?'שולם':status==='late'?'מאחר':'ממתין'}
+                                            {status==='paid'?t('paymentPaid'):status==='late'?t('paymentLate'):t('paymentPending')}
                                           </span>}
                                         </div>
                                       </div>
@@ -725,7 +725,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
         </button>
         <button style={BTN_P} onClick={() => {
           setPropFormId(null); setPropForm({name:'',address:'',monthlyRent:0,deposit:0,notes:''}); setPropView('editProp')
-        }}>+ נכס</button>
+        }}>{t('addPropertyBtn')}</button>
       </div>
       <div style={SCROLL}>
         {properties.length===0 ? (
@@ -756,7 +756,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
                 )}
               </div>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                <span style={{ fontWeight:700, fontSize:15, color:'#111827' }}>{fmt(p.monthlyRent)}/חודש</span>
+                <span style={{ fontWeight:700, fontSize:15, color:'#111827' }}>{fmt(p.monthlyRent)}{t('perMonth')}</span>
                 <span style={{ fontSize:13, color:ctn?'#374151':'#9CA3AF' }}>{ctn ? `${ctn.name}${ctStatus==='future'?` (${t('legendFuture')})`:''}` : t('vacant')}</span>
               </div>
             </button>
@@ -780,7 +780,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
     return (
       <div style={{ borderTop:'1px solid #F3F4F6', paddingTop:14, marginTop:4 }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
-          <div style={{ fontWeight:700, fontSize:13, color:'#374151' }}>📎 מסמכים {tnDocs.length > 0 && <span style={{ fontSize:11, background:'#EEF2FF', color:'#6366F1', borderRadius:10, padding:'1px 7px', fontWeight:700 }}>{tnDocs.length}</span>}</div>
+          <div style={{ fontWeight:700, fontSize:13, color:'#374151' }}>📎 {t('docsLabel')} {tnDocs.length > 0 && <span style={{ fontSize:11, background:'#EEF2FF', color:'#6366F1', borderRadius:10, padding:'1px 7px', fontWeight:700 }}>{tnDocs.length}</span>}</div>
           <button type="button" onClick={() => {
             setPendingDocFile(null)
             setPendingDocType('contract')
@@ -789,7 +789,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
             docInputRef.current?.setAttribute('data-tid', tn.id)
             docInputRef.current?.setAttribute('data-pid', tn.propertyId)
           }} style={{ background:'#6366F1', color:'white', border:'none', borderRadius:8, padding:'5px 12px', fontWeight:700, cursor:'pointer', fontSize:12 }}>
-            + הוסף מסמך
+            {t('addDocBtn')}
           </button>
         </div>
 
@@ -797,7 +797,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
         {isPending && pendingDocFile && (
           <div style={{ background:'#EEF2FF', borderRadius:12, padding:'12px 14px', marginBottom:12, border:'1.5px solid #A5B4FC' }}>
             <div style={{ fontSize:12, fontWeight:700, color:'#4338CA', marginBottom:8 }}>📂 {pendingDocFile.file.name} ({fmtFileSize(pendingDocFile.file.size)})</div>
-            <div style={{ fontSize:12, color:'#374151', marginBottom:8, fontWeight:600 }}>סוג מסמך:</div>
+            <div style={{ fontSize:12, color:'#374151', marginBottom:8, fontWeight:600 }}>{t('docTypePicker')}</div>
             <select value={pendingDocType} onChange={e => setPendingDocType(e.target.value as TenancyDoc['type'])}
               style={{ width:'100%', padding:'8px 10px', borderRadius:8, border:'1.5px solid #A5B4FC', fontSize:13, fontWeight:600, marginBottom:10, background:'white', color:'#374151', cursor:'pointer' }}>
               {(['contract','renewal','receipt','other'] as TenancyDoc['type'][]).map(tp => (
@@ -806,7 +806,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
             </select>
             <div style={{ display:'flex', gap:8 }}>
               <button type="button" onClick={() => saveDoc(pendingDocFile.file, pendingDocFile.tenancyId, pendingDocFile.propertyId, pendingDocType)}
-                style={{ flex:1, background:'#6366F1', color:'white', border:'none', borderRadius:8, padding:'8px', fontWeight:700, cursor:'pointer', fontSize:13 }}>שמור</button>
+                style={{ flex:1, background:'#6366F1', color:'white', border:'none', borderRadius:8, padding:'8px', fontWeight:700, cursor:'pointer', fontSize:13 }}>{t('save')}</button>
               <button type="button" onClick={() => setPendingDocFile(null)}
                 style={{ background:'#F3F4F6', border:'none', borderRadius:8, padding:'8px 14px', color:'#6B7280', fontWeight:600, cursor:'pointer', fontSize:13 }}>{t('cancel')}</button>
             </div>
@@ -815,7 +815,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
 
         {/* Doc list */}
         {tnDocs.length === 0 && !isPending ? (
-          <div style={{ fontSize:12, color:'#9CA3AF', textAlign:'center', padding:'10px 0' }}>אין מסמכים מצורפים</div>
+          <div style={{ fontSize:12, color:'#9CA3AF', textAlign:'center', padding:'10px 0' }}>{t('noDocsAttached')}</div>
         ) : (
           <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
             {tnDocs.map(d => {
@@ -828,12 +828,12 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
                     <div style={{ display:'flex', gap:6, alignItems:'center', marginTop:2 }}>
                       <span style={{ fontSize:10, background:DOC_TYPE_COLOR[d.type]+'20', color:DOC_TYPE_COLOR[d.type], borderRadius:10, padding:'1px 7px', fontWeight:700 }}>{DOC_TYPE_LABEL[d.type]}</span>
                       <span style={{ fontSize:10, color:'#9CA3AF' }}>{d.date} · {fmtFileSize(d.size)}</span>
-                      {!hasData && <span style={{ fontSize:10, color:'#F59E0B' }}>⚠ לא זמין במכשיר זה</span>}
+                      {!hasData && <span style={{ fontSize:10, color:'#F59E0B' }}>{t('fileNotAvailable')}</span>}
                     </div>
                   </div>
                   <div style={{ display:'flex', gap:6, flexShrink:0 }}>
                     {hasData && <button type="button" onClick={() => openDoc(d.id, d.mimeType, d.name)}
-                      style={{ background:'#EFF6FF', border:'1px solid #BFDBFE', color:'#1D4ED8', borderRadius:8, padding:'6px 10px', fontWeight:700, cursor:'pointer', fontSize:12 }}>פתח</button>}
+                      style={{ background:'#EFF6FF', border:'1px solid #BFDBFE', color:'#1D4ED8', borderRadius:8, padding:'6px 10px', fontWeight:700, cursor:'pointer', fontSize:12 }}>{t('openDocBtn')}</button>}
                     <button type="button" onClick={() => deleteDoc(d.id)}
                       style={{ background:'#FEF2F2', border:'1px solid #FECACA', color:'#DC2626', borderRadius:8, padding:'6px 10px', fontWeight:700, cursor:'pointer', fontSize:12 }}>✕</button>
                   </div>
@@ -862,22 +862,22 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
       <div style={{ display:'flex', flexDirection:'column', height:'100dvh', background:'#F9FAFB' }}>
         <div style={HDR}>
           <button style={BACK} onClick={() => setPropView('list')}>‹</button>
-          <span style={{ fontWeight:700, fontSize:17, flex:1 }}>📄 כל המסמכים</span>
-          <span style={{ fontSize:12, color:'#9CA3AF' }}>{docs.length} מסמכים</span>
+          <span style={{ fontWeight:700, fontSize:17, flex:1 }}>📄 {t('allDocsTitle')}</span>
+          <span style={{ fontSize:12, color:'#9CA3AF' }}>{(tt[lang].docCountLabel as (n:number)=>string)(docs.length)}</span>
         </div>
 
         {/* Search + filter */}
         <div style={{ padding:'10px 16px', background:'white', borderBottom:'1px solid #E5E7EB', flexShrink:0 }}>
-          <input style={{ ...INP, marginBottom:8 }} placeholder="חיפוש לפי שם, נכס, שוכר..." value={docSearchQuery}
+          <input style={{ ...INP, marginBottom:8 }} placeholder={t('docSearchPlaceholder')} value={docSearchQuery}
             onChange={e => setDocSearchQuery(e.target.value)} />
           <div style={{ display:'flex', gap:6 }}>
-            {(['all','contract','renewal','receipt','other'] as const).map(t => {
-              const isAll = t==='all'
+            {(['all','contract','renewal','receipt','other'] as const).map(tp => {
+              const isAll = tp==='all'
               const active = isAll ? q==='' && docSearchQuery==='' : false
               return (
-                <button key={t} type="button" onClick={() => setDocSearchQuery(isAll ? '' : DOC_TYPE_LABEL[t as TenancyDoc['type']])}
+                <button key={tp} type="button" onClick={() => setDocSearchQuery(isAll ? '' : DOC_TYPE_LABEL[tp as TenancyDoc['type']])}
                   style={{ flex:1, padding:'5px 4px', borderRadius:8, border:`1.5px solid ${active?'#6366F1':'#E5E7EB'}`, background:active?'#EEF2FF':'white', fontSize:11, fontWeight:700, color:active?'#6366F1':'#6B7280', cursor:'pointer' }}>
-                  {isAll ? 'הכל' : DOC_TYPE_LABEL[t as TenancyDoc['type']]}
+                  {isAll ? t('all') : DOC_TYPE_LABEL[tp as TenancyDoc['type']]}
                 </button>
               )
             })}
@@ -888,7 +888,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
           {filtered.length === 0 ? (
             <div style={{ textAlign:'center', padding:'60px 20px', color:'#9CA3AF' }}>
               <div style={{ fontSize:48, marginBottom:12 }}>📄</div>
-              <div style={{ fontWeight:700, fontSize:15, color:'#374151' }}>{docs.length===0 ? 'אין מסמכים עדיין' : 'לא נמצאו תוצאות'}</div>
+              <div style={{ fontWeight:700, fontSize:15, color:'#374151' }}>{docs.length===0 ? t('noDocsYet') : t('noResultsFound')}</div>
             </div>
           ) : filtered.map(d => {
             const prop   = properties.find(p=>p.id===d.propertyId)
@@ -910,14 +910,14 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
                       {tenant && <span> · 👤 {tenant.name}</span>}
                       {tncy && <span style={{ fontSize:11, color:'#9CA3AF' }}> · {tncy.contractStart.slice(0,7)} → {tncy.contractEnd.slice(0,7)}</span>}
                     </div>
-                    {!hasData && <div style={{ fontSize:11, color:'#F59E0B', marginTop:4 }}>⚠ קובץ לא זמין במכשיר זה</div>}
+                    {!hasData && <div style={{ fontSize:11, color:'#F59E0B', marginTop:4 }}>{t('fileNotAvailable')}</div>}
                   </div>
                 </div>
                 <div style={{ display:'flex', gap:8, marginTop:10 }}>
                   {hasData && <button type="button" onClick={() => openDoc(d.id, d.mimeType, d.name)}
-                    style={{ flex:1, background:'#EFF6FF', border:'1px solid #BFDBFE', color:'#1D4ED8', borderRadius:8, padding:'8px', fontWeight:700, cursor:'pointer', fontSize:13 }}>📂 פתח</button>}
+                    style={{ flex:1, background:'#EFF6FF', border:'1px solid #BFDBFE', color:'#1D4ED8', borderRadius:8, padding:'8px', fontWeight:700, cursor:'pointer', fontSize:13 }}>📂 {t('openDocBtn')}</button>}
                   <button type="button" onClick={() => { setSelPropId(d.propertyId); setSelViewTenancyId(d.tenancyId); setPropView('detail') }}
-                    style={{ flex:1, background:'#F9FAFB', border:'1px solid #E5E7EB', color:'#374151', borderRadius:8, padding:'8px', fontWeight:700, cursor:'pointer', fontSize:13 }}>→ לנכס</button>
+                    style={{ flex:1, background:'#F9FAFB', border:'1px solid #E5E7EB', color:'#374151', borderRadius:8, padding:'8px', fontWeight:700, cursor:'pointer', fontSize:13 }}>{t('goToProperty')}</button>
                   <button type="button" onClick={() => deleteDoc(d.id)}
                     style={{ background:'#FEF2F2', border:'1px solid #FECACA', color:'#DC2626', borderRadius:8, padding:'8px 12px', fontWeight:700, cursor:'pointer', fontSize:13 }}>✕</button>
                 </div>
@@ -946,23 +946,23 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
       <div style={{ display:'flex', flexDirection:'column', height:'100dvh', background:'#F9FAFB' }}>
         <div style={HDR}>
           <button style={BACK} onClick={() => setTenantView('list')}>‹</button>
-          <span style={{ fontWeight:700, fontSize:17, flex:1 }}>{tenantFormId ? 'עריכת שוכר' : 'שוכר חדש'}</span>
+          <span style={{ fontWeight:700, fontSize:17, flex:1 }}>{tenantFormId ? t('editTenantTitle') : t('newTenantTitle')}</span>
           <button style={BTN_P} onClick={() => {
             if (!tenantForm.name.trim()) return
             if (tenantFormId) setTenants(prev=>prev.map(t=>t.id===tenantFormId?{...tenantForm,id:tenantFormId}:t))
             else setTenants(prev=>[...prev,{...tenantForm,id:Date.now().toString()}])
             setTenantView('list'); showToast('✓ נשמר')
-          }}>שמור</button>
+          }}>{t('save')}</button>
         </div>
         <div style={SCROLL}>
-          {([{f:'name',l:'שם מלא',t:'text'},{f:'phone',l:'טלפון',t:'tel'},{f:'email',l:'דוא"ל',t:'email'}] as const).map(({f,l,t}) => (
+          {([{f:'name',l:t('fullName'),tp:'text'},{f:'phone',l:t('phoneLabel'),tp:'tel'},{f:'email',l:t('emailLabel'),tp:'email'}] as const).map(({f,l,tp}) => (
             <label key={f} style={{ display:'block', marginBottom:12 }}>
               <span style={LBL}>{l}</span>
-              <input style={INP} type={t} value={(tenantForm as any)[f]} onChange={e=>setTenantForm(p=>({...p,[f]:e.target.value}))} />
+              <input style={INP} type={tp} value={(tenantForm as any)[f]} onChange={e=>setTenantForm(p=>({...p,[f]:e.target.value}))} />
             </label>
           ))}
           <label style={{ display:'block', marginBottom:12 }}>
-            <span style={LBL}>סטטוס</span>
+            <span style={LBL}>{t('statusLabel')}</span>
             <select style={INP} value={tenantForm.status} onChange={e=>setTenantForm(p=>({...p,status:e.target.value as any}))}>
               <option value="lead">{t('statusLead')}</option>
               <option value="active">{t('statusActiveTenant')}</option>
@@ -973,26 +973,26 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
             <label style={{ display:'block', marginBottom:12 }}>
               <span style={LBL}>{t('interestedInProperty')}</span>
               <select style={INP} value={tenantForm.interestedPropertyId||''} onChange={e=>setTenantForm(p=>({...p,interestedPropertyId:e.target.value||null}))}>
-                <option value="">בחר נכס...</option>
+                <option value="">{t('selectPropertyOption')}</option>
                 {properties.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </label>
           )}
           <label style={{ display:'block', marginBottom:12 }}>
-            <span style={LBL}>הערות</span>
+            <span style={LBL}>{t('notes')}</span>
             <textarea style={{...INP,resize:'none'}} value={tenantForm.notes} onChange={e=>setTenantForm(p=>({...p,notes:e.target.value}))} rows={3}/>
           </label>
           {tenantFormId && (
             <button type="button" onClick={()=>{setTenants(p=>p.filter(t=>t.id!==tenantFormId));setTenantView('list');showToast('נמחק')}}
               style={{ width:'100%', padding:12, background:'#FEF2F2', border:'1px solid #FECACA', borderRadius:10, color:'#DC2626', fontWeight:600, cursor:'pointer' }}>
-              🗑 מחק שוכר
+              {t('deleteTenantBtn')}
             </button>
           )}
         </div>
       </div>
     )
 
-    const STATUS_LABELS: Record<Tenant['status'],string> = { lead:'מתעניינים', active:'שוכרים פעילים', past:'לשעבר' }
+    const STATUS_LABELS: Record<Tenant['status'],string> = { lead:t('tenantStatusLeads'), active:t('tenantStatusActiveGroup'), past:t('tenantStatusPastGroup') }
     const STATUS_COLORS: Record<Tenant['status'],string> = { lead:'#F59E0B', active:'#22C55E', past:'#9CA3AF' }
     return (
       <>
@@ -1003,7 +1003,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
           <span style={{ fontWeight:700, fontSize:17, flex:1 }}>👤 {t('tabTenants')}</span>
           <button style={BTN_P} onClick={() => {
             setTenantFormId(null); setTenantForm({name:'',phone:'',email:'',extraPhones:[],notes:'',status:'lead',interestedPropertyId:null}); setTenantView('edit')
-          }}>+ שוכר</button>
+          }}>{t('addTenantBtn')}</button>
         </div>
         <div style={SCROLL}>
           {tenants.length===0 ? (
@@ -1035,7 +1035,7 @@ export function PropertyManagement({ uid, lang = 'he', onBack, onLogoClick, back
                           {tnt.notes && <div style={{ fontSize:12, color:'#9CA3AF', marginTop:4 }}>📝 {tnt.notes}</div>}
                         </div>
                         <button type="button" onClick={() => { setTenantFormId(tnt.id); setTenantForm({name:tnt.name,phone:tnt.phone,email:tnt.email,extraPhones:tnt.extraPhones,notes:tnt.notes,status:tnt.status,interestedPropertyId:tnt.interestedPropertyId}); setTenantView('edit') }}
-                          style={{ background:'#F3F4F6', border:'none', borderRadius:8, padding:'4px 10px', fontWeight:600, cursor:'pointer', fontSize:12, color:'#374151', flexShrink:0, marginRight:8 }}>ערוך</button>
+                          style={{ background:'#F3F4F6', border:'none', borderRadius:8, padding:'4px 10px', fontWeight:600, cursor:'pointer', fontSize:12, color:'#374151', flexShrink:0, marginRight:8 }}>{t('edit')}</button>
                       </div>
                       {tnt.phone && (
                         <div style={{ display:'flex', gap:8, marginTop:8 }}>

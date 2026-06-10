@@ -285,6 +285,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   // Firebase sync for time employees to sync across devices
   useFirebaseSync(uid, 'time_employees', employees, v => setEmployees(v as typeof employees))
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
+  const [clientsViewMode, setClientsViewMode] = useState<'byClient' | 'chronological'>('byClient')
   const [timeTrackingTab, setTimeTrackingTab] = useState<'clients' | 'reports' | 'summary' | 'employees'>('clients')
   const [timerRunning, setTimerRunning] = useState(() => localStorage.getItem(lsKey('timer_running')) === '1')
   const [timerStart, setTimerStart] = useState<Date | null>(() => {
@@ -4451,7 +4452,28 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
         {/* Tab 1: Clients */}
         {timeTrackingTab === 'clients' && (
-          <div className="m-clients-list" style={{overflowY: 'auto', maxHeight: 'calc(100vh - 180px)'}}>
+          <div style={{display:'flex', flexDirection:'column', flex:1, minHeight:0}}>
+          {/* View mode toggle */}
+          {!employeeMode && clients.length > 0 && (
+            <div style={{display:'flex', gap:0, margin:'8px 16px 0', borderRadius:10, overflow:'hidden', border:'1.5px solid #E5E7EB', flexShrink:0}}>
+              <button type="button"
+                onClick={() => setClientsViewMode('byClient')}
+                style={{flex:1, padding:'8px 0', fontSize:13, fontWeight:700, cursor:'pointer', border:'none', borderRight:'1.5px solid #E5E7EB',
+                  background: clientsViewMode==='byClient' ? '#1d4ed8' : 'white',
+                  color: clientsViewMode==='byClient' ? 'white' : '#6B7280'}}>
+                {lang==='he' ? '👤 לפי לקוח' : '👤 By Client'}
+              </button>
+              <button type="button"
+                onClick={() => setClientsViewMode('chronological')}
+                style={{flex:1, padding:'8px 0', fontSize:13, fontWeight:700, cursor:'pointer', border:'none',
+                  background: clientsViewMode==='chronological' ? '#1d4ed8' : 'white',
+                  color: clientsViewMode==='chronological' ? 'white' : '#6B7280'}}>
+                {lang==='he' ? '🕐 כרונולוגי' : '🕐 Chronological'}
+              </button>
+            </div>
+          )}
+
+          <div className="m-clients-list" style={{overflowY: 'auto', flex:1}}>
           {/* Employee Mode Banner */}
           {employeeMode && (
             <div style={{padding: '12px 16px', background: '#DBEAFE', borderBottom: '1px solid #93C5FD', marginBottom: 8}}>
@@ -4463,48 +4485,171 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
               </div>
             </div>
           )}
-          {clients.length === 0 ? (
-            <div className="m-empty-state">
-              <div style={{fontSize: 48, marginBottom: 16}}>👥</div>
-              <div style={{fontSize: 16, fontWeight: 600, marginBottom: 8}}>{t('noClientsYet')}</div>
-              <div style={{fontSize: 14, color: '#999'}}>{t('addFirstClientHint')}</div>
-            </div>
-          ) : (
-            [...clients]
-              .filter(c => employeeMode ? employeeMode.clientIds.includes(c.id) : true)
-              .map(c => ({...c, entryCount: timeEntries.filter(e => e.clientId === c.id).length}))
-              .sort((a, b) => b.entryCount - a.entryCount)
-              .map(client => {
-              const openClientEdit = () => {
-                setClientFormName(client.name)
-                setClientFormRate(String(client.hourlyRate))
-                setClientFormVat(String(client.vatPercent))
-                setClientFormIncomeTax(String(client.incomeTaxPercent))
-                setEditClientId(client.id)
-                setAddClientOpen(true)
-              }
+
+          {/* By-client view */}
+          {clientsViewMode === 'byClient' && (
+            clients.length === 0 ? (
+              <div className="m-empty-state">
+                <div style={{fontSize: 48, marginBottom: 16}}>👥</div>
+                <div style={{fontSize: 16, fontWeight: 600, marginBottom: 8}}>{t('noClientsYet')}</div>
+                <div style={{fontSize: 14, color: '#999'}}>{t('addFirstClientHint')}</div>
+              </div>
+            ) : (
+              [...clients]
+                .filter(c => employeeMode ? employeeMode.clientIds.includes(c.id) : true)
+                .map(c => ({...c, entryCount: timeEntries.filter(e => e.clientId === c.id).length}))
+                .sort((a, b) => b.entryCount - a.entryCount)
+                .map(client => {
+                const openClientEdit = () => {
+                  setClientFormName(client.name)
+                  setClientFormRate(String(client.hourlyRate))
+                  setClientFormVat(String(client.vatPercent))
+                  setClientFormIncomeTax(String(client.incomeTaxPercent))
+                  setEditClientId(client.id)
+                  setAddClientOpen(true)
+                }
+                return (
+                  <div
+                    key={client.id}
+                    className="m-client-card"
+                    onClick={() => {
+                      if (longPressFiredRef.current) { longPressFiredRef.current = false; return }
+                      setSelectedClientId(client.id)
+                    }}
+                    onTouchStart={() => startLongPress(openClientEdit)}
+                    onTouchEnd={cancelLongPress}
+                    onTouchMove={cancelLongPress}
+                    onTouchCancel={cancelLongPress}
+                    onMouseDown={() => startLongPress(openClientEdit)}
+                    onMouseUp={cancelLongPress}
+                    onMouseLeave={cancelLongPress}
+                    onContextMenu={(e) => { e.preventDefault(); openClientEdit() }}
+                  >
+                    <div className="m-client-name">{client.name}</div>
+                  </div>
+                )
+              })
+            )
+          )}
+
+          {/* Chronological view */}
+          {clientsViewMode === 'chronological' && (() => {
+            const visibleClients = new Set(
+              (employeeMode ? clients.filter(c => employeeMode.clientIds.includes(c.id)) : clients).map(c => c.id)
+            )
+            const allEntries = timeEntries
+              .filter(e => visibleClients.has(e.clientId))
+              .sort((a, b) => {
+                const ka = `${a.startDate}T${a.startTime}`
+                const kb = `${b.startDate}T${b.startTime}`
+                return kb.localeCompare(ka)
+              })
+
+            if (allEntries.length === 0) {
               return (
-                <div
-                  key={client.id}
-                  className="m-client-card"
-                  onClick={() => {
-                    if (longPressFiredRef.current) { longPressFiredRef.current = false; return }
-                    setSelectedClientId(client.id)
-                  }}
-                  onTouchStart={() => startLongPress(openClientEdit)}
-                  onTouchEnd={cancelLongPress}
-                  onTouchMove={cancelLongPress}
-                  onTouchCancel={cancelLongPress}
-                  onMouseDown={() => startLongPress(openClientEdit)}
-                  onMouseUp={cancelLongPress}
-                  onMouseLeave={cancelLongPress}
-                  onContextMenu={(e) => { e.preventDefault(); openClientEdit() }}
-                >
-                  <div className="m-client-name">{client.name}</div>
+                <div className="m-empty-state">
+                  <div style={{fontSize: 48, marginBottom: 16}}>📋</div>
+                  <div style={{fontSize: 16, fontWeight: 600}}>{t('noEntries')}</div>
                 </div>
               )
+            }
+
+            // Group by day
+            const byDay: Record<string, typeof allEntries> = {}
+            allEntries.forEach(e => {
+              if (!byDay[e.startDate]) byDay[e.startDate] = []
+              byDay[e.startDate].push(e)
             })
-          )}
+            const sortedDays = Object.keys(byDay).sort((a, b) => b.localeCompare(a))
+            const locale = lang === 'he' ? 'he-IL' : 'en-US'
+
+            return (
+              <div style={{paddingBottom: 100}}>
+                {sortedDays.map(day => {
+                  const dayEntries = byDay[day]
+                  const dayHours = dayEntries.reduce((s, e) => s + calculateHours(e), 0)
+                  const dayAmt = dayEntries.reduce((s, e) => {
+                    const cl = clients.find(c => c.id === e.clientId)
+                    return s + (cl ? calculateAmount(e, cl) : 0)
+                  }, 0)
+                  const dayLabel = new Date(day + 'T12:00:00').toLocaleDateString(locale, {weekday:'short', day:'2-digit', month:'2-digit', year:'2-digit'})
+                  const isToday = day === new Date().toISOString().split('T')[0]
+
+                  return (
+                    <div key={day}>
+                      {/* Day header */}
+                      <div style={{
+                        display:'flex', justifyContent:'space-between', alignItems:'center',
+                        padding:'8px 16px', background: isToday ? '#1d4ed8' : '#F3F4F6',
+                        borderBottom:'1px solid #E5E7EB', position:'sticky', top:0, zIndex:1
+                      }}>
+                        <span style={{fontSize:13, fontWeight:700, color: isToday ? 'white' : '#374151'}}>
+                          {isToday ? (lang==='he' ? '📅 היום' : '📅 Today') : `📅 ${dayLabel}`}
+                        </span>
+                        <div style={{display:'flex', gap:10, alignItems:'center'}}>
+                          <span style={{fontSize:13, fontWeight:700, color: isToday ? '#93c5fd' : '#6366F1'}}>
+                            {dayHours.toFixed(1)}h
+                          </span>
+                          {dayAmt > 0 && (
+                            <span style={{fontSize:13, fontWeight:700, color: isToday ? '#86efac' : '#059669'}}>
+                              ₪{dayAmt.toLocaleString(numLocale, {maximumFractionDigits:0})}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Entries for this day */}
+                      {dayEntries.map(entry => {
+                        const client = clients.find(c => c.id === entry.clientId)
+                        if (!client) return null
+                        const hours = calculateHours(entry)
+                        const amount = calculateAmount(entry, client)
+                        const status = entry.billingStatus || 'pending'
+                        const statusColor = status === 'paid' ? '#059669' : status === 'invoiced' ? '#1d4ed8' : '#92400e'
+                        const statusBg = status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7'
+                        const statusLabel = status === 'paid' ? t('paid') : status === 'invoiced' ? t('invoiced') : t('pending')
+                        return (
+                          <div key={entry.id}
+                            onClick={() => {
+                              setEntryFormStartDate(entry.startDate)
+                              setEntryFormEndDate(entry.endDate)
+                              setEntryFormStartTime(entry.startTime)
+                              setEntryFormEndTime(entry.endTime)
+                              setEntryFormNotes(entry.notes || '')
+                              setEntryFormManualAmount(entry.manualAmount != null ? String(entry.manualAmount) : '')
+                              setEntryFormEmployeeId(entry.employeeId || 'self')
+                              setEntryFormClientId(entry.clientId)
+                              setEditEntryId(entry.id)
+                              setAddTimeEntryOpen(true)
+                            }}
+                            style={{display:'flex', alignItems:'center', gap:10, padding:'10px 16px',
+                              borderBottom:'1px solid #F3F4F6', background:'white', cursor:'pointer'}}
+                          >
+                            <div style={{flex:1, minWidth:0}}>
+                              <div style={{fontWeight:700, fontSize:14, color:'#111827', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>
+                                {client.name}
+                              </div>
+                              <div style={{display:'flex', alignItems:'center', gap:6, marginTop:2}}>
+                                <span style={{fontSize:12, color:'#6B7280'}}>{entry.startTime}–{entry.endTime}</span>
+                                {entry.notes && <span style={{fontSize:11, color:'#9CA3AF', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:100}}>· {entry.notes}</span>}
+                              </div>
+                            </div>
+                            <div style={{display:'flex', flexDirection:'column', alignItems:'flex-end', gap:3, flexShrink:0}}>
+                              <span style={{fontSize:13, fontWeight:700, color:'#374151'}}>{hours.toFixed(1)}h</span>
+                              {amount > 0 && <span style={{fontSize:12, fontWeight:600, color:'#059669'}}>₪{amount.toLocaleString(numLocale,{maximumFractionDigits:0})}</span>}
+                              <span style={{fontSize:10, fontWeight:600, borderRadius:6, padding:'1px 6px', background:statusBg, color:statusColor}}>{statusLabel}</span>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )
+                })}
+              </div>
+            )
+          })()}
+
+          </div>
           </div>
         )}
 
