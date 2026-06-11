@@ -4622,10 +4622,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                         if (!client) return null
                         const hours = calculateHours(entry)
                         const amount = calculateAmount(entry, client)
-                        const status = entry.billingStatus || 'pending'
-                        const statusColor = status === 'paid' ? '#059669' : status === 'invoiced' ? '#1d4ed8' : '#92400e'
-                        const statusBg = status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7'
-                        const statusLabel = status === 'paid' ? t('statusPaid') : status === 'invoiced' ? t('statusInvoiced') : t('statusPending')
                         return (
                           <div key={entry.id}
                             onClick={() => {
@@ -4655,7 +4651,6 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                             <div style={{display:'flex', flexDirection:'column', alignItems:'flex-end', gap:3, flexShrink:0}}>
                               <span style={{fontSize:13, fontWeight:700, color:'#374151'}}>{hours.toFixed(1)}h</span>
                               {amount > 0 && <span style={{fontSize:12, fontWeight:600, color:'#059669'}}>₪{amount.toLocaleString(numLocale,{maximumFractionDigits:0})}</span>}
-                              <span style={{fontSize:10, fontWeight:600, borderRadius:6, padding:'1px 6px', background:statusBg, color:statusColor}}>{statusLabel}</span>
                             </div>
                           </div>
                         )
