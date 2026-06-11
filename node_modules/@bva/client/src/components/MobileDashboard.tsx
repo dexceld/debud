@@ -222,6 +222,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     return 'hub'
   })
   const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const [budgetHelpOpen, setBudgetHelpOpen] = useState(false)
   const [aboutOpen, setAboutOpen] = useState(false)
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null)
   const [updateAmount, setUpdateAmount] = useState('')
@@ -1447,6 +1448,15 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             )}
           </div>
           <div className="m-header-actions">
+            <button className="m-hbtn" onClick={() => setBudgetHelpOpen(h => !h)} title={lang==='he' ? 'עזרה' : 'Help'}
+              style={budgetHelpOpen ? {color:'#7c3aed', background:'#F3E8FF', borderRadius:8} : {}}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+              <span className="m-hbtn-label">{lang==='he' ? 'עזרה' : 'Help'}</span>
+            </button>
             <button className="m-hbtn m-hbtn-gear" onClick={() => setCatMgmtOpen(true)}>
               <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" /></svg>
               <span className="m-hbtn-label">{t('settingsTitle')}</span>
@@ -1461,6 +1471,64 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             </button>
           </div>
         </div>
+
+        {/* Help panel */}
+        {budgetHelpOpen && (
+          <div style={{margin:'8px 12px 0',padding:'16px',background:'linear-gradient(135deg,#F5F3FF 0%,#EFF6FF 100%)',border:'1.5px solid #C4B5FD',borderRadius:14,direction:'rtl',fontSize:13,lineHeight:1.6}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+              <span style={{fontSize:15,fontWeight:800,color:'#5B21B6'}}>{lang==='he' ? '📖 מדריך שימוש' : '📖 User Guide'}</span>
+              <button onClick={() => setBudgetHelpOpen(false)} style={{background:'none',border:'none',fontSize:18,cursor:'pointer',color:'#9CA3AF',lineHeight:1}}>✕</button>
+            </div>
+
+            {/* Block 1 */}
+            <div style={{marginBottom:10,padding:'10px 12px',background:'white',borderRadius:10,border:'1px solid #E9D5FF'}}>
+              <div style={{fontWeight:700,color:'#5B21B6',marginBottom:4}}>📊 {lang==='he' ? 'מה המודול הזה?' : 'What is this module?'}</div>
+              <div style={{color:'#374151'}}>{lang==='he' ? 'ניהול תקציב משפחתי — צפייה בצפי התזרים בזמן אמת, השוואה בין תחזית לפועל וחיזוי יתרה חודשית.' : 'Family budget management — real-time cash flow forecast, forecast vs. actual comparison, and monthly balance projection.'}</div>
+            </div>
+
+            {/* Block 2 */}
+            <div style={{marginBottom:10,padding:'10px 12px',background:'white',borderRadius:10,border:'1px solid #BFDBFE'}}>
+              <div style={{fontWeight:700,color:'#1D4ED8',marginBottom:4}}>📁 {lang==='he' ? 'קטגוריות וסעיפים' : 'Categories & items'}</div>
+              <div style={{color:'#374151'}}>
+                {lang==='he' ? <>{`הקטגוריות והסעיפים הם `}<strong>הצעה בלבד</strong>{` — ניתן ורצוי לשנות אותם לפי הצרכים שלך.`}<br/><span style={{color:'#6B7280',fontSize:12}}>⚙️ שינוי: כנס להגדרות ← ניהול קטגוריות</span></> : <>{`Categories and items are `}<strong>suggestions only</strong>{` — feel free to customise them.`}<br/><span style={{color:'#6B7280',fontSize:12}}>⚙️ Change: Settings → Manage Categories</span></>}
+              </div>
+            </div>
+
+            {/* Block 3 */}
+            <div style={{marginBottom:10,padding:'10px 12px',background:'white',borderRadius:10,border:'1px solid #BBF7D0'}}>
+              <div style={{fontWeight:700,color:'#065F46',marginBottom:6}}>✏️ {lang==='he' ? 'אופן העבודה' : 'How to work'}</div>
+              <div style={{display:'flex',flexDirection:'column',gap:5,color:'#374151'}}>
+                <div>🗓️ {lang==='he' ? <>{`בתחילת החודש — `}<strong>עדכן תחזית</strong>{` לכל ההכנסות וההוצאות הידועות`}</> : <>{`Start of month — `}<strong>update forecast</strong>{` for all known income & expenses`}</>}</div>
+                <div>🛒 {lang==='he' ? <>{`להוצאות שוטפות (מזון, ביגוד, בילויים) — `}<strong>תן הערכה</strong></> : <>{`For recurring expenses (food, clothing…) — `}<strong>give an estimate</strong></>}</div>
+                <div>📌 {lang==='he' ? <>{`במהלך החודש — עדכן `}<strong>הוצאות בפועל</strong>{` כשהן קורות`}</> : <>{`During the month — update `}<strong>actual expenses</strong>{` as they happen`}</>}</div>
+              </div>
+            </div>
+
+            {/* Block 4 */}
+            <div style={{marginBottom:10,padding:'10px 12px',background:'white',borderRadius:10,border:'1px solid #FDE68A'}}>
+              <div style={{fontWeight:700,color:'#92400E',marginBottom:6}}>🚀 {lang==='he' ? '3 דרכי עדכון' : '3 ways to update'}</div>
+              <div style={{display:'flex',flexDirection:'column',gap:5,color:'#374151'}}>
+                <div>👆 {lang==='he' ? 'לחיצה ישירה על הסעיף בדף הבית' : 'Tap directly on any item in the home view'}</div>
+                <div>➕ {lang==='he' ? 'לחיצה על הכפתור הצף — בחר תחזית או בפועל' : 'Tap the floating button — choose forecast or actual'}</div>
+                <div style={{background:'#FFFBEB',borderRadius:8,padding:'6px 8px',border:'1px solid #FDE68A'}}>
+                  🎙️ <strong>{lang==='he' ? 'הכי מומלץ!' : 'Most recommended!'}</strong>{' '}
+                  {lang==='he' ? 'לחץ על כפתור המיקרופון ואמור:' : 'Tap the microphone button and say:'}<br/>
+                  <span style={{color:'#7C3AED',fontStyle:'italic',fontWeight:600}}>"{'תוסיף 500 שח למזון'}"</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Block 5 */}
+            <div style={{marginBottom:12,padding:'10px 12px',background:'white',borderRadius:10,border:'1px solid #FBCFE8'}}>
+              <div style={{fontWeight:700,color:'#9D174D',marginBottom:4}}>💡 {lang==='he' ? 'טיפ חשוב' : 'Pro tip'}</div>
+              <div style={{color:'#374151'}}>{lang==='he' ? <>{`לא חייבים להגדיר סעיף חדש מראש! ניתן `}<strong>להוסיף סעיף חדש ישירות</strong>{` מהכפתורים הצפים — בוחרים "סעיף חדש" ומקצים לקטגוריה הרצויה.`}</> : <>{`No need to pre-define a new item! You can `}<strong>add a new item on the fly</strong>{` from the floating buttons — choose "new item" and assign it to a category.`}</>}</div>
+            </div>
+
+            <div style={{textAlign:'center',fontWeight:700,color:'#5B21B6',fontSize:14}}>
+              {lang==='he' ? '✨ בהצלחה! תהנו ותישארו בשליטה 😊' : '✨ Good luck! Enjoy staying in control 😊'}
+            </div>
+          </div>
+        )}
 
         {/* Sync error banner */}
         {!isLocalMode && syncStatus.includes('error') && (
