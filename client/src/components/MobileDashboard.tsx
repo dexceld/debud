@@ -3668,7 +3668,17 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
 
               if (allItems.length === 0) return <div className="m-empty-state">אין דיווחים עדיין</div>
 
+              const summaryHours = filteredEntries.reduce((s, e) => s + calculateHours(e), 0)
+              const summaryAmount = filteredEntries.reduce((s, e) => s + calculateAmount(e, client), 0) + charges.reduce((s, c) => s + c.amount, 0)
+
               return (
+                <><div style={{display:'flex', alignItems:'center', gap:12, margin:'6px 4px 6px', padding:'6px 14px', background:'#F8FAFC', border:'1px solid #E5E7EB', borderRadius:10}}>
+                  <span style={{fontSize:12, color:'#6B7280', fontWeight:600}}>📋 {allItems.length}</span>
+                  <span style={{width:1, height:14, background:'#E5E7EB'}}/>
+                  <span style={{fontSize:12, color:'#374151', fontWeight:700}}>⏱ {summaryHours.toFixed(1)}h</span>
+                  <span style={{width:1, height:14, background:'#E5E7EB'}}/>
+                  <span style={{fontSize:12, color:'#059669', fontWeight:700}}>₪{summaryAmount.toLocaleString(numLocale, {maximumFractionDigits:0})}</span>
+                </div>
                 <div style={{display: 'flex', flexDirection: 'column', padding: '0 16px', background: 'white', borderRadius: 12, border: '1px solid #E5E7EB', margin: '0 4px'}}>
                   {allItems.map((item, idx) => {
                     if (item.type === 'entry') {
@@ -3745,7 +3755,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                     }
                   })}
                 </div>
-              )
+              </>)
             })()}
           </div>
 
