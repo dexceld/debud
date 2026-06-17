@@ -3706,19 +3706,27 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           onTouchCancel={cancelLongPress}
                           onContextMenu={(e) => { e.preventDefault(); openEntryEdit() }}
                           onClick={() => { if (longPressFiredRef.current) { longPressFiredRef.current = false; return } openEntryEdit() }}
-                          style={{ padding: '10px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E5E7EB', cursor: 'pointer' }}>
-                          <span style={{fontSize: 18, fontWeight: 800, color: '#111827'}}>
-                            {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit', year: '2-digit'})}
-                          </span>
-                          {entry.employeeId && entry.employeeId !== 'self' && (
-                            <span style={{fontSize: 13, color: '#6B7280', fontWeight: 500}}>
-                              {employees.find(e => e.id === entry.employeeId)?.name || 'עובד'}
+                          style={{ padding: '10px 0', borderBottom: '1px solid #E5E7EB', cursor: 'pointer' }}>
+                          <div style={{display:'flex', alignItems:'center', gap:10, flexWrap:'wrap', marginBottom: entry.notes ? 6 : 0}}>
+                            <span style={{fontSize: 18, fontWeight: 800, color: '#111827'}}>
+                              {new Date(entry.startDate).toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit', year: '2-digit'})}
                             </span>
-                          )}
-                          <div style={{textAlign: 'left', marginLeft: '12px', flexShrink: 0}}>
-                            <div style={{fontSize: 15, fontWeight: 700, color: '#111827'}}>₪{amount.toLocaleString(numLocale, {maximumFractionDigits: 0})}</div>
-                            <div style={{fontSize: 14, color: '#6B7280', fontWeight: 600}}>{hours.toFixed(1)}h</div>
+                            {entry.employeeId && entry.employeeId !== 'self' && (
+                              <span style={{fontSize: 13, color: '#6B7280', fontWeight: 500}}>
+                                {employees.find(e => e.id === entry.employeeId)?.name || 'עובד'}
+                              </span>
+                            )}
+                            <span style={{fontSize: 12, color: '#6B7280'}}>{entry.startTime}–{entry.endTime}</span>
+                            <span style={{fontSize: 13, color: '#7C3AED', fontWeight: 600}}>{hours.toFixed(1)}h</span>
+                            {amount > 0 && (
+                              <span style={{fontSize: 14, fontWeight: 700, color: '#059669'}}>₪{amount.toLocaleString(numLocale, {maximumFractionDigits: 0})}</span>
+                            )}
                           </div>
+                          {entry.notes && (
+                            <div style={{fontSize: 12, color: '#4B5563', background:'#F3F4F6', borderRadius: 8, padding: '6px 8px', whiteSpace: 'pre-line', lineHeight: 1.5}}>
+                              {entry.notes}
+                            </div>
+                          )}
                         </div>
                       )
                     } else {
@@ -3734,22 +3742,29 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                           onTouchEnd={cancelLongPress} onTouchMove={cancelLongPress} onTouchCancel={cancelLongPress}
                           onContextMenu={e => { e.preventDefault(); openChargeEdit() }}
                           onClick={() => { if (longPressFiredRef.current) { longPressFiredRef.current = false; return } openChargeEdit() }}
-                          style={{ padding: '10px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E5E7EB', cursor: 'pointer', background: '#faf5ff' }}>
-                          <div style={{display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap'}}>
-                            <span style={{fontSize: 18, fontWeight: 800, color: '#111827'}}>
-                              {new Date(charge.date).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit', year: '2-digit'})}
-                            </span>
-                            <span style={{fontSize: 11, padding: '1px 6px', borderRadius: 4, background: '#ede9fe', color: '#7c3aed', fontWeight: 600}}>{tag?.name || charge.tagId}</span>
-                            {charge.employeeId && (
-                              <span style={{fontSize: 11, padding: '1px 6px', borderRadius: 4, background: '#f3e8ff', color: '#6b21a8', fontWeight: 600}}>
-                                {employees.find(e => e.id === charge.employeeId)?.name || 'עובד'}
+                          style={{ padding: '10px 0', borderBottom: '1px solid #E5E7EB', cursor: 'pointer', background: '#faf5ff' }}>
+                          <div style={{display: 'flex', justifyContent:'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap'}}>
+                            <div style={{display:'flex', alignItems:'center', gap:8, flexWrap:'wrap'}}>
+                              <span style={{fontSize: 18, fontWeight: 800, color: '#111827'}}>
+                                {new Date(charge.date).toLocaleDateString('he-IL', {day:'2-digit', month:'2-digit', year: '2-digit'})}
                               </span>
-                            )}
-                            <span style={{fontSize: 11, padding: '2px 6px', borderRadius: '4px', fontWeight: 600, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e' }}>
-                              {status === 'paid' ? t('statusPaid') : status === 'invoiced' ? t('statusInvoiced') : t('statusPending')}
-                            </span>
+                              <span style={{fontSize: 11, padding: '1px 6px', borderRadius: 4, background: '#ede9fe', color: '#7c3aed', fontWeight: 600}}>{tag?.name || charge.tagId}</span>
+                              {charge.employeeId && (
+                                <span style={{fontSize: 11, padding: '1px 6px', borderRadius: 4, background: '#f3e8ff', color: '#6b21a8', fontWeight: 600}}>
+                                  {employees.find(e => e.id === charge.employeeId)?.name || 'עובד'}
+                                </span>
+                              )}
+                              <span style={{fontSize: 11, padding: '2px 6px', borderRadius: '4px', fontWeight: 600, background: status === 'paid' ? '#dcfce7' : status === 'invoiced' ? '#dbeafe' : '#fef3c7', color: status === 'paid' ? '#166534' : status === 'invoiced' ? '#1e40af' : '#92400e' }}>
+                                {status === 'paid' ? t('statusPaid') : status === 'invoiced' ? t('statusInvoiced') : t('statusPending')}
+                              </span>
+                            </div>
+                            <div style={{fontSize: 15, fontWeight: 700, color: '#7c3aed'}}>₪{charge.amount.toLocaleString(numLocale, {maximumFractionDigits: 0})}</div>
                           </div>
-                          <div style={{fontSize: 15, fontWeight: 700, color: '#7c3aed'}}>₪{charge.amount.toLocaleString(numLocale, {maximumFractionDigits: 0})}</div>
+                          {charge.notes && (
+                            <div style={{fontSize:12,color:'#4B5563',background:'#F3F4F6',borderRadius:8,padding:'6px 8px',lineHeight:1.5,whiteSpace:'pre-line',marginTop:6}}>
+                              {charge.notes}
+                            </div>
+                          )}
                         </div>
                       )
                     }
@@ -3796,7 +3811,10 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   const totalAmount = entries.reduce((sum, e) => { const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60); return sum + h * client.hourlyRate * (1 + client.vatPercent / 100) }, 0)
                   const subject = `דיווח שעות - ${client.name}`
                   let body = `דיווח שעות - ${client.name}\n\nסה"כ שעות: ${totalHours.toFixed(2)}\nסה"כ: ₪${totalAmount.toLocaleString(numLocale, {maximumFractionDigits:0})}\n\n`
-                  entries.forEach(e => { const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60); body += `${e.startDate} ${e.startTime}-${e.endTime} | ${h.toFixed(2)} שעות\n` })
+                  entries.forEach(e => {
+                    const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60)
+                    body += `${e.startDate} ${e.startTime}-${e.endTime} | ${h.toFixed(2)} שעות${e.notes ? ` | הערה: ${e.notes}` : ''}\n`
+                  })
                   window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
                   setClientShareOpen(false)
                 }} style={{width:44,height:44,borderRadius:8,border:'none',cursor:'pointer',background:'#EEF2FF',display:'flex',alignItems:'center',justifyContent:'center'}}>
