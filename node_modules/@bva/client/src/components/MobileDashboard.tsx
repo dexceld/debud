@@ -4171,7 +4171,19 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   if (employeeStatusFilter !== 'all') entries = entries.filter(e => (e.billingStatus || 'pending') === employeeStatusFilter)
                   if (entries.length === 0) { setEmployeeShareOpen(false); return }
                   import('xlsx').then(XLSX => {
-                    const data = entries.map(e => { const c = clients.find(cl => cl.id === e.clientId); const hours = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60); const amount = c ? hours * c.hourlyRate * (1 + c.vatPercent/100) : 0; return { תאריך: e.startDate, לקוח: c?.name||'', שעות: hours.toFixed(2), סכום: amount.toFixed(2), סטטוס: e.billingStatus||'pending' } })
+                    const data = entries.map(e => {
+                      const c = clients.find(cl => cl.id === e.clientId)
+                      const hours = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60)
+                      const amount = c ? hours * c.hourlyRate * (1 + c.vatPercent/100) : 0
+                      return {
+                        תאריך: e.startDate,
+                        לקוח: c?.name || '',
+                        שעות: hours.toFixed(2),
+                        סכום: amount.toFixed(2),
+                        סטטוס: e.billingStatus || 'pending',
+                        הערות: e.notes || ''
+                      }
+                    })
                     const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, employee.name); XLSX.writeFile(wb, `${employee.name}_${new Date().toISOString().split('T')[0]}.xlsx`)
                   })
                   setEmployeeShareOpen(false)
@@ -4187,7 +4199,11 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
                   let totalAmount = 0; entries.forEach(e => { const c = clients.find(cl => cl.id === e.clientId); if (c) { const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60); totalAmount += h * c.hourlyRate * (1 + c.vatPercent/100) } })
                   const subject = `דיווח שעות - ${employee.name}`
                   let body = `דיווח שעות - ${employee.name}\n\nסה"כ שעות: ${totalHours.toFixed(2)}\nסה"כ: ₪${totalAmount.toLocaleString(numLocale, {maximumFractionDigits:0})}\n\n`
-                  entries.forEach(e => { const c = clients.find(cl => cl.id === e.clientId); const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60); body += `${e.startDate} | ${c?.name||''} | ${h.toFixed(2)} שעות\n` })
+                  entries.forEach(e => {
+                    const c = clients.find(cl => cl.id === e.clientId)
+                    const h = (new Date(`${e.endDate}T${e.endTime}`).getTime() - new Date(`${e.startDate}T${e.startTime}`).getTime()) / (1000*60*60)
+                    body += `${e.startDate} | ${c?.name || ''} | ${h.toFixed(2)} שעות${e.notes ? ` | הערה: ${e.notes}` : ''}\n`
+                  })
                   window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
                   setEmployeeShareOpen(false)
                 }} style={{width:44,height:44,borderRadius:8,border:'none',cursor:'pointer',background:'#EEF2FF',display:'flex',alignItems:'center',justifyContent:'center'}}>
