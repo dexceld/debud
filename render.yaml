@@ -13,3 +13,6 @@ services:
       - path: /.well-known/assetlinks.json
         name: Content-Type
         value: application/json
+      - path: /.well-known/assetlinks.json
+        name: Access-Control-Allow-Origin
+        value: "*"
