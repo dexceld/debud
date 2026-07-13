@@ -18,8 +18,8 @@
     "path": "android.keystore",
     "alias": "my-key-alias"
   },
-  "appVersionName": "1.0.2",
-  "appVersionCode": 3,
+  "appVersionName": "1.0.3",
+  "appVersionCode": 5,
   "shortcuts": [
     {
       "name": "דיווח שעות",
