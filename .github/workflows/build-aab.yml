@@ -37,18 +37,30 @@ jobs:
           printf '{"jdkPath":"%s","androidSdkPath":"%s"}' "$JAVA_HOME" "$SDK_PATH" > ~/.bubblewrap/config.json
           cat ~/.bubblewrap/config.json
 
+      - name: Verify Keystore
+        run: |
+          echo "Keystore size: $(wc -c < android.keystore) bytes"
+          file android.keystore
+          keytool -list -keystore android.keystore -storepass "$KS_PASS" 2>&1 || echo "KEYSTORE_ERROR"
+        env:
+          KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
+
       - name: Build AAB
         run: |
-          bubblewrap build --keystore-password="$KS_PASS" --key-password="$KS_PASS"
+          bubblewrap build --keystore-password "$KS_PASS" --key-password "$KS_PASS" 2>&1
         env:
           KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
 
       - name: Find AAB
+        if: always()
         run: |
           echo "=== Searching for AAB files ==="
-          find / -name "*.aab" 2>/dev/null | head -20 || echo "No AAB found"
-          echo "=== Current directory ==="
+          find /home/runner /tmp /root -name "*.aab" 2>/dev/null | head -20 || echo "No AAB found anywhere"
+          echo "=== Current directory contents ==="
           ls -la
+          echo "=== android-project if exists ==="
+          find . -type d -name "app" 2>/dev/null | head -5
+          ls -la android-project/ 2>/dev/null || echo "No android-project dir"
 
       - name: Upload AAB Artifact
         uses: actions/upload-artifact@v4
