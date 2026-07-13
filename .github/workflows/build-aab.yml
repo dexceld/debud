@@ -47,7 +47,7 @@ jobs:
 
       - name: Build AAB
         run: |
-          bubblewrap build --keystore-password "$KS_PASS" --key-password "$KS_PASS" 2>&1
+          echo "Y" | bubblewrap build --keystore-password "$KS_PASS" --key-password "$KS_PASS" 2>&1
         env:
           KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
 
