@@ -9,3 +9,7 @@ services:
         value: 20
       - key: NODE_ENV
         value: development
+    headers:
+      - path: /.well-known/assetlinks.json
+        name: Content-Type
+        value: application/json
