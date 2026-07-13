@@ -25,19 +25,22 @@
       "name": "דיווח שעות",
       "shortName": "שעות",
       "url": "/?action=hours",
-      "icons": [{ "src": "https://debud.onrender.com/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "https://debud.onrender.com/icon-192.png", "sizes": "192x192" }],
+      "chosenIconUrl": "https://debud.onrender.com/icon-192.png"
     },
     {
       "name": "הוסף הוצאה",
       "shortName": "הוצאה",
       "url": "/?action=expense",
-      "icons": [{ "src": "https://debud.onrender.com/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "https://debud.onrender.com/icon-192.png", "sizes": "192x192" }],
+      "chosenIconUrl": "https://debud.onrender.com/icon-192.png"
     },
     {
       "name": "הוסף הכנסה",
       "shortName": "הכנסה",
       "url": "/?action=income",
-      "icons": [{ "src": "https://debud.onrender.com/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "https://debud.onrender.com/icon-192.png", "sizes": "192x192" }],
+      "chosenIconUrl": "https://debud.onrender.com/icon-192.png"
     }
   ],
   "generatorApp": "bubblewrap"
