@@ -45,9 +45,27 @@ jobs:
         env:
           KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
 
+      - name: Install expect
+        run: sudo apt-get install -y expect
+
       - name: Build AAB
         run: |
-          printf "Y\nY\nY\n1.0.1\n2\n\n\n\n\n\n" | bubblewrap build --keystore-password "$KS_PASS" --key-password "$KS_PASS" 2>&1
+          export KS_PASS_VAR="$KS_PASS"
+          expect -c "
+            set timeout 600
+            set env(KS_PASS_VAR) \$::env(KS_PASS_VAR)
+            spawn bubblewrap build --keystore-password \"\$::env(KS_PASS_VAR)\" --key-password \"\$::env(KS_PASS_VAR)\"
+            expect {
+              -re {\\(Y/n\\)} { send \"Y\r\"; exp_continue }
+              -re {versionName} { send \"1.0.1\r\"; exp_continue }
+              -re {versionCode} { send \"2\r\"; exp_continue }
+              -re {password} { send \"\$::env(KS_PASS_VAR)\r\"; exp_continue }
+              timeout { puts \"TIMEOUT\"; exit 1 }
+              eof {}
+            }
+            lassign \[wait\] pid spawnid os_error_flag value
+            exit \$value
+          "
         env:
           KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
 
