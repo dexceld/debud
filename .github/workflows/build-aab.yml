@@ -31,13 +31,17 @@ jobs:
       - name: Configure Bubblewrap
         run: |
           mkdir -p ~/.bubblewrap
-          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_SDK_ROOT\"}" > ~/.bubblewrap/config.json
+          SDK_PATH="${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
+          echo "JDK: $JAVA_HOME"
+          echo "SDK: $SDK_PATH"
+          printf '{"jdkPath":"%s","androidSdkPath":"%s"}' "$JAVA_HOME" "$SDK_PATH" > ~/.bubblewrap/config.json
+          cat ~/.bubblewrap/config.json
 
       - name: Build AAB
         run: |
-          printf '${{ secrets.KEYSTORE_PASSWORD }}\n${{ secrets.KEYSTORE_PASSWORD }}\n' | bubblewrap build
+          printf "%s\n%s\n" "$KS_PASS" "$KS_PASS" | bubblewrap build
         env:
-          JAVA_HOME: ${{ env.JAVA_HOME }}
+          KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
 
       - name: Upload AAB Artifact
         uses: actions/upload-artifact@v4

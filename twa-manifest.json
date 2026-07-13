@@ -16,10 +16,10 @@
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "android.keystore",
-    "alias": "beshlita"
+    "alias": "my-key-alias"
   },
-  "appVersionName": "1.0.0",
-  "appVersionCode": 1,
+  "appVersionName": "1.0.1",
+  "appVersionCode": 2,
   "shortcuts": [
     {
       "name": "דיווח שעות",
