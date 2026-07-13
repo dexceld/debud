@@ -58,8 +58,8 @@ jobs:
             spawn bubblewrap build
             expect {
               -re {\(Y/n\)} { send "Y\r"; exp_continue }
-              -re {versionName} { send "1.0.1\r"; exp_continue }
-              -re {versionCode} { send "2\r"; exp_continue }
+              -re {versionName} { send "1.0.2\r"; exp_continue }
+              -re {versionCode} { send "3\r"; exp_continue }
               -nocase -re {password} { send "$kspass\r"; exp_continue }
               timeout { puts "EXPECT_TIMEOUT"; exit 1 }
               eof {}
