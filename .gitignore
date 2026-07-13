@@ -1,2 +1,5 @@
 node_modules
 server/dist/
+android.keystore
+keystore-base64.txt
+build-inputs.txt
