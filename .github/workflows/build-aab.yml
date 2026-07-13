@@ -37,22 +37,18 @@ jobs:
           printf '{"jdkPath":"%s","androidSdkPath":"%s"}' "$JAVA_HOME" "$SDK_PATH" > ~/.bubblewrap/config.json
           cat ~/.bubblewrap/config.json
 
-      - name: Install expect
-        run: sudo apt-get install -y expect
-
       - name: Build AAB
         run: |
-          expect -c "
-            spawn bubblewrap build
-            expect -re {password} { send \"$env(KS_PASS)\r\" }
-            expect -re {password} { send \"$env(KS_PASS)\r\" }
-            expect eof
-          "
+          bubblewrap build --keystore-password="$KS_PASS" --key-password="$KS_PASS"
         env:
           KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
 
       - name: Find AAB
-        run: find . -name "*.aab" 2>/dev/null || echo "No AAB found"
+        run: |
+          echo "=== Searching for AAB files ==="
+          find / -name "*.aab" 2>/dev/null | head -20 || echo "No AAB found"
+          echo "=== Current directory ==="
+          ls -la
 
       - name: Upload AAB Artifact
         uses: actions/upload-artifact@v4
