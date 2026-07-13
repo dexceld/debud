@@ -51,9 +51,12 @@ jobs:
         env:
           KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
 
+      - name: Find AAB
+        run: find . -name "*.aab" 2>/dev/null || echo "No AAB found"
+
       - name: Upload AAB Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release-signed
-          path: app-release-signed.aab
+          path: "**/*.aab"
           retention-days: 7
