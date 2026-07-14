@@ -215,12 +215,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
   const [defaultModule, setDefaultModule] = useState<AppModule>(() =>
     (localStorage.getItem(lsKey('default_module')) as AppModule) || 'family-budget'
   )
-  const [screen, setScreen] = useState<Screen>(() => {
-    const def = localStorage.getItem(lsKey('default_module')) as AppModule | null
-    if (def === 'family-budget') return 'home'
-    if (def && def !== 'family-budget') return def as Screen
-    return 'hub'
-  })
+  const [screen, setScreen] = useState<Screen>('hub')
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const [budgetHelpOpen, setBudgetHelpOpen] = useState(false)
   const [aboutOpen, setAboutOpen] = useState(false)
