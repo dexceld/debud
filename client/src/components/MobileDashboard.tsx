@@ -661,8 +661,14 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     } else if (voiceParam === '1') {
       setTimeout(() => startVoiceRecognition(), 1000)
     }
+    // Handle ?world= deep link to open a specific module
+    const world = params.get('world')
+    if (world === 'family-budget') { setScreen('home') }
+    else if (world === 'time-tracking') { setScreen('time-tracking') }
+    else if (world === 'mortgage-calc') { setScreen('mortgage-calc') }
+    else if (world === 'property-management') { setScreen('property-management') }
     // Clean URL regardless
-    if (action || voiceParam) window.history.replaceState({}, '', window.location.pathname)
+    if (action || voiceParam || world) window.history.replaceState({}, '', window.location.pathname)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle employee invitation link - check URL parameter on mount
