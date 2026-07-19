@@ -14,6 +14,14 @@ function useIsDesktop() {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+function normalizeImageUrl(url: string): string {
+  const m = url.match(/(?:\/d\/|[?&]id=)([a-zA-Z0-9_-]{20,})/)
+  if (m && url.includes('drive.google.com')) {
+    return `https://lh3.googleusercontent.com/d/${m[1]}`
+  }
+  return url
+}
+
 const fmt = (d: Date) => d.toISOString().slice(0, 10)
 const addDays = (d: string, n: number) => fmt(new Date(new Date(d).getTime() + n * 86400000))
 const daysBetween = (a: string, b: string) =>
@@ -36,7 +44,7 @@ function buildBookedSet(bookings: Booking[], officeId: string): Set<string> {
 // ─── Image Gallery ────────────────────────────────────────────────────────────
 function OfficeImageGallery({ images, videoUrl }: { images: string[]; videoUrl?: string }) {
   const [idx, setIdx] = useState(0)
-  const items = [...images]
+  const items = [...images.map(normalizeImageUrl)]
   if (videoUrl) items.push('__video__' + videoUrl)
   if (!items.length) return null
   const current = items[idx]
@@ -46,7 +54,7 @@ function OfficeImageGallery({ images, videoUrl }: { images: string[]; videoUrl?:
   const ytId = isYouTube ? videoSrc.match(/(?:v=|youtu\.be\/)([^&\s]+)/)?.[1] : null
 
   return (
-    <div style={{ position: 'relative', background: '#000', width: '100%' }} onClick={e => e.stopPropagation()}>
+    <div style={{ position: 'relative', background: '#F3F4F6', width: '100%' }} onClick={e => e.stopPropagation()}>
       <div style={{ width: '100%', aspectRatio: '16/9', overflow: 'hidden' }}>
         {isYouTube && ytId
           ? <iframe src={`https://www.youtube.com/embed/${ytId}`} style={{ width: '100%', height: '100%', border: 'none' }} allowFullScreen />

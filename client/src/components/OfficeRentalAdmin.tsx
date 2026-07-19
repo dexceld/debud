@@ -6,6 +6,15 @@ import {
 } from 'firebase/firestore'
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage'
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function normalizeImageUrl(url: string): string {
+  const m = url.match(/(?:\/d\/|[?&]id=)([a-zA-Z0-9_-]{20,})/)
+  if (m && url.includes('drive.google.com')) {
+    return `https://lh3.googleusercontent.com/d/${m[1]}`
+  }
+  return url
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 type OfficeColor = '#6366F1' | '#10B981' | '#F59E0B' | '#EF4444' | '#8B5CF6' | '#EC4899'
 export type Office = {
@@ -369,18 +378,18 @@ export function OfficeRentalAdmin({ uid }: Props) {
                   onKeyDown={e => {
                     if (e.key === 'Enter') {
                       const val = (e.target as HTMLInputElement).value.trim()
-                      if (val) { setEditOffice(o => ({ ...o, images: [...(o?.images || []), val] }));(e.target as HTMLInputElement).value = '' }
+                      if (val) { setEditOffice(o => ({ ...o, images: [...(o?.images || []), normalizeImageUrl(val)] }));(e.target as HTMLInputElement).value = '' }
                     }
                   }} />
                 <button type="button" style={{ ...btn('#10B981'), whiteSpace: 'nowrap' }}
                   onClick={() => {
                     const el = document.getElementById('img-url-input') as HTMLInputElement
                     const val = el?.value.trim()
-                    if (val) { setEditOffice(o => ({ ...o, images: [...(o?.images || []), val] })); el.value = '' }
+                    if (val) { setEditOffice(o => ({ ...o, images: [...(o?.images || []), normalizeImageUrl(val)] })); el.value = '' }
                   }}>+ הוסף</button>
               </div>
               <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 10 }}>
-                💡 לשתף תמונה מ-Google Drive: פתחי → שתף → "כל מי שיש לו הקישור" → העתקי קישור, שנה <code>open</code> ל-<code>uc?export=view&id=</code>
+                💡 Google Drive: שתפי → "כל מי שיש לו הקישור" → העתיקי והדביקי — הקישור ינורמל אוטומטית ✅
               </div>
 
               {/* Option B: File upload (requires Firebase Blaze plan) */}
