@@ -10,5 +10,24 @@ service cloud.firestore {
       allow create: if request.auth != null;
       allow read: if false;
     }
+    // Office spaces – public read; owner-only write for offices & settings
+    match /officeSpaces/{ownerId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == ownerId;
+      match /offices/{officeId} {
+        allow read: if true;
+        allow write: if request.auth != null && request.auth.uid == ownerId;
+      }
+      match /meta/{docId} {
+        allow read: if true;
+        allow write: if request.auth != null && request.auth.uid == ownerId;
+      }
+      // Bookings: public can create (book); only owner can update/delete
+      match /bookings/{bookingId} {
+        allow read: if request.auth != null && request.auth.uid == ownerId;
+        allow create: if true;
+        allow update, delete: if request.auth != null && request.auth.uid == ownerId;
+      }
+    }
   }
 }

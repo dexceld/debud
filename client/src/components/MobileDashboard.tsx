@@ -5,6 +5,7 @@ import { signOutUser } from '../firebase'
 import { FeedbackModal } from './FeedbackModal'
 import { AboutModal } from './AboutModal'
 import { PropertyManagement } from './PropertyManagement'
+import { OfficeRentalAdmin } from './OfficeRentalAdmin'
 import { tt, type Lang } from '../i18n/timeTracking'
 
 type Category = {
@@ -111,9 +112,9 @@ const getCurrentMonth = (): string => {
   return `${month}/${year}`
 }
 
-type Screen = 'hub' | 'home' | 'detail' | 'update' | 'chart' | 'forecast' | 'budget' | 'forecast-chart' | 'net-chart' | 'mortgage-calc' | 'time-tracking' | 'property-management'
+type Screen = 'hub' | 'home' | 'detail' | 'update' | 'chart' | 'forecast' | 'budget' | 'forecast-chart' | 'net-chart' | 'mortgage-calc' | 'time-tracking' | 'property-management' | 'office-rental'
 
-type AppModule = 'family-budget' | 'time-tracking' | 'mortgage-calc' | 'property-management'
+type AppModule = 'family-budget' | 'time-tracking' | 'mortgage-calc' | 'property-management' | 'office-rental'
 
 type ForecastSnapshot = {
   label: string
@@ -667,6 +668,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
     else if (world === 'time-tracking') { setScreen('time-tracking') }
     else if (world === 'mortgage-calc') { setScreen('mortgage-calc') }
     else if (world === 'property-management') { setScreen('property-management') }
+    else if (world === 'office-rental') { setScreen('office-rental') }
     // Clean URL regardless
     if (action || voiceParam || world) window.history.replaceState({}, '', window.location.pathname)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -1302,6 +1304,7 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       { id: 'time-tracking',       label: t('timeTrackingLabel'), icon: '⏱',  dest: 'time-tracking',       bg: 'linear-gradient(135deg,#10B981,#059669)' },
       { id: 'mortgage-calc',       label: t('mortgageLabel'),     icon: '🏠', dest: 'mortgage-calc',        bg: 'linear-gradient(135deg,#667EEA,#764BA2)' },
       { id: 'property-management', label: t('propertyLabel'),     icon: '🏢', dest: 'property-management',  bg: 'linear-gradient(135deg,#F59E0B,#D97706)' },
+      { id: 'office-rental',       label: 'השכרת משרדים',        icon: '🗝️', dest: 'office-rental',         bg: 'linear-gradient(135deg,#0EA5E9,#0284C7)' },
     ]
 
     const startLp = (id: AppModule) => {
@@ -7622,6 +7625,16 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
       {screen === 'mortgage-calc' && <MortgageCalculator />}
       {screen === 'time-tracking' && <TimeTrackingScreen />}
       {screen === 'property-management' && <PropertyManagement uid={uid} lang={lang} onBack={() => setScreen('hub')} onLogoClick={handleLogoClick} backHandlerRef={pmBackHandlerRef} />}
+      {screen === 'office-rental' && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: '#0EA5E9', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button onClick={() => setScreen('hub')} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', borderRadius: 8, padding: '6px 12px', fontWeight: 700, cursor: 'pointer' }}>← חזור</button>
+          </div>
+          <div style={{ flex: 1, overflow: 'hidden' }}>
+            <OfficeRentalAdmin uid={uid} />
+          </div>
+        </div>
+      )}
       {renderCatMgmt()}
       {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} userEmail={userEmail} />}
       {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}

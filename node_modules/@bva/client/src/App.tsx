@@ -3,6 +3,7 @@ import { onAuthStateChanged, User } from 'firebase/auth'
 import { auth } from './firebase'
 import MobileDashboard from './components/MobileDashboard'
 import { LoginScreen } from './components/LoginScreen'
+import { OfficeRentalPublic } from './components/OfficeRentalPublic'
 import type { Lang } from './i18n/timeTracking'
 import './App.css'
 
@@ -17,7 +18,7 @@ const detectLang = (): Lang => {
   return 'en'
 }
 
-function App() {
+function MainApp() {
   const [user, setUser] = useState<User | null | 'loading'>('loading')
   const [localMode, setLocalMode] = useState(false)
   const [isOnline, setIsOnline] = useState(navigator.onLine)
@@ -78,6 +79,12 @@ function App() {
       />
     </div>
   )
+}
+
+function App() {
+  const bookOwnerId = new URLSearchParams(window.location.search).get('book')
+  if (bookOwnerId) return <OfficeRentalPublic ownerId={bookOwnerId} />
+  return <MainApp />
 }
 
 export default App
