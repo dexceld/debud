@@ -361,28 +361,52 @@ export function OfficeRentalAdmin({ uid }: Props) {
             {/* Images */}
             <div style={{ marginBottom: 14 }}>
               <label style={label}>📸 תמונות המשרד</label>
-              <input ref={fileInputRef} type="file" accept="image/*,video/*" multiple style={{ display: 'none' }}
+
+              {/* Option A: URL input (works without Blaze plan) */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                <input style={{ ...input, flex: 1 }} id="img-url-input"
+                  placeholder="הדבק קישור לתמונה (Google Drive, Dropbox...)"
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      const val = (e.target as HTMLInputElement).value.trim()
+                      if (val) { setEditOffice(o => ({ ...o, images: [...(o?.images || []), val] }));(e.target as HTMLInputElement).value = '' }
+                    }
+                  }} />
+                <button type="button" style={{ ...btn('#10B981'), whiteSpace: 'nowrap' }}
+                  onClick={() => {
+                    const el = document.getElementById('img-url-input') as HTMLInputElement
+                    const val = el?.value.trim()
+                    if (val) { setEditOffice(o => ({ ...o, images: [...(o?.images || []), val] })); el.value = '' }
+                  }}>+ הוסף</button>
+              </div>
+              <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 10 }}>
+                💡 לשתף תמונה מ-Google Drive: פתחי → שתף → "כל מי שיש לו הקישור" → העתקי קישור, שנה <code>open</code> ל-<code>uc?export=view&id=</code>
+              </div>
+
+              {/* Option B: File upload (requires Firebase Blaze plan) */}
+              <input ref={fileInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }}
                 onChange={e => e.target.files && uploadImages(e.target.files)} />
               <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading}
-                style={{ ...btn(uploading ? '#9CA3AF' : '#EEF2FF', uploading ? 'white' : '#4338CA'), width: '100%', marginBottom: 10 }}>
-                {uploading ? `⬆️ מעלה... ${uploadProgress}%` : '📁 בחר תמונות / סרטון'}
+                style={{ ...btn(uploading ? '#9CA3AF' : '#F3F4F6', uploading ? 'white' : '#374151'), width: '100%', marginBottom: 4, fontSize: 13 }}>
+                {uploading ? `⬆️ מעלה... ${uploadProgress}%` : '📁 העלה קובץ מהמכשיר (דורש שדרוג Blaze)'}
               </button>
               {uploading && (
                 <div style={{ height: 6, background: '#E5E7EB', borderRadius: 99, overflow: 'hidden', marginBottom: 8 }}>
                   <div style={{ height: '100%', background: '#6366F1', width: `${uploadProgress}%`, transition: 'width 0.3s' }} />
                 </div>
               )}
+
+              {/* Image previews */}
               {(editOffice.images || []).length > 0 && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginTop: 8 }}>
                   {(editOffice.images || []).map((url, i) => (
-                    <div key={i} style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', aspectRatio: '1' }}>
-                      {url.match(/\.(mp4|webm|mov)/i)
-                        ? <video src={url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted />
-                        : <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                    <div key={i} style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', aspectRatio: '1', background: '#F3F4F6' }}>
+                      <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
                       <button type="button" onClick={() => removeImage(url)} style={{
-                        position: 'absolute', top: 4, left: 4, background: 'rgba(0,0,0,0.6)',
+                        position: 'absolute', top: 4, left: 4, background: 'rgba(0,0,0,0.65)',
                         color: 'white', border: 'none', borderRadius: '50%', width: 22, height: 22,
-                        cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        cursor: 'pointer', fontSize: 13, lineHeight: 1
                       }}>×</button>
                     </div>
                   ))}
