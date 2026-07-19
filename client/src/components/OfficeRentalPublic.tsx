@@ -1,7 +1,17 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useLayoutEffect } from 'react'
 import { db } from '../firebase'
 import { collection, doc, addDoc, onSnapshot, getDoc } from 'firebase/firestore'
 import type { Office, Booking } from './OfficeRentalAdmin'
+
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768)
+  useLayoutEffect(() => {
+    const h = () => setIsDesktop(window.innerWidth >= 768)
+    window.addEventListener('resize', h)
+    return () => window.removeEventListener('resize', h)
+  }, [])
+  return isDesktop
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const fmt = (d: Date) => d.toISOString().slice(0, 10)
@@ -145,6 +155,7 @@ function Calendar({
 type Step = 'offices' | 'calendar' | 'form' | 'confirm'
 
 export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
+  const isDesktop = useIsDesktop()
   const [offices, setOffices] = useState<Office[]>([])
   const [bookings, setBookings] = useState<Booking[]>([])
   const [settings, setSettings] = useState<{ businessName: string; phone: string; paymentInfo: string }>({ businessName: '', phone: '', paymentInfo: '' })
@@ -269,86 +280,94 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
         {settings.phone && <div style={{ fontSize: 14, opacity: 0.85, marginTop: 4 }}>📞 {settings.phone}</div>}
       </div>
 
-      <div style={{ padding: '16px 16px 40px', maxWidth: 480, margin: '0 auto' }}>
+      <div style={{ padding: isDesktop ? '24px 40px 40px' : '16px 16px 40px', maxWidth: isDesktop ? 1200 : 480, margin: '0 auto' }}>
 
         {/* Step 1: Choose office */}
         {step === 'offices' && (
           <>
-            <h2 style={{ fontSize: 16, fontWeight: 800, color: '#1F2937', margin: '0 0 14px' }}>בחרו משרד</h2>
-            {offices.map(o => (
-              <div key={o.id} onClick={() => { setSelectedOffice(o); setStep('calendar') }}
-                style={{ ...cardStyle, borderRight: `4px solid ${o.color}`, cursor: 'pointer', padding: 0, overflow: 'hidden' }}>
-                {/* Image gallery */}
-                {(o.images || []).length > 0 && (
-                  <OfficeImageGallery images={o.images || []} videoUrl={o.videoUrl} />
-                )}
-                <div style={{ padding: '14px 16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 800, fontSize: 17, color: '#1F2937', marginBottom: 4 }}>{o.name}</div>
-                      {o.description && <div style={{ fontSize: 13, color: '#6B7280', marginBottom: 6 }}>{o.description}</div>}
-                      {o.amenities && <div style={{ fontSize: 12, color: '#9CA3AF' }}>✓ {o.amenities}</div>}
+            <h2 style={{ fontSize: isDesktop ? 20 : 16, fontWeight: 800, color: '#1F2937', margin: '0 0 20px' }}>בחרו משרד</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: isDesktop ? 'repeat(auto-fill,minmax(380px,1fr))' : '1fr', gap: 20 }}>
+              {offices.map(o => (
+                <div key={o.id} onClick={() => { setSelectedOffice(o); setStep('calendar') }}
+                  style={{ ...cardStyle, borderRight: `4px solid ${o.color}`, cursor: 'pointer', padding: 0, overflow: 'hidden',
+                    display: isDesktop && (o.images||[]).length > 0 ? 'flex' : 'block', marginBottom: 0 }}>
+                  {/* Images: side-by-side on desktop when images exist */}
+                  {(o.images || []).length > 0 && (
+                    <div style={{ width: isDesktop ? '45%' : '100%', flexShrink: 0 }}>
+                      <OfficeImageGallery images={o.images || []} videoUrl={o.videoUrl} />
+                    </div>
+                  )}
+                  <div style={{ padding: '16px 18px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: isDesktop ? 18 : 17, color: '#1F2937', marginBottom: 6 }}>{o.name}</div>
+                      {o.description && <div style={{ fontSize: 13, color: '#6B7280', marginBottom: 8, lineHeight: 1.5 }}>{o.description}</div>}
+                      {o.amenities && <div style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 4 }}>✓ {o.amenities}</div>}
                       {o.capacity > 0 && <div style={{ fontSize: 12, color: '#9CA3AF' }}>👥 עד {o.capacity} אנשים</div>}
                     </div>
-                    <div style={{ textAlign: 'left', flexShrink: 0, marginRight: 8 }}>
-                      <div style={{ background: o.color, color: 'white', borderRadius: 10, padding: '8px 14px', fontWeight: 800, fontSize: 16 }}>
-                        ₪{o.pricePerDay.toLocaleString('he-IL')}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14 }}>
+                      <div style={{ background: o.color, color: 'white', borderRadius: 10, padding: '8px 16px', fontWeight: 800, fontSize: isDesktop ? 18 : 16 }}>
+                        ₪{o.pricePerDay.toLocaleString('he-IL')} <span style={{ fontSize: 12, fontWeight: 500 }}>/ יום</span>
                       </div>
-                      <div style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center', marginTop: 2 }}>ליום</div>
+                      <span style={{ fontSize: 13, color: '#6366F1', fontWeight: 700 }}>להזמנה ←</span>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </>
         )}
 
         {/* Step 2: Calendar */}
         {step === 'calendar' && selectedOffice && (
-          <>
-            <div style={{ ...cardStyle, borderRight: `4px solid ${selectedOffice.color}`, marginBottom: 14 }}>
-              <div style={{ fontWeight: 800, fontSize: 16 }}>{selectedOffice.name}</div>
-              <div style={{ color: '#6366F1', fontWeight: 700 }}>₪{selectedOffice.pricePerDay.toLocaleString('he-IL')} / יום</div>
+          <div style={{ display: isDesktop ? 'grid' : 'block', gridTemplateColumns: isDesktop ? '1fr 1fr' : undefined, gap: 24, alignItems: 'start' }}>
+            {/* Left: office info + images */}
+            <div>
+              {(selectedOffice.images || []).length > 0 && (
+                <div style={{ borderRadius: 16, overflow: 'hidden', marginBottom: 14, boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
+                  <OfficeImageGallery images={selectedOffice.images || []} videoUrl={selectedOffice.videoUrl} />
+                </div>
+              )}
+              <div style={{ ...cardStyle, borderRight: `4px solid ${selectedOffice.color}` }}>
+                <div style={{ fontWeight: 800, fontSize: 18, marginBottom: 4 }}>{selectedOffice.name}</div>
+                {selectedOffice.description && <div style={{ fontSize: 13, color: '#6B7280', marginBottom: 8, lineHeight: 1.5 }}>{selectedOffice.description}</div>}
+                {selectedOffice.amenities && <div style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 4 }}>✓ {selectedOffice.amenities}</div>}
+                {selectedOffice.capacity > 0 && <div style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 8 }}>👥 עד {selectedOffice.capacity} אנשים</div>}
+                <div style={{ color: '#6366F1', fontWeight: 800, fontSize: 18 }}>₪{selectedOffice.pricePerDay.toLocaleString('he-IL')} / יום</div>
+              </div>
             </div>
-
-            <div style={cardStyle}>
-              <h3 style={{ margin: '0 0 12px', fontSize: 15, fontWeight: 800, color: '#1F2937' }}>
-                {!selStart ? 'בחרו תאריך התחלה' : !selEnd ? 'בחרו תאריך סיום' : `${selStart} → ${selEnd}`}
-              </h3>
-              <Calendar
-                bookedDates={buildBookedSet(bookings, selectedOffice.id)}
-                selectedStart={selStart} selectedEnd={selEnd}
-                onSelect={handleDateSelect} color={selectedOffice.color}
-              />
-            </div>
-
-            {selStart && (
-              <div style={{ ...cardStyle, background: '#EEF2FF' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <div style={{ fontWeight: 800, color: '#1F2937' }}>
-                      {totalDays} {totalDays === 1 ? 'יום' : 'ימים'}
+            {/* Right: calendar */}
+            <div>
+              <div style={cardStyle}>
+                <h3 style={{ margin: '0 0 12px', fontSize: 15, fontWeight: 800, color: '#1F2937' }}>
+                  {!selStart ? 'בחרו תאריך התחלה' : !selEnd ? 'בחרו תאריך סיום' : `${selStart} → ${selEnd}`}
+                </h3>
+                <Calendar
+                  bookedDates={buildBookedSet(bookings, selectedOffice.id)}
+                  selectedStart={selStart} selectedEnd={selEnd}
+                  onSelect={handleDateSelect} color={selectedOffice.color}
+                />
+              </div>
+              {selStart && (
+                <div style={{ ...cardStyle, background: '#EEF2FF' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontWeight: 800, color: '#1F2937' }}>{totalDays} {totalDays === 1 ? 'יום' : 'ימים'}</div>
+                      <div style={{ fontSize: 12, color: '#6B7280' }}>{selStart}{selEnd && selEnd !== selStart ? ` → ${selEnd}` : ''}</div>
                     </div>
-                    <div style={{ fontSize: 12, color: '#6B7280' }}>
-                      {selStart}{selEnd && selEnd !== selStart ? ` → ${selEnd}` : ''}
-                    </div>
-                  </div>
-                  <div style={{ fontWeight: 800, fontSize: 20, color: '#4338CA' }}>
-                    ₪{totalAmount.toLocaleString('he-IL')}
+                    <div style={{ fontWeight: 800, fontSize: 20, color: '#4338CA' }}>₪{totalAmount.toLocaleString('he-IL')}</div>
                   </div>
                 </div>
-              </div>
-            )}
-
-            {selStart && (
-              <button onClick={() => setStep('form')} style={{
-                width: '100%', padding: '14px', borderRadius: 12, background: '#6366F1',
-                color: 'white', border: 'none', fontWeight: 800, fontSize: 16, cursor: 'pointer'
-              }}>
-                המשך להזמנה →
-              </button>
-            )}
-          </>
+              )}
+              {selStart && (
+                <button onClick={() => setStep('form')} style={{
+                  width: '100%', padding: '14px', borderRadius: 12, background: '#6366F1',
+                  color: 'white', border: 'none', fontWeight: 800, fontSize: 16, cursor: 'pointer'
+                }}>
+                  המשך להזמנה →
+                </button>
+              )}
+            </div>
+          </div>
         )}
 
         {/* Step 3: Booking form */}

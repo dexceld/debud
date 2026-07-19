@@ -67,21 +67,28 @@ export function OfficeRentalAdmin({ uid }: Props) {
     if (!files.length) return
     setUploading(true)
     const urls: string[] = []
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i]
-      const storageRef = ref(storage, `officeMedia/${uid}/${Date.now()}_${file.name}`)
-      await new Promise<void>((resolve, reject) => {
-        const task = uploadBytesResumable(storageRef, file)
-        task.on('state_changed',
-          snap => setUploadProgress(Math.round((snap.bytesTransferred / snap.totalBytes) * 100)),
-          reject,
-          async () => { urls.push(await getDownloadURL(task.snapshot.ref)); resolve() }
-        )
-      })
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
+        const storageRef = ref(storage, `officeMedia/${uid}/${Date.now()}_${file.name}`)
+        await new Promise<void>((resolve, reject) => {
+          const task = uploadBytesResumable(storageRef, file)
+          task.on('state_changed',
+            snap => setUploadProgress(Math.round((snap.bytesTransferred / snap.totalBytes) * 100)),
+            reject,
+            async () => { urls.push(await getDownloadURL(task.snapshot.ref)); resolve() }
+          )
+        })
+      }
+      setEditOffice(o => ({ ...o, images: [...(o?.images || []), ...urls] }))
+      showToast(`✅ ${urls.length} קובץ/ים הועלו`)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      alert('שגיאה בהעלאה: ' + msg + '\n\nוודא שהפעלת Firebase Storage בקונסול ועדכנת את ה-Rules.')
+    } finally {
+      setUploading(false)
+      setUploadProgress(0)
     }
-    setEditOffice(o => ({ ...o, images: [...(o?.images || []), ...urls] }))
-    setUploading(false); setUploadProgress(0)
-    showToast(`✅ ${urls.length} קובץ/ים הועלו`)
   }
 
   const removeImage = async (url: string) => {
