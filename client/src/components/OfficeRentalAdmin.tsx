@@ -72,10 +72,15 @@ export function OfficeRentalAdmin({ uid }: Props) {
   // ─── Office CRUD ──────────────────────────────────────────────────────────
   const saveOffice = async () => {
     if (!editOffice) return
-    const { id, ...data } = editOffice as Office
-    if (id) await updateDoc(doc(db, 'officeSpaces', uid, 'offices', id), data)
-    else await addDoc(officesRef, { ...data, isActive: true })
-    setEditOffice(null); showToast('✅ המשרד נשמר')
+    try {
+      const { id, ...data } = editOffice as Office
+      if (id) await updateDoc(doc(db, 'officeSpaces', uid, 'offices', id), data)
+      else await addDoc(officesRef, { ...data, isActive: true })
+      setEditOffice(null); showToast('✅ המשרד נשמר')
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      alert('שגיאה בשמירה: ' + msg)
+    }
   }
   const deleteOffice = async (id: string) => {
     if (!confirm('למחוק את המשרד?')) return
