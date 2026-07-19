@@ -23,6 +23,54 @@ function buildBookedSet(bookings: Booking[], officeId: string): Set<string> {
   return set
 }
 
+// ─── Image Gallery ────────────────────────────────────────────────────────────
+function OfficeImageGallery({ images, videoUrl }: { images: string[]; videoUrl?: string }) {
+  const [idx, setIdx] = useState(0)
+  const items = [...images]
+  if (videoUrl) items.push('__video__' + videoUrl)
+  if (!items.length) return null
+  const current = items[idx]
+  const isVideo = current.startsWith('__video__')
+  const isYouTube = isVideo && current.includes('youtube')
+  const videoSrc = isVideo ? current.replace('__video__', '') : ''
+  const ytId = isYouTube ? videoSrc.match(/(?:v=|youtu\.be\/)([^&\s]+)/)?.[1] : null
+
+  return (
+    <div style={{ position: 'relative', background: '#000', width: '100%' }} onClick={e => e.stopPropagation()}>
+      <div style={{ width: '100%', aspectRatio: '16/9', overflow: 'hidden' }}>
+        {isYouTube && ytId
+          ? <iframe src={`https://www.youtube.com/embed/${ytId}`} style={{ width: '100%', height: '100%', border: 'none' }} allowFullScreen />
+          : isVideo
+            ? <video src={videoSrc} style={{ width: '100%', height: '100%', objectFit: 'cover' }} controls />
+            : <img src={current} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        }
+      </div>
+      {items.length > 1 && (
+        <>
+          <button onClick={() => setIdx(i => (i - 1 + items.length) % items.length)} style={{
+            position: 'absolute', top: '50%', right: 8, transform: 'translateY(-50%)',
+            background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%',
+            width: 32, height: 32, cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>›</button>
+          <button onClick={() => setIdx(i => (i + 1) % items.length)} style={{
+            position: 'absolute', top: '50%', left: 8, transform: 'translateY(-50%)',
+            background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%',
+            width: 32, height: 32, cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>‹</button>
+          <div style={{ position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 4 }}>
+            {items.map((_, i) => (
+              <div key={i} onClick={() => setIdx(i)} style={{
+                width: 6, height: 6, borderRadius: '50%', cursor: 'pointer',
+                background: i === idx ? 'white' : 'rgba(255,255,255,0.5)'
+              }} />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 // ─── Calendar ─────────────────────────────────────────────────────────────────
 function Calendar({
   bookedDates, selectedStart, selectedEnd, onSelect, color
@@ -229,19 +277,25 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
             <h2 style={{ fontSize: 16, fontWeight: 800, color: '#1F2937', margin: '0 0 14px' }}>בחרו משרד</h2>
             {offices.map(o => (
               <div key={o.id} onClick={() => { setSelectedOffice(o); setStep('calendar') }}
-                style={{ ...cardStyle, borderRight: `4px solid ${o.color}`, cursor: 'pointer', transition: 'transform 0.15s' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div>
-                    <div style={{ fontWeight: 800, fontSize: 17, color: '#1F2937', marginBottom: 4 }}>{o.name}</div>
-                    {o.description && <div style={{ fontSize: 13, color: '#6B7280', marginBottom: 6 }}>{o.description}</div>}
-                    {o.amenities && <div style={{ fontSize: 12, color: '#9CA3AF' }}>✓ {o.amenities}</div>}
-                    {o.capacity > 0 && <div style={{ fontSize: 12, color: '#9CA3AF' }}>👥 עד {o.capacity} אנשים</div>}
-                  </div>
-                  <div style={{ textAlign: 'left', flexShrink: 0, marginRight: 8 }}>
-                    <div style={{ background: o.color, color: 'white', borderRadius: 10, padding: '8px 14px', fontWeight: 800, fontSize: 16 }}>
-                      ₪{o.pricePerDay.toLocaleString('he-IL')}
+                style={{ ...cardStyle, borderRight: `4px solid ${o.color}`, cursor: 'pointer', padding: 0, overflow: 'hidden' }}>
+                {/* Image gallery */}
+                {(o.images || []).length > 0 && (
+                  <OfficeImageGallery images={o.images || []} videoUrl={o.videoUrl} />
+                )}
+                <div style={{ padding: '14px 16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 800, fontSize: 17, color: '#1F2937', marginBottom: 4 }}>{o.name}</div>
+                      {o.description && <div style={{ fontSize: 13, color: '#6B7280', marginBottom: 6 }}>{o.description}</div>}
+                      {o.amenities && <div style={{ fontSize: 12, color: '#9CA3AF' }}>✓ {o.amenities}</div>}
+                      {o.capacity > 0 && <div style={{ fontSize: 12, color: '#9CA3AF' }}>👥 עד {o.capacity} אנשים</div>}
                     </div>
-                    <div style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center', marginTop: 2 }}>ליום</div>
+                    <div style={{ textAlign: 'left', flexShrink: 0, marginRight: 8 }}>
+                      <div style={{ background: o.color, color: 'white', borderRadius: 10, padding: '8px 14px', fontWeight: 800, fontSize: 16 }}>
+                        ₪{o.pricePerDay.toLocaleString('he-IL')}
+                      </div>
+                      <div style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center', marginTop: 2 }}>ליום</div>
+                    </div>
                   </div>
                 </div>
               </div>

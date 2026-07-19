@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth'
 import { initializeFirestore, persistentLocalCache } from 'firebase/firestore'
+import { getStorage } from 'firebase/storage'
 
 const firebaseConfig = {
   apiKey: "AIzaSyC2uCaTkEiMkp0Je65uIufuwPjFq_eW1fo",
@@ -18,6 +19,7 @@ export const db = initializeFirestore(app, {
   experimentalAutoDetectLongPolling: true,
   localCache: persistentLocalCache()
 }, 'default')
+export const storage = getStorage(app)
 export const googleProvider = new GoogleAuthProvider()
 
 export const signInWithGoogle = () => signInWithPopup(auth, googleProvider)

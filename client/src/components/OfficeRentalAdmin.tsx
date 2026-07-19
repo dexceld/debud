@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from 'react'
-import { db } from '../firebase'
+import React, { useState, useEffect, useRef } from 'react'
+import { db, storage } from '../firebase'
 import {
   collection, doc, addDoc, setDoc, deleteDoc, updateDoc,
   onSnapshot, query, orderBy, getDoc
 } from 'firebase/firestore'
+import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type OfficeColor = '#6366F1' | '#10B981' | '#F59E0B' | '#EF4444' | '#8B5CF6' | '#EC4899'
 export type Office = {
   id: string; name: string; description: string; pricePerDay: number
   capacity: number; amenities: string; color: OfficeColor; isActive: boolean
+  images?: string[]; videoUrl?: string
 }
 export type BookingStatus = 'pending_approval' | 'confirmed' | 'rejected' | 'cancelled'
 export type Booking = {
@@ -55,8 +57,37 @@ export function OfficeRentalAdmin({ uid }: Props) {
   const [bookingFilter, setBookingFilter] = useState<'all' | BookingStatus>('pending_approval')
   const [toast, setToast] = useState<string | null>(null)
   const [savingSettings, setSavingSettings] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const showToast = (m: string) => { setToast(m); setTimeout(() => setToast(null), 2500) }
+
+  const uploadImages = async (files: FileList) => {
+    if (!files.length) return
+    setUploading(true)
+    const urls: string[] = []
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      const storageRef = ref(storage, `officeMedia/${uid}/${Date.now()}_${file.name}`)
+      await new Promise<void>((resolve, reject) => {
+        const task = uploadBytesResumable(storageRef, file)
+        task.on('state_changed',
+          snap => setUploadProgress(Math.round((snap.bytesTransferred / snap.totalBytes) * 100)),
+          reject,
+          async () => { urls.push(await getDownloadURL(task.snapshot.ref)); resolve() }
+        )
+      })
+    }
+    setEditOffice(o => ({ ...o, images: [...(o?.images || []), ...urls] }))
+    setUploading(false); setUploadProgress(0)
+    showToast(`✅ ${urls.length} קובץ/ים הועלו`)
+  }
+
+  const removeImage = async (url: string) => {
+    try { await deleteObject(ref(storage, url)) } catch { /* already deleted */ }
+    setEditOffice(o => ({ ...o, images: (o?.images || []).filter(u => u !== url) }))
+  }
   const officesRef = collection(db, 'officeSpaces', uid, 'offices')
   const bookingsRef = collection(db, 'officeSpaces', uid, 'bookings')
   const settingsDocRef = doc(db, 'officeSpaces', uid, 'meta', 'settings')
@@ -319,8 +350,50 @@ export function OfficeRentalAdmin({ uid }: Props) {
                 ))}
               </div>
             </div>
+
+            {/* Images */}
+            <div style={{ marginBottom: 14 }}>
+              <label style={label}>📸 תמונות המשרד</label>
+              <input ref={fileInputRef} type="file" accept="image/*,video/*" multiple style={{ display: 'none' }}
+                onChange={e => e.target.files && uploadImages(e.target.files)} />
+              <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading}
+                style={{ ...btn(uploading ? '#9CA3AF' : '#EEF2FF', uploading ? 'white' : '#4338CA'), width: '100%', marginBottom: 10 }}>
+                {uploading ? `⬆️ מעלה... ${uploadProgress}%` : '📁 בחר תמונות / סרטון'}
+              </button>
+              {uploading && (
+                <div style={{ height: 6, background: '#E5E7EB', borderRadius: 99, overflow: 'hidden', marginBottom: 8 }}>
+                  <div style={{ height: '100%', background: '#6366F1', width: `${uploadProgress}%`, transition: 'width 0.3s' }} />
+                </div>
+              )}
+              {(editOffice.images || []).length > 0 && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
+                  {(editOffice.images || []).map((url, i) => (
+                    <div key={i} style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', aspectRatio: '1' }}>
+                      {url.match(/\.(mp4|webm|mov)/i)
+                        ? <video src={url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted />
+                        : <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                      <button type="button" onClick={() => removeImage(url)} style={{
+                        position: 'absolute', top: 4, left: 4, background: 'rgba(0,0,0,0.6)',
+                        color: 'white', border: 'none', borderRadius: '50%', width: 22, height: 22,
+                        cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                      }}>×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Video URL */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={label}>🎬 קישור לסרטון YouTube (אופציונלי)</label>
+              <input style={input} value={editOffice.videoUrl || ''}
+                onChange={e => setEditOffice(o => ({ ...o, videoUrl: e.target.value }))}
+                placeholder="https://www.youtube.com/watch?v=..." />
+            </div>
+
             <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={saveOffice} disabled={!editOffice.name} style={{ ...btn(!editOffice.name ? '#9CA3AF' : '#6366F1'), flex: 2 }}>
+              <button onClick={saveOffice} disabled={!editOffice.name || uploading}
+                style={{ ...btn(!editOffice.name || uploading ? '#9CA3AF' : '#6366F1'), flex: 2 }}>
                 💾 שמור
               </button>
               <button onClick={() => setEditOffice(null)} style={{ ...btn('#F3F4F6', '#374151'), flex: 1 }}>
