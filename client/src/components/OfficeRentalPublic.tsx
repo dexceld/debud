@@ -289,9 +289,9 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
   const TYPE_SVGS: Record<string, React.ReactElement> = {
     '\u05d4\u05db\u05dc': <svg {...sp}><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,
 
-    '\u05de\u05e9\u05e8\u05d3 \u05e4\u05e8\u05d8\u05d9': <img src="https://drive.google.com/uc?export=view&id=14P4RfPIp9y78UjrR6HstSiEj2zm-9EMf" alt="" style={{ width: 52, height: 42, objectFit: 'contain' }}/>,
-    '\u05e2\u05de\u05d3\u05ea \u05e2\u05d1\u05d5\u05d3\u05d4': <img src="https://drive.google.com/uc?export=view&id=1EOTM1NfhK4NZ058WcponLj2f_PH2TnnT" alt="" style={{ width: 52, height: 42, objectFit: 'contain' }}/>,
-    '\u05d7\u05d3\u05e8 \u05d9\u05e9\u05d9\u05d1\u05d5\u05ea': <img src="https://drive.google.com/uc?export=view&id=1W7XTBvRDMu-WvqSfK1sBZnywGLhoXX0R" alt="" style={{ width: 52, height: 42, objectFit: 'contain' }}/>,
+    '\u05de\u05e9\u05e8\u05d3 \u05e4\u05e8\u05d8\u05d9': <img src="https://drive.google.com/thumbnail?id=14P4RfPIp9y78UjrR6HstSiEj2zm-9EMf&sz=w200" alt="" style={{ width: 52, height: 42, objectFit: 'contain' }}/>,
+    '\u05e2\u05de\u05d3\u05ea \u05e2\u05d1\u05d5\u05d3\u05d4': <img src="https://drive.google.com/thumbnail?id=1EOTM1NfhK4NZ058WcponLj2f_PH2TnnT&sz=w200" alt="" style={{ width: 52, height: 42, objectFit: 'contain' }}/>,
+    '\u05d7\u05d3\u05e8 \u05d9\u05e9\u05d9\u05d1\u05d5\u05ea': <img src="https://drive.google.com/thumbnail?id=1W7XTBvRDMu-WvqSfK1sBZnywGLhoXX0R&sz=w200" alt="" style={{ width: 52, height: 42, objectFit: 'contain' }}/>,
 
     '\u05d7\u05dc\u05dc \u05e2\u05d1\u05d5\u05d3\u05d4 \u05de\u05e9\u05d5\u05ea\u05e3': <svg {...sp}><rect x="1" y="4" width="14" height="16" rx="2"/><path d="M15 9h4a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-4M8 8v2M8 12v2M8 16v2"/></svg>,
     '\u05e1\u05d8\u05d5\u05d3\u05d9\u05d5':        <svg {...sp}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
