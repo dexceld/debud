@@ -296,70 +296,73 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
     <div style={{ minHeight: '100dvh', background: '#F7F8FA', direction: 'rtl', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
 
       {/* ── Minimal White Header ── */}
-      <header style={{ background: 'white', borderBottom: '1px solid #E5E7EB', position: 'sticky', top: 0, zIndex: 100 }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', height: 68, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          {/* Logo / brand (right in RTL) */}
-          <div>
-            {settings.logoUrl
-              ? <img src={normalizeImageUrl(settings.logoUrl)} alt="logo" style={{ height: 44, maxWidth: 180, objectFit: 'contain' }} />
-              : <span style={{ fontWeight: 800, fontSize: 20, color: '#111827' }}>{settings.businessName || 'השכרת משרדים'}</span>
-            }
+      <header style={{ background: 'white', borderBottom: '1px solid #F0F0F0', position: 'sticky', top: 0, zIndex: 100 }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 28px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+
+          {/* LEFT side (in RTL): phone + back */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+            {settings.phone && isDesktop && (
+              <a href={`tel:${settings.phone}`} style={{ fontSize: 14, color: '#9CA3AF', textDecoration: 'none', fontWeight: 500, letterSpacing: 0.2 }}>{settings.phone}</a>
+            )}
+            {step !== 'offices' && step !== 'confirm' && (
+              <button onClick={() => {
+                if (step === 'form') setStep('calendar')
+                else if (step === 'calendar') { setStep('offices'); setSelectedOffice(null); setSelStart(null); setSelEnd(null) }
+              }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 14, color: '#6B7280', padding: '6px 0', display: 'flex', alignItems: 'center', gap: 4 }}>
+                ← חזור
+              </button>
+            )}
           </div>
-          {/* Nav (left in RTL) */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            {/* Space Types dropdown */}
+
+          {/* RIGHT side (in RTL): filter dropdown + logo */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+            {/* Space Types — clean nav-link style */}
             {spaceTypes.length > 0 && step === 'offices' && (
               <div ref={dropdownRef} style={{ position: 'relative' }}>
                 <button onClick={() => setDropdownOpen(d => !d)} style={{
-                  display: 'flex', alignItems: 'center', gap: 6, background: 'none',
-                  border: '1.5px solid #E5E7EB', borderRadius: 8, padding: '8px 14px',
-                  cursor: 'pointer', fontWeight: 700, fontSize: 14, color: '#374151'
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontWeight: 600, fontSize: 15, color: dropdownOpen ? accentColor : '#374151',
+                  display: 'flex', alignItems: 'center', gap: 5, padding: '4px 0',
+                  transition: 'color 0.15s'
                 }}>
-                  סוגי משרדים <span style={{ fontSize: 10, opacity: 0.7 }}>{dropdownOpen ? '▲' : '▼'}</span>
+                  סוגי משרדים
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ opacity: 0.6, transform: dropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+                    <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </button>
                 {dropdownOpen && (
                   <div style={{
-                    position: 'absolute', top: 'calc(100% + 8px)', left: 0,
-                    background: 'white', borderRadius: 14, zIndex: 200, minWidth: 260,
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.12)', border: '1px solid #E5E7EB', padding: '6px 0'
+                    position: 'absolute', top: 'calc(100% + 12px)', right: 0,
+                    background: 'white', borderRadius: 16, zIndex: 200, minWidth: 240,
+                    boxShadow: '0 12px 40px rgba(0,0,0,0.10)', padding: '8px 0'
                   }}>
                     {['הכל', ...spaceTypes].map(t => (
                       <button key={t} onClick={() => { setFilterType(t); setDropdownOpen(false) }}
                         style={{
-                          width: '100%', padding: '12px 18px', background: filterType === t ? '#F3F4F6' : 'transparent',
+                          width: '100%', padding: '11px 20px', background: 'transparent',
                           border: 'none', cursor: 'pointer', textAlign: 'right',
-                          display: 'flex', alignItems: 'center', gap: 12
+                          display: 'flex', alignItems: 'center', gap: 14,
+                          borderRadius: 0
                         }}>
-                        <span style={{ fontSize: 22 }}>{TYPE_ICONS[t] || '🏢'}</span>
-                        <span style={{ fontWeight: filterType === t ? 800 : 500, fontSize: 14, color: '#111827' }}>{t}</span>
+                        <span style={{ fontSize: 20, flexShrink: 0 }}>{TYPE_ICONS[t] || '🏢'}</span>
+                        <span style={{
+                          fontWeight: filterType === t ? 700 : 400, fontSize: 14,
+                          color: filterType === t ? accentColor : '#111827'
+                        }}>{t}</span>
                       </button>
                     ))}
                   </div>
                 )}
               </div>
             )}
-            {settings.phone && isDesktop && (
-              <a href={`tel:${settings.phone}`} style={{ fontSize: 14, color: '#6B7280', textDecoration: 'none', fontWeight: 500 }}>📞 {settings.phone}</a>
-            )}
-            {step !== 'offices' && step !== 'confirm' && (
-              <button onClick={() => {
-                if (step === 'form') setStep('calendar')
-                else if (step === 'calendar') { setStep('offices'); setSelectedOffice(null); setSelStart(null); setSelEnd(null) }
-              }} style={{ background: '#F3F4F6', border: 'none', borderRadius: 8, padding: '8px 14px', cursor: 'pointer', fontWeight: 700, fontSize: 14, color: '#374151' }}>
-                ← חזור
-              </button>
-            )}
+            {/* Logo */}
+            {settings.logoUrl
+              ? <img src={normalizeImageUrl(settings.logoUrl)} alt="logo" style={{ height: 40, maxWidth: 180, objectFit: 'contain' }} />
+              : <span style={{ fontWeight: 800, fontSize: 19, color: '#111827', letterSpacing: -0.3 }}>{settings.businessName || 'השכרת משרדים'}</span>
+            }
           </div>
         </div>
       </header>
-
-      {/* ── Hero slogan (only on step 1) ── */}
-      {settings.slogan && step === 'offices' && (
-        <div style={{ background: `linear-gradient(135deg,${headerFrom},${headerTo})`, color: 'white', padding: isDesktop ? '48px 24px' : '28px 20px', textAlign: 'center' }}>
-          <h1 style={{ margin: 0, fontSize: isDesktop ? 36 : 24, fontWeight: 800, letterSpacing: -0.5 }}>{settings.slogan}</h1>
-          {settings.businessName && <p style={{ margin: '8px 0 0', opacity: 0.8, fontSize: 16 }}>{settings.businessName}</p>}
-        </div>
-      )}
 
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: isDesktop ? '36px 24px 60px' : '20px 16px 40px' }}>
 
