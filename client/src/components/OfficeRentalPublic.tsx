@@ -178,6 +178,7 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
 
   const [form, setForm] = useState({ name: '', phone: '', email: '', notes: '' })
   const [submitting, setSubmitting] = useState(false)
+  const [filterType, setFilterType] = useState<string>('הכל')
   const [bookingId, setBookingId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -313,9 +314,26 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
         {/* Step 1: Choose office */}
         {step === 'offices' && (
           <>
-            <h2 style={{ fontSize: isDesktop ? 20 : 16, fontWeight: 800, color: '#1F2937', margin: '0 0 20px' }}>בחרו משרד</h2>
+            <h2 style={{ fontSize: isDesktop ? 20 : 16, fontWeight: 800, color: '#1F2937', margin: '0 0 16px' }}>בחרו משרד</h2>
+            {/* Type filter chips */}
+            {(() => {
+              const types = Array.from(new Set(offices.filter(o => o.officeType).map(o => o.officeType!)))
+              return types.length > 0 ? (
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
+                  {['הכל', ...types].map(t => (
+                    <button key={t} onClick={() => setFilterType(t)} style={{
+                      padding: '8px 18px', borderRadius: 20, border: 'none', cursor: 'pointer',
+                      fontWeight: 700, fontSize: 13,
+                      background: filterType === t ? accentColor : 'white',
+                      color: filterType === t ? 'white' : '#374151',
+                      boxShadow: '0 1px 4px rgba(0,0,0,0.1)', transition: 'all 0.15s'
+                    }}>{t}</button>
+                  ))}
+                </div>
+              ) : null
+            })()}
             <div style={{ display: 'grid', gridTemplateColumns: isDesktop ? 'repeat(auto-fill,minmax(380px,1fr))' : '1fr', gap: 20 }}>
-              {offices.map(o => (
+              {offices.filter(o => filterType === 'הכל' || o.officeType === filterType).map(o => (
                 <div key={o.id} onClick={() => { setSelectedOffice(o); setStep('calendar') }}
                   style={{ ...cardStyle, borderRight: `4px solid ${o.color}`, cursor: 'pointer', padding: 0, overflow: 'hidden',
                     display: isDesktop && (o.images||[]).length > 0 ? 'flex' : 'block', marginBottom: 0 }}>
@@ -327,6 +345,9 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
                   )}
                   <div style={{ padding: '16px 18px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                     <div>
+                      {o.officeType && (
+                        <div style={{ display: 'inline-block', background: o.color + '22', color: o.color, borderRadius: 6, padding: '2px 10px', fontSize: 11, fontWeight: 700, marginBottom: 6 }}>{o.officeType}</div>
+                      )}
                       <div style={{ fontWeight: 800, fontSize: isDesktop ? 18 : 17, color: '#1F2937', marginBottom: 6 }}>{o.name}</div>
                       {o.description && <div style={{ fontSize: 13, color: '#6B7280', marginBottom: 8, lineHeight: 1.5 }}>{o.description}</div>}
                       {o.amenities && <div style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 4 }}>✓ {o.amenities}</div>}

@@ -16,11 +16,10 @@ function normalizeImageUrl(url: string): string {
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type OfficeColor = '#6366F1' | '#10B981' | '#F59E0B' | '#EF4444' | '#8B5CF6' | '#EC4899'
 export type Office = {
   id: string; name: string; description: string; pricePerDay: number
-  capacity: number; amenities: string; color: OfficeColor; isActive: boolean
-  images?: string[]; videoUrl?: string
+  capacity: number; amenities: string; color: string; isActive: boolean
+  images?: string[]; videoUrl?: string; officeType?: string
 }
 export type BookingStatus = 'pending_approval' | 'confirmed' | 'rejected' | 'cancelled'
 export type Booking = {
@@ -33,7 +32,8 @@ type Settings = { businessName: string; phone: string; paymentInfo: string; logo
 interface Props { uid: string }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const COLORS: OfficeColor[] = ['#6366F1', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899']
+const QUICK_COLORS = ['#6366F1', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899']
+const OFFICE_TYPES = ['משרד פרטי', 'חדר ישיבות', 'חלל עבודה משותף', 'סטודיו', 'חדר הדרכה', 'מעבדה']
 export const PALETTES = [
   { id: 'purple', label: 'סגול',   from: '#6366F1', to: '#8B5CF6', accent: '#6366F1' },
   { id: 'blue',   label: 'כחול',   from: '#0369A1', to: '#0EA5E9', accent: '#0369A1' },
@@ -400,14 +400,29 @@ export function OfficeRentalAdmin({ uid }: Props) {
               <label style={label}>פרטים / ציוד (מיזוג, מקרן, ...)</label>
               <input style={input} value={editOffice.amenities || ''} onChange={e => setEditOffice(o => ({ ...o, amenities: e.target.value }))} placeholder="מיזוג אוויר, מקרן, Wi-Fi..." />
             </div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={label}>סוג משרד</label>
+              <input style={input} list="office-types-list" value={editOffice.officeType || ''}
+                onChange={e => setEditOffice(o => ({ ...o, officeType: e.target.value }))}
+                placeholder="חדר ישיבות, משרד פרטי, חלל עבודה..." />
+              <datalist id="office-types-list">
+                {OFFICE_TYPES.map(t => <option key={t} value={t} />)}
+              </datalist>
+            </div>
             <div style={{ marginBottom: 16 }}>
-              <label style={label}>צבע</label>
-              <div style={{ display: 'flex', gap: 8 }}>
-                {COLORS.map(c => (
-                  <button key={c} onClick={() => setEditOffice(o => ({ ...o, color: c }))} style={{
-                    width: 32, height: 32, borderRadius: '50%', background: c, border: editOffice.color === c ? '3px solid #1F2937' : '2px solid transparent', cursor: 'pointer'
-                  }} />
-                ))}
+              <label style={label}>צבע כרטיס</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <input type="color" value={editOffice.color || '#6366F1'}
+                  onChange={e => setEditOffice(o => ({ ...o, color: e.target.value }))}
+                  style={{ width: 52, height: 40, borderRadius: 8, border: '1.5px solid #E5E7EB', cursor: 'pointer', padding: 2, flexShrink: 0 }} />
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {QUICK_COLORS.map(c => (
+                    <button key={c} type="button" onClick={() => setEditOffice(o => ({ ...o, color: c }))} style={{
+                      width: 28, height: 28, borderRadius: '50%', background: c,
+                      border: editOffice.color === c ? '3px solid #1F2937' : '2px solid transparent', cursor: 'pointer'
+                    }} />
+                  ))}
+                </div>
               </div>
             </div>
 
