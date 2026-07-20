@@ -282,84 +282,89 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
     </div>
   )
 
-  const headerFrom  = settings.colorFrom   || PALETTES[0].from
-  const headerTo    = settings.colorTo     || PALETTES[0].to
   const accentColor = settings.colorAccent || PALETTES[0].accent
 
   const spaceTypes = Array.from(new Set(offices.filter(o => o.officeType).map(o => o.officeType!)))
-  const TYPE_ICONS: Record<string, string> = {
-    'הכל': '🏢', 'חדר ישיבות': '👥', 'משרד פרטי': '🏠', 'עמדת עבודה': '💻',
-    'חלל עבודה משותף': '🤝', 'סטודיו': '🎨', 'חדר הדרכה': '📚'
+  const sp = { width: 22, height: 22, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: '1.5', strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+  const TYPE_SVGS: Record<string, React.ReactElement> = {
+    '\u05d4\u05db\u05dc':              <svg {...sp}><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,
+    '\u05de\u05e9\u05e8\u05d3 \u05e4\u05e8\u05d8\u05d9':    <svg {...sp}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+    '\u05e2\u05de\u05d3\u05ea \u05e2\u05d1\u05d5\u05d3\u05d4':  <svg {...sp}><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>,
+    '\u05d7\u05d3\u05e8 \u05d9\u05e9\u05d9\u05d1\u05d5\u05ea': <svg {...sp}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+    '\u05d7\u05dc\u05dc \u05e2\u05d1\u05d5\u05d3\u05d4 \u05de\u05e9\u05d5\u05ea\u05e3': <svg {...sp}><rect x="1" y="4" width="14" height="16" rx="2"/><path d="M15 9h4a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-4M8 8v2M8 12v2M8 16v2"/></svg>,
+    '\u05e1\u05d8\u05d5\u05d3\u05d9\u05d5':        <svg {...sp}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+    '\u05d7\u05d3\u05e8 \u05d4\u05d3\u05e8\u05db\u05d4':   <svg {...sp}><path d="M2 3h20v13H2z"/><path d="M8 21h8M12 16v5"/></svg>,
   }
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#F7F8FA', direction: 'rtl', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div style={{ minHeight: '100dvh', background: '#F7F8FA', direction: 'rtl', fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif" }}>
 
-      {/* ── Minimal White Header ── */}
+      {/* \u2500\u2500 Minimal White Header \u2500\u2500 */}
       <header style={{ background: 'white', borderBottom: '1px solid #F0F0F0', position: 'sticky', top: 0, zIndex: 100 }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 28px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        {/* Use direction:ltr so logo is physically LEFT and nav is physically RIGHT */}
+        <div style={{ direction: 'ltr', maxWidth: 1200, margin: '0 auto', padding: '0 28px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 
-          {/* LEFT side (in RTL): phone + back */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-            {settings.phone && isDesktop && (
-              <a href={`tel:${settings.phone}`} style={{ fontSize: 14, color: '#9CA3AF', textDecoration: 'none', fontWeight: 500, letterSpacing: 0.2 }}>{settings.phone}</a>
-            )}
-            {step !== 'offices' && step !== 'confirm' && (
-              <button onClick={() => {
-                if (step === 'form') setStep('calendar')
-                else if (step === 'calendar') { setStep('offices'); setSelectedOffice(null); setSelStart(null); setSelEnd(null) }
-              }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 14, color: '#6B7280', padding: '6px 0', display: 'flex', alignItems: 'center', gap: 4 }}>
-                ← חזור
-              </button>
-            )}
+          {/* Logo — LEFT */}
+          <div>
+            {settings.logoUrl
+              ? <img src={normalizeImageUrl(settings.logoUrl)} alt="logo" style={{ height: 42, maxWidth: 180, objectFit: 'contain' }} />
+              : <span style={{ fontWeight: 800, fontSize: 19, color: '#111827', letterSpacing: -0.3 }}>{settings.businessName || '\u05d4\u05e9\u05db\u05e8\u05ea \u05de\u05e9\u05e8\u05d3\u05d9\u05dd'}</span>
+            }
           </div>
 
-          {/* RIGHT side (in RTL): filter dropdown + logo */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-            {/* Space Types — clean nav-link style */}
+          {/* Nav — RIGHT: filter + phone + back */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
+            {/* Space Types dropdown — clean nav-link */}
             {spaceTypes.length > 0 && step === 'offices' && (
               <div ref={dropdownRef} style={{ position: 'relative' }}>
                 <button onClick={() => setDropdownOpen(d => !d)} style={{
                   background: 'none', border: 'none', cursor: 'pointer',
                   fontWeight: 600, fontSize: 15, color: dropdownOpen ? accentColor : '#374151',
                   display: 'flex', alignItems: 'center', gap: 5, padding: '4px 0',
-                  transition: 'color 0.15s'
+                  fontFamily: 'inherit', direction: 'rtl'
                 }}>
-                  סוגי משרדים
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ opacity: 0.6, transform: dropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
-                    <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  \u05e1\u05d5\u05d2\u05d9 \u05de\u05e9\u05e8\u05d3\u05d9\u05dd
+                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0, transform: dropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', color: '#9CA3AF' }}>
+                    <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </button>
                 {dropdownOpen && (
                   <div style={{
-                    position: 'absolute', top: 'calc(100% + 12px)', right: 0,
-                    background: 'white', borderRadius: 16, zIndex: 200, minWidth: 240,
-                    boxShadow: '0 12px 40px rgba(0,0,0,0.10)', padding: '8px 0'
+                    position: 'absolute', top: 'calc(100% + 10px)', right: 0,
+                    background: 'white', borderRadius: 16, zIndex: 200, minWidth: 260,
+                    boxShadow: '0 16px 48px rgba(0,0,0,0.11)', padding: '10px 0',
+                    direction: 'rtl'
                   }}>
-                    {['הכל', ...spaceTypes].map(t => (
+                    {['\u05d4\u05db\u05dc', ...spaceTypes].map(t => (
                       <button key={t} onClick={() => { setFilterType(t); setDropdownOpen(false) }}
                         style={{
-                          width: '100%', padding: '11px 20px', background: 'transparent',
+                          width: '100%', padding: '13px 20px', background: 'transparent',
                           border: 'none', cursor: 'pointer', textAlign: 'right',
-                          display: 'flex', alignItems: 'center', gap: 14,
-                          borderRadius: 0
+                          display: 'flex', alignItems: 'center', gap: 16, fontFamily: 'inherit'
                         }}>
-                        <span style={{ fontSize: 20, flexShrink: 0 }}>{TYPE_ICONS[t] || '🏢'}</span>
-                        <span style={{
-                          fontWeight: filterType === t ? 700 : 400, fontSize: 14,
-                          color: filterType === t ? accentColor : '#111827'
-                        }}>{t}</span>
+                        <span style={{ color: filterType === t ? accentColor : '#9CA3AF', flexShrink: 0 }}>
+                          {TYPE_SVGS[t] || TYPE_SVGS['\u05d4\u05db\u05dc']}
+                        </span>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontWeight: filterType === t ? 700 : 500, fontSize: 14, color: filterType === t ? accentColor : '#111827' }}>{t}</div>
+                        </div>
                       </button>
                     ))}
                   </div>
                 )}
               </div>
             )}
-            {/* Logo */}
-            {settings.logoUrl
-              ? <img src={normalizeImageUrl(settings.logoUrl)} alt="logo" style={{ height: 40, maxWidth: 180, objectFit: 'contain' }} />
-              : <span style={{ fontWeight: 800, fontSize: 19, color: '#111827', letterSpacing: -0.3 }}>{settings.businessName || 'השכרת משרדים'}</span>
-            }
+            {settings.phone && isDesktop && (
+              <a href={`tel:${settings.phone}`} style={{ fontSize: 14, color: '#9CA3AF', textDecoration: 'none', fontWeight: 500 }}>{settings.phone}</a>
+            )}
+            {step !== 'offices' && step !== 'confirm' && (
+              <button onClick={() => {
+                if (step === 'form') setStep('calendar')
+                else if (step === 'calendar') { setStep('offices'); setSelectedOffice(null); setSelStart(null); setSelEnd(null) }
+              }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 14, color: '#6B7280', fontFamily: 'inherit', direction: 'rtl' }}>
+                \u2190 \u05d7\u05d6\u05d5\u05e8
+              </button>
+            )}
           </div>
         </div>
       </header>
