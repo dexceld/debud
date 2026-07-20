@@ -328,30 +328,46 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
                     <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </button>
-                {dropdownOpen && (
-                  <div style={{
-                    position: 'absolute', top: 'calc(100% + 10px)', right: 0,
-                    background: 'white', borderRadius: 16, zIndex: 200, minWidth: 260,
-                    boxShadow: '0 16px 48px rgba(0,0,0,0.11)', padding: '10px 0',
-                    direction: 'rtl'
-                  }}>
-                    {['\u05d4\u05db\u05dc', ...spaceTypes].map(t => (
-                      <button key={t} onClick={() => { setFilterType(t); setDropdownOpen(false) }}
-                        style={{
-                          width: '100%', padding: '13px 20px', background: 'transparent',
-                          border: 'none', cursor: 'pointer', textAlign: 'right',
-                          display: 'flex', alignItems: 'center', gap: 16, fontFamily: 'inherit'
-                        }}>
-                        <span style={{ color: filterType === t ? accentColor : '#9CA3AF', flexShrink: 0 }}>
-                          {TYPE_SVGS[t] || TYPE_SVGS['\u05d4\u05db\u05dc']}
-                        </span>
-                        <div style={{ textAlign: 'right' }}>
-                          <div style={{ fontWeight: filterType === t ? 700 : 500, fontSize: 14, color: filterType === t ? accentColor : '#111827' }}>{t}</div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
+                {dropdownOpen && (() => {
+                  const items = ['\u05d4\u05db\u05dc', ...spaceTypes]
+                  const TYPE_DESC: Record<string, string> = {
+                    '\u05d4\u05db\u05dc': '\u05db\u05dc \u05e1\u05d5\u05d2\u05d9 \u05d4\u05de\u05e9\u05e8\u05d3\u05d9\u05dd \u05d4\u05d6\u05de\u05d9\u05e0\u05d9\u05dd',
+                    '\u05de\u05e9\u05e8\u05d3 \u05e4\u05e8\u05d8\u05d9': '\u05d4\u05e9\u05db\u05e8\u05ea \u05de\u05e9\u05e8\u05d3 \u05d1\u05dc\u05e2\u05d3\u05d9 \u05dc\u05d9\u05d5\u05dd \u05d0\u05d5 \u05e9\u05d1\u05d5\u05e2',
+                    '\u05e2\u05de\u05d3\u05ea \u05e2\u05d1\u05d5\u05d3\u05d4': '\u05d2\u05d9\u05e9\u05d4 \u05dc\u05e2\u05de\u05d3\u05d4 \u05d1\u05d7\u05dc\u05dc \u05e2\u05d1\u05d5\u05d3\u05d4 \u05de\u05e9\u05d5\u05ea\u05e3',
+                    '\u05d7\u05d3\u05e8 \u05d9\u05e9\u05d9\u05d1\u05d5\u05ea': '\u05d7\u05d3\u05e8 \u05dc\u05d9\u05e9\u05d9\u05d1\u05d5\u05ea \u05e6\u05d5\u05d5\u05ea \u05d5\u05e4\u05d2\u05d9\u05e9\u05d5\u05ea',
+                    '\u05d7\u05dc\u05dc \u05e2\u05d1\u05d5\u05d3\u05d4 \u05de\u05e9\u05d5\u05ea\u05e3': '\u05de\u05e8\u05d7\u05d1 \u05e2\u05d1\u05d5\u05d3\u05d4 \u05e4\u05ea\u05d5\u05d7 \u05d5\u05d2\u05de\u05d9\u05e9',
+                    '\u05e1\u05d8\u05d5\u05d3\u05d9\u05d5': '\u05de\u05e8\u05d7\u05d1 \u05d9\u05e6\u05d9\u05e8\u05ea\u05d9 \u05dc\u05e1\u05d8\u05d5\u05d3\u05d9\u05d5',
+                    '\u05d7\u05d3\u05e8 \u05d4\u05d3\u05e8\u05db\u05d4': '\u05d0\u05d5\u05dc\u05dd \u05dc\u05d4\u05d3\u05e8\u05db\u05d5\u05ea \u05d5\u05d4\u05e8\u05e6\u05d0\u05d5\u05ea',
+                  }
+                  return (
+                    <div style={{
+                      position: 'absolute', top: 'calc(100% + 10px)', right: 0,
+                      background: 'white', borderRadius: 16, zIndex: 200, minWidth: 290,
+                      boxShadow: '0 8px 40px rgba(0,0,0,0.12)', overflow: 'hidden',
+                      direction: 'rtl'
+                    }}>
+                      {items.map((t, i) => (
+                        <button key={t} onClick={() => { setFilterType(t); setDropdownOpen(false) }}
+                          style={{
+                            width: '100%', padding: '16px 20px', background: 'white',
+                            border: 'none', borderBottom: i < items.length - 1 ? '1px solid #F3F4F6' : 'none',
+                            cursor: 'pointer', textAlign: 'right',
+                            display: 'flex', alignItems: 'center', gap: 16, fontFamily: 'inherit'
+                          }}>
+                          <span style={{ color: '#BFC8D4', flexShrink: 0 }}>
+                            {TYPE_SVGS[t] || TYPE_SVGS['\u05d4\u05db\u05dc']}
+                          </span>
+                          <div>
+                            <div style={{ fontWeight: 600, fontSize: 14, color: '#111827', marginBottom: 2 }}>{t}</div>
+                            <div style={{ fontSize: 12, color: filterType === t ? accentColor : '#9CA3AF' }}>
+                              {TYPE_DESC[t] || ''}
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )
+                })()}
               </div>
             )}
             {settings.phone && isDesktop && (
