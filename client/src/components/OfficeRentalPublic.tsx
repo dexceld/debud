@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect } from 'react'
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { db } from '../firebase'
 import { collection, doc, addDoc, onSnapshot, getDoc } from 'firebase/firestore'
 import type { Office, Booking } from './OfficeRentalAdmin'
@@ -179,6 +179,16 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
   const [form, setForm] = useState({ name: '', phone: '', email: '', notes: '' })
   const [submitting, setSubmitting] = useState(false)
   const [filterType, setFilterType] = useState<string>('הכל')
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setDropdownOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
   const [bookingId, setBookingId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -276,94 +286,121 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
   const headerTo    = settings.colorTo     || PALETTES[0].to
   const accentColor = settings.colorAccent || PALETTES[0].accent
 
+  const spaceTypes = Array.from(new Set(offices.filter(o => o.officeType).map(o => o.officeType!)))
+  const TYPE_ICONS: Record<string, string> = {
+    'הכל': '🏢', 'חדר ישיבות': '👥', 'משרד פרטי': '🏠', 'עמדת עבודה': '💻',
+    'חלל עבודה משותף': '🤝', 'סטודיו': '🎨', 'חדר הדרכה': '📚'
+  }
+
   return (
-    <div style={{ background: '#F3F4F6', direction: 'rtl', fontFamily: 'system-ui, sans-serif' }}>
-      {/* Header */}
-      <div style={{ background: `linear-gradient(135deg,${headerFrom},${headerTo})`, color: 'white', position: 'sticky', top: 0, zIndex: 50 }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-          {/* Left: back button */}
-          <div style={{ minWidth: 72 }}>
+    <div style={{ minHeight: '100dvh', background: '#F7F8FA', direction: 'rtl', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+
+      {/* ── Minimal White Header ── */}
+      <header style={{ background: 'white', borderBottom: '1px solid #E5E7EB', position: 'sticky', top: 0, zIndex: 100 }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', height: 68, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          {/* Logo / brand (right in RTL) */}
+          <div>
+            {settings.logoUrl
+              ? <img src={normalizeImageUrl(settings.logoUrl)} alt="logo" style={{ height: 44, maxWidth: 180, objectFit: 'contain' }} />
+              : <span style={{ fontWeight: 800, fontSize: 20, color: '#111827' }}>{settings.businessName || 'השכרת משרדים'}</span>
+            }
+          </div>
+          {/* Nav (left in RTL) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            {/* Space Types dropdown */}
+            {spaceTypes.length > 0 && step === 'offices' && (
+              <div ref={dropdownRef} style={{ position: 'relative' }}>
+                <button onClick={() => setDropdownOpen(d => !d)} style={{
+                  display: 'flex', alignItems: 'center', gap: 6, background: 'none',
+                  border: '1.5px solid #E5E7EB', borderRadius: 8, padding: '8px 14px',
+                  cursor: 'pointer', fontWeight: 700, fontSize: 14, color: '#374151'
+                }}>
+                  סוגי משרדים <span style={{ fontSize: 10, opacity: 0.7 }}>{dropdownOpen ? '▲' : '▼'}</span>
+                </button>
+                {dropdownOpen && (
+                  <div style={{
+                    position: 'absolute', top: 'calc(100% + 8px)', left: 0,
+                    background: 'white', borderRadius: 14, zIndex: 200, minWidth: 260,
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.12)', border: '1px solid #E5E7EB', padding: '6px 0'
+                  }}>
+                    {['הכל', ...spaceTypes].map(t => (
+                      <button key={t} onClick={() => { setFilterType(t); setDropdownOpen(false) }}
+                        style={{
+                          width: '100%', padding: '12px 18px', background: filterType === t ? '#F3F4F6' : 'transparent',
+                          border: 'none', cursor: 'pointer', textAlign: 'right',
+                          display: 'flex', alignItems: 'center', gap: 12
+                        }}>
+                        <span style={{ fontSize: 22 }}>{TYPE_ICONS[t] || '🏢'}</span>
+                        <span style={{ fontWeight: filterType === t ? 800 : 500, fontSize: 14, color: '#111827' }}>{t}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            {settings.phone && isDesktop && (
+              <a href={`tel:${settings.phone}`} style={{ fontSize: 14, color: '#6B7280', textDecoration: 'none', fontWeight: 500 }}>📞 {settings.phone}</a>
+            )}
             {step !== 'offices' && step !== 'confirm' && (
               <button onClick={() => {
                 if (step === 'form') setStep('calendar')
                 else if (step === 'calendar') { setStep('offices'); setSelectedOffice(null); setSelStart(null); setSelEnd(null) }
-              }} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', borderRadius: 8, padding: '7px 12px', fontSize: 13, cursor: 'pointer', fontWeight: 700 }}>
+              }} style={{ background: '#F3F4F6', border: 'none', borderRadius: 8, padding: '8px 14px', cursor: 'pointer', fontWeight: 700, fontSize: 14, color: '#374151' }}>
                 ← חזור
               </button>
             )}
           </div>
-          {/* Center: slogan + business name */}
-          <div style={{ flex: 1, textAlign: 'center' }}>
-            {settings.slogan && <div style={{ fontSize: isDesktop ? 18 : 15, fontWeight: 800, lineHeight: 1.2 }}>{settings.slogan}</div>}
-            <div style={{ fontSize: isDesktop ? 13 : 12, opacity: 0.8, marginTop: 2 }}>
-              {settings.businessName || 'השכרת משרדים'}{settings.phone ? ` · 📞 ${settings.phone}` : ''}
-            </div>
-          </div>
-          {/* Right: logo */}
-          <div style={{ minWidth: 100, display: 'flex', justifyContent: 'flex-end' }}>
-            {settings.logoUrl
-              ? <img src={normalizeImageUrl(settings.logoUrl)} alt="logo" style={{ height: 72, maxWidth: 200, objectFit: 'contain' }} />
-              : <div style={{ fontSize: 36 }}>🏢</div>
-            }
-          </div>
         </div>
-      </div>
+      </header>
 
-      <div style={{ padding: isDesktop ? '24px 40px 40px' : '16px 16px 40px', maxWidth: isDesktop ? 1200 : 480, margin: '0 auto' }}>
+      {/* ── Hero slogan (only on step 1) ── */}
+      {settings.slogan && step === 'offices' && (
+        <div style={{ background: `linear-gradient(135deg,${headerFrom},${headerTo})`, color: 'white', padding: isDesktop ? '48px 24px' : '28px 20px', textAlign: 'center' }}>
+          <h1 style={{ margin: 0, fontSize: isDesktop ? 36 : 24, fontWeight: 800, letterSpacing: -0.5 }}>{settings.slogan}</h1>
+          {settings.businessName && <p style={{ margin: '8px 0 0', opacity: 0.8, fontSize: 16 }}>{settings.businessName}</p>}
+        </div>
+      )}
+
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: isDesktop ? '36px 24px 60px' : '20px 16px 40px' }}>
 
         {/* Step 1: Choose office */}
         {step === 'offices' && (
-          <>
-            <h2 style={{ fontSize: isDesktop ? 20 : 16, fontWeight: 800, color: '#1F2937', margin: '0 0 16px' }}>בחרו משרד</h2>
-            {/* Type filter chips */}
-            {(() => {
-              const types = Array.from(new Set(offices.filter(o => o.officeType).map(o => o.officeType!)))
-              return types.length > 0 ? (
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
-                  {['הכל', ...types].map(t => (
-                    <button key={t} onClick={() => setFilterType(t)} style={{
-                      padding: '8px 18px', borderRadius: 20, border: 'none', cursor: 'pointer',
-                      fontWeight: 700, fontSize: 13,
-                      background: filterType === t ? accentColor : 'white',
-                      color: filterType === t ? 'white' : '#374151',
-                      boxShadow: '0 1px 4px rgba(0,0,0,0.1)', transition: 'all 0.15s'
-                    }}>{t}</button>
-                  ))}
-                </div>
-              ) : null
-            })()}
-            <div style={{ display: 'grid', gridTemplateColumns: isDesktop ? 'repeat(auto-fill,minmax(380px,1fr))' : '1fr', gap: 20 }}>
-              {offices.filter(o => filterType === 'הכל' || o.officeType === filterType).map(o => (
-                <div key={o.id} onClick={() => { setSelectedOffice(o); setStep('calendar') }}
-                  style={{ ...cardStyle, borderRight: `4px solid ${o.color}`, cursor: 'pointer', padding: 0, overflow: 'hidden',
-                    display: isDesktop && (o.images||[]).length > 0 ? 'flex' : 'block', marginBottom: 0 }}>
-                  {/* Images: side-by-side on desktop when images exist */}
-                  {(o.images || []).length > 0 && (
-                    <div style={{ width: isDesktop ? '45%' : '100%', flexShrink: 0 }}>
-                      <OfficeImageGallery images={o.images || []} videoUrl={o.videoUrl} />
+          <div style={{ display: 'grid', gridTemplateColumns: isDesktop ? 'repeat(3,1fr)' : '1fr', gap: 28 }}>
+            {offices.filter(o => filterType === 'הכל' || o.officeType === filterType).map(o => (
+              <div key={o.id}
+                onClick={() => { setSelectedOffice(o); setStep('calendar') }}
+                onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 10px 40px rgba(0,0,0,0.13)')}
+                onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 2px 16px rgba(0,0,0,0.07)')}
+                style={{ background: 'white', borderRadius: 18, overflow: 'hidden', cursor: 'pointer',
+                  boxShadow: '0 2px 16px rgba(0,0,0,0.07)', transition: 'box-shadow 0.2s' }}>
+                {/* Image */}
+                {(o.images||[]).length > 0
+                  ? <div style={{ height: 220, overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
+                      <OfficeImageGallery images={o.images||[]} videoUrl={o.videoUrl} />
                     </div>
+                  : <div style={{ height: 200, background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 56, color: '#D1D5DB' }}>🏢</div>
+                }
+                {/* Details */}
+                <div style={{ padding: '20px 22px 24px' }}>
+                  {o.officeType && (
+                    <div style={{ fontSize: 11, fontWeight: 700, color: accentColor, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>{o.officeType}</div>
                   )}
-                  <div style={{ padding: '16px 18px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                    <div>
-                      {o.officeType && (
-                        <div style={{ display: 'inline-block', background: o.color + '22', color: o.color, borderRadius: 6, padding: '2px 10px', fontSize: 11, fontWeight: 700, marginBottom: 6 }}>{o.officeType}</div>
-                      )}
-                      <div style={{ fontWeight: 800, fontSize: isDesktop ? 18 : 17, color: '#1F2937', marginBottom: 6 }}>{o.name}</div>
-                      {o.description && <div style={{ fontSize: 13, color: '#6B7280', marginBottom: 8, lineHeight: 1.5 }}>{o.description}</div>}
-                      {o.amenities && <div style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 4 }}>✓ {o.amenities}</div>}
-                      {o.capacity > 0 && <div style={{ fontSize: 12, color: '#9CA3AF' }}>👥 עד {o.capacity} אנשים</div>}
+                  <div style={{ fontWeight: 800, fontSize: 18, color: '#111827', marginBottom: 6 }}>{o.name}</div>
+                  {o.description && <div style={{ fontSize: 13, color: '#6B7280', marginBottom: 10, lineHeight: 1.65 }}>{o.description}</div>}
+                  {o.amenities && <div style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 6 }}>✓ {o.amenities}</div>}
+                  {o.capacity > 0 && <div style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 16 }}>👥 עד {o.capacity} אנשים</div>}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14 }}>
+                    <div style={{ fontWeight: 800, fontSize: 22, color: '#111827' }}>
+                      ₪{o.pricePerDay.toLocaleString('he-IL')} <span style={{ fontSize: 13, fontWeight: 400, color: '#9CA3AF' }}>/ יום</span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14 }}>
-                      <div style={{ background: o.color, color: 'white', borderRadius: 10, padding: '8px 16px', fontWeight: 800, fontSize: isDesktop ? 18 : 16 }}>
-                        ₪{o.pricePerDay.toLocaleString('he-IL')} <span style={{ fontSize: 12, fontWeight: 500 }}>/ יום</span>
-                      </div>
-                      <span style={{ fontSize: 13, color: '#6366F1', fontWeight: 700 }}>להזמנה ←</span>
-                    </div>
+                    <button style={{ background: accentColor, color: 'white', border: 'none', borderRadius: 9, padding: '10px 20px', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
+                      הזמן →
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
-          </>
+              </div>
+            ))}
+          </div>
         )}
 
         {/* Step 2: Calendar */}
