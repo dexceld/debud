@@ -2,6 +2,7 @@ import React, { useState, useEffect, useLayoutEffect } from 'react'
 import { db } from '../firebase'
 import { collection, doc, addDoc, onSnapshot, getDoc } from 'firebase/firestore'
 import type { Office, Booking } from './OfficeRentalAdmin'
+import { PALETTES } from './OfficeRentalAdmin'
 
 function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768)
@@ -166,7 +167,7 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
   const isDesktop = useIsDesktop()
   const [offices, setOffices] = useState<Office[]>([])
   const [bookings, setBookings] = useState<Booking[]>([])
-  const [settings, setSettings] = useState<{ businessName: string; phone: string; paymentInfo: string }>({ businessName: '', phone: '', paymentInfo: '' })
+  const [settings, setSettings] = useState<{ businessName: string; phone: string; paymentInfo: string; logoUrl?: string; slogan?: string; palette?: string }>({ businessName: '', phone: '', paymentInfo: '' })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -270,22 +271,40 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
     </div>
   )
 
+  const palette = PALETTES.find(p => p.id === (settings.palette || 'purple')) || PALETTES[0]
+  const accentColor = palette.accent
+
   return (
-    <div style={{ minHeight: '100dvh', background: '#F3F4F6', direction: 'rtl', fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ background: '#F3F4F6', direction: 'rtl', fontFamily: 'system-ui, sans-serif' }}>
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg,#6366F1,#8B5CF6)', padding: '20px 20px 24px', color: 'white' }}>
-        {step !== 'offices' && (
-          <button onClick={() => {
-            if (step === 'confirm') return
-            if (step === 'form') setStep('calendar')
-            else if (step === 'calendar') { setStep('offices'); setSelectedOffice(null); setSelStart(null); setSelEnd(null) }
-          }} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', borderRadius: 8, padding: '6px 12px', fontSize: 14, cursor: 'pointer', marginBottom: 10 }}>
-            ← חזור
-          </button>
-        )}
-        <div style={{ fontSize: 28, marginBottom: 4 }}>🏢</div>
-        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>{settings.businessName || 'השכרת משרדים'}</h1>
-        {settings.phone && <div style={{ fontSize: 14, opacity: 0.85, marginTop: 4 }}>📞 {settings.phone}</div>}
+      <div style={{ background: `linear-gradient(135deg,${palette.from},${palette.to})`, color: 'white', position: 'sticky', top: 0, zIndex: 50 }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          {/* Left: back button */}
+          <div style={{ minWidth: 72 }}>
+            {step !== 'offices' && step !== 'confirm' && (
+              <button onClick={() => {
+                if (step === 'form') setStep('calendar')
+                else if (step === 'calendar') { setStep('offices'); setSelectedOffice(null); setSelStart(null); setSelEnd(null) }
+              }} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', borderRadius: 8, padding: '7px 12px', fontSize: 13, cursor: 'pointer', fontWeight: 700 }}>
+                ← חזור
+              </button>
+            )}
+          </div>
+          {/* Center: slogan + business name */}
+          <div style={{ flex: 1, textAlign: 'center' }}>
+            {settings.slogan && <div style={{ fontSize: isDesktop ? 18 : 15, fontWeight: 800, lineHeight: 1.2 }}>{settings.slogan}</div>}
+            <div style={{ fontSize: isDesktop ? 13 : 12, opacity: 0.8, marginTop: 2 }}>
+              {settings.businessName || 'השכרת משרדים'}{settings.phone ? ` · 📞 ${settings.phone}` : ''}
+            </div>
+          </div>
+          {/* Right: logo */}
+          <div style={{ minWidth: 72, display: 'flex', justifyContent: 'flex-end' }}>
+            {settings.logoUrl
+              ? <img src={settings.logoUrl} alt="logo" style={{ height: 48, maxWidth: 80, objectFit: 'contain', borderRadius: 8, background: 'rgba(255,255,255,0.15)', padding: 4 }} />
+              : <div style={{ fontSize: 36 }}>🏢</div>
+            }
+          </div>
+        </div>
       </div>
 
       <div style={{ padding: isDesktop ? '24px 40px 40px' : '16px 16px 40px', maxWidth: isDesktop ? 1200 : 480, margin: '0 auto' }}>
@@ -380,51 +399,59 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
 
         {/* Step 3: Booking form */}
         {step === 'form' && selectedOffice && (
-          <>
-            <div style={cardStyle}>
-              <h3 style={{ margin: '0 0 14px', fontSize: 16, fontWeight: 800, color: '#1F2937' }}>פרטי המזמין</h3>
-              <div style={{ marginBottom: 12 }}>
-                <label style={{ fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 4, display: 'block' }}>שם מלא *</label>
-                <input style={inputStyle} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="שם ושם משפחה" />
+          <div style={{ display: isDesktop ? 'grid' : 'block', gridTemplateColumns: isDesktop ? '1fr 1fr' : undefined, gap: 24, alignItems: 'start' }}>
+            {/* Left on desktop: summary */}
+            <div>
+              {(selectedOffice.images || []).length > 0 && (
+                <div style={{ borderRadius: 16, overflow: 'hidden', marginBottom: 14, boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
+                  <OfficeImageGallery images={selectedOffice.images || []} videoUrl={selectedOffice.videoUrl} />
+                </div>
+              )}
+              <div style={{ ...cardStyle, borderRight: `4px solid ${selectedOffice.color}` }}>
+                <div style={{ fontWeight: 800, fontSize: 17, marginBottom: 4 }}>{selectedOffice.name}</div>
+                <div style={{ fontSize: 14, lineHeight: 2, color: '#1F2937' }}>
+                  <div>📅 {selStart} → {selEnd || selStart} ({totalDays} {totalDays === 1 ? 'יום' : 'ימים'})</div>
+                  <div style={{ fontWeight: 800, fontSize: 20, color: accentColor }}>💰 ₪{totalAmount.toLocaleString('he-IL')}</div>
+                </div>
               </div>
-              <div style={{ marginBottom: 12 }}>
-                <label style={{ fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 4, display: 'block' }}>טלפון *</label>
-                <input style={inputStyle} type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="050-0000000" />
-              </div>
-              <div style={{ marginBottom: 12 }}>
-                <label style={{ fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 4, display: 'block' }}>אימייל</label>
-                <input style={inputStyle} type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="your@email.com" />
-              </div>
-              <div style={{ marginBottom: 4 }}>
-                <label style={{ fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 4, display: 'block' }}>הערות</label>
-                <textarea style={{ ...inputStyle, minHeight: 70, resize: 'vertical' }} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="הערות נוספות..." />
+              {settings.paymentInfo && (
+                <div style={{ ...cardStyle, background: '#FFFBEB', borderRight: '3px solid #F59E0B' }}>
+                  <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 6, color: '#92400E' }}>💳 פרטי תשלום</div>
+                  <div style={{ fontSize: 13, color: '#78350F', whiteSpace: 'pre-line' }}>{settings.paymentInfo}</div>
+                </div>
+              )}
+            </div>
+            {/* Right on desktop: form */}
+            <div>
+              <div style={cardStyle}>
+                <h3 style={{ margin: '0 0 14px', fontSize: 16, fontWeight: 800, color: '#1F2937' }}>פרטי המזמין</h3>
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 4, display: 'block' }}>שם מלא *</label>
+                  <input style={inputStyle} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="שם ושם משפחה" />
+                </div>
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 4, display: 'block' }}>טלפון *</label>
+                  <input style={inputStyle} type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="050-0000000" />
+                </div>
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 4, display: 'block' }}>אימייל</label>
+                  <input style={inputStyle} type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="your@email.com" />
+                </div>
+                <div style={{ marginBottom: 14 }}>
+                  <label style={{ fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 4, display: 'block' }}>הערות</label>
+                  <textarea style={{ ...inputStyle, minHeight: 70, resize: 'vertical' }} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="הערות נוספות..." />
+                </div>
+                <button onClick={submitBooking} disabled={submitting || !form.name || !form.phone} style={{
+                  width: '100%', padding: '15px', borderRadius: 12, border: 'none',
+                  cursor: submitting || !form.name || !form.phone ? 'not-allowed' : 'pointer',
+                  background: submitting || !form.name || !form.phone ? '#9CA3AF' : accentColor,
+                  color: 'white', fontWeight: 800, fontSize: 17
+                }}>
+                  {submitting ? '⏳ שולח...' : '📨 שליחת בקשת הזמנה'}
+                </button>
               </div>
             </div>
-
-            <div style={{ ...cardStyle, background: '#F0FDF4', borderRight: '3px solid #10B981' }}>
-              <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 8, color: '#065F46' }}>סיכום הזמנה</div>
-              <div style={{ fontSize: 14, lineHeight: 2, color: '#1F2937' }}>
-                <div>🏢 {selectedOffice.name}</div>
-                <div>📅 {selStart} → {selEnd || selStart} ({totalDays} ימים)</div>
-                <div style={{ fontWeight: 800, fontSize: 18, color: '#065F46' }}>💰 ₪{totalAmount.toLocaleString('he-IL')}</div>
-              </div>
-            </div>
-
-            {settings.paymentInfo && (
-              <div style={{ ...cardStyle, background: '#FFFBEB', borderRight: '3px solid #F59E0B' }}>
-                <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 6, color: '#92400E' }}>💳 פרטי תשלום</div>
-                <div style={{ fontSize: 13, color: '#78350F', whiteSpace: 'pre-line' }}>{settings.paymentInfo}</div>
-              </div>
-            )}
-
-            <button onClick={submitBooking} disabled={submitting || !form.name || !form.phone} style={{
-              width: '100%', padding: '15px', borderRadius: 12, border: 'none', cursor: submitting || !form.name || !form.phone ? 'not-allowed' : 'pointer',
-              background: submitting || !form.name || !form.phone ? '#9CA3AF' : '#6366F1',
-              color: 'white', fontWeight: 800, fontSize: 17
-            }}>
-              {submitting ? '⏳ שולח...' : '📨 שליחת בקשת הזמנה'}
-            </button>
-          </>
+          </div>
         )}
 
         {/* Step 4: Confirmation */}

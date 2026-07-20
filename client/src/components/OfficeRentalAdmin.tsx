@@ -28,12 +28,20 @@ export type Booking = {
   renterEmail: string; renterPhone: string; startDate: string; endDate: string
   totalDays: number; totalAmount: number; status: BookingStatus; notes: string; createdAt: string
 }
-type Settings = { businessName: string; phone: string; paymentInfo: string }
+type Settings = { businessName: string; phone: string; paymentInfo: string; logoUrl?: string; slogan?: string; palette?: string }
 
 interface Props { uid: string }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const COLORS: OfficeColor[] = ['#6366F1', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899']
+export const PALETTES = [
+  { id: 'purple', label: 'סגול',   from: '#6366F1', to: '#8B5CF6', accent: '#6366F1' },
+  { id: 'blue',   label: 'כחול',   from: '#0369A1', to: '#0EA5E9', accent: '#0369A1' },
+  { id: 'green',  label: 'ירוק',   from: '#059669', to: '#10B981', accent: '#059669' },
+  { id: 'amber',  label: 'זהב',    from: '#B45309', to: '#F59E0B', accent: '#B45309' },
+  { id: 'dark',   label: 'כהה',   from: '#111827', to: '#374151', accent: '#4F46E5' },
+  { id: 'rose',   label: 'ורוד',   from: '#BE185D', to: '#EC4899', accent: '#BE185D' },
+]
 const STATUS_LABEL: Record<BookingStatus, string> = {
   pending_approval: '⏳ ממתין לאישור', confirmed: '✅ מאושר',
   rejected: '❌ נדחה', cancelled: '🚫 בוטל'
@@ -297,11 +305,38 @@ export function OfficeRentalAdmin({ uid }: Props) {
                   onChange={e => setSettings(s => ({ ...s, phone: e.target.value }))}
                   placeholder="050-0000000" />
               </div>
+              <div style={{ marginBottom: 12 }}>
+                <label style={label}>לוגו (קישור לתמונה)</label>
+                <input style={input} value={settings.logoUrl || ''}
+                  onChange={e => setSettings(s => ({ ...s, logoUrl: e.target.value }))}
+                  placeholder="https://... (קישור ישיר לתמונה)" />
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <label style={label}>סלוגן / תיאור (מופיע בכותרת)</label>
+                <input style={input} value={settings.slogan || ''}
+                  onChange={e => setSettings(s => ({ ...s, slogan: e.target.value }))}
+                  placeholder="משרדים מאובזרים להשכרה יומית" />
+              </div>
               <div style={{ marginBottom: 14 }}>
                 <label style={label}>פרטי תשלום (מספר ביט / פרטי בנק)</label>
                 <textarea style={{ ...input, minHeight: 80, resize: 'vertical' }} value={settings.paymentInfo}
                   onChange={e => setSettings(s => ({ ...s, paymentInfo: e.target.value }))}
                   placeholder="לדוגמה: ביט 050-0000000 או העברה בנקאית..." />
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={label}>🎨 פלטת צבעים לדף ההזמנות</label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
+                  {PALETTES.map(p => (
+                    <button key={p.id} type="button"
+                      onClick={() => setSettings(s => ({ ...s, palette: p.id }))}
+                      style={{
+                        background: `linear-gradient(135deg,${p.from},${p.to})`,
+                        border: (settings.palette || 'purple') === p.id ? '3px solid #1F2937' : '2px solid transparent',
+                        borderRadius: 10, height: 44, cursor: 'pointer', color: 'white',
+                        fontWeight: 700, fontSize: 13
+                      }}>{p.label}</button>
+                  ))}
+                </div>
               </div>
               <button onClick={saveSettings} style={{ ...btn('#6366F1'), width: '100%' }}>
                 {savingSettings ? 'שומר...' : '💾 שמירת הגדרות'}
