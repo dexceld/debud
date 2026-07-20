@@ -28,7 +28,7 @@ export type Booking = {
   renterEmail: string; renterPhone: string; startDate: string; endDate: string
   totalDays: number; totalAmount: number; status: BookingStatus; notes: string; createdAt: string
 }
-type Settings = { businessName: string; phone: string; paymentInfo: string; logoUrl?: string; slogan?: string; palette?: string }
+type Settings = { businessName: string; phone: string; paymentInfo: string; logoUrl?: string; slogan?: string; colorFrom?: string; colorTo?: string; colorAccent?: string }
 
 interface Props { uid: string }
 
@@ -324,19 +324,28 @@ export function OfficeRentalAdmin({ uid }: Props) {
                   placeholder="לדוגמה: ביט 050-0000000 או העברה בנקאית..." />
               </div>
               <div style={{ marginBottom: 16 }}>
-                <label style={label}>🎨 פלטת צבעים לדף ההזמנות</label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
-                  {PALETTES.map(p => (
-                    <button key={p.id} type="button"
-                      onClick={() => setSettings(s => ({ ...s, palette: p.id }))}
-                      style={{
-                        background: `linear-gradient(135deg,${p.from},${p.to})`,
-                        border: (settings.palette || 'purple') === p.id ? '3px solid #1F2937' : '2px solid transparent',
-                        borderRadius: 10, height: 44, cursor: 'pointer', color: 'white',
-                        fontWeight: 700, fontSize: 13
-                      }}>{p.label}</button>
+                <label style={label}>🎨 צבעי האתר</label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 10 }}>
+                  {[{ key: 'colorFrom' as const, label: 'כותרת (התחלה)', def: '#6366F1' },
+                    { key: 'colorTo'   as const, label: 'כותרת (סיום)',   def: '#8B5CF6' },
+                    { key: 'colorAccent' as const, label: 'כפתורים',        def: '#6366F1' }].map(({ key, label: lbl, def }) => (
+                    <div key={key}>
+                      <div style={{ fontSize: 12, color: '#6B7280', marginBottom: 4, textAlign: 'center' }}>{lbl}</div>
+                      <input type="color" value={settings[key] || def}
+                        onChange={e => setSettings(s => ({ ...s, [key]: e.target.value }))}
+                        style={{ width: '100%', height: 44, borderRadius: 8, border: '1.5px solid #E5E7EB', cursor: 'pointer', padding: 2, boxSizing: 'border-box' }} />
+                    </div>
                   ))}
                 </div>
+                <div style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 8 }}>קיצורי דרך מוכנים:</div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {PALETTES.map(p => (
+                    <button key={p.id} type="button" title={p.label}
+                      onClick={() => setSettings(s => ({ ...s, colorFrom: p.from, colorTo: p.to, colorAccent: p.accent }))}
+                      style={{ background: `linear-gradient(135deg,${p.from},${p.to})`, border: 'none', borderRadius: 8, height: 36, width: 52, cursor: 'pointer' }} />
+                  ))}
+                </div>
+                <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 6 }}>💡 כותרת התחלה עד סיום = gradient בכותרת. כפתורים = צבע הדגשה.</div>
               </div>
               <button onClick={saveSettings} style={{ ...btn('#6366F1'), width: '100%' }}>
                 {savingSettings ? 'שומר...' : '💾 שמירת הגדרות'}

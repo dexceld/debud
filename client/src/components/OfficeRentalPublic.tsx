@@ -167,7 +167,7 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
   const isDesktop = useIsDesktop()
   const [offices, setOffices] = useState<Office[]>([])
   const [bookings, setBookings] = useState<Booking[]>([])
-  const [settings, setSettings] = useState<{ businessName: string; phone: string; paymentInfo: string; logoUrl?: string; slogan?: string; palette?: string }>({ businessName: '', phone: '', paymentInfo: '' })
+  const [settings, setSettings] = useState<{ businessName: string; phone: string; paymentInfo: string; logoUrl?: string; slogan?: string; colorFrom?: string; colorTo?: string; colorAccent?: string }>({ businessName: '', phone: '', paymentInfo: '' })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -271,13 +271,14 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
     </div>
   )
 
-  const palette = PALETTES.find(p => p.id === (settings.palette || 'purple')) || PALETTES[0]
-  const accentColor = palette.accent
+  const headerFrom  = settings.colorFrom   || PALETTES[0].from
+  const headerTo    = settings.colorTo     || PALETTES[0].to
+  const accentColor = settings.colorAccent || PALETTES[0].accent
 
   return (
     <div style={{ background: '#F3F4F6', direction: 'rtl', fontFamily: 'system-ui, sans-serif' }}>
       {/* Header */}
-      <div style={{ background: `linear-gradient(135deg,${palette.from},${palette.to})`, color: 'white', position: 'sticky', top: 0, zIndex: 50 }}>
+      <div style={{ background: `linear-gradient(135deg,${headerFrom},${headerTo})`, color: 'white', position: 'sticky', top: 0, zIndex: 50 }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           {/* Left: back button */}
           <div style={{ minWidth: 72 }}>
