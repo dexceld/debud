@@ -302,7 +302,7 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
           {/* Right: logo */}
           <div style={{ minWidth: 100, display: 'flex', justifyContent: 'flex-end' }}>
             {settings.logoUrl
-              ? <img src={normalizeImageUrl(settings.logoUrl)} alt="logo" style={{ height: 64, maxWidth: 120, objectFit: 'contain', borderRadius: 10, background: 'rgba(255,255,255,0.15)', padding: 6 }} />
+              ? <img src={normalizeImageUrl(settings.logoUrl)} alt="logo" style={{ height: 72, maxWidth: 200, objectFit: 'contain' }} />
               : <div style={{ fontSize: 36 }}>🏢</div>
             }
           </div>
