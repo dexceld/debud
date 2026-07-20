@@ -286,11 +286,102 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
 
   const spaceTypes = Array.from(new Set(offices.filter(o => o.officeType).map(o => o.officeType!)))
   const sp = { width: 22, height: 22, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: '1.5', strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+  const il = { fill: 'none', stroke: 'currentColor', strokeWidth: '1.6', strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
   const TYPE_SVGS: Record<string, React.ReactElement> = {
-    '\u05d4\u05db\u05dc':              <svg {...sp}><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,
-    '\u05de\u05e9\u05e8\u05d3 \u05e4\u05e8\u05d8\u05d9':    <svg {...sp}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
-    '\u05e2\u05de\u05d3\u05ea \u05e2\u05d1\u05d5\u05d3\u05d4':  <svg {...sp}><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>,
-    '\u05d7\u05d3\u05e8 \u05d9\u05e9\u05d9\u05d1\u05d5\u05ea': <svg {...sp}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+    '\u05d4\u05db\u05dc': <svg {...sp}><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,
+
+    '\u05de\u05e9\u05e8\u05d3 \u05e4\u05e8\u05d8\u05d9': (
+      <svg width="48" height="38" viewBox="0 0 96 76" {...il}>
+        <rect x="2" y="2" width="78" height="62" rx="2"/>
+        <line x1="2" y1="26" x2="26" y2="26"/>
+        <rect x="5" y="4" width="5" height="22" rx="0.5"/>
+        <rect x="11" y="6" width="5" height="20" rx="0.5"/>
+        <rect x="17" y="4" width="6" height="22" rx="0.5"/>
+        <rect x="50" y="5" width="26" height="24" rx="1"/>
+        <line x1="63" y1="5" x2="63" y2="29"/>
+        <line x1="50" y1="17" x2="76" y2="17"/>
+        <path d="M50 5 C54 11 52 18 50 24"/>
+        <path d="M76 5 C72 11 74 18 76 24"/>
+        <rect x="20" y="46" width="50" height="4" rx="1"/>
+        <line x1="25" y1="50" x2="25" y2="62"/>
+        <line x1="65" y1="50" x2="65" y2="62"/>
+        <rect x="28" y="39" width="30" height="7" rx="1"/>
+        <line x1="26" y1="46" x2="58" y2="46"/>
+        <ellipse cx="45" cy="56" rx="9" ry="3.5"/>
+        <line x1="45" y1="59.5" x2="45" y2="67"/>
+        <line x1="38" y1="67" x2="52" y2="67"/>
+        <circle cx="36" cy="69" r="2"/>
+        <circle cx="45" cy="69" r="2"/>
+        <circle cx="54" cy="69" r="2"/>
+        <rect x="6" y="52" width="10" height="12" rx="2"/>
+        <path d="M11 52 C9 47 4 44 5 49"/>
+        <path d="M11 52 C13 47 18 44 17 49"/>
+        <path d="M11 52 C7 48 3 45 5 42"/>
+        <rect x="39" y="67" width="12" height="9" rx="2"/>
+        <path d="M41 67 C41 64 49 64 49 67"/>
+        <circle cx="45" cy="72" r="1.8"/>
+      </svg>
+    ),
+
+    '\u05e2\u05de\u05d3\u05ea \u05e2\u05d1\u05d5\u05d3\u05d4': (
+      <svg width="48" height="38" viewBox="0 0 96 76" {...il}>
+        <line x1="2" y1="8" x2="54" y2="8"/>
+        <line x1="62" y1="4" x2="88" y2="4"/>
+        <line x1="75" y1="4" x2="75" y2="16"/>
+        <line x1="18" y1="8" x2="18" y2="18"/>
+        <line x1="40" y1="8" x2="40" y2="15"/>
+        <polygon points="75,16 77,21 82,21 78,24.5 79.5,29.5 75,26.5 70.5,29.5 72,24.5 68,21 73,21"/>
+        <rect x="8" y="42" width="80" height="5" rx="1.5"/>
+        <line x1="16" y1="47" x2="16" y2="61"/>
+        <line x1="11" y1="61" x2="21" y2="61"/>
+        <line x1="80" y1="47" x2="80" y2="61"/>
+        <line x1="75" y1="61" x2="85" y2="61"/>
+        <rect x="12" y="34" width="22" height="8" rx="1.5"/>
+        <line x1="15" y1="37.5" x2="31" y2="37.5"/>
+        <line x1="15" y1="40" x2="27" y2="40"/>
+        <rect x="38" y="30" width="28" height="12" rx="1.5"/>
+        <path d="M36 42 L68 42"/>
+        <rect x="70" y="35" width="9" height="7" rx="1"/>
+        <path d="M79 37.5 C83 37.5 83 42 79 42"/>
+        <path d="M72 33.5 C72.5 31 76 31 76.5 33.5"/>
+        <ellipse cx="48" cy="56" rx="9" ry="3.5"/>
+        <line x1="48" y1="59.5" x2="48" y2="67"/>
+        <line x1="40" y1="67" x2="56" y2="67"/>
+        <circle cx="38" cy="69" r="2"/>
+        <circle cx="44" cy="70" r="2"/>
+        <circle cx="52" cy="70" r="2"/>
+        <circle cx="58" cy="69" r="2"/>
+        <circle cx="48" cy="69.5" r="2"/>
+      </svg>
+    ),
+
+    '\u05d7\u05d3\u05e8 \u05d9\u05e9\u05d9\u05d1\u05d5\u05ea': (
+      <svg width="48" height="38" viewBox="0 0 96 76" {...il}>
+        <rect x="2" y="2" width="92" height="40" rx="2"/>
+        <circle cx="14" cy="19" r="9"/>
+        <line x1="14" y1="12" x2="14" y2="19"/>
+        <line x1="14" y1="19" x2="20" y2="19"/>
+        <rect x="28" y="8" width="38" height="24" rx="2"/>
+        <rect x="30" y="10" width="34" height="20" rx="1"/>
+        <circle cx="47" cy="6" r="1.5"/>
+        <rect x="72" y="8" width="18" height="24" rx="1.5"/>
+        <line x1="74" y1="13" x2="88" y2="13"/>
+        <line x1="74" y1="17" x2="86" y2="17"/>
+        <line x1="74" y1="21" x2="87" y2="21"/>
+        <ellipse cx="48" cy="59" rx="38" ry="13"/>
+        <rect x="17" y="42" width="10" height="6" rx="2.5"/>
+        <rect x="32" y="41" width="10" height="6" rx="2.5"/>
+        <rect x="47" y="40" width="10" height="6" rx="2.5"/>
+        <rect x="62" y="41" width="10" height="6" rx="2.5"/>
+        <rect x="17" y="67" width="10" height="6" rx="2.5"/>
+        <rect x="32" y="68" width="10" height="6" rx="2.5"/>
+        <rect x="47" y="68" width="10" height="6" rx="2.5"/>
+        <rect x="62" y="67" width="10" height="6" rx="2.5"/>
+        <rect x="4" y="54" width="6" height="10" rx="2.5"/>
+        <rect x="86" y="54" width="6" height="10" rx="2.5"/>
+      </svg>
+    ),
+
     '\u05d7\u05dc\u05dc \u05e2\u05d1\u05d5\u05d3\u05d4 \u05de\u05e9\u05d5\u05ea\u05e3': <svg {...sp}><rect x="1" y="4" width="14" height="16" rx="2"/><path d="M15 9h4a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-4M8 8v2M8 12v2M8 16v2"/></svg>,
     '\u05e1\u05d8\u05d5\u05d3\u05d9\u05d5':        <svg {...sp}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
     '\u05d7\u05d3\u05e8 \u05d4\u05d3\u05e8\u05db\u05d4':   <svg {...sp}><path d="M2 3h20v13H2z"/><path d="M8 21h8M12 16v5"/></svg>,
