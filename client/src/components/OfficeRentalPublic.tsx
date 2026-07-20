@@ -297,7 +297,7 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
   }
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#F7F8FA', direction: 'rtl', fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif" }}>
+    <div style={{ minHeight: '100dvh', background: '#F7F8FA', direction: 'rtl', fontFamily: "Tahoma, 'Segoe UI', sans-serif" }}>
 
       {/* \u2500\u2500 Minimal White Header \u2500\u2500 */}
       <header style={{ background: 'white', borderBottom: '1px solid #F0F0F0', position: 'sticky', top: 0, zIndex: 100 }}>
