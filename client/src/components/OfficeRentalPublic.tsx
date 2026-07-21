@@ -290,7 +290,7 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
     '\u05d4\u05db\u05dc': <svg {...sp}><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,
 
     '\u05de\u05e9\u05e8\u05d3 \u05e4\u05e8\u05d8\u05d9': (
-      <svg width="54" height="50" viewBox="0 0 82 76" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="54" height="50" viewBox="0 0 82 76" fill="none" stroke="#2D3748" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="2" width="66" height="60" rx="2"/>
         <line x1="2" y1="22" x2="22" y2="22"/>
         <rect x="4" y="3" width="4" height="19" rx="0.5"/>
@@ -323,7 +323,7 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
     ),
 
     '\u05e2\u05de\u05d3\u05ea \u05e2\u05d1\u05d5\u05d3\u05d4': (
-      <svg width="54" height="50" viewBox="0 0 82 76" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="54" height="50" viewBox="0 0 82 76" fill="none" stroke="#2D3748" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <line x1="2" y1="8" x2="50" y2="8"/>
         <line x1="56" y1="4" x2="78" y2="4"/>
         <line x1="67" y1="4" x2="67" y2="16"/>
@@ -355,7 +355,7 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
     ),
 
     '\u05d7\u05d3\u05e8 \u05d9\u05e9\u05d9\u05d1\u05d5\u05ea': (
-      <svg width="54" height="50" viewBox="0 0 82 76" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="54" height="50" viewBox="0 0 82 76" fill="none" stroke="#2D3748" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="2" width="78" height="38" rx="2"/>
         <circle cx="14" cy="19" r="9"/>
         <line x1="14" y1="12" x2="14" y2="19"/>
@@ -382,7 +382,7 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
     ),
 
     '\u05d7\u05dc\u05dc \u05e2\u05d1\u05d5\u05d3\u05d4 \u05de\u05e9\u05d5\u05ea\u05e3': (
-      <svg width="54" height="50" viewBox="0 0 82 76" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="54" height="50" viewBox="0 0 82 76" fill="none" stroke="#2D3748" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="2" width="78" height="72" rx="2"/>
         <line x1="41" y1="2" x2="41" y2="74"/>
         <line x1="2" y1="38" x2="80" y2="38"/>
@@ -467,12 +467,12 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
                             cursor: 'pointer', textAlign: 'right',
                             display: 'flex', alignItems: 'center', gap: 16, fontFamily: 'inherit'
                           }}>
-                          <span style={{ color: '#BFC8D4', flexShrink: 0 }}>
+                          <span style={{ color: '#2D3748', flexShrink: 0 }}>
                             {TYPE_SVGS[t] || TYPE_SVGS['\u05d4\u05db\u05dc']}
                           </span>
                           <div>
                             <div style={{ fontWeight: 600, fontSize: 14, color: '#111827', marginBottom: 2 }}>{t}</div>
-                            <div style={{ fontSize: 12, color: filterType === t ? accentColor : '#9CA3AF' }}>
+                            <div style={{ fontSize: 12, color: '#374151' }}>
                               {TYPE_DESC[t] || ''}
                             </div>
                           </div>
