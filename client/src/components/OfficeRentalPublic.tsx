@@ -35,11 +35,17 @@ function getDatesInRange(start: string, end: string): string[] {
   return dates
 }
 
-function buildBookedSet(bookings: Booking[], officeId: string): Set<string> {
-  const set = new Set<string>()
-  bookings.filter(b => b.officeId === officeId && (b.status === 'confirmed' || b.status === 'pending_approval' || b.status === 'pending_payment' || b.status === 'paid'))
-    .forEach(b => getDatesInRange(b.startDate, b.endDate).forEach(d => set.add(d)))
-  return set
+function buildDateSets(bookings: Booking[], officeId: string) {
+  const pending   = new Set<string>()
+  const confirmed = new Set<string>()
+  bookings
+    .filter(b => b.officeId === officeId && b.status !== 'rejected' && b.status !== 'cancelled' && b.status !== 'waitlist')
+    .forEach(b => {
+      const dates = getDatesInRange(b.startDate, b.endDate)
+      if (b.status === 'confirmed' || b.status === 'paid') dates.forEach(d => confirmed.add(d))
+      else dates.forEach(d => pending.add(d))
+    })
+  return { pending, confirmed }
 }
 
 // ─── Image Gallery ────────────────────────────────────────────────────────────
@@ -92,12 +98,15 @@ function OfficeImageGallery({ images, videoUrl }: { images: string[]; videoUrl?:
 
 // ─── Calendar ─────────────────────────────────────────────────────────────────
 function Calendar({
-  bookedDates, selectedStart, selectedEnd, onSelect, color
+  pendingDates, confirmedDates, selectedStart, selectedEnd, onSelect, color, onWaitlist
 }: {
-  bookedDates: Set<string>; selectedStart: string | null; selectedEnd: string | null
+  pendingDates: Set<string>; confirmedDates: Set<string>
+  selectedStart: string | null; selectedEnd: string | null
   onSelect: (d: string) => void; color: string
+  onWaitlist: (d: string) => void
 }) {
   const [monthOffset, setMonthOffset] = useState(0)
+  const [clickedBooked, setClickedBooked] = useState<string | null>(null)
   const today = fmt(new Date())
   const baseDate = new Date()
   baseDate.setDate(1)
@@ -110,20 +119,24 @@ function Calendar({
   const days = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש']
 
   const getStyle = (dateStr: string): React.CSSProperties => {
-    const isBooked = bookedDates.has(dateStr)
-    const isPast = dateStr < today
-    const isStart = dateStr === selectedStart
-    const isEnd = dateStr === selectedEnd
-    const inRange = selectedStart && selectedEnd && dateStr > selectedStart && dateStr < selectedEnd
-    if (isPast || isBooked) return {
-      background: isBooked ? '#FEE2E2' : '#F3F4F6',
-      color: isBooked ? '#DC2626' : '#D1D5DB',
-      cursor: 'not-allowed', fontWeight: isBooked ? 700 : 400
-    }
-    if (isStart || isEnd) return { background: color, color: 'white', fontWeight: 800 }
-    if (inRange) return { background: color + '30', color: '#1F2937', fontWeight: 600 }
+    const isPending  = pendingDates.has(dateStr)
+    const isReserved = confirmedDates.has(dateStr)
+    const isPast     = dateStr < today
+    const isStart    = dateStr === selectedStart
+    const isEnd      = dateStr === selectedEnd
+    const inRange    = selectedStart && selectedEnd && dateStr > selectedStart && dateStr < selectedEnd
+    if (isPast)            return { background: '#F3F4F6', color: '#D1D5DB', cursor: 'not-allowed' }
+    if (isReserved)        return { background: '#BFDBFE', color: '#1E40AF', cursor: 'pointer', fontWeight: 700 }
+    if (isPending)         return { background: '#FEF3C7', color: '#92400E', cursor: 'pointer', fontWeight: 700 }
+    if (isStart || isEnd)  return { background: color, color: 'white', fontWeight: 800 }
+    if (inRange)           return { background: color + '30', color: '#1F2937', fontWeight: 600 }
     return { background: 'white', color: '#1F2937', cursor: 'pointer' }
   }
+
+  const dot = (bg: string, border?: string): React.CSSProperties => ({
+    display: 'inline-block', width: 12, height: 12, borderRadius: 3,
+    background: bg, marginLeft: 4, ...(border ? { border } : {})
+  })
 
   return (
     <div>
@@ -140,22 +153,52 @@ function Calendar({
         {Array.from({ length: daysInMonth }, (_, i) => {
           const day = i + 1
           const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-          const isBooked = bookedDates.has(dateStr)
-          const isPast = dateStr < today
-          const s = getStyle(dateStr)
+          const isPending  = pendingDates.has(dateStr)
+          const isReserved = confirmedDates.has(dateStr)
+          const isPast     = dateStr < today
+          const isBooked   = isPending || isReserved
           return (
-            <div key={day} onClick={() => !isPast && !isBooked && onSelect(dateStr)}
-              style={{ padding: '7px 2px', borderRadius: 8, fontSize: 13, transition: 'all 0.1s', ...s }}>
+            <div key={day}
+              title={isReserved ? 'משוריין – לחץ להמתנה' : isPending ? 'תפוס – לחץ להמתנה' : 'פנוי'}
+              onClick={() => {
+                if (isPast) return
+                if (isBooked) { setClickedBooked(dateStr); return }
+                setClickedBooked(null); onSelect(dateStr)
+              }}
+              style={{ padding: '7px 2px', borderRadius: 8, fontSize: 13, transition: 'all 0.1s', ...getStyle(dateStr) }}>
               {day}
             </div>
           )
         })}
       </div>
-      <div style={{ display: 'flex', gap: 12, marginTop: 10, fontSize: 12, color: '#6B7280' }}>
-        <span><span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 3, background: '#FEE2E2', marginLeft: 4 }} />תפוס</span>
-        <span><span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 3, background: color, marginLeft: 4 }} />בחור</span>
-        <span><span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 3, background: 'white', border: '1px solid #E5E7EB', marginLeft: 4 }} />פנוי</span>
+
+      {/* Legend */}
+      <div style={{ display: 'flex', gap: 12, marginTop: 10, fontSize: 12, color: '#6B7280', flexWrap: 'wrap', direction: 'rtl' }}>
+        <span><span style={dot('white', '1px solid #E5E7EB')} />פנוי</span>
+        <span><span style={dot('#FEF3C7')} />תפוס</span>
+        <span><span style={dot('#BFDBFE')} />משוריין</span>
+        <span><span style={dot(color)} />הבחירה שלך</span>
       </div>
+
+      {/* Waitlist prompt */}
+      {clickedBooked && (
+        <div style={{ marginTop: 12, background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 10, padding: '12px 14px', direction: 'rtl' }}>
+          <div style={{ fontWeight: 700, fontSize: 13, color: '#92400E', marginBottom: 4 }}>
+            {confirmedDates.has(clickedBooked) ? '🔵 התאריך משוריין' : '🟡 התאריך תפוס'}: {clickedBooked}
+          </div>
+          <div style={{ fontSize: 12, color: '#78350F', marginBottom: 10 }}>רוצה/ת להירשם לרשימת המתנה לתאריך זה?</div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => { onWaitlist(clickedBooked); setClickedBooked(null) }}
+              style={{ flex: 1, background: '#F59E0B', color: 'white', border: 'none', borderRadius: 8, padding: '8px 12px', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
+              ⏱️ הצטרף/י להמתנה
+            </button>
+            <button onClick={() => setClickedBooked(null)}
+              style={{ background: 'white', color: '#6B7280', border: '1px solid #E5E7EB', borderRadius: 8, padding: '8px 12px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
+              ביטול
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -191,6 +234,10 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
   }, [])
   const [bookingId, setBookingId] = useState<string | null>(null)
   const [submittedRef, setSubmittedRef] = useState<string | null>(null)
+  const [waitlistDate, setWaitlistDate] = useState<string | null>(null)
+  const [waitlistName, setWaitlistName] = useState('')
+  const [waitlistPhone, setWaitlistPhone] = useState('')
+  const [waitlistSending, setWaitlistSending] = useState(false)
 
   // ── Browser history: replace initial entry and listen for back ──────────────
   useEffect(() => {
@@ -240,9 +287,9 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
     } else {
       if (date < selStart) { setSelStart(date); setSelEnd(null) }
       else {
-        const bookedDates = buildBookedSet(bookings, selectedOffice!.id)
+        const { pending, confirmed } = buildDateSets(bookings, selectedOffice!.id)
         const range = getDatesInRange(selStart, date)
-        if (range.some(d => bookedDates.has(d))) {
+        if (range.some(d => pending.has(d) || confirmed.has(d))) {
           alert('חלק מהתאריכים שבחרת כבר תפוסים. אנא בחר טווח אחר.')
           return
         }
@@ -605,11 +652,51 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
                 <h3 style={{ margin: '0 0 12px', fontSize: 15, fontWeight: 800, color: '#1F2937' }}>
                   {!selStart ? 'בחרו תאריך התחלה' : !selEnd ? 'בחרו תאריך סיום' : `${selStart} → ${selEnd}`}
                 </h3>
-                <Calendar
-                  bookedDates={buildBookedSet(bookings, selectedOffice.id)}
-                  selectedStart={selStart} selectedEnd={selEnd}
-                  onSelect={handleDateSelect} color={selectedOffice.color}
-                />
+                {(() => {
+                  const { pending, confirmed } = buildDateSets(bookings, selectedOffice.id)
+                  return (
+                    <Calendar
+                      pendingDates={pending} confirmedDates={confirmed}
+                      selectedStart={selStart} selectedEnd={selEnd}
+                      onSelect={handleDateSelect} color={selectedOffice.color}
+                      onWaitlist={d => { setWaitlistDate(d); setWaitlistName(''); setWaitlistPhone('') }}
+                    />
+                  )
+                })()}
+                {waitlistDate && (
+                  <div style={{ marginTop: 16, background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 12, padding: '16px', direction: 'rtl' }}>
+                    <div style={{ fontWeight: 800, fontSize: 14, color: '#92400E', marginBottom: 8 }}>⏱️ רשימת המתנה ל-{waitlistDate}</div>
+                    <input style={{ ...inputStyle, marginBottom: 8 }} placeholder="שם מלא" value={waitlistName} onChange={e => setWaitlistName(e.target.value)} />
+                    <input style={{ ...inputStyle, marginBottom: 12 }} placeholder="טלפון" value={waitlistPhone} onChange={e => setWaitlistPhone(e.target.value)} />
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button disabled={waitlistSending} onClick={async () => {
+                        if (!waitlistName || !waitlistPhone) { alert('נא למלא שם וטלפון'); return }
+                        setWaitlistSending(true)
+                        try {
+                          const now = new Date()
+                          const ref = `WL-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${Math.random().toString(36).slice(2,6).toUpperCase()}`
+                          await addDoc(collection(db, 'officeSpaces', ownerId, 'bookings'), {
+                            officeId: selectedOffice.id, officeName: selectedOffice.name,
+                            renterName: waitlistName, renterPhone: waitlistPhone, renterEmail: '',
+                            startDate: waitlistDate, endDate: waitlistDate,
+                            totalDays: 1, totalAmount: 0,
+                            notes: 'בקשת המתנה', status: 'waitlist', bookingRef: ref,
+                            createdAt: new Date().toISOString()
+                          })
+                          setWaitlistDate(null); setWaitlistName(''); setWaitlistPhone('')
+                          alert('נרשמת/ה לרשימת המתנה! נעדכן אותך אם יתפנה מקום.')
+                        } catch { alert('שגיאה. נסה שנית.') }
+                        finally { setWaitlistSending(false) }
+                      }} style={{ flex: 1, background: '#F59E0B', color: 'white', border: 'none', borderRadius: 8, padding: '10px', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>
+                        {waitlistSending ? '...' : 'שלח בקשת המתנה'}
+                      </button>
+                      <button onClick={() => setWaitlistDate(null)}
+                        style={{ background: 'white', color: '#6B7280', border: '1px solid #E5E7EB', borderRadius: 8, padding: '10px 16px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                        ביטול
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
               {selStart && (
                 <div style={{ ...cardStyle, background: '#EEF2FF' }}>

@@ -21,7 +21,7 @@ export type Office = {
   capacity: number; amenities: string; color: string; isActive: boolean
   images?: string[]; videoUrl?: string; officeType?: string
 }
-export type BookingStatus = 'pending_approval' | 'pending_payment' | 'confirmed' | 'paid' | 'rejected' | 'cancelled'
+export type BookingStatus = 'pending_approval' | 'pending_payment' | 'confirmed' | 'paid' | 'rejected' | 'cancelled' | 'waitlist'
 export type Booking = {
   id: string; officeId: string; officeName: string; renterName: string
   renterEmail: string; renterPhone: string; startDate: string; endDate: string
@@ -49,7 +49,8 @@ const STATUS_LABEL: Record<BookingStatus, string> = {
   confirmed:        '✅ שולם ומאושר',
   paid:             '💰 שולם',
   rejected:         '❌ נדחה',
-  cancelled:        '🚫 בוטל'
+  cancelled:        '🚫 בוטל',
+  waitlist:         '⏱️ בקשת המתנה'
 }
 const STATUS_BG: Record<BookingStatus, string> = {
   pending_approval: '#FEF3C7',
@@ -57,7 +58,8 @@ const STATUS_BG: Record<BookingStatus, string> = {
   confirmed:        '#D1FAE5',
   paid:             '#D1FAE5',
   rejected:         '#FEE2E2',
-  cancelled:        '#F3F4F6'
+  cancelled:        '#F3F4F6',
+  waitlist:         '#FEF9C3'
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -284,7 +286,7 @@ export function OfficeRentalAdmin({ uid }: Props) {
         {tab === 'bookings' && (
           <div>
             <div style={{ display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
-              {(['all', 'pending_approval', 'pending_payment', 'confirmed', 'rejected'] as const).map(f => (
+              {(['all', 'pending_approval', 'pending_payment', 'waitlist', 'confirmed', 'rejected'] as const).map(f => (
                 <button key={f} onClick={() => setBookingFilter(f)} style={{
                   padding: '6px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
                   fontWeight: 700, fontSize: 12,
@@ -310,6 +312,7 @@ export function OfficeRentalAdmin({ uid }: Props) {
             {filteredBookings.map(b => {
               const borderColor = b.status === 'confirmed' || b.status === 'paid' ? '#10B981'
                 : b.status === 'pending_payment' ? '#3B82F6'
+                : b.status === 'waitlist' ? '#D97706'
                 : b.status === 'rejected' ? '#EF4444' : '#F59E0B'
               return (
                 <div key={b.id} style={{ ...card, borderRight: `4px solid ${borderColor}` }}>
@@ -330,6 +333,21 @@ export function OfficeRentalAdmin({ uid }: Props) {
                     {b.renterEmail && <div>✉️ {b.renterEmail}</div>}
                     {b.notes && <div>📝 {b.notes}</div>}
                   </div>
+
+                  {/* waitlist actions */}
+                  {b.status === 'waitlist' && (
+                    <div style={{ marginTop: 10 }}>
+                      <div style={{ fontSize: 12, color: '#78350F', marginBottom: 8, background: '#FEF3C7', borderRadius: 6, padding: '6px 10px' }}>
+                        האדם מבקש/ת מקום במקרה שיתפנה תאריך {b.startDate}
+                      </div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button onClick={() => sendWhatsApp(b.renterPhone, `שלום ${b.renterName}! התאריך ${b.startDate} ל-${b.officeName} התפנה. האם תרצה/י להזמין?`)}
+                          style={{ ...btn('#10B981'), flex: 1 }}>📲 צור קשר (ווצאפ)</button>
+                        <button onClick={() => updateBookingStatus(b.id, 'cancelled')}
+                          style={{ ...btn('#F3F4F6', '#6B7280'), flex: 1 }}>🗑️ הסר</button>
+                      </div>
+                    </div>
+                  )}
 
                   {/* pending_approval actions */}
                   {b.status === 'pending_approval' && (
