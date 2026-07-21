@@ -191,6 +191,26 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
   }, [])
   const [bookingId, setBookingId] = useState<string | null>(null)
 
+  // ── Browser history: replace initial entry and listen for back ──────────────
+  useEffect(() => {
+    history.replaceState({ step: 'offices' }, '')
+  }, [])
+  useEffect(() => {
+    const handler = (e: PopStateEvent) => {
+      const s = (e.state?.step as Step) ?? 'offices'
+      setStep(s)
+      if (s === 'offices') {
+        setSelectedOffice(null); setSelStart(null); setSelEnd(null)
+        setForm({ name: '', phone: '', email: '', notes: '' })
+      } else if (s === 'calendar') {
+        setSelStart(null); setSelEnd(null)
+      }
+    }
+    window.addEventListener('popstate', handler)
+    return () => window.removeEventListener('popstate', handler)
+  }, [])
+  const navigateTo = (s: Step) => { history.pushState({ step: s }, ''); setStep(s) }
+
   useEffect(() => {
     if (!ownerId) return
     Promise.all([
@@ -253,7 +273,7 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
         createdAt: new Date().toISOString()
       })
       setBookingId(docRef.id)
-      setStep('confirm')
+      navigateTo('confirm')
     } catch {
       alert('שגיאה בשמירת ההזמנה. אנא נסה שנית.')
     } finally {
@@ -489,10 +509,7 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
               </div>
             )}
             {step !== 'offices' && step !== 'confirm' && (
-              <button onClick={() => {
-                if (step === 'form') setStep('calendar')
-                else if (step === 'calendar') { setStep('offices'); setSelectedOffice(null); setSelStart(null); setSelEnd(null) }
-              }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 14, color: '#6B7280', fontFamily: 'inherit', direction: 'rtl' }}>
+              <button onClick={() => history.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 14, color: '#6B7280', fontFamily: 'inherit', direction: 'rtl' }}>
                 {'← חזור'}
               </button>
             )}
@@ -507,7 +524,7 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
           <div style={{ display: 'grid', gridTemplateColumns: isDesktop ? 'repeat(3,1fr)' : '1fr', gap: 28 }}>
             {offices.filter(o => filterType === 'הכל' || o.officeType === filterType).map(o => (
               <div key={o.id}
-                onClick={() => { setSelectedOffice(o); setStep('calendar') }}
+                onClick={() => { setSelectedOffice(o); navigateTo('calendar') }}
                 onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 10px 40px rgba(0,0,0,0.13)')}
                 onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 2px 16px rgba(0,0,0,0.07)')}
                 style={{ background: 'white', borderRadius: 18, overflow: 'hidden', cursor: 'pointer',
@@ -584,7 +601,7 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
                 </div>
               )}
               {selStart && (
-                <button onClick={() => setStep('form')} style={{
+                <button onClick={() => navigateTo('form')} style={{
                   width: '100%', padding: '14px', borderRadius: 12, background: '#6366F1',
                   color: 'white', border: 'none', fontWeight: 800, fontSize: 16, cursor: 'pointer'
                 }}>
@@ -676,7 +693,7 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
                 📞 התקשר אלינו
               </a>
             )}
-            <button onClick={() => { setStep('offices'); setSelectedOffice(null); setSelStart(null); setSelEnd(null); setForm({ name: '', phone: '', email: '', notes: '' }) }}
+            <button onClick={() => { navigateTo('offices'); setSelectedOffice(null); setSelStart(null); setSelEnd(null); setForm({ name: '', phone: '', email: '', notes: '' }) }}
               style={{ background: '#F3F4F6', border: 'none', color: '#374151', borderRadius: 12, padding: '12px 24px', fontWeight: 700, cursor: 'pointer', marginTop: 12, width: '100%' }}>
               הזמן משרד נוסף
             </button>
