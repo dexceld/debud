@@ -289,11 +289,122 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
   const TYPE_SVGS: Record<string, React.ReactElement> = {
     '\u05d4\u05db\u05dc': <svg {...sp}><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,
 
-    '\u05de\u05e9\u05e8\u05d3 \u05e4\u05e8\u05d8\u05d9': <img src="https://drive.google.com/thumbnail?id=14P4RfPIp9y78UjrR6HstSiEj2zm-9EMf&sz=w200" alt="" style={{ width: 52, height: 42, objectFit: 'contain' }}/>,
-    '\u05e2\u05de\u05d3\u05ea \u05e2\u05d1\u05d5\u05d3\u05d4': <img src="https://drive.google.com/thumbnail?id=1EOTM1NfhK4NZ058WcponLj2f_PH2TnnT&sz=w200" alt="" style={{ width: 52, height: 42, objectFit: 'contain' }}/>,
-    '\u05d7\u05d3\u05e8 \u05d9\u05e9\u05d9\u05d1\u05d5\u05ea': <img src="https://drive.google.com/thumbnail?id=1W7XTBvRDMu-WvqSfK1sBZnywGLhoXX0R&sz=w200" alt="" style={{ width: 52, height: 42, objectFit: 'contain' }}/>,
+    '\u05de\u05e9\u05e8\u05d3 \u05e4\u05e8\u05d8\u05d9': (
+      <svg width="54" height="50" viewBox="0 0 82 76" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="2" width="66" height="60" rx="2"/>
+        <line x1="2" y1="22" x2="22" y2="22"/>
+        <rect x="4" y="3" width="4" height="19" rx="0.5"/>
+        <rect x="9" y="5" width="3.5" height="17" rx="0.5"/>
+        <rect x="14" y="3" width="5" height="19" rx="0.5"/>
+        <rect x="42" y="3" width="23" height="21" rx="1"/>
+        <line x1="53.5" y1="3" x2="53.5" y2="24"/>
+        <line x1="42" y1="13.5" x2="65" y2="13.5"/>
+        <path d="M42 3 C46 8 44 15 42 19"/>
+        <path d="M65 3 C61 8 63 15 65 19"/>
+        <rect x="4" y="51" width="9" height="11" rx="2"/>
+        <path d="M8.5 51 C6 46 2 43 3 48"/>
+        <path d="M8.5 51 C11 46 15 43 14 48"/>
+        <path d="M8.5 51 C5 47 1 44 3 41"/>
+        <rect x="17" y="43" width="48" height="4" rx="1"/>
+        <line x1="22" y1="47" x2="22" y2="58"/>
+        <line x1="61" y1="47" x2="61" y2="58"/>
+        <rect x="26" y="36" width="26" height="7" rx="1"/>
+        <line x1="24" y1="43" x2="54" y2="43"/>
+        <ellipse cx="39" cy="53" rx="8" ry="3"/>
+        <line x1="39" y1="56" x2="39" y2="64"/>
+        <line x1="33" y1="64" x2="45" y2="64"/>
+        <circle cx="31" cy="66" r="2"/>
+        <circle cx="39" cy="66.5" r="2"/>
+        <circle cx="47" cy="66" r="2"/>
+        <rect x="33" y="64" width="12" height="9" rx="2"/>
+        <path d="M34.5 64 C34.5 61 44.5 61 44.5 64"/>
+        <circle cx="39" cy="68" r="1.5"/>
+      </svg>
+    ),
 
-    '\u05d7\u05dc\u05dc \u05e2\u05d1\u05d5\u05d3\u05d4 \u05de\u05e9\u05d5\u05ea\u05e3': <svg {...sp}><rect x="1" y="4" width="14" height="16" rx="2"/><path d="M15 9h4a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-4M8 8v2M8 12v2M8 16v2"/></svg>,
+    '\u05e2\u05de\u05d3\u05ea \u05e2\u05d1\u05d5\u05d3\u05d4': (
+      <svg width="54" height="50" viewBox="0 0 82 76" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="2" y1="8" x2="50" y2="8"/>
+        <line x1="56" y1="4" x2="78" y2="4"/>
+        <line x1="67" y1="4" x2="67" y2="16"/>
+        <line x1="15" y1="8" x2="15" y2="18"/>
+        <line x1="36" y1="8" x2="36" y2="15"/>
+        <polygon points="67,16 69,21 74,21 70.5,24 72,29 67,26 62,29 63.5,24 60,21 65,21"/>
+        <rect x="4" y="38" width="74" height="5" rx="1.5"/>
+        <line x1="12" y1="43" x2="12" y2="56"/>
+        <line x1="7" y1="56" x2="17" y2="56"/>
+        <line x1="70" y1="43" x2="70" y2="56"/>
+        <line x1="65" y1="56" x2="75" y2="56"/>
+        <rect x="8" y="29" width="20" height="9" rx="1.5"/>
+        <line x1="11" y1="33" x2="25" y2="33"/>
+        <line x1="11" y1="36" x2="22" y2="36"/>
+        <rect x="32" y="26" width="26" height="12" rx="1.5"/>
+        <line x1="30" y1="38" x2="60" y2="38"/>
+        <rect x="62" y="32" width="9" height="6" rx="1"/>
+        <path d="M71 34 C75 34 75 38 71 38"/>
+        <path d="M64 30 C64.5 27.5 68 27.5 68.5 30"/>
+        <ellipse cx="41" cy="50" rx="9" ry="3.5"/>
+        <line x1="41" y1="53.5" x2="41" y2="62"/>
+        <line x1="33" y1="62" x2="49" y2="62"/>
+        <circle cx="31" cy="64" r="2"/>
+        <circle cx="37" cy="65" r="2"/>
+        <circle cx="45" cy="65" r="2"/>
+        <circle cx="51" cy="64" r="2"/>
+        <circle cx="41" cy="64.5" r="2"/>
+      </svg>
+    ),
+
+    '\u05d7\u05d3\u05e8 \u05d9\u05e9\u05d9\u05d1\u05d5\u05ea': (
+      <svg width="54" height="50" viewBox="0 0 82 76" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="2" width="78" height="38" rx="2"/>
+        <circle cx="14" cy="19" r="9"/>
+        <line x1="14" y1="12" x2="14" y2="19"/>
+        <line x1="14" y1="19" x2="20" y2="19"/>
+        <rect x="26" y="7" width="34" height="22" rx="2"/>
+        <rect x="28" y="9" width="30" height="18" rx="1"/>
+        <circle cx="43" cy="5.5" r="1.5"/>
+        <rect x="64" y="7" width="14" height="22" rx="1.5"/>
+        <line x1="66" y1="12" x2="76" y2="12"/>
+        <line x1="66" y1="16" x2="75" y2="16"/>
+        <line x1="66" y1="20" x2="76" y2="20"/>
+        <ellipse cx="41" cy="57" rx="34" ry="13"/>
+        <rect x="14" y="38" width="10" height="7" rx="3"/>
+        <rect x="29" y="37" width="10" height="7" rx="3"/>
+        <rect x="44" y="36.5" width="10" height="7" rx="3"/>
+        <rect x="59" y="38" width="10" height="7" rx="3"/>
+        <rect x="14" y="64" width="10" height="7" rx="3"/>
+        <rect x="29" y="65" width="10" height="7" rx="3"/>
+        <rect x="44" y="65" width="10" height="7" rx="3"/>
+        <rect x="59" y="64" width="10" height="7" rx="3"/>
+        <rect x="3" y="51" width="6" height="11" rx="3"/>
+        <rect x="73" y="51" width="6" height="11" rx="3"/>
+      </svg>
+    ),
+
+    '\u05d7\u05dc\u05dc \u05e2\u05d1\u05d5\u05d3\u05d4 \u05de\u05e9\u05d5\u05ea\u05e3': (
+      <svg width="54" height="50" viewBox="0 0 82 76" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="2" width="78" height="72" rx="2"/>
+        <line x1="41" y1="2" x2="41" y2="74"/>
+        <line x1="2" y1="38" x2="80" y2="38"/>
+        <rect x="6" y="8" width="28" height="3" rx="1"/>
+        <line x1="10" y1="11" x2="10" y2="18"/>
+        <line x1="30" y1="11" x2="30" y2="18"/>
+        <rect x="8" y="5" width="10" height="3" rx="0.5"/>
+        <rect x="45" y="8" width="28" height="3" rx="1"/>
+        <line x1="49" y1="11" x2="49" y2="18"/>
+        <line x1="69" y1="11" x2="69" y2="18"/>
+        <rect x="47" y="5" width="10" height="3" rx="0.5"/>
+        <rect x="6" y="44" width="28" height="3" rx="1"/>
+        <line x1="10" y1="47" x2="10" y2="54"/>
+        <line x1="30" y1="47" x2="30" y2="54"/>
+        <rect x="8" y="41" width="10" height="3" rx="0.5"/>
+        <rect x="45" y="44" width="28" height="3" rx="1"/>
+        <line x1="49" y1="47" x2="49" y2="54"/>
+        <line x1="69" y1="47" x2="69" y2="54"/>
+        <rect x="47" y="41" width="10" height="3" rx="0.5"/>
+      </svg>
+    ),
+
     '\u05e1\u05d8\u05d5\u05d3\u05d9\u05d5':        <svg {...sp}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
     '\u05d7\u05d3\u05e8 \u05d4\u05d3\u05e8\u05db\u05d4':   <svg {...sp}><path d="M2 3h20v13H2z"/><path d="M8 21h8M12 16v5"/></svg>,
   }
