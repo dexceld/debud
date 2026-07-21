@@ -27,7 +27,7 @@ export type Booking = {
   renterEmail: string; renterPhone: string; startDate: string; endDate: string
   totalDays: number; totalAmount: number; status: BookingStatus; notes: string; createdAt: string
 }
-type Settings = { businessName: string; phone: string; paymentInfo: string; logoUrl?: string; slogan?: string; colorFrom?: string; colorTo?: string; colorAccent?: string }
+type Settings = { businessName: string; phone: string; paymentInfo: string; logoUrl?: string; slogan?: string; colorFrom?: string; colorTo?: string; colorAccent?: string; officeTypeImages?: Record<string, string> }
 
 interface Props { uid: string }
 
@@ -346,6 +346,19 @@ export function OfficeRentalAdmin({ uid }: Props) {
                   ))}
                 </div>
                 <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 6 }}>💡 כותרת התחלה עד סיום = gradient בכותרת. כפתורים = צבע הדגשה.</div>
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={label}>🖼️ איורים לסוגי משרדים</label>
+                <div style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 10, lineHeight: 1.5 }}>הכנס קישור Google Drive לאיור של כל סוג. האיור יוצג בתפריט הסינון בדף ההזמנות.</div>
+                {OFFICE_TYPES.map(type => (
+                  <div key={type} style={{ marginBottom: 10 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>{type}</div>
+                    <input style={input}
+                      value={(settings.officeTypeImages || {})[type] || ''}
+                      onChange={e => setSettings(s => ({ ...s, officeTypeImages: { ...(s.officeTypeImages || {}), [type]: e.target.value } }))}
+                      placeholder="קישור Google Drive לאיור..." />
+                  </div>
+                ))}
               </div>
               <button onClick={saveSettings} style={{ ...btn('#6366F1'), width: '100%' }}>
                 {savingSettings ? 'שומר...' : '💾 שמירת הגדרות'}
