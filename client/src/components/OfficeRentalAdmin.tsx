@@ -21,11 +21,12 @@ export type Office = {
   capacity: number; amenities: string; color: string; isActive: boolean
   images?: string[]; videoUrl?: string; officeType?: string
 }
-export type BookingStatus = 'pending_approval' | 'confirmed' | 'rejected' | 'cancelled'
+export type BookingStatus = 'pending_approval' | 'pending_payment' | 'confirmed' | 'paid' | 'rejected' | 'cancelled'
 export type Booking = {
   id: string; officeId: string; officeName: string; renterName: string
   renterEmail: string; renterPhone: string; startDate: string; endDate: string
   totalDays: number; totalAmount: number; status: BookingStatus; notes: string; createdAt: string
+  bookingRef?: string
 }
 type Settings = { businessName: string; phone: string; paymentInfo: string; logoUrl?: string; slogan?: string; colorFrom?: string; colorTo?: string; colorAccent?: string; officeTypeImages?: Record<string, string> }
 
@@ -43,11 +44,52 @@ export const PALETTES = [
   { id: 'rose',   label: 'ורוד',   from: '#BE185D', to: '#EC4899', accent: '#BE185D' },
 ]
 const STATUS_LABEL: Record<BookingStatus, string> = {
-  pending_approval: '⏳ ממתין לאישור', confirmed: '✅ מאושר',
-  rejected: '❌ נדחה', cancelled: '🚫 בוטל'
+  pending_approval: '⏳ ממתין לאישור',
+  pending_payment:  '💳 ממתין לתשלום',
+  confirmed:        '✅ אושר ושולם',
+  paid:             '💰 שולם',
+  rejected:         '❌ נדחה',
+  cancelled:        '🚫 בוטל'
 }
 const STATUS_BG: Record<BookingStatus, string> = {
-  pending_approval: '#FEF3C7', confirmed: '#D1FAE5', rejected: '#FEE2E2', cancelled: '#F3F4F6'
+  pending_approval: '#FEF3C7',
+  pending_payment:  '#DBEAFE',
+  confirmed:        '#D1FAE5',
+  paid:             '#D1FAE5',
+  rejected:         '#FEE2E2',
+  cancelled:        '#F3F4F6'
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function waPhone(raw: string) {
+  const d = raw.replace(/\D/g, '')
+  return d.startsWith('0') ? '972' + d.slice(1) : d
+}
+function sendWhatsApp(phone: string, msg: string) {
+  window.open(`https://wa.me/${waPhone(phone)}?text=${encodeURIComponent(msg)}`, '_blank')
+}
+function notifyApproval(b: Booking, paymentInfo: string) {
+  sendWhatsApp(b.renterPhone,
+    `שלום ${b.renterName} 👋\n` +
+    `הזמנתך ל${b.officeName} אושרה! 🎉\n` +
+    `📅 תאריכים: ${b.startDate}${b.endDate !== b.startDate ? ' – ' + b.endDate : ''}\n` +
+    `💰 סך עלייך: ₪${b.totalAmount.toLocaleString('he-IL')}\n` +
+    (b.bookingRef ? `🔖 מספר הזמנה: ${b.bookingRef}\n` : '') +
+    `\nלאחר העברת תשלום – המשרד ישוריין עבורך ✅\n` +
+    `פרטי תשלום:\n${paymentInfo || 'פנה/י אלינו לפרטים'}`
+  )
+}
+function sendPaymentRequest(b: Booking, businessPhone: string) {
+  sendWhatsApp(b.renterPhone,
+    `שלום ${b.renterName},\n` +
+    `בקשת תשלום עבור הזמנה ${b.bookingRef ? '#' + b.bookingRef : ''}:\n\n` +
+    `🏢 ${b.officeName}\n` +
+    `📅 ${b.startDate}${b.endDate !== b.startDate ? ' – ' + b.endDate : ''}\n` +
+    `💳 לתשלום: ₪${b.totalAmount.toLocaleString('he-IL')}\n\n` +
+    `לתשלום בביט: 📲 ${businessPhone}\n` +
+    `(סכום: ${b.totalAmount} שקל)\n\n` +
+    `לאחר התשלום המשרד ישוריין עבורך ✅`
+  )
 }
 
 const btn = (bg: string, color = 'white'): React.CSSProperties => ({
@@ -66,7 +108,7 @@ const label: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: '#374
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export function OfficeRentalAdmin({ uid }: Props) {
-  const [tab, setTab] = useState<'offices' | 'bookings' | 'settings'>('offices')
+  const [tab, setTab] = useState<'offices' | 'bookings' | 'availability' | 'settings'>('offices')
   const [offices, setOffices] = useState<Office[]>([])
   const [bookings, setBookings] = useState<Booking[]>([])
   const [settings, setSettings] = useState<Settings>({ businessName: '', phone: '', paymentInfo: '' })
@@ -163,10 +205,12 @@ export function OfficeRentalAdmin({ uid }: Props) {
   const pendingCount = bookings.filter(b => b.status === 'pending_approval').length
 
   // ─── Tabs ─────────────────────────────────────────────────────────────────
+  const pendingPaymentCount = bookings.filter(b => b.status === 'pending_payment').length
   const tabs = [
-    { id: 'offices', label: '🏢 משרדים' },
-    { id: 'bookings', label: `📅 הזמנות${pendingCount ? ` (${pendingCount})` : ''}` },
-    { id: 'settings', label: '⚙️ הגדרות' },
+    { id: 'offices',      label: '🏢 משרדים' },
+    { id: 'bookings',     label: `📅 הזמנות${pendingCount || pendingPaymentCount ? ` (${pendingCount + pendingPaymentCount})` : ''}` },
+    { id: 'availability', label: '🗓️ זמינות' },
+    { id: 'settings',     label: '⚙️ הגדרות' },
   ] as const
 
   return (
@@ -239,7 +283,7 @@ export function OfficeRentalAdmin({ uid }: Props) {
         {tab === 'bookings' && (
           <div>
             <div style={{ display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
-              {(['all', 'pending_approval', 'confirmed', 'rejected'] as const).map(f => (
+              {(['all', 'pending_approval', 'pending_payment', 'confirmed', 'rejected'] as const).map(f => (
                 <button key={f} onClick={() => setBookingFilter(f)} style={{
                   padding: '6px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
                   fontWeight: 700, fontSize: 12,
@@ -247,7 +291,10 @@ export function OfficeRentalAdmin({ uid }: Props) {
                   color: bookingFilter === f ? 'white' : '#6B7280'
                 }}>
                   {f === 'all' ? `הכל (${bookings.length})` : STATUS_LABEL[f]}
-                  {f === 'pending_approval' && pendingCount > 0 && <span style={{ background: '#EF4444', color: 'white', borderRadius: 99, padding: '1px 6px', fontSize: 11, marginRight: 4 }}>{pendingCount}</span>}
+                  {f === 'pending_approval' && pendingCount > 0 &&
+                    <span style={{ background: '#EF4444', color: 'white', borderRadius: 99, padding: '1px 6px', fontSize: 11, marginRight: 4 }}>{pendingCount}</span>}
+                  {f === 'pending_payment' && pendingPaymentCount > 0 &&
+                    <span style={{ background: '#3B82F6', color: 'white', borderRadius: 99, padding: '1px 6px', fontSize: 11, marginRight: 4 }}>{pendingPaymentCount}</span>}
                 </button>
               ))}
             </div>
@@ -259,34 +306,126 @@ export function OfficeRentalAdmin({ uid }: Props) {
               </div>
             )}
 
-            {filteredBookings.map(b => (
-              <div key={b.id} style={{ ...card, borderRight: `4px solid ${b.status === 'confirmed' ? '#10B981' : b.status === 'rejected' ? '#EF4444' : '#F59E0B'}` }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <span style={{ fontWeight: 800, fontSize: 15 }}>{b.renterName}</span>
-                  <span style={{ background: STATUS_BG[b.status], color: '#1F2937', borderRadius: 6, padding: '3px 8px', fontSize: 12, fontWeight: 700 }}>
-                    {STATUS_LABEL[b.status]}
-                  </span>
-                </div>
-                <div style={{ fontSize: 13, color: '#6B7280', lineHeight: 1.8 }}>
-                  <div>🏢 {b.officeName}</div>
-                  <div>📅 {b.startDate} → {b.endDate} ({b.totalDays} ימים)</div>
-                  <div>💰 ₪{b.totalAmount.toLocaleString('he-IL')}</div>
-                  <div>📞 {b.renterPhone}</div>
-                  {b.renterEmail && <div>✉️ {b.renterEmail}</div>}
-                  {b.notes && <div>📝 {b.notes}</div>}
-                </div>
-                {b.status === 'pending_approval' && (
-                  <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-                    <button onClick={() => updateBookingStatus(b.id, 'confirmed')}
-                      style={{ ...btn('#10B981'), flex: 1 }}>✅ אשר הזמנה</button>
-                    <button onClick={() => updateBookingStatus(b.id, 'rejected')}
-                      style={{ ...btn('#EF4444'), flex: 1 }}>❌ דחה</button>
+            {filteredBookings.map(b => {
+              const borderColor = b.status === 'confirmed' || b.status === 'paid' ? '#10B981'
+                : b.status === 'pending_payment' ? '#3B82F6'
+                : b.status === 'rejected' ? '#EF4444' : '#F59E0B'
+              return (
+                <div key={b.id} style={{ ...card, borderRight: `4px solid ${borderColor}` }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, flexWrap: 'wrap', gap: 6 }}>
+                    <div>
+                      <span style={{ fontWeight: 800, fontSize: 15 }}>{b.renterName}</span>
+                      {b.bookingRef && <span style={{ marginRight: 8, fontSize: 11, color: '#6B7280', background: '#F3F4F6', borderRadius: 4, padding: '2px 6px' }}># {b.bookingRef}</span>}
+                    </div>
+                    <span style={{ background: STATUS_BG[b.status], color: '#1F2937', borderRadius: 6, padding: '3px 8px', fontSize: 12, fontWeight: 700 }}>
+                      {STATUS_LABEL[b.status]}
+                    </span>
                   </div>
-                )}
-              </div>
-            ))}
+                  <div style={{ fontSize: 13, color: '#6B7280', lineHeight: 1.8 }}>
+                    <div>🏢 {b.officeName}</div>
+                    <div>📅 {b.startDate}{b.endDate !== b.startDate ? ` → ${b.endDate}` : ''} ({b.totalDays} ימים)</div>
+                    <div>💰 ₪{b.totalAmount.toLocaleString('he-IL')}</div>
+                    <div>📞 {b.renterPhone}</div>
+                    {b.renterEmail && <div>✉️ {b.renterEmail}</div>}
+                    {b.notes && <div>📝 {b.notes}</div>}
+                  </div>
+
+                  {/* pending_approval actions */}
+                  {b.status === 'pending_approval' && (
+                    <div style={{ marginTop: 10 }}>
+                      <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                        <button onClick={async () => {
+                          await updateBookingStatus(b.id, 'pending_payment')
+                          notifyApproval(b, settings.paymentInfo)
+                        }} style={{ ...btn('#10B981'), flex: 1 }}>✅ אשר + שלח ווצאפ</button>
+                        <button onClick={() => updateBookingStatus(b.id, 'rejected')}
+                          style={{ ...btn('#EF4444'), flex: 1 }}>❌ דחה</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* pending_payment actions */}
+                  {b.status === 'pending_payment' && (
+                    <div style={{ marginTop: 10 }}>
+                      <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
+                        <button onClick={() => updateBookingStatus(b.id, 'confirmed')}
+                          style={{ ...btn('#10B981'), flex: 1 }}>💰 סמן כשולם</button>
+                        <button onClick={() => sendPaymentRequest(b, settings.phone || '')}
+                          style={{ ...btn('#3B82F6'), flex: 1 }}>💳 בקש תשלום (ביט)</button>
+                      </div>
+                      <button onClick={() => notifyApproval(b, settings.paymentInfo)}
+                        style={{ ...btn('#F3F4F6', '#374151'), width: '100%', fontSize: 13 }}>
+                        🔁 שלח תזכורת תשלום (ווצאפ)
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
         )}
+
+        {/* ── Availability Tab ── */}
+        {tab === 'availability' && (() => {
+          const today = new Date(); today.setHours(0,0,0,0)
+          const days = Array.from({ length: 21 }, (_, i) => {
+            const d = new Date(today); d.setDate(today.getDate() + i)
+            return d.toISOString().slice(0, 10)
+          })
+          const activeBookings = bookings.filter(b => b.status !== 'rejected' && b.status !== 'cancelled')
+          const getStatus = (officeId: string, day: string): BookingStatus | null => {
+            const bk = activeBookings.find(b => b.officeId === officeId && day >= b.startDate && day <= b.endDate)
+            return bk ? bk.status : null
+          }
+          const cellColor: Record<BookingStatus, string> = {
+            pending_approval: '#FCD34D',
+            pending_payment:  '#93C5FD',
+            confirmed:        '#6EE7B7',
+            paid:             '#6EE7B7',
+            rejected:         '#FCA5A5',
+            cancelled:        '#E5E7EB'
+          }
+          return (
+            <div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14, fontSize: 12 }}>
+                {([['pending_approval','#FCD34D','ממתין לאישור'],['pending_payment','#93C5FD','ממתין לתשלום'],['confirmed','#6EE7B7','מאושר/שולם']] as [string,string,string][]).map(([,c,l]) => (
+                  <span key={l} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ width: 14, height: 14, background: c, borderRadius: 3, display: 'inline-block' }}/>{l}
+                  </span>
+                ))}
+              </div>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ borderCollapse: 'collapse', fontSize: 12, minWidth: '100%' }}>
+                  <thead>
+                    <tr>
+                      <th style={{ padding: '6px 10px', background: '#F9FAFB', textAlign: 'right', position: 'sticky', right: 0, borderBottom: '1px solid #E5E7EB', minWidth: 100 }}>משרד</th>
+                      {days.map(d => (
+                        <th key={d} style={{ padding: '4px 6px', background: '#F9FAFB', borderBottom: '1px solid #E5E7EB', whiteSpace: 'nowrap', textAlign: 'center', minWidth: 38, fontWeight: d === today.toISOString().slice(0,10) ? 800 : 600, color: d === today.toISOString().slice(0,10) ? '#4F46E5' : '#374151' }}>
+                          {d.slice(5).replace('-','/')}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {offices.map(o => (
+                      <tr key={o.id}>
+                        <td style={{ padding: '6px 10px', fontWeight: 700, background: 'white', position: 'sticky', right: 0, borderBottom: '1px solid #F3F4F6', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.name}</td>
+                        {days.map(d => {
+                          const st = getStatus(o.id, d)
+                          return (
+                            <td key={d} style={{ borderBottom: '1px solid #F3F4F6', textAlign: 'center', padding: 0 }}>
+                              {st && <div style={{ background: cellColor[st], height: 28, margin: '2px', borderRadius: 4 }} title={STATUS_LABEL[st]} />}
+                            </td>
+                          )
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )
+        })()}
 
         {/* ── Settings Tab ── */}
         {tab === 'settings' && (

@@ -37,7 +37,7 @@ function getDatesInRange(start: string, end: string): string[] {
 
 function buildBookedSet(bookings: Booking[], officeId: string): Set<string> {
   const set = new Set<string>()
-  bookings.filter(b => b.officeId === officeId && (b.status === 'confirmed' || b.status === 'pending_approval'))
+  bookings.filter(b => b.officeId === officeId && (b.status === 'confirmed' || b.status === 'pending_approval' || b.status === 'pending_payment' || b.status === 'paid'))
     .forEach(b => getDatesInRange(b.startDate, b.endDate).forEach(d => set.add(d)))
   return set
 }
@@ -190,6 +190,7 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
   const [bookingId, setBookingId] = useState<string | null>(null)
+  const [submittedRef, setSubmittedRef] = useState<string | null>(null)
 
   // ── Browser history: replace initial entry and listen for back ──────────────
   useEffect(() => {
@@ -258,6 +259,9 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
     if (!form.name || !form.phone) { alert('נא למלא שם וטלפון'); return }
     setSubmitting(true)
     try {
+      const now = new Date()
+      const bookingRef = `BK-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${Math.random().toString(36).slice(2,6).toUpperCase()}`
+      setSubmittedRef(bookingRef)
       const docRef = await addDoc(collection(db, 'officeSpaces', ownerId, 'bookings'), {
         officeId: selectedOffice.id,
         officeName: selectedOffice.name,
@@ -270,6 +274,7 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
         totalAmount,
         notes: form.notes,
         status: 'pending_approval',
+        bookingRef,
         createdAt: new Date().toISOString()
       })
       setBookingId(docRef.id)
@@ -690,18 +695,17 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
         {step === 'confirm' && (
           <div style={{ textAlign: 'center', paddingTop: 40 }}>
             <div style={{ fontSize: 64, marginBottom: 16 }}>🎉</div>
-            <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1F2937', marginBottom: 8 }}>הבקשה נשלחה!</h2>
-            <p style={{ color: '#6B7280', fontSize: 15, lineHeight: 1.6, marginBottom: 24 }}>
-              בקשת ההזמנה שלך התקבלה ותטופל בהקדם.<br />
-              תקבל אישור סופי לאחר אישור בעל המשרד.
-            </p>
-            {settings.paymentInfo && (
-              <div style={{ ...cardStyle, background: '#FFFBEB', textAlign: 'right' }}>
-                <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 6, color: '#92400E' }}>💳 לתשלום</div>
-                <div style={{ fontSize: 13, color: '#78350F', whiteSpace: 'pre-line' }}>{settings.paymentInfo}</div>
-                <div style={{ fontWeight: 800, color: '#1F2937', marginTop: 8 }}>סכום: ₪{totalAmount.toLocaleString('he-IL')}</div>
+            <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1F2937', marginBottom: 8 }}>בקשתך התקבלה!</h2>
+            {submittedRef && (
+              <div style={{ display: 'inline-block', background: '#EEF2FF', color: '#4338CA', borderRadius: 8, padding: '6px 16px', fontSize: 14, fontWeight: 700, marginBottom: 16 }}>
+                מספר הזמנה: {submittedRef}
               </div>
             )}
+            <p style={{ color: '#6B7280', fontSize: 15, lineHeight: 1.7, marginBottom: 24 }}>
+              בקשתך נשלחה לבעל המשרד.<br />
+              לאחר אישור תקבל/י הודעה בווצאפ עם פרטי תשלום.<br />
+              לאחר העברת תשלום המשרד ישוריין עבורך.
+            </p>
             {settings.phone && (
               <a href={`tel:${settings.phone}`} style={{
                 display: 'block', background: '#10B981', color: 'white', borderRadius: 12,
