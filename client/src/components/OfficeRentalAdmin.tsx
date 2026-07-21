@@ -46,7 +46,7 @@ export const PALETTES = [
 const STATUS_LABEL: Record<BookingStatus, string> = {
   pending_approval: '⏳ ממתין לאישור',
   pending_payment:  '💳 ממתין לתשלום',
-  confirmed:        '✅ אושר ושולם',
+  confirmed:        '✅ שולם ומאושר',
   paid:             '💰 שולם',
   rejected:         '❌ נדחה',
   cancelled:        '🚫 בוטל'
@@ -71,11 +71,12 @@ function sendWhatsApp(phone: string, msg: string) {
 function notifyApproval(b: Booking, paymentInfo: string) {
   sendWhatsApp(b.renterPhone,
     `שלום ${b.renterName} 👋\n` +
-    `הזמנתך ל${b.officeName} אושרה! 🎉\n` +
+    `בקשתך ל${b.officeName} אושרה עקרונית! 🎉\n` +
     `📅 תאריכים: ${b.startDate}${b.endDate !== b.startDate ? ' – ' + b.endDate : ''}\n` +
-    `💰 סך עלייך: ₪${b.totalAmount.toLocaleString('he-IL')}\n` +
+    `💰 סך לתשלום: ₪${b.totalAmount.toLocaleString('he-IL')}\n` +
     (b.bookingRef ? `🔖 מספר הזמנה: ${b.bookingRef}\n` : '') +
-    `\nלאחר העברת תשלום – המשרד ישוריין עבורך ✅\n` +
+    `\n⚠️ שים לב – המשרד אינו שמור עד ביצוע התשלום.\n` +
+    `לאחר העברת תשלום – המשרד ישוריין עבורך ✅\n\n` +
     `פרטי תשלום:\n${paymentInfo || 'פנה/י אלינו לפרטים'}`
   )
 }
@@ -347,16 +348,25 @@ export function OfficeRentalAdmin({ uid }: Props) {
                   {/* pending_payment actions */}
                   {b.status === 'pending_payment' && (
                     <div style={{ marginTop: 10 }}>
+                      <div style={{ background: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 8, padding: '8px 12px', marginBottom: 8, fontSize: 12, color: '#92400E' }}>
+                        ⚠️ המשרד אינו משוריין עד לאחר אישור תשלום
+                      </div>
                       <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
                         <button onClick={() => updateBookingStatus(b.id, 'confirmed')}
                           style={{ ...btn('#10B981'), flex: 1 }}>💰 סמן כשולם</button>
                         <button onClick={() => sendPaymentRequest(b, settings.phone || '')}
                           style={{ ...btn('#3B82F6'), flex: 1 }}>💳 בקש תשלום (ביט)</button>
                       </div>
-                      <button onClick={() => notifyApproval(b, settings.paymentInfo)}
-                        style={{ ...btn('#F3F4F6', '#374151'), width: '100%', fontSize: 13 }}>
-                        🔁 שלח תזכורת תשלום (ווצאפ)
-                      </button>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button onClick={() => notifyApproval(b, settings.paymentInfo)}
+                          style={{ ...btn('#F3F4F6', '#374151'), flex: 1, fontSize: 13 }}>
+                          🔁 תזכורת ווצאפ
+                        </button>
+                        <button onClick={() => { if (window.confirm('האם לבטל את האישור ולהחזיר את התאריכים לזמינים?')) updateBookingStatus(b.id, 'cancelled') }}
+                          style={{ ...btn('#F3F4F6', '#EF4444'), flex: 1, fontSize: 13 }}>
+                          🔙 בטל / החזר לזמין
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
