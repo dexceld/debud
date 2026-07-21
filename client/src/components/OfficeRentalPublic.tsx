@@ -303,6 +303,23 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
   )
 
   const accentColor = settings.colorAccent || PALETTES[0].accent
+  const colorFrom = settings.colorFrom || 'white'
+  const colorTo   = settings.colorTo   || colorFrom
+  const headerBg = colorFrom === 'white'
+    ? 'white'
+    : `linear-gradient(135deg, ${colorFrom}, ${colorTo})`
+  // Detect luminance: returns true if the color is light
+  const isLight = (hex: string) => {
+    const h = hex.replace('#', '')
+    if (h.length < 6) return true
+    const r = parseInt(h.slice(0,2), 16)
+    const g = parseInt(h.slice(2,4), 16)
+    const b = parseInt(h.slice(4,6), 16)
+    return (r * 299 + g * 587 + b * 114) / 1000 > 140
+  }
+  const lightHeader = isLight(colorFrom)
+  const headerFg = lightHeader ? '#111827' : 'white'
+  const headerSubFg = lightHeader ? '#6B7280' : 'rgba(255,255,255,0.75)'
 
   const spaceTypes = Array.from(new Set(offices.filter(o => o.officeType).map(o => o.officeType!)))
   const typeIcon = (type: string, fallback: React.ReactElement): React.ReactElement => {
@@ -438,7 +455,7 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
     <div style={{ minHeight: '100dvh', background: '#F7F8FA', direction: 'rtl', fontFamily: "Tahoma, 'Segoe UI', sans-serif" }}>
 
       {/* \u2500\u2500 Minimal White Header \u2500\u2500 */}
-      <header style={{ background: 'white', borderBottom: '1px solid #F0F0F0', position: 'sticky', top: 0, zIndex: 100 }}>
+      <header style={{ background: headerBg, borderBottom: lightHeader ? '1px solid #F0F0F0' : 'none', position: 'sticky', top: 0, zIndex: 100 }}>
         {/* Use direction:ltr so logo is physically LEFT and nav is physically RIGHT */}
         <div style={{ direction: 'ltr', maxWidth: 1200, margin: '0 auto', padding: '0 28px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 
@@ -446,7 +463,7 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
           <div>
             {settings.logoUrl
               ? <img src={normalizeImageUrl(settings.logoUrl)} alt="logo" style={{ height: 42, maxWidth: 180, objectFit: 'contain' }} />
-              : <span style={{ fontWeight: 800, fontSize: 19, color: '#111827', letterSpacing: -0.3 }}>{settings.businessName || '\u05d4\u05e9\u05db\u05e8\u05ea \u05de\u05e9\u05e8\u05d3\u05d9\u05dd'}</span>
+              : <span style={{ fontWeight: 800, fontSize: 19, color: headerFg, letterSpacing: -0.3 }}>{settings.businessName || '\u05d4\u05e9\u05db\u05e8\u05ea \u05de\u05e9\u05e8\u05d3\u05d9\u05dd'}</span>
             }
           </div>
 
@@ -457,12 +474,12 @@ export function OfficeRentalPublic({ ownerId }: { ownerId: string }) {
               <div ref={dropdownRef} style={{ position: 'relative' }}>
                 <button onClick={() => setDropdownOpen(d => !d)} style={{
                   background: 'none', border: 'none', cursor: 'pointer',
-                  fontWeight: 600, fontSize: 15, color: dropdownOpen ? accentColor : '#374151',
+                  fontWeight: 600, fontSize: 15, color: dropdownOpen ? (lightHeader ? accentColor : 'white') : headerFg,
                   display: 'flex', alignItems: 'center', gap: 5, padding: '4px 0',
                   fontFamily: 'inherit', direction: 'rtl'
                 }}>
                   {'סוגי משרדים'}
-                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0, transform: dropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', color: '#9CA3AF' }}>
+                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0, transform: dropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', color: headerSubFg }}>
                     <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </button>
