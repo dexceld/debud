@@ -21,6 +21,9 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Install Android SDK Platform 36
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
 
@@ -58,8 +61,8 @@ jobs:
             spawn bubblewrap build
             expect {
               -re {\(Y/n\)} { send "Y\r"; exp_continue }
-              -re {versionName} { send "1.0.3\r"; exp_continue }
-              -re {versionCode} { send "5\r"; exp_continue }
+              -re {versionName} { send "1.0.4\r"; exp_continue }
+              -re {versionCode} { send "6\r"; exp_continue }
               -nocase -re {password} { send "$kspass\r"; exp_continue }
               timeout { puts "EXPECT_TIMEOUT"; exit 1 }
               eof {}
