@@ -51,25 +51,81 @@ jobs:
       - name: Install expect
         run: sudo apt-get install -y expect
 
-      - name: Build AAB
+      - name: Generate Android Project (bubblewrap update)
         run: |
           KS_CLEAN=$(printf '%s' "$KS_PASS" | tr -d '\r\n')
           export KS_CLEAN
           expect << 'EXPECT_EOF'
-            set timeout 600
+            set timeout 300
             set kspass $::env(KS_CLEAN)
-            spawn bubblewrap build
+            spawn bubblewrap update --skipPwaValidation
             expect {
               -re {\(Y/n\)} { send "Y\r"; exp_continue }
               -re {versionName} { send "1.0.4\r"; exp_continue }
               -re {versionCode} { send "6\r"; exp_continue }
               -nocase -re {password} { send "$kspass\r"; exp_continue }
-              timeout { puts "EXPECT_TIMEOUT"; exit 1 }
+              timeout { puts "TIMEOUT_IGNORED" }
               eof {}
             }
-            lassign [wait] pid spawnid os_error_flag value
-            exit $value
           EXPECT_EOF
+          echo "Project generated (or already exists)"
+        env:
+          KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
+
+      - name: Enable R8 + Edge-to-Edge optimizations
+        run: |
+          GRADLE="android-project/app/build.gradle"
+          if [ -f "$GRADLE" ]; then
+            echo "=== Original release buildType ==="
+            grep -A5 "release {" "$GRADLE" || true
+
+            # Enable R8 minification
+            sed -i 's/minifyEnabled false/minifyEnabled true/g' "$GRADLE"
+            # Enable resource shrinking
+            sed -i 's/shrinkResources false/shrinkResources true/g' "$GRADLE"
+
+            echo "=== Updated release buildType ==="
+            grep -A5 "release {" "$GRADLE" || true
+
+            # Enable R8 full mode for better optimization
+            PROPS="android-project/gradle.properties"
+            echo "android.enableR8.fullMode=true" >> "$PROPS"
+            echo "android.nonTransitiveRClass=true" >> "$PROPS"
+            echo "R8 optimization enabled"
+          else
+            echo "build.gradle not found – will fall back to bubblewrap build"
+          fi
+
+      - name: Build AAB with Gradle
+        run: |
+          if [ -d android-project ]; then
+            cd android-project
+            chmod +x gradlew
+            ./gradlew bundleRelease \
+              "-Pandroid.injected.signing.store.file=$(pwd)/../android.keystore" \
+              "-Pandroid.injected.signing.store.password=$KS_PASS" \
+              "-Pandroid.injected.signing.key.alias=my-key-alias" \
+              "-Pandroid.injected.signing.key.password=$KS_PASS"
+          else
+            echo "Falling back to bubblewrap build"
+            KS_CLEAN=$(printf '%s' "$KS_PASS" | tr -d '\r\n')
+            export KS_CLEAN
+            expect << 'EXPECT_EOF'
+              set timeout 600
+              set kspass $::env(KS_CLEAN)
+              spawn bubblewrap build
+              expect {
+                -re {\(Y/n\)} { send "Y\r"; exp_continue }
+                -re {versionName} { send "1.0.4\r"; exp_continue }
+                -re {versionCode} { send "6\r"; exp_continue }
+                -nocase -re {password} { send "$kspass\r"; exp_continue }
+                timeout { puts "EXPECT_TIMEOUT"; exit 1 }
+                eof {}
+              }
+              lassign [wait] pid spawnid os_error_flag value
+              exit $value
+            EXPECT_EOF
+          fi
         env:
           KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
 
