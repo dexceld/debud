@@ -51,6 +51,12 @@ jobs:
       - name: Install expect
         run: sudo apt-get install -y expect
 
+      - name: Pre-place google-services.json
+        run: |
+          mkdir -p android-project/app
+          cp android-config/google-services.json android-project/app/google-services.json
+          echo "google-services.json placed in android-project/app/"
+
       - name: Build AAB
         run: |
           KS_CLEAN=$(printf '%s' "$KS_PASS" | tr -d '\r\n')

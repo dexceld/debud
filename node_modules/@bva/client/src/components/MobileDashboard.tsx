@@ -4683,6 +4683,12 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
             )
             const allEntries = timeEntries
               .filter(e => visibleClients.has(e.clientId))
+              .filter(e => {
+                if (clientFromDate && e.startDate < clientFromDate) return false
+                if (clientToDate && e.startDate > clientToDate) return false
+                if (clientStatusFilter !== 'all' && (e.billingStatus || 'pending') !== clientStatusFilter) return false
+                return true
+              })
               .sort((a, b) => {
                 const ka = `${a.startDate}T${a.startTime}`
                 const kb = `${b.startDate}T${b.startTime}`
@@ -5494,28 +5500,37 @@ export default function MobileDashboard({ uid, userEmail, userPhoto, isLocalMode
           display: 'flex', justifyContent: 'space-around', alignItems: 'center',
           padding: '0 8px', zIndex: 100
         }}>
-          <button onClick={() => { if (timeTrackingTab === 'summary') setSummaryDatePickerOpen(true) }}
+          <button onClick={() => {
+              if (timeTrackingTab === 'summary') setSummaryDatePickerOpen(true)
+              else if (timeTrackingTab === 'clients' && clientsViewMode === 'chronological') setClientDatePickerOpen(true)
+            }}
             style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',
-              opacity: timeTrackingTab === 'summary' ? 1 : 0.3,
-              color: summaryFromDate ? '#1d4ed8' : '#374151'}}>
+              opacity: (timeTrackingTab === 'summary' || (timeTrackingTab === 'clients' && clientsViewMode === 'chronological')) ? 1 : 0.3,
+              color: (timeTrackingTab === 'summary' ? summaryFromDate : clientFromDate) ? '#1d4ed8' : '#374151'}}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
               <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
             </svg>
             <span style={{fontSize:'11px',fontWeight:500}}>{t('date')}</span>
           </button>
-          <button onClick={() => { if (timeTrackingTab === 'summary') { setTempSummaryClient(summaryClientFilter); setTempSummaryStatus(summaryStatusFilter); setSummaryFilterSheetOpen(true) } }}
+          <button onClick={() => {
+              if (timeTrackingTab === 'summary') { setTempSummaryClient(summaryClientFilter); setTempSummaryStatus(summaryStatusFilter); setSummaryFilterSheetOpen(true) }
+              else if (timeTrackingTab === 'clients' && clientsViewMode === 'chronological') { setTempClientStatus(clientStatusFilter); setClientFilterSheetOpen(true) }
+            }}
             style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',
-              opacity: timeTrackingTab === 'summary' ? 1 : 0.3,
-              color: summaryStatusFilter !== 'all' ? '#1d4ed8' : '#374151'}}>
+              opacity: (timeTrackingTab === 'summary' || (timeTrackingTab === 'clients' && clientsViewMode === 'chronological')) ? 1 : 0.3,
+              color: (timeTrackingTab === 'summary' ? summaryStatusFilter : clientStatusFilter) !== 'all' ? '#1d4ed8' : '#374151'}}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
             </svg>
             <span style={{fontSize:'11px',fontWeight:500}}>{t('filter')}</span>
           </button>
-          <button onClick={() => { if (timeTrackingTab === 'summary') setSummaryShareOpen(true) }}
+          <button onClick={() => {
+              if (timeTrackingTab === 'summary') setSummaryShareOpen(true)
+              else if (timeTrackingTab === 'clients' && clientsViewMode === 'chronological') setClientShareOpen(true)
+            }}
             style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',background:'none',border:'none',cursor:'pointer',
-              opacity: timeTrackingTab === 'summary' ? 1 : 0.3,
+              opacity: (timeTrackingTab === 'summary' || (timeTrackingTab === 'clients' && clientsViewMode === 'chronological')) ? 1 : 0.3,
               color:'#374151'}}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
